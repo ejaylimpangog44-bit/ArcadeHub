@@ -755,6 +755,190 @@
             background-color: #334155;
             transform: scale(1.05);
         }
+
+        /* --- ROBOT COMPANION STYLES --- */
+        .robot-container {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
+            filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.3));
+        }
+
+        .robot-container * {
+            pointer-events: auto;
+        }
+
+        .robot-antenna {
+            width: 4px;
+            height: 22px;
+            background-color: #00e5ff;
+            position: relative;
+            box-shadow: 0 0 8px #00e5ff;
+        }
+        .robot-antenna::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -5px;
+            width: 14px;
+            height: 14px;
+            background-color: #00e5ff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00e5ff;
+        }
+
+        .robot-head {
+            width: 110px;
+            height: 75px;
+            background-color: #0a1128;
+            border: 3px solid #00e5ff;
+            border-radius: 16px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.4);
+        }
+
+        .ear {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 18px;
+            border: 2px solid #00e5ff;
+            background-color: #0a1128;
+        }
+        .ear.left { left: -11px; border-radius: 4px 0 0 4px; }
+        .ear.right { right: -11px; border-radius: 0 4px 4px 0; }
+
+        .eye-socket {
+            width: 28px;
+            height: 28px;
+            background-color: #020617;
+            border: 2px solid #00e5ff;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 6px rgba(0, 229, 255, 0.6);
+        }
+
+        .eye-pupil {
+            width: 10px;
+            height: 10px;
+            background-color: #00e5ff;
+            border-radius: 50%;
+            position: absolute;
+            top: 9px;
+            left: 9px;
+            box-shadow: 0 0 8px #00e5ff;
+            transition: transform 0.05s ease-out;
+        }
+
+        .robot-mouth {
+            position: absolute;
+            bottom: 10px;
+            width: 45px;
+            height: 14px;
+            border: 2px solid #00e5ff;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: #020617;
+        }
+        .robot-mouth span {
+            width: 5px;
+            height: 5px;
+            background-color: #00e5ff;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #00e5ff;
+        }
+
+        .robot-neck {
+            width: 16px;
+            height: 12px;
+            background-color: #0a1128;
+            border-left: 3px solid #00e5ff;
+            border-right: 3px solid #00e5ff;
+            z-index: -1;
+        }
+
+        .robot-body {
+            width: 95px;
+            height: 70px;
+            background-color: #0a1128;
+            border: 3px solid #00e5ff;
+            border-radius: 14px;
+            position: relative;
+            box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.4);
+        }
+
+        .body-screen {
+            position: absolute;
+            top: 10px;
+            left: 8px;
+            width: 42px;
+            height: 34px;
+            background-color: #020617;
+            border: 2px solid #00e5ff;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        .heartbeat-line {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, transparent 40%, #00ffcc 50%, transparent 60%);
+            background-size: 200% 100%;
+            animation: pulse-line 2s linear infinite;
+            box-shadow: 0 0 6px #00ffcc;
+            clip-path: polygon(0% 50%, 20% 50%, 35% 20%, 45% 80%, 60% 30%, 70% 50%, 100% 50%);
+        }
+
+        @keyframes pulse-line {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; filter: drop-shadow(0 0 4px #00ffcc); }
+            100% { opacity: 0.6; }
+        }
+
+        .body-dial {
+            position: absolute;
+            top: 14px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #00e5ff;
+            border-radius: 50%;
+            background-color: #020617;
+            box-shadow: inset 0 0 4px #00e5ff;
+        }
+        .body-dial::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 9px;
+            width: 2px;
+            height: 8px;
+            background-color: #00e5ff;
+        }
+        .body-bolt {
+            position: absolute;
+            bottom: 6px;
+            width: 8px;
+            height: 8px;
+            border: 2px solid #00e5ff;
+            border-radius: 50%;
+        }
+        .left-bolt { left: 8px; }
+        .right-bolt { right: 8px; }
     </style>
 </head>
 <body>
@@ -778,7 +962,7 @@
 
     <!-- Main Categorized Menu View -->
     <div id="main-menu" class="view active">
-        
+
         <!-- Puzzle & Strategy -->
         <div class="category-section">
             <div class="category-title">Puzzle & Strategy</div>
@@ -1089,6 +1273,33 @@
             <div class="url-display" id="current-url-text">Loading URL...</div>
             <button class="close-modal-btn" onclick="closeQRModal()">Close</button>
         </div>
+    </div>
+
+    <!-- FLOATING ROBOT COMPANION (BOTTOM-RIGHT CORNER) -->
+    <div id="robot-companion" class="robot-container">
+      <div class="robot-antenna"></div>
+      <div class="robot-head">
+        <div class="ear left"></div>
+        <div class="ear right"></div>
+        <div class="eye-socket">
+          <div class="eye-pupil" id="left-pupil"></div>
+        </div>
+        <div class="eye-socket">
+          <div class="eye-pupil" id="right-pupil"></div>
+        </div>
+        <div class="robot-mouth">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="robot-neck"></div>
+      <div class="robot-body">
+        <div class="body-screen">
+          <div class="heartbeat-line"></div>
+        </div>
+        <div class="body-dial"></div>
+        <div class="body-bolt left-bolt"></div>
+        <div class="body-bolt right-bolt"></div>
+      </div>
     </div>
 
     <script>
@@ -1754,6 +1965,32 @@
             document.getElementById('candy-score').textContent = candyScore;
             renderCandyBoard();
         }
+
+        // --- MOUSE TRACKING SCRIPT FOR ROBOT EYES ---
+        document.addEventListener('mousemove', (e) => {
+          const leftPupil = document.getElementById('left-pupil');
+          const rightPupil = document.getElementById('right-pupil');
+          const headElement = document.querySelector('.robot-head');
+          
+          if (!headElement || !leftPupil || !rightPupil) return;
+
+          const headRect = headElement.getBoundingClientRect();
+          const centerX = headRect.left + headRect.width / 2;
+          const centerY = headRect.top + headRect.height / 2;
+          
+          const deltaX = e.clientX - centerX;
+          const deltaY = e.clientY - centerY;
+          const angle = Math.atan2(deltaY, deltaX);
+          
+          const maxDistance = 6; 
+          const distance = Math.min(maxDistance, Math.hypot(deltaX, deltaY) / 20);
+          
+          const moveX = Math.cos(angle) * distance;
+          const moveY = Math.sin(angle) * distance;
+          
+          leftPupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
+          rightPupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        });
     </script>
 </body>
 </html>
