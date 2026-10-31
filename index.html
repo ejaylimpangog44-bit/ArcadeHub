@@ -32,6 +32,51 @@
             align-items: center;
             justify-content: flex-start;
             padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* --- SPLASH SCREEN WITH CUSTOM IMAGE BACKGROUND --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(15, 23, 42, 0.2), rgba(15, 23, 42, 0.5)), url('1000029782_2.jpg') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 40px 20px;
+            z-index: 1000;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        #splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .enter-hub-btn {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            width: 100%;
+            max-width: 320px;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 25px;
+        }
+
+        .enter-hub-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.7);
         }
 
         header {
@@ -652,6 +697,11 @@
 </head>
 <body>
 
+    <!-- FULLSCREEN MOBILE SPLASH SCREEN WITH CUSTOM IMAGE -->
+    <div id="splash-screen">
+        <button class="enter-hub-btn" onclick="enterHub()">ENTER THE ARCADE HUB</button>
+    </div>
+
     <header>
         <div class="logo-container">
             <div class="arcade-logo">🎮</div>
@@ -689,7 +739,7 @@
         <div id="ttt-setup-screen" class="screen active">
             <h2>Tic-Tac-Toe</h2>
             <p style="margin: 8px 0 20px 0;">Configure your match settings</p>
-            
+
             <div class="setup-group">
                 <label class="setup-label">Game Mode</label>
                 <div class="setup-options-2">
@@ -754,7 +804,7 @@
                 <span class="prize-item" id="p2">🎁</span>
             </div>
         </div>
-        
+
         <div class="claw-controls">
             <button class="control-btn" onclick="moveClaw(-40)">⬅️ Left</button>
             <button class="action-btn" onclick="dropClaw()">⬇️ Drop</button>
@@ -769,7 +819,7 @@
     <div id="rpsgame-container" class="game-container">
         <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
         <h2>RPS Player vs Player</h2>
-        
+
         <div class="score-board">
             <div class="score-box">Player 1 <span id="rps-p1-score">0</span></div>
             <div class="score-box">Player 2 <span id="rps-p2-score">0</span></div>
@@ -817,7 +867,7 @@
     <div id="molegame-container" class="game-container">
         <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
         <h2>Whack-a-Mole</h2>
-        
+
         <div class="score-board" style="margin-top: 15px;">
             <div class="score-box">Score <span id="mole-score">0</span></div>
             <div class="score-box">Time <span id="mole-time">20</span>s</div>
@@ -857,7 +907,7 @@
     <div id="snakegame-container" class="game-container">
         <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
         <h2>Snake Game</h2>
-        
+
         <div class="score-board" style="margin-top: 15px;">
             <div class="score-box">Score <span id="snake-score">0</span></div>
             <div class="score-box">High <span id="snake-high">0</span></div>
@@ -881,7 +931,7 @@
     <div id="catchergame-container" class="game-container">
         <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
         <h2>Item Catcher</h2>
-        
+
         <div class="score-board" style="margin-top: 15px;">
             <div class="score-box">Caught <span id="catcher-score">0</span></div>
             <div class="score-box">Lives <span id="catcher-lives">3</span></div>
@@ -901,7 +951,7 @@
     <div id="candygame-container" class="game-container">
         <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
         <h2>Candy Match-3</h2>
-        
+
         <div class="score-board" style="margin-top: 15px;">
             <div class="score-box">Score <span id="candy-score">0</span></div>
             <div class="score-box">Moves <span id="candy-moves">20</span></div>
@@ -996,6 +1046,11 @@
             initSnakeCanvas();
             initCatcherCanvas();
         };
+
+        function enterHub() {
+            const splash = document.getElementById('splash-screen');
+            splash.classList.add('fade-out');
+        }
 
         function switchGame(gameKey, btnElement) {
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
@@ -1131,7 +1186,7 @@
         function drawWinLine(index) {
             const line = document.getElementById('win-line');
             const cells = document.getElementsByClassName('ttt-cell');
-            
+
             const firstCell = cells[winningConditions[index][0]].getBoundingClientRect();
             const lastCell = cells[winningConditions[index][2]].getBoundingClientRect();
             const boardRect = document.getElementById('ttt-board').getBoundingClientRect();
@@ -1287,7 +1342,7 @@
         function dropClaw() {
             if (isClawBusy) return;
             isClawBusy = true;
-            
+
             const claw = document.getElementById('claw');
             const msg = document.getElementById('claw-message');
             msg.textContent = "Dropping claw...";
@@ -1314,7 +1369,7 @@
                         prizeCount++;
                         document.getElementById('prize-count').textContent = prizeCount;
                         msg.textContent = "🎉 Success! You grabbed a prize!";
-                        
+
                         setTimeout(() => {
                             if (document.getElementById(`p${prizeIndex}`)) {
                                 document.getElementById(`p${prizeIndex}`).style.transform = "none";
@@ -1470,7 +1525,7 @@
                 reactionState = 'waiting';
                 box.className = 'reaction-box waiting';
                 text.textContent = 'Wait for green...';
-                
+
                 const randomTime = Math.floor(Math.random() * 2000) + 1500;
                 reactionTimeout = setTimeout(() => {
                     reactionState = 'ready';
@@ -1555,7 +1610,6 @@
             if (snakeDir === 'LEFT') head.x -= 20;
             if (snakeDir === 'RIGHT') head.x += 20;
 
-            // Check wall collision
             if (head.x < 0 || head.x >= 280 || head.y < 0 || head.y >= 280 || snake.some(part => part.x === head.x && part.y === head.y)) {
                 clearInterval(snakeInterval);
                 isSnakeRunning = false;
@@ -1565,7 +1619,6 @@
 
             snake.unshift(head);
 
-            // Check food collision
             if (head.x === snakeFood.x && head.y === snakeFood.y) {
                 snakeScore += 10;
                 document.getElementById('snake-score').textContent = snakeScore;
@@ -1586,11 +1639,9 @@
             snakeCtx.fillStyle = '#0f172a';
             snakeCtx.fillRect(0, 0, 280, 280);
 
-            // Draw food
             snakeCtx.fillStyle = '#ec4899';
             snakeCtx.fillRect(snakeFood.x + 2, snakeFood.y + 2, 16, 16);
 
-            // Draw snake
             snake.forEach((part, index) => {
                 snakeCtx.fillStyle = index === 0 ? '#38bdf8' : '#6366f1';
                 snakeCtx.fillRect(part.x + 1, part.y + 1, 18, 18);
@@ -1637,7 +1688,6 @@
                 item.y += 4;
             });
 
-            // Check collision with basket (y: 220-240, width: 60)
             catcherItems.forEach((item, index) => {
                 if (item.y >= 215 && item.y <= 235 && item.x + 15 >= catcherX && item.x <= catcherX + 60) {
                     if (item.type === '💣') {
@@ -1651,7 +1701,6 @@
                 }
             });
 
-            // Remove missed items
             catcherItems = catcherItems.filter(item => {
                 if (item.y > 260) {
                     if (item.type === '⭐') {
@@ -1677,13 +1726,11 @@
             catcherCtx.fillStyle = '#0f172a';
             catcherCtx.fillRect(0, 0, 280, 260);
 
-            // Draw items
             catcherCtx.font = '20px sans-serif';
             catcherItems.forEach(item => {
                 catcherCtx.fillText(item.type, item.x, item.y);
             });
 
-            // Draw basket
             catcherCtx.fillStyle = '#6366f1';
             catcherCtx.fillRect(catcherX, 230, 60, 16);
         }
@@ -1739,10 +1786,8 @@
                 let prevC = selectedCandy.c;
                 highlightCandyCell(prevR, prevC, false);
 
-                // Check if adjacent
                 let isAdjacent = (Math.abs(prevR - r) === 1 && prevC === c) || (Math.abs(prevC - c) === 1 && prevR === r);
                 if (isAdjacent) {
-                    // Swap
                     let temp = candyBoard[prevR][prevC];
                     candyBoard[prevR][prevC] = candyBoard[r][c];
                     candyBoard[r][c] = temp;
@@ -1752,7 +1797,6 @@
                         document.getElementById('candy-moves').textContent = candyMoves;
                         cascadeCandies();
                     } else {
-                        // Swap back
                         candyBoard[r][c] = candyBoard[prevR][prevC];
                         candyBoard[prevR][prevC] = temp;
                     }
@@ -1771,7 +1815,6 @@
         }
 
         function checkCandyMatches() {
-            // Simple check if any 3 in a row or col exists
             for (let r = 0; r < 5; r++) {
                 for (let c = 0; c < 3; c++) {
                     if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r][c+1] && candyBoard[r][c] === candyBoard[r][c+2]) return true;
@@ -1786,8 +1829,6 @@
         }
 
         function cascadeCandies() {
-            let matched = false;
-            // Clear matches and award score
             for (let r = 0; r < 5; r++) {
                 for (let c = 0; c < 3; c++) {
                     if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r][c+1] && candyBoard[r][c] === candyBoard[r][c+2]) {
@@ -1795,7 +1836,6 @@
                         candyBoard[r][c] = getRandomCandy();
                         candyBoard[r][c+1] = getRandomCandy();
                         candyBoard[r][c+2] = getRandomCandy();
-                        matched = true;
                     }
                 }
             }
@@ -1806,7 +1846,6 @@
                         candyBoard[r][c] = getRandomCandy();
                         candyBoard[r+1][c] = getRandomCandy();
                         candyBoard[r+2][c] = getRandomCandy();
-                        matched = true;
                     }
                 }
             }
@@ -1815,4 +1854,4 @@
         }
     </script>
 </body>
-  </html>
+</html>
