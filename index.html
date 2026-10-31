@@ -123,19 +123,24 @@
             text-transform: uppercase;
         }
 
-        .user-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #fff;
+        .header-qr-btn {
+            background: rgba(236, 72, 153, 0.15);
+            border: 1px solid var(--accent);
+            color: #f472b6;
             padding: 8px 14px;
             border-radius: 20px;
             font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .user-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
+        .header-qr-btn:hover {
+            background-color: var(--accent);
+            color: white;
         }
 
         /* Main Container Views */
@@ -265,30 +270,6 @@
 
         .back-btn:hover {
             background: rgba(255, 255, 255, 0.2);
-        }
-
-        .corner-qr-btn {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background-color: rgba(236, 72, 153, 0.15);
-            border: 1px solid var(--accent);
-            color: #f472b6;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.2s;
-            z-index: 10;
-        }
-
-        .corner-qr-btn:hover {
-            background-color: var(--accent);
-            color: white;
         }
 
         .screen {
@@ -783,7 +764,7 @@
         <button class="enter-hub-btn" onclick="enterHub()">PLAY</button>
     </div>
 
-    <!-- Top Header -->
+    <!-- Top Header with QR Modal Button -->
     <header>
         <div class="logo-area">
             <div class="logo-icon">🎮</div>
@@ -792,7 +773,7 @@
                 <p>Play • Think • Win</p>
             </div>
         </div>
-        <button class="user-btn" onclick="alert('Login / Profile system ready for database integration!')">👤 Account</button>
+        <button class="header-qr-btn" onclick="openQRModal()">📱 QR Code</button>
     </header>
 
     <!-- Main Categorized Menu View -->
@@ -873,7 +854,6 @@
             <h3 style="font-size: 15px;">Tic-Tac-Toe</h3>
             <div style="width: 70px;"></div>
         </div>
-        <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
 
         <div id="ttt-setup-screen" class="screen active">
             <p style="margin-bottom: 15px; color: var(--text-muted);">Configure match settings</p>
@@ -931,7 +911,6 @@
             <h3 style="font-size: 15px;">Claw Machine</h3>
             <div style="width: 70px;"></div>
         </div>
-        <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
 
         <div class="claw-cabinet">
             <div id="claw"></div>
@@ -957,7 +936,6 @@
             <h3 style="font-size: 15px;">RPS PvP</h3>
             <div style="width: 70px;"></div>
         </div>
-        <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
 
         <div class="score-board">
             <div class="score-box">Player 1 <span id="rps-p1-score">0</span></div>
@@ -984,7 +962,6 @@
             <h3 style="font-size: 15px;">Number Guessing</h3>
             <div style="width: 70px;"></div>
         </div>
-        <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
 
         <p style="font-size: 0.85rem; color: var(--text-muted);">Guess a number between 1 and 100</p>
         <div class="score-board" style="margin-top: 12px;">
@@ -1006,7 +983,6 @@
             <h3 style="font-size: 15px;">Whack-a-Mole</h3>
             <div style="width: 70px;"></div>
         </div>
-        <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
 
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="mole-score">0</span></div>
@@ -1030,7 +1006,6 @@
             <h3 style="font-size: 15px;">Reaction Timer</h3>
             <div style="width: 70px;"></div>
         </div>
-        <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
 
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Test your reflexes!</p>
         <div class="score-board">
@@ -1050,7 +1025,6 @@
             <h3 style="font-size: 15px;">Snake Game</h3>
             <div style="width: 70px;"></div>
         </div>
-        <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
 
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="snake-score">0</span></div>
@@ -1075,7 +1049,6 @@
             <h3 style="font-size: 15px;">Item Catcher</h3>
             <div style="width: 70px;"></div>
         </div>
-        <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
 
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Caught <span id="catcher-score">0</span></div>
@@ -1096,7 +1069,6 @@
             <h3 style="font-size: 15px;">Candy Match-3</h3>
             <div style="width: 70px;"></div>
         </div>
-        <button class="corner-qr-btn" onclick="openQRModal()" title="Share QR Code">📱</button>
 
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="candy-score">0</span></div>
