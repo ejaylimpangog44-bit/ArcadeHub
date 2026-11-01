@@ -3,6 +3,7 @@ const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json'
+  './1793408885987.jpg'
 ];
 
 // Install Event: Caches your core app files
