@@ -123,11 +123,17 @@
             text-transform: uppercase;
         }
 
-        .header-qr-btn {
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .header-qr-btn, .header-audio-btn {
             background: rgba(236, 72, 153, 0.15);
             border: 1px solid var(--accent);
             color: #f472b6;
-            padding: 8px 14px;
+            padding: 8px 12px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
@@ -138,7 +144,7 @@
             gap: 6px;
         }
 
-        .header-qr-btn:hover {
+        .header-qr-btn:hover, .header-audio-btn:hover {
             background-color: var(--accent);
             color: white;
         }
@@ -958,7 +964,7 @@
         <button class="enter-hub-btn" onclick="enterHub()">PLAY</button>
     </div>
 
-    <!-- Top Header with QR Modal Button -->
+    <!-- Top Header with Audio Toggle & QR Modal Button -->
     <header>
         <div class="logo-area">
             <div class="logo-icon">🎮</div>
@@ -967,7 +973,10 @@
                 <p>Play • Think • Win</p>
             </div>
         </div>
-        <button class="header-qr-btn" onclick="openQRModal()">📱 QR Code</button>
+        <div class="header-actions">
+            <button id="audio-toggle-btn" class="header-audio-btn" onclick="toggleGlobalAudio()">🔊 Sound</button>
+            <button class="header-qr-btn" onclick="openQRModal()">📱 QR Code</button>
+        </div>
     </header>
 
     <!-- Main Categorized Menu View -->
@@ -1285,7 +1294,7 @@
         </div>
     </div>
 
-    <!-- FLOATING COMPACT ROBOT COMPANION (APPEARS AFTER PLAY CLICK) -->
+    <!-- FLOATING COMPACT ROBOT COMPANION -->
     <div id="robot-companion" class="robot-container">
       <div class="robot-antenna"></div>
       <div class="robot-head">
@@ -1313,6 +1322,104 @@
     </div>
 
     <script>
+        // --- BUILT-IN AUDIO SYSTEM (WEB AUDIO API SYNTHESIZER + BGM) ---
+        class ArcadeAudioManager {
+            constructor() {
+                this.audioCtx = null;
+                this.isMuted = false;
+                this.volume = 0.4;
+            }
+
+            initContext() {
+                if (!this.audioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.audioCtx = new AudioContext();
+                }
+                if (this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+            }
+
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                return this.isMuted;
+            }
+
+            playSFX(type) {
+                if (this.isMuted) return;
+                this.initContext();
+
+                const now = this.audioCtx.currentTime;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+
+                switch (type) {
+                    case 'click':
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(400, now);
+                        gain.gain.setValueAtTime(this.volume * 0.15, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                        osc.start(now);
+                        osc.stop(now + 0.04);
+                        break;
+
+                    case 'move':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(300, now);
+                        osc.frequency.exponentialRampToValueAtTime(500, now + 0.06);
+                        gain.gain.setValueAtTime(this.volume * 0.2, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                        osc.start(now);
+                        osc.stop(now + 0.06);
+                        break;
+
+                    case 'score':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(587.33, now); // D5
+                        osc.frequency.setValueAtTime(880, now + 0.08); // A5
+                        gain.gain.setValueAtTime(this.volume * 0.3, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                        osc.start(now);
+                        osc.stop(now + 0.2);
+                        break;
+
+                    case 'win':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(523.25, now);
+                        osc.frequency.setValueAtTime(659.25, now + 0.1);
+                        osc.frequency.setValueAtTime(783.99, now + 0.2);
+                        osc.frequency.setValueAtTime(1046.50, now + 0.3);
+                        gain.gain.setValueAtTime(this.volume * 0.4, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                        osc.start(now);
+                        osc.stop(now + 0.5);
+                        break;
+
+                    case 'gameover':
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(250, now);
+                        osc.frequency.exponentialRampToValueAtTime(70, now + 0.35);
+                        gain.gain.setValueAtTime(this.volume * 0.35, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                        osc.start(now);
+                        osc.stop(now + 0.35);
+                        break;
+                }
+            }
+        }
+
+        const audio = new ArcadeAudioManager();
+
+        function toggleGlobalAudio() {
+            const muted = audio.toggleMute();
+            document.getElementById('audio-toggle-btn').innerText = muted ? "🔇 Muted" : "🔊 Sound";
+            if (!muted) audio.playSFX('click');
+        }
+
+        // --- GAME HUB LOGIC ---
         const winningConditions = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8],
             [0, 3, 6], [1, 4, 7], [2, 5, 8],
@@ -1384,12 +1491,13 @@
         };
 
         function enterHub() {
+            audio.playSFX('win');
             document.getElementById('splash-screen').classList.add('fade-out');
-            // Reveal the robot companion when play is clicked
             document.getElementById('robot-companion').classList.add('visible');
         }
 
         function openGame(containerId) {
+            audio.playSFX('click');
             document.getElementById('main-menu').classList.remove('active');
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById(containerId).classList.add('active');
@@ -1400,19 +1508,23 @@
         }
 
         function backToHub() {
+            audio.playSFX('click');
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
         }
 
         function openQRModal() {
+            audio.playSFX('click');
             document.getElementById('qr-modal').classList.add('active');
         }
 
         function closeQRModal() {
+            audio.playSFX('click');
             document.getElementById('qr-modal').classList.remove('active');
         }
 
         function selectSetupMode(mode) {
+            audio.playSFX('move');
             selectedMode = mode;
             document.getElementById('setup-pvp').classList.toggle('active', mode === 'pvp');
             document.getElementById('setup-ai').classList.toggle('active', mode === 'ai');
@@ -1420,6 +1532,7 @@
         }
 
         function selectSetupDiff(diff) {
+            audio.playSFX('move');
             selectedDiff = diff;
             document.getElementById('setup-easy').classList.toggle('active', diff === 'easy');
             document.getElementById('setup-normal').classList.toggle('active', diff === 'normal');
@@ -1427,6 +1540,7 @@
         }
 
         function startLoadingScreen() {
+            audio.playSFX('click');
             gameMode = selectedMode;
             aiDifficulty = selectedDiff;
 
@@ -1453,6 +1567,7 @@
         }
 
         function backToSetup() {
+            audio.playSFX('click');
             document.getElementById('ttt-game-screen').classList.remove('active');
             document.getElementById('ttt-setup-screen').classList.add('active');
         }
@@ -1467,6 +1582,7 @@
             if (tttBoard[index] !== '' || !isGameActive) return;
             if (gameMode === 'ai' && currentPlayer === 'O') return;
 
+            audio.playSFX('move');
             makeMove(index, currentPlayer);
             if (!isGameActive) return;
 
@@ -1491,6 +1607,7 @@
             }
 
             if (winningConditionIndex !== -1) {
+                audio.playSFX('win');
                 document.getElementById('ttt-status').textContent = gameMode === 'ai' && player === 'O' ? `AI Wins! 🤖` : `Player ${player} Wins! 🎉`;
                 isGameActive = false;
                 drawWinLine(winningConditionIndex);
@@ -1498,6 +1615,7 @@
             }
 
             if (!tttBoard.includes('')) {
+                audio.playSFX('gameover');
                 document.getElementById('ttt-status').textContent = `It's a Draw! 🤝`;
                 isGameActive = false;
                 return;
@@ -1531,7 +1649,10 @@
         function aiMove() {
             if (!isGameActive) return;
             let moveIndex = aiDifficulty === 'easy' ? getRandomMove() : aiDifficulty === 'normal' ? getNormalMove() : getBestMinimaxMove();
-            if (moveIndex !== -1) makeMove(moveIndex, 'O');
+            if (moveIndex !== -1) {
+                audio.playSFX('move');
+                makeMove(moveIndex, 'O');
+            }
         }
 
         function getRandomMove() {
@@ -1598,6 +1719,7 @@
         }
 
         function resetTTT() {
+            audio.playSFX('click');
             tttBoard = ['', '', '', '', '', '', '', '', ''];
             currentPlayer = 'X';
             isGameActive = true;
@@ -1608,6 +1730,7 @@
 
         function moveClaw(amount) {
             if (isClawBusy) return;
+            audio.playSFX('move');
             clawOffset = Math.max(-90, Math.min(90, clawOffset + amount));
             document.getElementById('claw').style.left = `calc(50% + ${clawOffset}px)`;
         }
@@ -1615,6 +1738,7 @@
         function dropClaw() {
             if (isClawBusy) return;
             isClawBusy = true;
+            audio.playSFX('click');
             const claw = document.getElementById('claw');
             const msg = document.getElementById('claw-message');
             msg.textContent = "Dropping claw...";
@@ -1632,10 +1756,12 @@
                 setTimeout(() => {
                     if (caught) {
                         prizeCount++;
+                        audio.playSFX('win');
                         document.getElementById('prize-count').textContent = prizeCount;
                         msg.textContent = "🎉 Success! You grabbed a prize!";
                         setTimeout(() => { document.getElementById(`p${prizeIndex}`).style.transform = "none"; }, 1000);
                     } else {
+                        audio.playSFX('gameover');
                         msg.textContent = "❌ Missed! Try again.";
                     }
                     isClawBusy = false;
@@ -1644,6 +1770,7 @@
         }
 
         function handleRPSInput(choice) {
+            audio.playSFX('move');
             if (rpsTurn === 1) {
                 rpsP1Choice = choice;
                 rpsTurn = 2;
@@ -1656,13 +1783,16 @@
                 document.getElementById('rps-p2-choice').textContent = icons[choice];
 
                 if (rpsP1Choice === choice) {
+                    audio.playSFX('gameover');
                     document.getElementById('rps-status').textContent = "It's a Tie! 🤝";
                 } else if ((rpsP1Choice === 'rock' && choice === 'scissors') || (rpsP1Choice === 'paper' && choice === 'rock') || (rpsP1Choice === 'scissors' && choice === 'paper')) {
                     rpsP1Score++;
+                    audio.playSFX('win');
                     document.getElementById('rps-p1-score').textContent = rpsP1Score;
                     document.getElementById('rps-status').textContent = "Player 1 Wins Round! 🎉";
                 } else {
                     rpsP2Score++;
+                    audio.playSFX('win');
                     document.getElementById('rps-p2-score').textContent = rpsP2Score;
                     document.getElementById('rps-status').textContent = "Player 2 Wins Round! 🎉";
                 }
@@ -1679,6 +1809,7 @@
         }
 
         function resetRPS() {
+            audio.playSFX('click');
             rpsP1Score = 0; rpsP2Score = 0; rpsP1Choice = null; rpsTurn = 1;
             document.getElementById('rps-p1-score').textContent = '0';
             document.getElementById('rps-p2-score').textContent = '0';
@@ -1696,20 +1827,24 @@
             document.getElementById('guess-attempts').textContent = guessAttemptsCount;
 
             if (val === targetNumber) {
+                audio.playSFX('win');
                 document.getElementById('guess-status').textContent = `🎉 Correct in ${guessAttemptsCount} tries!`;
                 if (bestGuessScore === null || guessAttemptsCount < bestGuessScore) {
                     bestGuessScore = guessAttemptsCount;
                     document.getElementById('guess-best').textContent = bestGuessScore;
                 }
             } else if (val < targetNumber) {
+                audio.playSFX('move');
                 document.getElementById('guess-status').textContent = "📈 Too Low! Go higher.";
             } else {
+                audio.playSFX('move');
                 document.getElementById('guess-status').textContent = "📉 Too High! Go lower.";
             }
             inputEl.value = '';
         }
 
         function resetGuessGame() {
+            audio.playSFX('click');
             targetNumber = Math.floor(Math.random() * 100) + 1;
             guessAttemptsCount = 0;
             document.getElementById('guess-attempts').textContent = '0';
@@ -1719,6 +1854,7 @@
 
         function startMoleGame() {
             if (isMolePlaying) return;
+            audio.playSFX('click');
             isMolePlaying = true; moleScore = 0; moleTimeLeft = 20;
             document.getElementById('mole-score').textContent = moleScore;
             document.getElementById('mole-time').textContent = moleTimeLeft;
@@ -1731,6 +1867,7 @@
                     clearInterval(moleTimer); clearInterval(activeMoleTimer);
                     if (currentActiveMole !== null) document.querySelectorAll('.mole-hole')[currentActiveMole].classList.remove('active');
                     currentActiveMole = null; isMolePlaying = false;
+                    audio.playSFX('win');
                     document.getElementById('mole-start-btn').disabled = false;
                 }
             }, 1000);
@@ -1745,6 +1882,7 @@
         function whackMole(index) {
             if (!isMolePlaying) return;
             if (currentActiveMole === index) {
+                audio.playSFX('score');
                 moleScore++;
                 document.getElementById('mole-score').textContent = moleScore;
                 document.querySelectorAll('.mole-hole')[index].classList.remove('active');
@@ -1757,15 +1895,18 @@
             const text = document.getElementById('reaction-text');
 
             if (reactionState === 'idle') {
+                audio.playSFX('click');
                 reactionState = 'waiting'; box.className = 'reaction-box waiting'; text.textContent = 'Wait for green...';
                 reactionTimeout = setTimeout(() => {
                     reactionState = 'ready'; box.className = 'reaction-box ready'; text.textContent = 'CLICK NOW!';
                     reactionStartTime = Date.now();
                 }, Math.floor(Math.random() * 2000) + 1500);
             } else if (reactionState === 'waiting') {
+                audio.playSFX('gameover');
                 clearTimeout(reactionTimeout); reactionState = 'idle'; box.className = 'reaction-box'; text.textContent = 'Too soon! Click to retry';
             } else if (reactionState === 'ready') {
                 const duration = Date.now() - reactionStartTime;
+                audio.playSFX('win');
                 reactionState = 'idle'; box.className = 'reaction-box result'; text.textContent = `${duration} ms! Retry`;
                 document.getElementById('reaction-time').textContent = `${duration} ms`;
                 if (bestReactionTime === null || duration < bestReactionTime) {
@@ -1777,6 +1918,7 @@
         }
 
         function resetReactionGame() {
+            audio.playSFX('click');
             clearTimeout(reactionTimeout); reactionState = 'idle';
             document.getElementById('reaction-box').className = 'reaction-box';
             document.getElementById('reaction-text').textContent = 'Click to Start';
@@ -1790,6 +1932,7 @@
         }
 
         function startSnakeGame() {
+            audio.playSFX('click');
             if (snakeInterval) clearInterval(snakeInterval);
             snake = [{x: 120, y: 120}, {x: 100, y: 120}, {x: 80, y: 120}];
             snakeDir = 'RIGHT'; nextSnakeDir = 'RIGHT'; snakeScore = 0;
@@ -1799,6 +1942,7 @@
         }
 
         function changeSnakeDir(dir) {
+            audio.playSFX('move');
             if (dir === 'UP' && snakeDir !== 'DOWN') nextSnakeDir = 'UP';
             if (dir === 'DOWN' && snakeDir !== 'UP') nextSnakeDir = 'DOWN';
             if (dir === 'LEFT' && snakeDir !== 'RIGHT') nextSnakeDir = 'LEFT';
@@ -1818,11 +1962,15 @@
             if (snakeDir === 'RIGHT') head.x += 20;
 
             if (head.x < 0 || head.x >= 260 || head.y < 0 || head.y >= 260 || snake.some(p => p.x === head.x && p.y === head.y)) {
-                clearInterval(snakeInterval); alert(`Snake Over! Score: ${snakeScore}`); return;
+                clearInterval(snakeInterval);
+                audio.playSFX('gameover');
+                alert(`Snake Over! Score: ${snakeScore}`);
+                return;
             }
 
             snake.unshift(head);
             if (head.x === snakeFood.x && head.y === snakeFood.y) {
+                audio.playSFX('score');
                 snakeScore += 10;
                 document.getElementById('snake-score').textContent = snakeScore;
                 if (snakeScore > snakeHighScore) { snakeHighScore = snakeScore; document.getElementById('snake-high').textContent = snakeHighScore; }
@@ -1850,6 +1998,7 @@
         }
 
         function startCatcherGame() {
+            audio.playSFX('click');
             if (catcherInterval) clearInterval(catcherInterval);
             catcherScore = 0; catcherLives = 3; catcherItems = []; catcherX = 100;
             document.getElementById('catcher-score').textContent = catcherScore;
@@ -1860,6 +2009,7 @@
 
         function moveCatcher(amount) {
             if (!isCatcherRunning) return;
+            audio.playSFX('move');
             catcherX = Math.max(0, Math.min(200, catcherX + amount));
         }
 
@@ -1869,7 +2019,13 @@
 
             catcherItems.forEach((item, index) => {
                 if (item.y >= 200 && item.y <= 215 && item.x + 15 >= catcherX && item.x <= catcherX + 60) {
-                    if (item.type === '💣') catcherLives--; else catcherScore++;
+                    if (item.type === '💣') {
+                        audio.playSFX('gameover');
+                        catcherLives--;
+                    } else {
+                        audio.playSFX('score');
+                        catcherScore++;
+                    }
                     catcherItems.splice(index, 1);
                     document.getElementById('catcher-score').textContent = catcherScore;
                     document.getElementById('catcher-lives').textContent = catcherLives;
@@ -1877,11 +2033,23 @@
             });
 
             catcherItems = catcherItems.filter(item => {
-                if (item.y > 240) { if (item.type === '⭐') { catcherLives--; document.getElementById('catcher-lives').textContent = catcherLives; } return false; }
+                if (item.y > 240) {
+                    if (item.type === '⭐') {
+                        audio.playSFX('gameover');
+                        catcherLives--;
+                        document.getElementById('catcher-lives').textContent = catcherLives;
+                    }
+                    return false;
+                }
                 return true;
             });
 
-            if (catcherLives <= 0) { clearInterval(catcherInterval); isCatcherRunning = false; alert(`Catcher Over! Score: ${catcherScore}`); }
+            if (catcherLives <= 0) {
+                clearInterval(catcherInterval);
+                isCatcherRunning = false;
+                audio.playSFX('win');
+                alert(`Catcher Over! Score: ${catcherScore}`);
+            }
             drawCatcherScene();
         }
 
@@ -1894,6 +2062,7 @@
         }
 
         function startCandyGame() {
+            audio.playSFX('click');
             candyScore = 0; candyMoves = 20; selectedCandy = null;
             document.getElementById('candy-score').textContent = candyScore;
             document.getElementById('candy-moves').textContent = candyMoves;
@@ -1924,6 +2093,7 @@
         function handleCandyClick(r, c) {
             if (candyMoves <= 0) return;
             if (!selectedCandy) {
+                audio.playSFX('move');
                 selectedCandy = {r, c};
                 document.getElementsByClassName('candy-cell')[r * 5 + c].classList.add('selected');
             } else {
@@ -1937,9 +2107,11 @@
                     candyBoard[r][c] = temp;
 
                     if (checkCandyMatches()) {
+                        audio.playSFX('score');
                         candyMoves--; document.getElementById('candy-moves').textContent = candyMoves;
                         cascadeCandies();
                     } else {
+                        audio.playSFX('gameover');
                         candyBoard[r][c] = candyBoard[prevR][prevC];
                         candyBoard[prevR][prevC] = temp;
                     }
@@ -1984,23 +2156,23 @@
           const rightPupil = document.getElementById('right-pupil');
           const headElement = document.querySelector('.robot-head');
           const robotContainer = document.getElementById('robot-companion');
-          
+
           if (!headElement || !leftPupil || !rightPupil || !robotContainer.classList.contains('visible')) return;
 
           const headRect = headElement.getBoundingClientRect();
           const centerX = headRect.left + headRect.width / 2;
           const centerY = headRect.top + headRect.height / 2;
-          
+
           const deltaX = e.clientX - centerX;
           const deltaY = e.clientY - centerY;
           const angle = Math.atan2(deltaY, deltaX);
-          
+
           const maxDistance = 4; 
           const distance = Math.min(maxDistance, Math.hypot(deltaX, deltaY) / 20);
-          
+
           const moveX = Math.cos(angle) * distance;
           const moveY = Math.sin(angle) * distance;
-          
+
           leftPupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
           rightPupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
         });
