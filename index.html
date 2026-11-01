@@ -123,17 +123,11 @@
             text-transform: uppercase;
         }
 
-        .header-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .header-qr-btn, .header-audio-btn {
-            background: rgba(236, 72, 153, 0.15);
-            border: 1px solid var(--accent);
-            color: #f472b6;
-            padding: 8px 12px;
+        .header-settings-btn {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid var(--primary);
+            color: #a78bfa;
+            padding: 8px 14px;
             border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
@@ -144,8 +138,8 @@
             gap: 6px;
         }
 
-        .header-qr-btn:hover, .header-audio-btn:hover {
-            background-color: var(--accent);
+        .header-settings-btn:hover {
+            background-color: var(--primary);
             color: white;
         }
 
@@ -363,7 +357,7 @@
             margin-bottom: 8px;
         }
 
-        /* Modal Overlay */
+        /* --- SCI-FI SETTINGS MODAL (INFLUENCED BY REFERENCE) --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -371,63 +365,202 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
             z-index: 100;
             justify-content: center;
             align-items: center;
+            padding: 15px;
         }
 
         .modal-overlay.active {
             display: flex;
         }
 
-        .modal-content {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 25px;
+        .settings-modal-box {
+            background: linear-gradient(145deg, #111827, #0b0f19);
+            border: 2px solid var(--primary);
             border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.3);
+            overflow: hidden;
+            animation: modalPop 0.25s ease-out;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .settings-header {
+            background: rgba(139, 92, 246, 0.2);
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .settings-header h3 {
+            font-size: 15px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #a78bfa;
+            font-weight: 700;
+        }
+
+        .settings-close-x {
+            background: var(--accent);
+            color: white;
+            border: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .settings-tabs {
+            display: flex;
+            background: rgba(11, 15, 25, 0.8);
+            border-bottom: 1px solid var(--border);
+            padding: 6px 10px;
+            gap: 6px;
+        }
+
+        .settings-tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .settings-tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+        }
+
+        .settings-body {
+            padding: 20px;
+        }
+
+        .settings-panel {
+            display: none;
+        }
+
+        .settings-panel.active {
+            display: block;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        .setting-label {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            max-width: 200px;
+            justify-content: flex-end;
+        }
+
+        .setting-slider {
+            width: 100%;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .setting-toggle {
+            background: #0b0f19;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .setting-toggle.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .settings-qr-container {
             text-align: center;
-            max-width: 300px;
-            width: 90%;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
         .qr-box {
             background: white;
-            padding: 12px;
-            border-radius: 12px;
+            padding: 10px;
+            border-radius: 10px;
             display: inline-block;
-            margin: 15px 0 10px 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            margin: 10px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         .qr-box img {
             display: block;
-            width: 140px;
-            height: 140px;
+            width: 120px;
+            height: 120px;
         }
 
         .url-display {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             word-break: break-all;
             background: #0b0f19;
-            padding: 8px;
+            padding: 6px;
             border-radius: 6px;
             border: 1px solid var(--border);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
-        .close-modal-btn {
-            background-color: #334155;
+        .settings-footer {
+            padding: 12px 20px;
+            background: rgba(11, 15, 25, 0.9);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .settings-save-btn {
+            background: #15803d;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 8px;
-            cursor: pointer;
             font-weight: 600;
-            width: 100%;
+            cursor: pointer;
+            font-size: 13px;
         }
 
         /* Shared Game Elements */
@@ -767,12 +900,12 @@
             position: fixed;
             bottom: 15px;
             right: 15px;
-            z-index: 9999;
+            z-index: 99;
             display: flex;
             flex-direction: column;
             align-items: center;
             pointer-events: none;
-            transform: scale(0.55); /* Makes the whole robot smaller */
+            transform: scale(0.55);
             transform-origin: bottom right;
             filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.3));
             opacity: 0;
@@ -964,7 +1097,7 @@
         <button class="enter-hub-btn" onclick="enterHub()">PLAY</button>
     </div>
 
-    <!-- Top Header with Audio Toggle & QR Modal Button -->
+    <!-- Top Header with Settings Modal Button -->
     <header>
         <div class="logo-area">
             <div class="logo-icon">🎮</div>
@@ -973,10 +1106,7 @@
                 <p>Play • Think • Win</p>
             </div>
         </div>
-        <div class="header-actions">
-            <button id="audio-toggle-btn" class="header-audio-btn" onclick="toggleGlobalAudio()">🔊 Sound</button>
-            <button class="header-qr-btn" onclick="openQRModal()">📱 QR Code</button>
-        </div>
+        <button class="header-settings-btn" onclick="openSettingsModal()">⚙️ Settings</button>
     </header>
 
     <!-- Main Categorized Menu View -->
@@ -1281,16 +1411,48 @@
         <button class="action-btn" style="width: 100%;" onclick="startCandyGame()">New Game</button>
     </div>
 
-    <!-- QR MODAL POPUP -->
-    <div class="modal-overlay" id="qr-modal">
-        <div class="modal-content">
-            <h3>Share Game</h3>
-            <p style="font-size: 0.85rem; margin-top: 4px; color: var(--text-muted);">Scan with your phone camera:</p>
-            <div class="qr-box">
-                <img id="qr-code-img" src="" alt="Game QR Code">
+    <!-- COMPACT SCI-FI SETTINGS MODAL (WITH AUDIO & QR CODE INTEGRATED) -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="settings-modal-box">
+            <div class="settings-header">
+                <h3>⚙️ Settings Panel</h3>
+                <button class="settings-close-x" onclick="closeSettingsModal()">✕</button>
             </div>
-            <div class="url-display" id="current-url-text">Loading URL...</div>
-            <button class="close-modal-btn" onclick="closeQRModal()">Close</button>
+            <div class="settings-tabs">
+                <button class="settings-tab-btn active" id="tab-audio" onclick="switchSettingsTab('audio')">Audio</button>
+                <button class="settings-tab-btn" id="tab-share" onclick="switchSettingsTab('share')">Share QR</button>
+            </div>
+            <div class="settings-body">
+                <!-- AUDIO PANEL -->
+                <div class="settings-panel active" id="panel-audio">
+                    <div class="setting-row">
+                        <span class="setting-label">🔊 Master Sound</span>
+                        <div class="setting-control">
+                            <button class="setting-toggle active" id="audio-toggle-switch" onclick="toggleAudioSetting()">ENABLED</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">🎵 SFX Volume</span>
+                        <div class="setting-control">
+                            <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SHARE QR PANEL -->
+                <div class="settings-panel" id="panel-share">
+                    <div class="settings-qr-container">
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">Scan to open Arcade Hub on your phone:</p>
+                        <div class="qr-box">
+                            <img id="qr-code-img" src="" alt="Game QR Code">
+                        </div>
+                        <div class="url-display" id="current-url-text">Loading URL...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-footer">
+                <button class="settings-save-btn" onclick="closeSettingsModal()">Save & Close</button>
+            </div>
         </div>
     </div>
 
@@ -1322,7 +1484,7 @@
     </div>
 
     <script>
-        // --- BUILT-IN AUDIO SYSTEM (WEB AUDIO API SYNTHESIZER + BGM) ---
+        // --- BUILT-IN AUDIO SYSTEM ---
         class ArcadeAudioManager {
             constructor() {
                 this.audioCtx = null;
@@ -1338,11 +1500,6 @@
                 if (this.audioCtx.state === 'suspended') {
                     this.audioCtx.resume();
                 }
-            }
-
-            toggleMute() {
-                this.isMuted = !this.isMuted;
-                return this.isMuted;
             }
 
             playSFX(type) {
@@ -1365,7 +1522,6 @@
                         osc.start(now);
                         osc.stop(now + 0.04);
                         break;
-
                     case 'move':
                         osc.type = 'triangle';
                         osc.frequency.setValueAtTime(300, now);
@@ -1375,17 +1531,15 @@
                         osc.start(now);
                         osc.stop(now + 0.06);
                         break;
-
                     case 'score':
                         osc.type = 'sine';
-                        osc.frequency.setValueAtTime(587.33, now); // D5
-                        osc.frequency.setValueAtTime(880, now + 0.08); // A5
+                        osc.frequency.setValueAtTime(587.33, now);
+                        osc.frequency.setValueAtTime(880, now + 0.08);
                         gain.gain.setValueAtTime(this.volume * 0.3, now);
                         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
                         osc.start(now);
                         osc.stop(now + 0.2);
                         break;
-
                     case 'win':
                         osc.type = 'triangle';
                         osc.frequency.setValueAtTime(523.25, now);
@@ -1397,7 +1551,6 @@
                         osc.start(now);
                         osc.stop(now + 0.5);
                         break;
-
                     case 'gameover':
                         osc.type = 'sawtooth';
                         osc.frequency.setValueAtTime(250, now);
@@ -1413,10 +1566,41 @@
 
         const audio = new ArcadeAudioManager();
 
-        function toggleGlobalAudio() {
-            const muted = audio.toggleMute();
-            document.getElementById('audio-toggle-btn').innerText = muted ? "🔇 Muted" : "🔊 Sound";
-            if (!muted) audio.playSFX('click');
+        function toggleAudioSetting() {
+            audio.isMuted = !audio.isMuted;
+            const btn = document.getElementById('audio-toggle-switch');
+            if (audio.isMuted) {
+                btn.textContent = "MUTED";
+                btn.classList.remove('active');
+            } else {
+                btn.textContent = "ENABLED";
+                btn.classList.add('active');
+                audio.playSFX('click');
+            }
+        }
+
+        function updateVolume(val) {
+            audio.volume = parseFloat(val);
+            audio.playSFX('click');
+        }
+
+        // --- SETTINGS MODAL & TABS LOGIC ---
+        function openSettingsModal() {
+            audio.playSFX('click');
+            document.getElementById('settings-modal').classList.add('active');
+        }
+
+        function closeSettingsModal() {
+            audio.playSFX('click');
+            document.getElementById('settings-modal').classList.remove('active');
+        }
+
+        function switchSettingsTab(tabName) {
+            audio.playSFX('move');
+            document.getElementById('tab-audio').classList.toggle('active', tabName === 'audio');
+            document.getElementById('tab-share').classList.toggle('active', tabName === 'share');
+            document.getElementById('panel-audio').classList.toggle('active', tabName === 'audio');
+            document.getElementById('panel-share').classList.toggle('active', tabName === 'share');
         }
 
         // --- GAME HUB LOGIC ---
@@ -1458,7 +1642,6 @@
         let reactionTimeout = null;
         let bestReactionTime = null;
 
-        // Snake Variables
         let snakeCanvas, snakeCtx;
         let snake = [];
         let snakeFood = {};
@@ -1468,7 +1651,6 @@
         let snakeScore = 0;
         let snakeHighScore = 0;
 
-        // Catcher Variables
         let catcherCanvas, catcherCtx;
         let catcherX = 100;
         let catcherItems = [];
@@ -1477,7 +1659,6 @@
         let catcherInterval = null;
         let isCatcherRunning = false;
 
-        // Candy Match-3 Variables
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
         let candyBoard = [];
         let candyScore = 0;
@@ -1513,14 +1694,10 @@
             document.getElementById('main-menu').classList.add('active');
         }
 
-        function openQRModal() {
-            audio.playSFX('click');
-            document.getElementById('qr-modal').classList.add('active');
-        }
-
-        function closeQRModal() {
-            audio.playSFX('click');
-            document.getElementById('qr-modal').classList.remove('active');
+        function generateQRCode() {
+            const targetUrl = "https://ejaylimpangog44-bit.github.io/ArcadeHub/";
+            document.getElementById('current-url-text').textContent = targetUrl;
+            document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
         }
 
         function selectSetupMode(mode) {
@@ -1570,12 +1747,6 @@
             audio.playSFX('click');
             document.getElementById('ttt-game-screen').classList.remove('active');
             document.getElementById('ttt-setup-screen').classList.add('active');
-        }
-
-        function generateQRCode() {
-            const targetUrl = "https://ejaylimpangog44-bit.github.io/ArcadeHub/";
-            document.getElementById('current-url-text').textContent = targetUrl;
-            document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(targetUrl)}`;
         }
 
         function handleCellClick(index) {
