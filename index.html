@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arcade Hub</title>
+    <!-- PWA Manifest Link -->
+    <link rel="manifest" href="manifest.json">
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -15,6 +17,24 @@
             --text-muted: #9ca3af;
             --border: rgba(255, 255, 255, 0.08);
             --border-hover: rgba(139, 92, 246, 0.4);
+            --accent-glow: rgba(236, 72, 153, 0.5);
+        }
+
+        /* --- Dynamic Theme Variants --- */
+        html.theme-cyan {
+            --primary: #06b6d4;
+            --primary-hover: #0891b2;
+            --accent: #38bdf8;
+            --border-hover: rgba(6, 182, 212, 0.4);
+            --accent-glow: rgba(6, 182, 212, 0.5);
+        }
+
+        html.theme-emerald {
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --accent: #34d399;
+            --border-hover: rgba(16, 185, 129, 0.4);
+            --accent-glow: rgba(16, 185, 129, 0.5);
         }
 
         * {
@@ -33,6 +53,7 @@
             align-items: center;
             padding: 20px;
             overflow-x: hidden;
+            transition: background-color 0.3s ease;
         }
 
         /* --- SPLASH SCREEN WITH CUSTOM IMAGE BACKGROUND --- */
@@ -69,14 +90,14 @@
             font-size: 1.05rem;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+            box-shadow: 0 6px 20px var(--accent-glow);
             transition: transform 0.2s, box-shadow 0.2s;
             margin-bottom: 25px;
         }
 
         .enter-hub-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.7);
+            box-shadow: 0 8px 25px var(--accent-glow);
         }
 
         /* Top Header */
@@ -98,20 +119,20 @@
 
         .logo-icon {
             font-size: 24px;
-            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             width: 44px;
             height: 44px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+            box-shadow: 0 4px 12px var(--accent-glow);
         }
 
         .logo-text h1 {
             font-size: 22px;
             font-weight: 700;
-            background: linear-gradient(135deg, #a78bfa, #f472b6);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -126,7 +147,7 @@
         .header-settings-btn {
             background: rgba(139, 92, 246, 0.15);
             border: 1px solid var(--primary);
-            color: #a78bfa;
+            color: var(--text-main);
             padding: 8px 14px;
             border-radius: 20px;
             font-size: 13px;
@@ -211,7 +232,7 @@
             color: #e5e7eb;
         }
 
-        /* Featured Full-Width Card (Candy Match-3) */
+        /* Featured Full-Width Card */
         .game-card.featured {
             grid-column: 1 / -1;
             flex-direction: row;
@@ -357,7 +378,7 @@
             margin-bottom: 8px;
         }
 
-        /* --- SCI-FI SETTINGS MODAL (INFLUENCED BY REFERENCE) --- */
+        /* --- SCI-FI SETTINGS MODAL --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -383,7 +404,7 @@
             border-radius: 16px;
             width: 100%;
             max-width: 420px;
-            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.3);
+            box-shadow: 0 15px 35px var(--accent-glow);
             overflow: hidden;
             animation: modalPop 0.25s ease-out;
         }
@@ -406,7 +427,7 @@
             font-size: 15px;
             letter-spacing: 2px;
             text-transform: uppercase;
-            color: #a78bfa;
+            color: var(--primary);
             font-weight: 700;
         }
 
@@ -439,7 +460,7 @@
             border: none;
             color: var(--text-muted);
             padding: 8px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -451,7 +472,7 @@
         .settings-tab-btn.active {
             background: var(--primary);
             color: white;
-            box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 10px var(--accent-glow);
         }
 
         .settings-body {
@@ -512,6 +533,27 @@
             color: white;
             border-color: var(--primary);
         }
+
+        /* Theme Swatches Picker */
+        .theme-picker-grid {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .theme-swatch {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .theme-swatch.pink { background: #8b5cf6; box-shadow: 0 0 8px rgba(139, 92, 246, 0.4); }
+        .theme-swatch.cyan { background: #06b6d4; box-shadow: 0 0 8px rgba(6, 182, 212, 0.4); }
+        .theme-swatch.emerald { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+        .theme-swatch:hover { transform: scale(1.1); }
 
         .settings-qr-container {
             text-align: center;
@@ -895,7 +937,7 @@
             transform: scale(1.05);
         }
 
-        /* --- REDUCED & COMPACT ROBOT COMPANION STYLES --- */
+        /* --- ROBOT COMPANION --- */
         .robot-container {
             position: fixed;
             bottom: 15px;
@@ -1147,6 +1189,15 @@
                     <span class="game-icon">⭐</span>
                     <span class="game-name">Item Catcher</span>
                 </div>
+                <!-- Newly added Flappy Bird & Dino Runner Minigames -->
+                <div class="game-card" onclick="openGame('flappygame-container')">
+                    <span class="game-icon">🐦</span>
+                    <span class="game-name">Flappy Arcade</span>
+                </div>
+                <div class="game-card" onclick="openGame('dinogame-container')">
+                    <span class="game-icon">🦖</span>
+                    <span class="game-name">Dino Jump</span>
+                </div>
             </div>
         </div>
 
@@ -1178,7 +1229,7 @@
 
     </div>
 
-    <!-- GAME CONTAINERS WITH BACK HEADER -->
+    <!-- GAME CONTAINERS -->
 
     <!-- TICTACTOE CONTAINER -->
     <div id="tictactoe-container" class="game-container">
@@ -1299,7 +1350,7 @@
         <p style="font-size: 0.85rem; color: var(--text-muted);">Guess a number between 1 and 100</p>
         <div class="score-board" style="margin-top: 12px;">
             <div class="score-box">Attempts <span id="guess-attempts">0</span></div>
-            <div class="score-box">Best <span id="guess-best">-</span></div>
+            <div class="score-box">Best (Min Attempts) <span id="guess-best">-</span></div>
         </div>
         <input type="number" id="guess-input" class="guess-input" placeholder="Enter 1-100" min="1" max="100">
         <p id="guess-status" style="margin-bottom: 15px; font-weight: 600;">Take a guess!</p>
@@ -1319,7 +1370,7 @@
 
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="mole-score">0</span></div>
-            <div class="score-box">Time <span id="mole-time">20</span>s</div>
+            <div class="score-box">High Score <span id="mole-high">0</span></div>
         </div>
         <div class="mole-grid">
             <div class="mole-hole" onclick="whackMole(0)"><span id="m0">🐹</span></div>
@@ -1385,7 +1436,7 @@
 
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Caught <span id="catcher-score">0</span></div>
-            <div class="score-box">Lives <span id="catcher-lives">3</span></div>
+            <div class="score-box">High Score <span id="catcher-high">0</span></div>
         </div>
         <canvas id="catcher-canvas" class="arcade-canvas" width="260" height="240"></canvas>
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -1393,6 +1444,36 @@
             <button class="control-btn" style="flex: 1;" onclick="moveCatcher(25)">Right ▶️</button>
         </div>
         <button class="action-btn" style="width: 100%;" onclick="startCatcherGame()">Start / Restart</button>
+    </div>
+
+    <!-- FLAPPY ARCADE CONTAINER -->
+    <div id="flappygame-container" class="game-container">
+        <div class="game-screen-header">
+            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <h3 style="font-size: 15px;">Flappy Arcade</h3>
+            <div style="width: 70px;"></div>
+        </div>
+        <div class="score-board" style="margin-top: 5px;">
+            <div class="score-box">Score <span id="flappy-score">0</span></div>
+            <div class="score-box">High Score <span id="flappy-high">0</span></div>
+        </div>
+        <canvas id="flappy-canvas" class="arcade-canvas" width="260" height="260"></canvas>
+        <button class="action-btn" style="width: 100%;" onclick="startFlappyGame()">Tap/Click to Jump & Start</button>
+    </div>
+
+    <!-- DINO JUMP CONTAINER -->
+    <div id="dinogame-container" class="game-container">
+        <div class="game-screen-header">
+            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <h3 style="font-size: 15px;">Dino Jump</h3>
+            <div style="width: 70px;"></div>
+        </div>
+        <div class="score-board" style="margin-top: 5px;">
+            <div class="score-box">Score <span id="dino-score">0</span></div>
+            <div class="score-box">High Score <span id="dino-high">0</span></div>
+        </div>
+        <canvas id="dino-canvas" class="arcade-canvas" width="260" height="200"></canvas>
+        <button class="action-btn" style="width: 100%;" onclick="jumpDino()">Jump / Start</button>
     </div>
 
     <!-- CANDY MATCH-3 CONTAINER -->
@@ -1411,7 +1492,7 @@
         <button class="action-btn" style="width: 100%;" onclick="startCandyGame()">New Game</button>
     </div>
 
-    <!-- COMPACT SCI-FI SETTINGS MODAL (WITH AUDIO & QR CODE INTEGRATED) -->
+    <!-- COMPACT SCI-FI SETTINGS MODAL (AUDIO, THEME CUSTOMIZER & QR CODE) -->
     <div class="modal-overlay" id="settings-modal">
         <div class="settings-modal-box">
             <div class="settings-header">
@@ -1420,6 +1501,7 @@
             </div>
             <div class="settings-tabs">
                 <button class="settings-tab-btn active" id="tab-audio" onclick="switchSettingsTab('audio')">Audio</button>
+                <button class="settings-tab-btn" id="tab-theme" onclick="switchSettingsTab('theme')">Appearance</button>
                 <button class="settings-tab-btn" id="tab-share" onclick="switchSettingsTab('share')">Share QR</button>
             </div>
             <div class="settings-body">
@@ -1437,6 +1519,21 @@
                             <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
                         </div>
                     </div>
+                </div>
+
+                <!-- APPEARANCE / THEME PANEL -->
+                <div class="settings-panel" id="panel-theme">
+                    <div class="setting-row">
+                        <span class="setting-label">🎨 Accent Color</span>
+                        <div class="setting-control">
+                            <div class="theme-picker-grid">
+                                <button class="theme-swatch pink" onclick="setTheme('')" title="Neon Violet/Pink"></button>
+                                <button class="theme-swatch cyan" onclick="setTheme('theme-cyan')" title="Cyber Cyan"></button>
+                                <button class="theme-swatch emerald" onclick="setTheme('theme-emerald')" title="Emerald Green"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">Select your preferred UI neon accent theme.</p>
                 </div>
 
                 <!-- SHARE QR PANEL -->
@@ -1484,6 +1581,30 @@
     </div>
 
     <script>
+        // --- SERVICE WORKER REGISTRATION FOR PWA ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        // --- LOCAL STATS & HIGH SCORE MANAGER ---
+        const ScoreManager = {
+            getStats(gameKey) {
+                const data = localStorage.getItem(`arcadehub_${gameKey}`);
+                return data ? JSON.parse(data) : { highScore: 0, gamesPlayed: 0 };
+            },
+            saveScore(gameKey, score) {
+                const stats = this.getStats(gameKey);
+                stats.gamesPlayed += 1;
+                if (score > stats.highScore) {
+                    stats.highScore = score;
+                }
+                localStorage.setItem(`arcadehub_${gameKey}`, JSON.stringify(stats));
+                return stats;
+            }
+        };
+
         // --- BUILT-IN AUDIO SYSTEM ---
         class ArcadeAudioManager {
             constructor() {
@@ -1584,6 +1705,13 @@
             audio.playSFX('click');
         }
 
+        // --- THEME CUSTOMIZER ---
+        function setTheme(themeName) {
+            audio.playSFX('click');
+            document.documentElement.className = themeName;
+            localStorage.setItem("arcadehub_theme", themeName);
+        }
+
         // --- SETTINGS MODAL & TABS LOGIC ---
         function openSettingsModal() {
             audio.playSFX('click');
@@ -1598,12 +1726,15 @@
         function switchSettingsTab(tabName) {
             audio.playSFX('move');
             document.getElementById('tab-audio').classList.toggle('active', tabName === 'audio');
+            document.getElementById('tab-theme').classList.toggle('active', tabName === 'theme');
             document.getElementById('tab-share').classList.toggle('active', tabName === 'share');
+
             document.getElementById('panel-audio').classList.toggle('active', tabName === 'audio');
+            document.getElementById('panel-theme').classList.toggle('active', tabName === 'theme');
             document.getElementById('panel-share').classList.toggle('active', tabName === 'share');
         }
 
-        // --- GAME HUB LOGIC ---
+        // --- GAME HUB LOGIC & INITIALIZATIONS ---
         const winningConditions = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8],
             [0, 3, 6], [1, 4, 7], [2, 5, 8],
@@ -1642,33 +1773,34 @@
         let reactionTimeout = null;
         let bestReactionTime = null;
 
-        let snakeCanvas, snakeCtx;
-        let snake = [];
-        let snakeFood = {};
-        let snakeDir = 'RIGHT';
-        let nextSnakeDir = 'RIGHT';
-        let snakeInterval = null;
-        let snakeScore = 0;
-        let snakeHighScore = 0;
-
-        let catcherCanvas, catcherCtx;
-        let catcherX = 100;
-        let catcherItems = [];
-        let catcherScore = 0;
-        let catcherLives = 3;
-        let catcherInterval = null;
-        let isCatcherRunning = false;
+        let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
+        let catcherCanvas, catcherCtx, catcherX = 100, catcherItems = [], catcherScore = 0, catcherLives = 3, catcherInterval = null, isCatcherRunning = false;
+        
+        // Flappy variables
+        let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
+        // Dino variables
+        let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, obstacles = [], dinoScore = 0, isDinoRunning = false;
 
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
-        let candyBoard = [];
-        let candyScore = 0;
-        let candyMoves = 20;
-        let selectedCandy = null;
+        let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
 
         window.onload = function() {
             generateQRCode();
             initSnakeCanvas();
             initCatcherCanvas();
+            initFlappyCanvas();
+            initDinoCanvas();
+
+            // Load Saved Theme
+            const savedTheme = localStorage.getItem("arcadehub_theme") || "";
+            if (savedTheme) document.documentElement.className = savedTheme;
+
+            // Load high scores into display elements
+            document.getElementById('snake-high').textContent = ScoreManager.getStats('snake').highScore;
+            document.getElementById('catcher-high').textContent = ScoreManager.getStats('catcher').highScore;
+            document.getElementById('mole-high').textContent = ScoreManager.getStats('mole').highScore;
+            document.getElementById('flappy-high').textContent = ScoreManager.getStats('flappy').highScore;
+            document.getElementById('dino-high').textContent = ScoreManager.getStats('dino').highScore;
         };
 
         function enterHub() {
@@ -1685,17 +1817,27 @@
 
             if (containerId === 'snakegame-container') initSnakeCanvas();
             if (containerId === 'catchergame-container') initCatcherCanvas();
+            if (containerId === 'flappygame-container') startFlappyGame();
+            if (containerId === 'dinogame-container') startDinoGame();
             if (containerId === 'candygame-container' && candyBoard.length === 0) startCandyGame();
         }
 
         function backToHub() {
             audio.playSFX('click');
+            // Clear running loops when exiting games
+            if (snakeInterval) clearInterval(snakeInterval);
+            if (catcherInterval) clearInterval(catcherInterval);
+            if (flappyInterval) clearInterval(flappyInterval);
+            if (dinoInterval) clearInterval(dinoInterval);
+            if (moleTimer) clearInterval(moleTimer);
+            if (activeMoleTimer) clearInterval(activeMoleTimer);
+
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
         }
 
         function generateQRCode() {
-            const targetUrl = "arcadehub-july.vercel.app";
+            const targetUrl = window.location.href || "arcadehub-july.vercel.app";
             document.getElementById('current-url-text').textContent = targetUrl;
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
         }
@@ -2028,18 +2170,18 @@
             audio.playSFX('click');
             isMolePlaying = true; moleScore = 0; moleTimeLeft = 20;
             document.getElementById('mole-score').textContent = moleScore;
-            document.getElementById('mole-time').textContent = moleTimeLeft;
             document.getElementById('mole-start-btn').disabled = true;
 
             moleTimer = setInterval(() => {
                 moleTimeLeft--;
-                document.getElementById('mole-time').textContent = moleTimeLeft;
                 if (moleTimeLeft <= 0) {
                     clearInterval(moleTimer); clearInterval(activeMoleTimer);
                     if (currentActiveMole !== null) document.querySelectorAll('.mole-hole')[currentActiveMole].classList.remove('active');
                     currentActiveMole = null; isMolePlaying = false;
                     audio.playSFX('win');
                     document.getElementById('mole-start-btn').disabled = false;
+                    const stats = ScoreManager.saveScore('mole', moleScore);
+                    document.getElementById('mole-high').textContent = stats.highScore;
                 }
             }, 1000);
 
@@ -2135,6 +2277,8 @@
             if (head.x < 0 || head.x >= 260 || head.y < 0 || head.y >= 260 || snake.some(p => p.x === head.x && p.y === head.y)) {
                 clearInterval(snakeInterval);
                 audio.playSFX('gameover');
+                const stats = ScoreManager.saveScore('snake', snakeScore);
+                document.getElementById('snake-high').textContent = stats.highScore;
                 alert(`Snake Over! Score: ${snakeScore}`);
                 return;
             }
@@ -2144,7 +2288,6 @@
                 audio.playSFX('score');
                 snakeScore += 10;
                 document.getElementById('snake-score').textContent = snakeScore;
-                if (snakeScore > snakeHighScore) { snakeHighScore = snakeScore; document.getElementById('snake-high').textContent = snakeHighScore; }
                 spawnSnakeFood();
             } else {
                 snake.pop();
@@ -2208,7 +2351,6 @@
                     if (item.type === '⭐') {
                         audio.playSFX('gameover');
                         catcherLives--;
-                        document.getElementById('catcher-lives').textContent = catcherLives;
                     }
                     return false;
                 }
@@ -2219,6 +2361,8 @@
                 clearInterval(catcherInterval);
                 isCatcherRunning = false;
                 audio.playSFX('win');
+                const stats = ScoreManager.saveScore('catcher', catcherScore);
+                document.getElementById('catcher-high').textContent = stats.highScore;
                 alert(`Catcher Over! Score: ${catcherScore}`);
             }
             drawCatcherScene();
@@ -2232,6 +2376,180 @@
             catcherCtx.fillStyle = '#8b5cf6'; catcherCtx.fillRect(catcherX, 215, 60, 14);
         }
 
+        // --- NEW FLAPPY ARCADE MINIGAME ---
+        function initFlappyCanvas() {
+            flappyCanvas = document.getElementById('flappy-canvas');
+            if (flappyCanvas) flappyCtx = flappyCanvas.getContext('2d');
+        }
+
+        function startFlappyGame() {
+            audio.playSFX('click');
+            if (flappyInterval) clearInterval(flappyInterval);
+            bird = { x: 50, y: 130, gravity: 0.5, lift: -8, velocity: 0 };
+            pipes = [];
+            flappyScore = 0;
+            isFlappyRunning = true;
+            document.getElementById('flappy-score').textContent = flappyScore;
+            
+            flappyCanvas.onclick = () => {
+                if (isFlappyRunning) {
+                    bird.velocity = bird.lift;
+                    audio.playSFX('move');
+                }
+            };
+
+            let frame = 0;
+            flappyInterval = setInterval(() => {
+                frame++;
+                bird.velocity += bird.gravity;
+                bird.y += bird.velocity;
+
+                if (frame % 90 === 0) {
+                    let topH = Math.floor(Math.random() * 100) + 40;
+                    pipes.push({ x: 260, top: topH, bottom: topH + 70, passed: false });
+                }
+
+                pipes.forEach(p => p.x -= 3);
+                pipes = pipes.filter(p => p.x > -40);
+
+                pipes.forEach(p => {
+                    if (!p.passed && p.x < bird.x) {
+                        p.passed = true;
+                        flappyScore += 1;
+                        audio.playSFX('score');
+                        document.getElementById('flappy-score').textContent = flappyScore;
+                    }
+                    // Collision check
+                    if (bird.x + 15 > p.x && bird.x - 15 < p.x + 35 && (bird.y - 15 < p.top || bird.y + 15 > p.bottom)) {
+                        endFlappyGame();
+                    }
+                });
+
+                if (bird.y > 260 || bird.y < 0) {
+                    endFlappyGame();
+                }
+
+                drawFlappyScene();
+            }, 30);
+        }
+
+        function endFlappyGame() {
+            clearInterval(flappyInterval);
+            isFlappyRunning = false;
+            audio.playSFX('gameover');
+            const stats = ScoreManager.saveScore('flappy', flappyScore);
+            document.getElementById('flappy-high').textContent = stats.highScore;
+        }
+
+        function drawFlappyScene() {
+            if (!flappyCtx) return;
+            flappyCtx.fillStyle = '#0b0f19';
+            flappyCtx.fillRect(0, 0, 260, 260);
+
+            // Draw Pipes
+            flappyCtx.fillStyle = '#10b981';
+            pipes.forEach(p => {
+                flappyCtx.fillRect(p.x, 0, 35, p.top);
+                flappyCtx.fillRect(p.x, p.bottom, 35, 260 - p.bottom);
+            });
+
+            // Draw Bird
+            flappyCtx.fillStyle = '#f59e0b';
+            flappyCtx.beginPath();
+            flappyCtx.arc(bird.x, bird.y, 12, 0, Math.PI * 2);
+            flappyCtx.fill();
+        }
+
+        // --- NEW DINO JUMP MINIGAME ---
+        function initDinoCanvas() {
+            dinoCanvas = document.getElementById('dino-canvas');
+            if (dinoCanvas) dinoCtx = dinoCanvas.getContext('2d');
+        }
+
+        function startDinoGame() {
+            audio.playSFX('click');
+            if (dinoInterval) clearInterval(dinoInterval);
+            dino = { x: 30, y: 150, width: 20, height: 25, vy: 0, gravity: 0.6, jump: -9, grounded: true };
+            obstacles = [];
+            dinoScore = 0;
+            isDinoRunning = true;
+            document.getElementById('dino-score').textContent = dinoScore;
+
+            dinoCanvas.onclick = () => jumpDino();
+
+            let frame = 0;
+            dinoInterval = setInterval(() => {
+                frame++;
+                if (!dino.grounded) {
+                    dino.vy += dino.gravity;
+                    dino.y += dino.vy;
+                    if (dino.y >= 150) {
+                        dino.y = 150;
+                        dino.grounded = true;
+                        dino.vy = 0;
+                    }
+                }
+
+                if (frame % 100 === 0) {
+                    obstacles.push({ x: 260, y: 155, width: 15, height: 20 });
+                }
+
+                obstacles.forEach(o => o.x -= 4);
+                obstacles = obstacles.filter(o => o.x > -20);
+
+                obstacles.forEach(o => {
+                    if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dino.y < o.y + o.height && dino.y + dino.height > o.y) {
+                        endDinoGame();
+                    }
+                });
+
+                dinoScore++;
+                document.getElementById('dino-score').textContent = Math.floor(dinoScore / 10);
+                drawDinoScene();
+            }, 30);
+        }
+
+        function jumpDino() {
+            if (dino.grounded && isDinoRunning) {
+                dino.vy = dino.jump;
+                dino.grounded = false;
+                audio.playSFX('move');
+            }
+        }
+
+        function endDinoGame() {
+            clearInterval(dinoInterval);
+            isDinoRunning = false;
+            audio.playSFX('gameover');
+            const finalScore = Math.floor(dinoScore / 10);
+            const stats = ScoreManager.saveScore('dino', finalScore);
+            document.getElementById('dino-high').textContent = stats.highScore;
+        }
+
+        function drawDinoScene() {
+            if (!dinoCtx) return;
+            dinoCtx.fillStyle = '#0b0f19';
+            dinoCtx.fillRect(0, 0, 260, 200);
+
+            // Ground line
+            dinoCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            dinoCtx.beginPath();
+            dinoCtx.moveTo(0, 180);
+            dinoCtx.lineTo(260, 180);
+            dinoCtx.stroke();
+
+            // Draw Dino
+            dinoCtx.fillStyle = '#38bdf8';
+            dinoCtx.fillRect(dino.x, dino.y, dino.width, dino.height);
+
+            // Draw Obstacles
+            dinoCtx.fillStyle = '#ec4899';
+            obstacles.forEach(o => {
+                dinoCtx.fillRect(o.x, o.y, o.width, o.height);
+            });
+        }
+
+        // --- CANDY MATCH 3 GAME ---
         function startCandyGame() {
             audio.playSFX('click');
             candyScore = 0; candyMoves = 20; selectedCandy = null;
