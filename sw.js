@@ -2,11 +2,11 @@ const CACHE_NAME = 'arcadehub-v1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
   './1793408885987.jpg'
 ];
 
-// Install Event: Caches your core app files
+// Install Event: Caches core app files and the splash background image
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -16,7 +16,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate Event: Cleans up old caches
+// Activate Event: Cleans up old outdated cache versions
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -32,13 +32,11 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch Event: Serves cached files when offline
+// Fetch Event: Serves files straight from cache when offline
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        // Fallback or offline handling can go here if needed
-      });
+      return cachedResponse || fetch(event.request);
     })
   );
 });
