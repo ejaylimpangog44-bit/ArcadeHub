@@ -1739,7 +1739,6 @@
         let archeryWind = 0;
         let targetX = 130, targetY = 90;
         let crosshairX = 130, crosshairY = 120;
-        let isArcheryAiming = false;
         let hitResultText = "";
 
         window.onload = function() {
@@ -1790,7 +1789,7 @@
         }
 
         function generateQRCode() {
-            const targetUrl = window.location.href || "https://arcadehub-july12.vercel.app/";
+            const targetUrl = window.location.href || "arcadehub-july.vercel.app";
             document.getElementById('current-url-text').textContent = targetUrl;
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
         }
@@ -2071,7 +2070,6 @@
             archeryArrows--;
             document.getElementById('archery-arrows').textContent = archeryArrows;
 
-            // Apply wind factor
             let finalX = crosshairX + (archeryWind * 6);
             let distance = Math.hypot(finalX - targetX, crosshairY - targetY);
 
@@ -2102,7 +2100,6 @@
             archeryCtx.fillStyle = '#0b0f19';
             archeryCtx.fillRect(0, 0, 260, 240);
 
-            // Horizon & Ground
             archeryCtx.fillStyle = '#1e293b';
             archeryCtx.fillRect(0, 140, 260, 100);
             archeryCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
@@ -2110,7 +2107,6 @@
             archeryCtx.moveTo(0, 140); archeryCtx.lineTo(260, 140);
             archeryCtx.stroke();
 
-            // Target (3D isometric perspective rings)
             archeryCtx.fillStyle = '#ef4444';
             archeryCtx.beginPath(); archeryCtx.arc(targetX, targetY, 32, 0, Math.PI * 2); archeryCtx.fill();
             archeryCtx.fillStyle = '#ffffff';
@@ -2130,7 +2126,6 @@
                 archeryCtx.stroke();
             }
 
-            // Crosshair
             archeryCtx.strokeStyle = '#38bdf8';
             archeryCtx.lineWidth = 1.5;
             archeryCtx.beginPath();
@@ -2139,7 +2134,6 @@
             archeryCtx.moveTo(crosshairX, crosshairY - 14); archeryCtx.lineTo(crosshairX, crosshairY + 14);
             archeryCtx.stroke();
 
-            // Hit feedback text
             archeryCtx.fillStyle = '#f3f4f6';
             archeryCtx.font = '11px sans-serif';
             archeryCtx.fillText(hitResultText, 10, 20);
@@ -2301,6 +2295,7 @@
             document.getElementById('reaction-time').textContent = '0 ms';
         }
 
+        // Snake Game with Emojis (🐍 and 🍓)
         function initSnakeCanvas() {
             snakeCanvas = document.getElementById('snake-canvas');
             if (snakeCanvas) snakeCtx = snakeCanvas.getContext('2d');
@@ -2314,7 +2309,7 @@
             snakeDir = 'RIGHT'; nextSnakeDir = 'RIGHT'; snakeScore = 0;
             document.getElementById('snake-score').textContent = snakeScore;
             spawnSnakeFood();
-            snakeInterval = setInterval(updateSnake, 120);
+            snakeInterval = setInterval(updateSnake, 130);
         }
 
         function changeSnakeDir(dir) {
@@ -2360,14 +2355,22 @@
 
         function drawSnakeGrid() {
             if (!snakeCtx) return;
-            snakeCtx.fillStyle = '#0b0f19'; snakeCtx.fillRect(0, 0, 260, 260);
-            snakeCtx.fillStyle = '#ec4899'; snakeCtx.fillRect(snakeFood.x + 2, snakeFood.y + 2, 16, 16);
+            snakeCtx.fillStyle = '#0b0f19'; 
+            snakeCtx.fillRect(0, 0, 260, 260);
+
+            // Draw Strawberry Emoji for Food
+            snakeCtx.font = '16px sans-serif';
+            snakeCtx.textAlign = 'center';
+            snakeCtx.textBaseline = 'middle';
+            snakeCtx.fillText('🍓', snakeFood.x + 10, snakeFood.y + 10);
+
+            // Draw Snake Emojis (Head vs Body)
             snake.forEach((p, idx) => {
-                snakeCtx.fillStyle = idx === 0 ? '#38bdf8' : '#8b5cf6';
-                snakeCtx.fillRect(p.x + 1, p.y + 1, 18, 18);
+                snakeCtx.fillText(idx === 0 ? '🐍' : '🟩', p.x + 10, p.y + 10);
             });
         }
 
+        // Flappy Arcade with Emoji (🐦) and balanced physics
         function initFlappyCanvas() {
             flappyCanvas = document.getElementById('flappy-canvas');
             if (flappyCanvas) flappyCtx = flappyCanvas.getContext('2d');
@@ -2397,7 +2400,7 @@
 
                 if (frame % 90 === 0) {
                     let topH = Math.floor(Math.random() * 100) + 40;
-                    pipes.push({ x: 260, top: topH, bottom: topH + 100, passed: false });
+                    pipes.push({ x: 260, top: topH, bottom: topH + 85, passed: false });
                 }
 
                 pipes.forEach(p => p.x -= 3);
@@ -2410,7 +2413,7 @@
                         audio.playSFX('score');
                         document.getElementById('flappy-score').textContent = flappyScore;
                     }
-                    if (bird.x + 15 > p.x && bird.x - 15 < p.x + 35 && (bird.y - 15 < p.top || bird.y + 15 > p.bottom)) {
+                    if (bird.x + 12 > p.x && bird.x - 12 < p.x + 35 && (bird.y - 12 < p.top || bird.y + 12 > p.bottom)) {
                         endFlappyGame();
                     }
                 });
@@ -2442,12 +2445,14 @@
                 flappyCtx.fillRect(p.x, p.bottom, 35, 260 - p.bottom);
             });
 
-            flappyCtx.fillStyle = '#f59e0b';
-            flappyCtx.beginPath();
-            flappyCtx.arc(bird.x, bird.y, 12, 0, Math.PI * 2);
-            flappyCtx.fill();
+            // Draw Bird Emoji
+            flappyCtx.font = '24px sans-serif';
+            flappyCtx.textAlign = 'center';
+            flappyCtx.textBaseline = 'middle';
+            flappyCtx.fillText('🐦', bird.x, bird.y);
         }
 
+        // Dino Jump with Emoji (🦖)
         function initDinoCanvas() {
             dinoCanvas = document.getElementById('dino-canvas');
             if (dinoCanvas) dinoCtx = dinoCanvas.getContext('2d');
@@ -2456,7 +2461,7 @@
         function startDinoGame() {
             audio.playSFX('click');
             if (dinoInterval) clearInterval(dinoInterval);
-            dino = { x: 30, y: 150, width: 20, height: 25, vy: 0, gravity: 0.6, jump: -9, grounded: true };
+            dino = { x: 30, y: 145, width: 24, height: 24, vy: 0, gravity: 0.6, jump: -9, grounded: true };
             obstacles = [];
             dinoScore = 0;
             isDinoRunning = true;
@@ -2470,15 +2475,15 @@
                 if (!dino.grounded) {
                     dino.vy += dino.gravity;
                     dino.y += dino.vy;
-                    if (dino.y >= 150) {
-                        dino.y = 150;
+                    if (dino.y >= 145) {
+                        dino.y = 145;
                         dino.grounded = true;
                         dino.vy = 0;
                     }
                 }
 
                 if (frame % 100 === 0) {
-                    obstacles.push({ x: 260, y: 155, width: 15, height: 20 });
+                    obstacles.push({ x: 260, y: 150, width: 20, height: 20 });
                 }
 
                 obstacles.forEach(o => o.x -= 4);
@@ -2520,16 +2525,19 @@
 
             dinoCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
             dinoCtx.beginPath();
-            dinoCtx.moveTo(0, 180);
-            dinoCtx.lineTo(260, 180);
+            dinoCtx.moveTo(0, 175);
+            dinoCtx.lineTo(260, 175);
             dinoCtx.stroke();
 
-            dinoCtx.fillStyle = '#38bdf8';
-            dinoCtx.fillRect(dino.x, dino.y, dino.width, dino.height);
+            // Draw Dino Emoji
+            dinoCtx.font = '24px sans-serif';
+            dinoCtx.textAlign = 'center';
+            dinoCtx.textBaseline = 'middle';
+            dinoCtx.fillText('🦖', dino.x + 12, dino.y + 12);
 
-            dinoCtx.fillStyle = '#ec4899';
+            // Draw Cactus / Obstacle Emojis
             obstacles.forEach(o => {
-                dinoCtx.fillRect(o.x, o.y, o.width, o.height);
+                dinoCtx.fillText('🌵', o.x + 10, o.y + 10);
             });
         }
 
