@@ -1164,6 +1164,10 @@
                     <span class="game-icon">🔨</span>
                     <span class="game-name">Whack-a-Mole</span>
                 </div>
+                <div class="game-card" onclick="openGame('archerygame-container')">
+                    <span class="game-icon">🏹</span>
+                    <span class="game-name">3D Archery</span>
+                </div>
                 <div class="game-card" onclick="openGame('snakegame-container')">
                     <span class="game-icon">🐍</span>
                     <span class="game-name">Snake Game</span>
@@ -1283,6 +1287,21 @@
         </div>
         <p id="claw-message">Position the claw and press Drop!</p>
         <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
+    </div>
+
+    <div id="archerygame-container" class="game-container">
+        <div class="game-screen-header">
+            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <h3 style="font-size: 15px;">3D Archery</h3>
+            <div style="width: 70px;"></div>
+        </div>
+        <div class="score-board" style="margin-top: 5px;">
+            <div class="score-box">Arrows <span id="archery-arrows">5</span></div>
+            <div class="score-box">Score <span id="archery-score">0</span></div>
+            <div class="score-box">Wind <span id="archery-wind">0.0</span></div>
+        </div>
+        <canvas id="archery-canvas" class="arcade-canvas" width="260" height="240" style="cursor: crosshair;"></canvas>
+        <button class="action-btn" style="width: 100%;" onclick="startArcheryGame()">New Match / Restart</button>
     </div>
 
     <div id="rpsgame-container" class="game-container">
@@ -1713,11 +1732,22 @@
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
 
+        // 3D Archery State
+        let archeryCanvas, archeryCtx;
+        let archeryArrows = 5;
+        let archeryScore = 0;
+        let archeryWind = 0;
+        let targetX = 130, targetY = 90;
+        let crosshairX = 130, crosshairY = 120;
+        let isArcheryAiming = false;
+        let hitResultText = "";
+
         window.onload = function() {
             generateQRCode();
             initSnakeCanvas();
             initFlappyCanvas();
             initDinoCanvas();
+            initArcheryCanvas();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -1743,6 +1773,7 @@
             if (containerId === 'snakegame-container') initSnakeCanvas();
             if (containerId === 'flappygame-container') startFlappyGame();
             if (containerId === 'dinogame-container') startDinoGame();
+            if (containerId === 'archerygame-container') startArcheryGame();
             if (containerId === 'candygame-container' && candyBoard.length === 0) startCandyGame();
         }
 
@@ -2004,6 +2035,116 @@
             }, 400);
         }
 
+        // 3D Archery Logic
+        function initArcheryCanvas() {
+            archeryCanvas = document.getElementById('archery-canvas');
+            if (archeryCanvas) {
+                archeryCtx = archeryCanvas.getContext('2d');
+                archeryCanvas.onmousemove = (e) => {
+                    const rect = archeryCanvas.getBoundingClientRect();
+                    crosshairX = e.clientX - rect.left;
+                    crosshairY = e.clientY - rect.top;
+                    drawArcheryScene();
+                };
+                archeryCanvas.onclick = () => shootArcheryArrow();
+            }
+            drawArcheryScene();
+        }
+
+        function startArcheryGame() {
+            audio.playSFX('click');
+            archeryArrows = 5;
+            archeryScore = 0;
+            archeryWind = parseFloat((Math.random() * 4 - 2).toFixed(1));
+            hitResultText = "Aim & Tap to Shoot!";
+            document.getElementById('archery-arrows').textContent = archeryArrows;
+            document.getElementById('archery-score').textContent = archeryScore;
+            document.getElementById('archery-wind').textContent = archeryWind;
+            targetX = 130 + (Math.random() * 40 - 20);
+            targetY = 90 + (Math.random() * 30 - 15);
+            drawArcheryScene();
+        }
+
+        function shootArcheryArrow() {
+            if (archeryArrows <= 0) return;
+            audio.playSFX('move');
+            archeryArrows--;
+            document.getElementById('archery-arrows').textContent = archeryArrows;
+
+            // Apply wind factor
+            let finalX = crosshairX + (archeryWind * 6);
+            let distance = Math.hypot(finalX - targetX, crosshairY - targetY);
+
+            let points = 0;
+            if (distance < 8) { points = 10; hitResultText = "🎯 BULLSEYE! (+10)"; audio.playSFX('win'); }
+            else if (distance < 18) { points = 7; hitResultText = "🎯 Inner Ring! (+7)"; audio.playSFX('score'); }
+            else if (distance < 30) { points = 4; hitResultText = "🎯 Outer Ring! (+4)"; audio.playSFX('click'); }
+            else { points = 0; hitResultText = "❌ Missed Target!"; audio.playSFX('gameover'); }
+
+            archeryScore += points;
+            document.getElementById('archery-score').textContent = archeryScore;
+            drawArcheryScene(finalX, crosshairY, true);
+
+            if (archeryArrows <= 0) {
+                setTimeout(() => {
+                    alert(`Archery Match Over! Total Score: ${archeryScore}`);
+                }, 300);
+            } else {
+                targetX = 130 + (Math.random() * 50 - 25);
+                targetY = 90 + (Math.random() * 30 - 15);
+                archeryWind = parseFloat((Math.random() * 4 - 2).toFixed(1));
+                document.getElementById('archery-wind').textContent = archeryWind;
+            }
+        }
+
+        function drawArcheryScene(shotX = null, shotY = null, showHit = false) {
+            if (!archeryCtx) return;
+            archeryCtx.fillStyle = '#0b0f19';
+            archeryCtx.fillRect(0, 0, 260, 240);
+
+            // Horizon & Ground
+            archeryCtx.fillStyle = '#1e293b';
+            archeryCtx.fillRect(0, 140, 260, 100);
+            archeryCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            archeryCtx.beginPath();
+            archeryCtx.moveTo(0, 140); archeryCtx.lineTo(260, 140);
+            archeryCtx.stroke();
+
+            // Target (3D isometric perspective rings)
+            archeryCtx.fillStyle = '#ef4444';
+            archeryCtx.beginPath(); archeryCtx.arc(targetX, targetY, 32, 0, Math.PI * 2); archeryCtx.fill();
+            archeryCtx.fillStyle = '#ffffff';
+            archeryCtx.beginPath(); archeryCtx.arc(targetX, targetY, 24, 0, Math.PI * 2); archeryCtx.fill();
+            archeryCtx.fillStyle = '#ef4444';
+            archeryCtx.beginPath(); archeryCtx.arc(targetX, targetY, 16, 0, Math.PI * 2); archeryCtx.fill();
+            archeryCtx.fillStyle = '#3b82f6';
+            archeryCtx.beginPath(); archeryCtx.arc(targetX, targetY, 8, 0, Math.PI * 2); archeryCtx.fill();
+            archeryCtx.fillStyle = '#fbbf24';
+            archeryCtx.beginPath(); archeryCtx.arc(targetX, targetY, 3, 0, Math.PI * 2); archeryCtx.fill();
+
+            if (showHit && shotX !== null) {
+                archeryCtx.strokeStyle = '#ec4899';
+                archeryCtx.lineWidth = 2;
+                archeryCtx.beginPath();
+                archeryCtx.arc(shotX, shotY, 5, 0, Math.PI * 2);
+                archeryCtx.stroke();
+            }
+
+            // Crosshair
+            archeryCtx.strokeStyle = '#38bdf8';
+            archeryCtx.lineWidth = 1.5;
+            archeryCtx.beginPath();
+            archeryCtx.arc(crosshairX, crosshairY, 10, 0, Math.PI * 2);
+            archeryCtx.moveTo(crosshairX - 14, crosshairY); archeryCtx.lineTo(crosshairX + 14, crosshairY);
+            archeryCtx.moveTo(crosshairX, crosshairY - 14); archeryCtx.lineTo(crosshairX, crosshairY + 14);
+            archeryCtx.stroke();
+
+            // Hit feedback text
+            archeryCtx.fillStyle = '#f3f4f6';
+            archeryCtx.font = '11px sans-serif';
+            archeryCtx.fillText(hitResultText, 10, 20);
+        }
+
         function handleRPSInput(choice) {
             audio.playSFX('move');
             if (rpsTurn === 1) {
@@ -2235,7 +2376,7 @@
         function startFlappyGame() {
             audio.playSFX('click');
             if (flappyInterval) clearInterval(flappyInterval);
-            bird = { x: 50, y: 130, gravity: 0.5, lift: -8, velocity: 0 };
+            bird = { x: 50, y: 130, gravity: 0.35, lift: -6.5, velocity: 0 };
             pipes = [];
             flappyScore = 0;
             isFlappyRunning = true;
@@ -2256,7 +2397,7 @@
 
                 if (frame % 90 === 0) {
                     let topH = Math.floor(Math.random() * 100) + 40;
-                    pipes.push({ x: 260, top: topH, bottom: topH + 70, passed: false });
+                    pipes.push({ x: 260, top: topH, bottom: topH + 100, passed: false });
                 }
 
                 pipes.forEach(p => p.x -= 3);
