@@ -1409,13 +1409,26 @@
             <div class="score-box">Lives <span id="catcher-lives">3</span></div>
             <div class="score-box">High Score <span id="catcher-high">0</span></div>
         </div>
+            <div id="catchergame-container" class="game-container">
+        <div class="game-screen-header">
+            <button class="back-btn" onclick="backToHub()" ontouchend="event.preventDefault(); backToHub();">← Back to Hub</button>
+            <h3 style="font-size: 15px;">Item Catcher</h3>
+            <div style="width: 70px;"></div>
+        </div>
+
+        <div class="score-board" style="margin-top: 5px;">
+            <div class="score-box">Caught <span id="catcher-score">0</span></div>
+            <div class="score-box">Lives <span id="catcher-lives">3</span></div>
+            <div class="score-box">High Score <span id="catcher-high">0</span></div>
+        </div>
         <canvas id="catcher-canvas" class="arcade-canvas" width="260" height="240"></canvas>
         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <button class="control-btn" style="flex: 1;" onclick="moveCatcher(-25)">◀️ Left</button>
-            <button class="control-btn" style="flex: 1;" onclick="moveCatcher(25)">Right ▶️</button>
+            <button class="control-btn" style="flex: 1;" onclick="moveCatcher(-25)" ontouchend="event.preventDefault(); moveCatcher(-25);">◀️ Left</button>
+            <button class="control-btn" style="flex: 1;" onclick="moveCatcher(25)" ontouchend="event.preventDefault(); moveCatcher(25);">Right ▶️</button>
         </div>
         <button class="action-btn" style="width: 100%;" onclick="startCatcherGame()" ontouchend="event.preventDefault(); startCatcherGame();">Start / Restart</button>
     </div>
+
 
     <div id="flappygame-container" class="game-container">
         <div class="game-screen-header">
@@ -2257,7 +2270,7 @@
             });
         }
 
-        function initCatcherCanvas() {
+            function initCatcherCanvas() {
             catcherCanvas = document.getElementById('catcher-canvas');
             if (catcherCanvas) {
                 catcherCanvas.width = 260;
@@ -2275,7 +2288,7 @@
 
             if (catcherInterval) clearInterval(catcherInterval);
             catcherScore = 0; 
-            catcherLives = 3; 
+            catcherLives = 5; 
             catcherItems = []; 
             catcherX = 100;
             
@@ -2289,10 +2302,11 @@
         }
 
         function moveCatcher(amount) {
-            if (!isCatcherRunning) return;
             audio.playSFX('move');
             catcherX = Math.max(0, Math.min(200, catcherX + amount));
+            drawCatcherScene(); 
         }
+
 
         function updateCatcher() {
             if (Math.random() < 0.06) {
