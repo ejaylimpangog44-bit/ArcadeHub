@@ -1790,7 +1790,7 @@
         }
 
         function generateQRCode() {
-            const targetUrl = window.location.href || "arcadehub-july.vercel.app";
+            const targetUrl = window.location.href || "https://arcadehub-july12.vercel.app/";
             document.getElementById('current-url-text').textContent = targetUrl;
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
         }
