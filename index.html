@@ -1414,7 +1414,7 @@
             <button class="control-btn" style="flex: 1;" onclick="moveCatcher(-25)">◀️ Left</button>
             <button class="control-btn" style="flex: 1;" onclick="moveCatcher(25)">Right ▶️</button>
         </div>
-        <button class="action-btn" style="width: 100%;" onclick="startCatcherGame()">Start / Restart</button>
+        <button class="action-btn" style="width: 100%;" onclick="startCatcherGame()" ontouchend="event.preventDefault(); startCatcherGame();">Start / Restart</button>
     </div>
 
     <div id="flappygame-container" class="game-container">
@@ -2259,15 +2259,23 @@
 
         function initCatcherCanvas() {
             catcherCanvas = document.getElementById('catcher-canvas');
-            if (catcherCanvas) catcherCtx = catcherCanvas.getContext('2d');
+            if (catcherCanvas) {
+                catcherCanvas.width = 260;
+                catcherCanvas.height = 240;
+                catcherCtx = catcherCanvas.getContext('2d');
+            }
             drawCatcherScene();
         }
 
         function startCatcherGame() {
+            if (audio && typeof audio.initContext === 'function') {
+                audio.initContext();
+            }
             audio.playSFX('click');
+
             if (catcherInterval) clearInterval(catcherInterval);
             catcherScore = 0; 
-            catcherLives = 5; 
+            catcherLives = 3; 
             catcherItems = []; 
             catcherX = 100;
             
