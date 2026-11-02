@@ -1168,10 +1168,6 @@
                     <span class="game-icon">🐍</span>
                     <span class="game-name">Snake Game</span>
                 </div>
-                <div class="game-card" onclick="openGame('catchergame-container')">
-                    <span class="game-icon">⭐</span>
-                    <span class="game-name">Item Catcher</span>
-                </div>
                 <div class="game-card" onclick="openGame('flappygame-container')">
                     <span class="game-icon">🐦</span>
                     <span class="game-name">Flappy Arcade</span>
@@ -1396,39 +1392,6 @@
         </div>
         <button class="action-btn" style="width: 100%;" onclick="startSnakeGame()">Start / Reset</button>
     </div>
-
-    <div id="catchergame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
-            <h3 style="font-size: 15px;">Item Catcher</h3>
-            <div style="width: 70px;"></div>
-        </div>
-
-        <div class="score-board" style="margin-top: 5px;">
-            <div class="score-box">Caught <span id="catcher-score">0</span></div>
-            <div class="score-box">Lives <span id="catcher-lives">3</span></div>
-            <div class="score-box">High Score <span id="catcher-high">0</span></div>
-        </div>
-            <div id="catchergame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()" ontouchend="event.preventDefault(); backToHub();">← Back to Hub</button>
-            <h3 style="font-size: 15px;">Item Catcher</h3>
-            <div style="width: 70px;"></div>
-        </div>
-
-        <div class="score-board" style="margin-top: 5px;">
-            <div class="score-box">Caught <span id="catcher-score">0</span></div>
-            <div class="score-box">Lives <span id="catcher-lives">3</span></div>
-            <div class="score-box">High Score <span id="catcher-high">0</span></div>
-        </div>
-        <canvas id="catcher-canvas" class="arcade-canvas" width="260" height="240"></canvas>
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <button class="control-btn" style="flex: 1;" onclick="moveCatcher(-25)" ontouchend="event.preventDefault(); moveCatcher(-25);">◀️ Left</button>
-            <button class="control-btn" style="flex: 1;" onclick="moveCatcher(25)" ontouchend="event.preventDefault(); moveCatcher(25);">Right ▶️</button>
-        </div>
-        <button class="action-btn" style="width: 100%;" onclick="startCatcherGame()" ontouchend="event.preventDefault(); startCatcherGame();">Start / Restart</button>
-    </div>
-
 
     <div id="flappygame-container" class="game-container">
         <div class="game-screen-header">
@@ -1744,8 +1707,6 @@
         let bestReactionTime = null;
 
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
-        let catcherCanvas, catcherCtx, catcherX = 100, catcherItems = [], catcherScore = 0, catcherLives = 3, catcherInterval = null, isCatcherRunning = false;
-
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, obstacles = [], dinoScore = 0, isDinoRunning = false;
 
@@ -1755,7 +1716,6 @@
         window.onload = function() {
             generateQRCode();
             initSnakeCanvas();
-            initCatcherCanvas();
             initFlappyCanvas();
             initDinoCanvas();
 
@@ -1763,7 +1723,6 @@
             if (savedTheme) document.documentElement.className = savedTheme;
 
             document.getElementById('snake-high').textContent = ScoreManager.getStats('snake').highScore;
-            document.getElementById('catcher-high').textContent = ScoreManager.getStats('catcher').highScore;
             document.getElementById('mole-high').textContent = ScoreManager.getStats('mole').highScore;
             document.getElementById('flappy-high').textContent = ScoreManager.getStats('flappy').highScore;
             document.getElementById('dino-high').textContent = ScoreManager.getStats('dino').highScore;
@@ -1782,7 +1741,6 @@
             document.getElementById(containerId).classList.add('active');
 
             if (containerId === 'snakegame-container') initSnakeCanvas();
-            if (containerId === 'catchergame-container') initCatcherCanvas();
             if (containerId === 'flappygame-container') startFlappyGame();
             if (containerId === 'dinogame-container') startDinoGame();
             if (containerId === 'candygame-container' && candyBoard.length === 0) startCandyGame();
@@ -1791,7 +1749,6 @@
         function backToHub() {
             audio.playSFX('click');
             if (snakeInterval) clearInterval(snakeInterval);
-            if (catcherInterval) clearInterval(catcherInterval);
             if (flappyInterval) clearInterval(flappyInterval);
             if (dinoInterval) clearInterval(dinoInterval);
             if (moleTimer) clearInterval(moleTimer);
@@ -2268,109 +2225,6 @@
                 snakeCtx.fillStyle = idx === 0 ? '#38bdf8' : '#8b5cf6';
                 snakeCtx.fillRect(p.x + 1, p.y + 1, 18, 18);
             });
-        }
-
-            function initCatcherCanvas() {
-            catcherCanvas = document.getElementById('catcher-canvas');
-            if (catcherCanvas) {
-                catcherCanvas.width = 260;
-                catcherCanvas.height = 240;
-                catcherCtx = catcherCanvas.getContext('2d');
-            }
-            drawCatcherScene();
-        }
-
-        function startCatcherGame() {
-            if (audio && typeof audio.initContext === 'function') {
-                audio.initContext();
-            }
-            audio.playSFX('click');
-
-            if (catcherInterval) clearInterval(catcherInterval);
-            catcherScore = 0; 
-            catcherLives = 5; 
-            catcherItems = []; 
-            catcherX = 100;
-            
-            const scoreEl = document.getElementById('catcher-score');
-            const livesEl = document.getElementById('catcher-lives');
-            if (scoreEl) scoreEl.textContent = catcherScore;
-            if (livesEl) livesEl.textContent = catcherLives;
-            
-            isCatcherRunning = true;
-            catcherInterval = setInterval(updateCatcher, 30);
-        }
-
-        function moveCatcher(amount) {
-            audio.playSFX('move');
-            catcherX = Math.max(0, Math.min(200, catcherX + amount));
-            drawCatcherScene(); 
-        }
-
-
-        function updateCatcher() {
-            if (Math.random() < 0.06) {
-                catcherItems.push({ 
-                    x: Math.floor(Math.random() * 220) + 10, 
-                    y: 20, 
-                    type: Math.random() < 0.25 ? '💣' : '⭐' 
-                });
-            }
-
-            catcherItems.forEach(item => item.y += 4);
-
-            const livesEl = document.getElementById('catcher-lives');
-            const scoreEl = document.getElementById('catcher-score');
-
-            catcherItems.forEach((item, index) => {
-                if (item.y >= 195 && item.y <= 225 && item.x >= catcherX - 15 && item.x <= catcherX + 65) {
-                    if (item.type === '💣') {
-                        audio.playSFX('gameover');
-                        catcherLives--;
-                    } else {
-                        audio.playSFX('score');
-                        catcherScore++;
-                    }
-                    catcherItems.splice(index, 1);
-                    if (scoreEl) scoreEl.textContent = catcherScore;
-                    if (livesEl) livesEl.textContent = catcherLives;
-                }
-            });
-
-            catcherItems = catcherItems.filter(item => {
-                if (item.y > 240) {
-                    if (item.type === '⭐') {
-                        audio.playSFX('gameover');
-                        catcherLives--;
-                        if (livesEl) livesEl.textContent = catcherLives;
-                    }
-                    return false;
-                }
-                return true;
-            });
-
-            if (catcherLives <= 0) {
-                clearInterval(catcherInterval);
-                isCatcherRunning = false;
-                audio.playSFX('gameover');
-                const stats = ScoreManager.saveScore('catcher', catcherScore);
-                document.getElementById('catcher-high').textContent = stats.highScore;
-                alert(`Game Over! Score: ${catcherScore}`);
-            }
-            
-            drawCatcherScene();
-        }
-
-        function drawCatcherScene() {
-            if (!catcherCtx) return;
-            catcherCtx.fillStyle = '#0b0f19'; 
-            catcherCtx.fillRect(0, 0, 260, 240);
-            
-            catcherCtx.font = '22px sans-serif';
-            catcherItems.forEach(item => catcherCtx.fillText(item.type, item.x, item.y));
-            
-            catcherCtx.fillStyle = '#8b5cf6'; 
-            catcherCtx.fillRect(catcherX, 215, 60, 14);
         }
 
         function initFlappyCanvas() {
