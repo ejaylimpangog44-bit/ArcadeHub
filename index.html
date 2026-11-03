@@ -67,12 +67,13 @@
             justify-content: flex-end;
             padding: 40px 20px;
             z-index: 1000;
-            transition: opacity 0.6s ease, visibility 0.6s ease;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
 
         #splash-screen.fade-out {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
         }
 
         .enter-hub-btn {
@@ -244,7 +245,7 @@
             font-weight: 600;
         }
 
-        /* Full wide game containers with absolute floating upper-left navigator */
+        /* Fullscreen Game Container Auto-Adjustment */
         .game-container {
             position: relative;
             background-color: var(--card-bg);
@@ -272,19 +273,18 @@
             justify-content: center !important;
             align-items: center !important;
             background-color: var(--bg-color) !important;
-            padding: 20px !important;
-            overflow: hidden !important;
+            padding: 40px 16px 16px 16px !important;
+            overflow: auto !important;
         }
 
         .game-container:fullscreen canvas {
-            max-height: 82vh;
+            max-height: 72vh;
             width: auto !important;
             height: auto !important;
+            max-width: 100% !important;
             object-fit: contain;
-            flex: 1;
         }
 
-        /* Floating Upper-Left Navigator Bar */
         .game-floating-nav {
             position: absolute;
             top: 12px;
@@ -1394,7 +1394,7 @@
         <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
     </div>
 
-    <!-- Space Shooter -->
+    <!-- Space Shooter (Boss Defeat Win & 50 Rounds Progression) -->
     <div id="dartgame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1410,7 +1410,7 @@
             <canvas id="shooter-canvas" class="arcade-canvas" width="280" height="360" style="touch-action: none; cursor: crosshair;"></canvas>
             
             <div id="shooter-gameover-overlay">
-                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.2rem;">MISSION FAILED</h2>
+                <h2 id="shooter-over-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.2rem;">MISSION FAILED</h2>
                 <p id="final-shooter-score" style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">Final Score: 0</p>
                 <button class="action-btn" onclick="startSpaceShooter()">RESTART MISSION</button>
             </div>
@@ -1854,7 +1854,7 @@
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
 
-        // Space Shooter variables
+        // Space Shooter variables (Up to Round 50 and boss win condition)
         let shooterCanvas, shooterCtx, shooterRunning = false, shooterScore = 0, shooterLives = 5, shooterRound = 1;
         let enemiesDefeatedInRound = 0, requiredEnemiesForRound = 10, shooterAnimId, shooterPlayer, shooterBullets = [], shooterEnemyBullets = [], shooterEnemies = [], shooterPowerups = [], shooterStars = [], shooterBoss = null;
         let isPointerDown = false, pointerX = 140, pointerY = 300, announcementText = "", announcementTimer = 0;
@@ -2334,11 +2334,9 @@
             snakeCtx.fillStyle = '#0b0f19';
             snakeCtx.fillRect(0, 0, 260, 260);
 
-            // Draw Food
             snakeCtx.fillStyle = '#ec4899';
             snakeCtx.fillRect(snakeFood.x * 10, snakeFood.y * 10, 9, 9);
 
-            // Draw Snake
             snakeCtx.fillStyle = '#38bdf8';
             snake.forEach(part => {
                 snakeCtx.fillRect(part.x * 10, part.y * 10, 9, 9);
@@ -2421,14 +2419,12 @@
             flappyCtx.fillStyle = '#0b0f19';
             flappyCtx.fillRect(0, 0, 260, 260);
 
-            // Pipes
             flappyCtx.fillStyle = '#10b981';
             pipes.forEach(p => {
                 flappyCtx.fillRect(p.x, 0, 35, p.top);
                 flappyCtx.fillRect(p.x, p.bottom, 35, 260 - p.bottom);
             });
 
-            // Bird
             flappyCtx.fillStyle = '#facc15';
             flappyCtx.beginPath();
             flappyCtx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
@@ -2509,18 +2505,15 @@
             dinoCtx.fillStyle = '#0b0f19';
             dinoCtx.fillRect(0, 0, 260, 200);
 
-            // Ground line
             dinoCtx.strokeStyle = 'rgba(255,255,255,0.2)';
             dinoCtx.beginPath();
             dinoCtx.moveTo(0, 175);
             dinoCtx.lineTo(260, 175);
             dinoCtx.stroke();
 
-            // Dino
             dinoCtx.fillStyle = '#a855f7';
             dinoCtx.fillRect(dino.x, dino.y, dino.width, dino.height);
 
-            // Obstacles
             dinoCtx.fillStyle = '#ef4444';
             obstacles.forEach(o => {
                 dinoCtx.fillRect(o.x, 175 - o.height, o.width, o.height);
@@ -2617,7 +2610,7 @@
             renderCandyBoard();
         }
 
-        // Space Shooter classes & loop (Infinite Loop Fix)
+        // Space Shooter classes & loop (Round 1 to 50, Boss defeat required to win)
         class ShooterPlayer {
             constructor() {
                 this.width = 30; this.height = 36;
@@ -2687,9 +2680,9 @@
                 this.x = Math.random() * (280 - this.width);
                 this.y = -this.height;
                 this.hp = this.type === 'ADVANCED' ? 3 : 1;
-                this.speed = (this.type === 'ADVANCED' ? 1.5 : 2) + (roundNum * 0.15);
+                this.speed = (this.type === 'ADVANCED' ? 1.5 : 2) + (roundNum * 0.1);
                 this.lastShot = Date.now() + Math.random() * 1000;
-                this.shootInterval = Math.max(800, 2200 - (roundNum * 80));
+                this.shootInterval = Math.max(700, 2200 - (roundNum * 40));
             }
             update() {
                 this.y += this.speed;
@@ -2724,10 +2717,9 @@
             constructor(roundNum) {
                 this.width = 80; this.height = 55;
                 this.x = 280 / 2 - this.width / 2; this.y = -this.height;
-                // Scale boss HP infinitely with each boss round encountered
-                this.maxHp = 100 + (Math.floor(roundNum / 3) * 50);
+                this.maxHp = 120 + (roundNum * 15);
                 this.hp = this.maxHp; this.targetY = 40;
-                this.vx = 2 + (roundNum * 0.15);
+                this.vx = 2 + (roundNum * 0.08);
                 this.lastAttackTime = Date.now();
                 this.spiralAngle = 0; this.phase = 1; this.roundNum = roundNum;
             }
@@ -2742,7 +2734,7 @@
                     this.x = Math.max(10, Math.min(280 - this.width - 10, this.x));
                 }
                 const now = Date.now();
-                const cd = this.phase === 2 ? 600 : 900;
+                const cd = this.phase === 2 ? 500 : 800;
                 if (now - this.lastAttackTime > cd) {
                     this.attack();
                     this.lastAttackTime = now;
@@ -2863,8 +2855,7 @@
             shooterPlayer.update();
             shooterPlayer.draw();
 
-            // Spawn normal enemies if no boss is active
-            if (!shooterBoss && shooterEnemies.length < 4 && Math.random() < 0.03) {
+            if (!shooterBoss && shooterRound <= 50 && shooterEnemies.length < 4 && Math.random() < 0.03) {
                 shooterEnemies.push(new ShooterEnemy(shooterRound));
             }
 
@@ -2895,7 +2886,7 @@
                     shooterLives--;
                     audio.playSFX('gameover');
                     updateShooterHUD();
-                    if (shooterLives <= 0) { endSpaceShooter(); return; }
+                    if (shooterLives <= 0) { endSpaceShooter(false); return; }
                 }
                 if (eb.y > 370 || eb.y < -10) shooterEnemyBullets.splice(idx, 1);
             });
@@ -2909,7 +2900,7 @@
                     shooterLives--;
                     audio.playSFX('gameover');
                     updateShooterHUD();
-                    if (shooterLives <= 0) { endSpaceShooter(); return; }
+                    if (shooterLives <= 0) { endSpaceShooter(false); return; }
                 }
 
                 shooterBullets.forEach((b, bIdx) => {
@@ -2923,16 +2914,18 @@
                             shooterScore += 100;
                             enemiesDefeatedInRound++;
                             
-                            // Infinite Round Progression Loop
                             if (enemiesDefeatedInRound >= requiredEnemiesForRound) {
                                 shooterRound++;
                                 enemiesDefeatedInRound = 0;
-                                requiredEnemiesForRound += 4; // Scale up requirements for subsequent rounds
+                                requiredEnemiesForRound += 3;
                                 
-                                if (shooterRound % 3 === 0) {
+                                if (shooterRound % 3 === 0 && shooterRound <= 50) {
                                     announcementText = `WARNING: BOSS ROUND`;
                                     announcementTimer = 120;
                                     shooterBoss = new ShooterBoss(shooterRound);
+                                } else if (shooterRound > 50) {
+                                    endSpaceShooter(true);
+                                    return;
                                 } else {
                                     announcementText = `ROUND ${shooterRound}`;
                                     announcementTimer = 90;
@@ -2958,9 +2951,15 @@
                             shooterBoss = null;
                             shooterRound++;
                             enemiesDefeatedInRound = 0;
-                            requiredEnemiesForRound += 6;
-                            announcementText = `ROUND ${shooterRound}`;
-                            announcementTimer = 90;
+                            requiredEnemiesForRound += 4;
+
+                            if (shooterRound > 50) {
+                                endSpaceShooter(true);
+                                return;
+                            } else {
+                                announcementText = `ROUND ${shooterRound}`;
+                                announcementTimer = 90;
+                            }
                             updateShooterHUD();
                         }
                     }
@@ -2984,10 +2983,19 @@
             shooterAnimId = requestAnimationFrame(shooterLoop);
         }
 
-        function endSpaceShooter() {
+        function endSpaceShooter(isVictory = false) {
             shooterRunning = false;
             cancelAnimationFrame(shooterAnimId);
-            audio.playSFX('gameover');
+            const overlayTitle = document.getElementById('shooter-over-title');
+            if (isVictory) {
+                audio.playSFX('win');
+                overlayTitle.textContent = "VICTORY! ROUND 50 CLEARED";
+                overlayTitle.style.color = "#38bdf8";
+            } else {
+                audio.playSFX('gameover');
+                overlayTitle.textContent = "MISSION FAILED";
+                overlayTitle.style.color = "#ef4444";
+            }
             document.getElementById('final-shooter-score').textContent = `Final Score: ${shooterScore}`;
             document.getElementById('shooter-gameover-overlay').classList.add('active');
         }
