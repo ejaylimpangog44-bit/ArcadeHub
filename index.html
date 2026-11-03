@@ -1014,31 +1014,6 @@
             transform: scale(0.95);
         }
 
-        /* Drag Touch Pad for Space Invaders */
-        .si-touch-pad {
-            width: 100%;
-            max-width: 300px;
-            height: 60px;
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            margin: 10px auto 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            font-weight: 600;
-            user-select: none;
-            touch-action: none;
-            cursor: grab;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        .si-touch-pad:active {
-            cursor: grabbing;
-            border-color: var(--primary);
-        }
-
         .candy-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -1467,15 +1442,13 @@
                 <div class="score-box">Lives <span id="si-lives">3</span></div>
             </div>
             <div style="position: relative; display: inline-block;">
-                <canvas id="si-canvas" class="arcade-canvas" width="300" height="300" onclick="fireSILaser()"></canvas>
+                <canvas id="si-canvas" class="arcade-canvas" width="300" height="300" style="touch-action: none; cursor: crosshair;"></canvas>
                 <div id="si-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
                     <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">MISSION FAILED</h2>
                     <button class="action-btn" onclick="startSpaceInvadersGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div class="si-touch-pad" id="si-touch-pad">
-                ↔️ Drag Here to Slide Ship & Tap Canvas to Shoot 🚀
-            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Drag anywhere on canvas to move & auto-fire!</p>
         </div>
     </div>
 
@@ -1525,10 +1498,7 @@
                     <button class="action-btn" onclick="startFrostGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px; width: 100%; max-width: 320px; margin-top: 8px;">
-                <button class="control-btn" style="flex: 1; padding: 12px;" onclick="moveBrickPaddle(-35)">⬅️ Left</button>
-                <button class="control-btn" style="flex: 1; padding: 12px;" onclick="moveBrickPaddle(35)">Right ➡️</button>
-            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Drag anywhere on canvas to move paddle!</p>
         </div>
     </div>
 
@@ -2916,29 +2886,26 @@
             if (e.key === 'ArrowRight') changePacDir('RIGHT');
         });
 
-        // Space Invaders Logic (Drag-Only Pad)
+        // Space Invaders Logic (Drag Anywhere to Move & Auto-Fire)
         function initSpaceInvadersCanvas() {
             siCanvas = document.getElementById('si-canvas');
             if (siCanvas) {
                 siCtx = siCanvas.getContext('2d');
-                const touchPad = document.getElementById('si-touch-pad');
-                
                 let isDragging = false;
-                let startX = 0;
 
-                const handleDragMove = (clientX) => {
-                    if (!isDragging || !siRunning) return;
-                    let diffX = clientX - startX;
-                    startX = clientX;
-                    siShip.x = Math.max(10, Math.min(siCanvas.width - siShip.width - 10, siShip.x + diffX * 1.2));
+                const updateShipPosition = (clientX) => {
+                    if (!siRunning) return;
+                    const rect = siCanvas.getBoundingClientRect();
+                    let canvasX = (clientX - rect.left) * (siCanvas.width / rect.width);
+                    siShip.x = Math.max(10, Math.min(siCanvas.width - siShip.width - 10, canvasX - siShip.width / 2));
                 };
 
-                touchPad.onmousedown = e => { isDragging = true; startX = e.clientX; };
-                window.onmousemove = e => { if (isDragging) handleDragMove(e.clientX); };
+                siCanvas.onmousedown = e => { isDragging = true; updateShipPosition(e.clientX); };
+                window.onmousemove = e => { if (isDragging) updateShipPosition(e.clientX); };
                 window.onmouseup = () => { isDragging = false; };
 
-                touchPad.ontouchstart = e => { isDragging = true; startX = e.touches[0].clientX; e.preventDefault(); };
-                window.ontouchmove = e => { if (isDragging) handleDragMove(e.touches[0].clientX); };
+                siCanvas.ontouchstart = e => { isDragging = true; updateShipPosition(e.touches[0].clientX); e.preventDefault(); };
+                window.ontouchmove = e => { if (isDragging) updateShipPosition(e.touches[0].clientX); };
                 window.ontouchend = () => { isDragging = false; };
             }
         }
@@ -2968,18 +2935,18 @@
             spaceInvadersLoop();
         }
 
-        function fireSILaser() {
-            if (!siRunning) return;
-            audio.playSFX('click');
-            if (siLasers.length < 3) {
-                siLasers.push({ x: siShip.x + siShip.width / 2 - 2, y: siShip.y, width: 4, height: 10 });
-            }
-        }
-
         let siTick = 0;
         function spaceInvadersLoop() {
             if (!siRunning) return;
             siTick++;
+
+            // Auto-fire laser continuously every 15 frames
+            if (siTick % 15 === 0) {
+                if (siLasers.length < 4) {
+                    siLasers.push({ x: siShip.x + siShip.width / 2 - 2, y: siShip.y, width: 4, height: 10 });
+                    audio.playSFX('click');
+                }
+            }
 
             siCtx.fillStyle = '#111827';
             siCtx.fillRect(0, 0, siCanvas.width, siCanvas.height);
@@ -3068,12 +3035,13 @@
             if (siRunning) siAnimId = requestAnimationFrame(spaceInvadersLoop);
         }
 
-        // Full Brick Breaker Logic
+        // Full Brick Breaker Logic (Canvas Dragging Enabled)
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
             if (frostCanvas) {
                 frostCtx = frostCanvas.getContext('2d');
                 const updateFrostPointer = (clientX) => {
+                    if (!frostRunning) return;
                     const rect = frostCanvas.getBoundingClientRect();
                     let canvasX = (clientX - rect.left) * (frostCanvas.width / rect.width);
                     if (frostPaddle) frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, canvasX - frostPaddle.width / 2));
@@ -3081,12 +3049,6 @@
                 frostCanvas.onmousemove = e => updateFrostPointer(e.clientX);
                 frostCanvas.ontouchmove = e => { e.preventDefault(); updateFrostPointer(e.touches[0].clientX); };
             }
-        }
-
-        function moveBrickPaddle(amount) {
-            if (!frostRunning || !frostPaddle) return;
-            audio.playSFX('move');
-            frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, frostPaddle.x + amount));
         }
 
         function startFrostGame() {
