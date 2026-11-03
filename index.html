@@ -2514,7 +2514,7 @@
 
         function updateDino() {
             dinoSpawnTimer++;
-            if (obstacles.length === 0 && dinoSpawnTimer >= 1350) {
+            if (obstacles.length === 0 && dinoSpawnTimer >= 90) {
                 dinoSpawnTimer = 0;
                 obstacles.push({x: 240, width: 15, height: 25, y: 130, vy: 0, isJumping: false});
             }
