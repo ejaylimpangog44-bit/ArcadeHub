@@ -916,38 +916,6 @@
             transform: scale(0.95);
         }
 
-        .candy-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            max-width: 320px;
-            width: 100%;
-            margin: 0 auto 12px auto;
-            background: #111827;
-            padding: 10px;
-            border-radius: 10px;
-            border: 2px solid var(--border);
-        }
-
-        .candy-cell {
-            aspect-ratio: 1;
-            background-color: #1e293b;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: transform 0.1s, background-color 0.1s;
-        }
-
-        .candy-cell.selected {
-            border-color: var(--accent);
-            background-color: #334155;
-            transform: scale(1.05);
-        }
-
         .robot-container {
             position: fixed;
             bottom: 15px;
@@ -1229,16 +1197,6 @@
                 <div class="game-card" onclick="openGame('reactiongame-container')">
                     <span class="game-icon">⚡</span>
                     <span class="game-name">Reaction Timer</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="category-section">
-            <div class="category-title">Match-3</div>
-            <div class="game-grid">
-                <div class="game-card" onclick="openGame('candygame-container')">
-                    <span class="game-icon">🍬</span>
-                    <span class="game-name">Candy Match-3</span>
                 </div>
             </div>
         </div>
@@ -1534,22 +1492,6 @@
         </div>
     </div>
 
-    <!-- Candy Match-3 -->
-    <div id="candygame-container" class="game-container">
-        <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('candygame-container')">⛶ Fullscreen</button>
-        </div>
-        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
-            <div class="score-board" style="margin-top: 4px; width: 100%;">
-                <div class="score-box">Score <span id="candy-score">0</span></div>
-                <div class="score-box">Moves <span id="candy-moves">20</span></div>
-            </div>
-            <div class="candy-grid" id="candy-grid"></div>
-            <button class="action-btn" style="width: 100%; max-width: 320px; margin: 0 auto; display: block;" onclick="startCandyGame()">New Game</button>
-        </div>
-    </div>
-
     <div class="modal-overlay" id="settings-modal">
         <div class="settings-modal-box">
             <div class="settings-header">
@@ -1816,8 +1758,6 @@
         const pianoFrequencies = [261.63, 293.66, 329.63, 349.23];
 
         let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
-        let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
-        const candyTypes = ['🍬', '🍭', '🍫', '🍩', '🍪'];
 
         // Fully Upgraded Brick Breaker Variables
         let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBalls = [], frostBricks = [], frostDrops = [], frostScreenShake = 0;
@@ -1871,7 +1811,6 @@
                 if (containerId === 'pacman-container') startPacManGame();
                 if (containerId === 'fruitslice-container') startFruitGame();
                 if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
-                if (containerId === 'candygame-container') startCandyGame();
                 if (containerId === 'piano-container') startPianoGame();
             }, 50);
         }
@@ -2779,61 +2718,6 @@
             document.getElementById('reaction-box').className = 'reaction-box';
             document.getElementById('reaction-text').textContent = "Click to Start";
             document.getElementById('reaction-time').textContent = "0 ms";
-        }
-
-        function startCandyGame() {
-            audio.playSFX('click');
-            candyScore = 0; candyMoves = 20; selectedCandy = null;
-            document.getElementById('candy-score').textContent = candyScore;
-            document.getElementById('candy-moves').textContent = candyMoves;
-
-            candyBoard = [];
-            for (let r = 0; r < 5; r++) {
-                let row = [];
-                for (let c = 0; c < 5; c++) row.push(candyTypes[Math.floor(Math.random() * candyTypes.length)]);
-                candyBoard.push(row);
-            }
-            renderCandyBoard();
-        }
-
-        function renderCandyBoard() {
-            const grid = document.getElementById('candy-grid');
-            grid.innerHTML = '';
-            for (let r = 0; r < 5; r++) {
-                for (let c = 0; c < 5; c++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'candy-cell';
-                    cell.textContent = candyBoard[r][c];
-                    cell.onclick = () => handleCandyClick(r, c);
-                    grid.appendChild(cell);
-                }
-            }
-        }
-
-        function handleCandyClick(r, c) {
-            if (candyMoves <= 0) return;
-            if (!selectedCandy) {
-                audio.playSFX('move');
-                selectedCandy = {r, c};
-                document.getElementsByClassName('candy-cell')[r * 5 + c].classList.add('selected');
-            } else {
-                let prevR = selectedCandy.r, prevC = selectedCandy.c;
-                document.getElementsByClassName('candy-cell')[prevR * 5 + prevC].classList.remove('selected');
-
-                let isAdjacent = (Math.abs(prevR - r) === 1 && prevC === c) || (Math.abs(prevC - c) === 1 && prevR === c);
-                if (isAdjacent) {
-                    let temp = candyBoard[prevR][prevC];
-                    candyBoard[prevR][prevC] = candyBoard[r][c];
-                    candyBoard[r][c] = temp;
-
-                    audio.playSFX('score');
-                    candyMoves--; document.getElementById('candy-moves').textContent = candyMoves;
-                    candyScore += 25;
-                    document.getElementById('candy-score').textContent = candyScore;
-                }
-                selectedCandy = null;
-                renderCandyBoard();
-            }
         }
 
         // FULLY UPGRADED BRICK BREAKER LOGIC (POWER-UPS & DROPS)
