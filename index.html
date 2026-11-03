@@ -54,19 +54,20 @@
             transition: background-color 0.3s ease;
         }
 
+        /* Splash Screen */
         #splash-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: var(--bg-color);
+            background: linear-gradient(135deg, #0b0f19 0%, #111827 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end;
-            padding: 40px 20px;
-            z-index: 1000;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9999;
             transition: opacity 0.5s ease, visibility 0.5s ease;
         }
 
@@ -76,12 +77,52 @@
             pointer-events: none;
         }
 
+        .splash-logo-box {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: floatLogo 3s ease-in-out infinite;
+        }
+
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .splash-icon {
+            font-size: 56px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            width: 90px;
+            height: 90px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px auto;
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+
+        .splash-title {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .splash-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
         .enter-hub-btn {
             background: linear-gradient(135deg, var(--primary), var(--accent));
             color: white;
             border: none;
             width: 100%;
-            max-width: 320px;
+            max-width: 280px;
             padding: 16px;
             border-radius: 14px;
             font-size: 1.05rem;
@@ -89,7 +130,6 @@
             cursor: pointer;
             box-shadow: 0 6px 20px var(--accent-glow);
             transition: transform 0.2s, box-shadow 0.2s;
-            margin-bottom: 25px;
         }
 
         .enter-hub-btn:hover {
@@ -1223,8 +1263,14 @@
 </head>
 <body>
 
+    <!-- Functional Splash Screen -->
     <div id="splash-screen">
-        <button class="enter-hub-btn" id="play-hub-btn" onclick="enterHub()">PLAY ARCADE HUB</button>
+        <div class="splash-logo-box">
+            <div class="splash-icon">🎮</div>
+            <h2 class="splash-title">Arcade Hub</h2>
+            <p class="splash-subtitle">Play • Think • Win</p>
+        </div>
+        <button class="enter-hub-btn" onclick="enterHub()">PLAY ARCADE HUB</button>
     </div>
 
     <header>
@@ -1394,7 +1440,7 @@
         <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
     </div>
 
-    <!-- Space Shooter (Boss Defeat Win & 50 Rounds Progression) -->
+    <!-- Space Shooter (Round 50 Progression & Boss Win Condition) -->
     <div id="dartgame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
