@@ -2880,7 +2880,7 @@
             if (!shooterCtx) return;
             shooterRunning = true;
             shooterScore = 0; shooterLives = 5; shooterRound = 1;
-            enemiesDefeatedInRound = 0; requiredEnemiesForRound = 10;
+            enemiesDefeatedInRound = 0; requiredEnemiesForRound = 5;
             shooterBullets = []; shooterEnemyBullets = []; shooterEnemies = []; shooterPowerups = []; shooterBoss = null;
             shooterPlayer = new ShooterPlayer();
             updateShooterHUD();
@@ -3020,17 +3020,9 @@
                         if (shooterBoss.hp <= 0) {
                             audio.playSFX('win');
                             shooterScore += 2500;
-
-                            // Remove the defeated boss
                             shooterBoss = null;
-
-                            // Clear remaining enemies
                             shooterEnemies = [];
-
-                            // Clear enemy projectiles
                             shooterEnemyBullets = [];
-
-                            // Automatically continue to the next round
                             advanceShooterRound();
                         }
                     }
