@@ -2490,7 +2490,6 @@
             if (!dinoCtx) return;
             if (dinoInterval) clearInterval(dinoInterval);
 
-            // Dino stays fixed on the ground now
             dino = {x: 30, y: 130, width: 20, height: 25};
             obstacles = [];
             dinoScore = 0;
@@ -2505,7 +2504,6 @@
                 startDinoGame();
                 return;
             }
-            // Make any active or upcoming obstacles perform a jump over the dino!
             audio.playSFX('move');
             obstacles.forEach(o => {
                 if (!o.isJumping) {
@@ -2535,7 +2533,6 @@
             dinoScore++;
             document.getElementById('dino-score').textContent = Math.floor(dinoScore / 5);
 
-            // Twist rule: Obstacles jump over dino, so they only hit if they fail to clear or hit the ground right on the dino (no crash unless un-jumped obstacle hits)
             obstacles.forEach(o => {
                 if (dino.x < o.x + o.width && dino.x + dino.width > o.x && o.y === 130 && !o.isJumping) {
                     endDinoGame();
@@ -2564,11 +2561,9 @@
             dinoCtx.lineTo(240, 155);
             dinoCtx.stroke();
 
-            // Draw Dino safely on the ground
             dinoCtx.fillStyle = '#a855f7';
             dinoCtx.fillRect(dino.x, dino.y, dino.width, dino.height);
 
-            // Draw Obstacles (Cactus) jumping over the dino
             dinoCtx.fillStyle = '#ef4444';
             obstacles.forEach(o => {
                 dinoCtx.fillRect(o.x, o.y, o.width, o.height);
@@ -2969,7 +2964,7 @@
                             shooterScore += 100;
                             enemiesDefeatedInRound++;
                             
-                            if (enemiesDefeatedInRound >= requiredEnemiesForRound && shooterRound < 50) {
+                            if (enemiesDefeatedInRound >= requiredEnemiesForRound && shooterRound < 50 && !shooterBoss) {
                                 shooterRound++;
                                 enemiesDefeatedInRound = 0;
                                 requiredEnemiesForRound += 2;
@@ -3000,9 +2995,10 @@
                         if (shooterBoss.hp <= 0) {
                             audio.playSFX('win');
                             shooterScore += 2500;
-                            shooterBoss = null;
-                            shooterEnemies = [];
+                            shooterBoss = null; // Cleanly clear boss reference so loop won't freeze
+                            shooterEnemies = []; // Clear remaining enemies immediately
                             
+                            // Immediately advance round to Round 4+ and scale smoothly
                             shooterRound = Math.min(50, shooterRound + 1);
                             enemiesDefeatedInRound = 0;
                             requiredEnemiesForRound += 2;
