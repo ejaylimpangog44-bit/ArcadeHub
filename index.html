@@ -1315,7 +1315,7 @@
         <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
     </div>
 
-    <!-- Space Shooter Container (Replaces Dart PvP) -->
+    <!-- Space Shooter Container -->
     <div id="dartgame-container" class="game-container">
         <div class="game-screen-header">
             <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
@@ -1328,7 +1328,6 @@
             <div class="shooter-hud-item shooter-lives-container" id="shooter-lives"></div>
         </div>
         <canvas id="shooter-canvas" class="arcade-canvas" width="280" height="360" style="touch-action: none; cursor: crosshair;"></canvas>
-        <button class="action-btn" style="width: 100%;" onclick="startSpaceShooter()">Start / Restart Mission</button>
     </div>
 
     <div id="rpsgame-container" class="game-container">
@@ -1768,6 +1767,7 @@
         let shooterLives = 5;
         let shooterRound = 1;
         let enemiesDefeatedInRound = 0;
+        let requiredEnemiesForRound = 10;
         let shooterAnimId;
         let shooterPlayer;
         let shooterBullets = [];
@@ -1779,6 +1779,14 @@
         let shooterBoss = null;
         let isPointerDown = false;
         let pointerX = 140, pointerY = 300;
+
+        let announcementText = "";
+        let announcementTimer = 0;
+
+        function triggerAnnouncement(text, duration = 120) {
+            announcementText = text;
+            announcementTimer = duration;
+        }
 
         window.onload = function() {
             generateQRCode();
@@ -2081,7 +2089,10 @@
             }, 400);
         }
 
-           class ShooterPlayer {
+        // ==========================================
+        // SPACE SHOOTER IMPLEMENTATION
+        // ==========================================
+        class ShooterPlayer {
             constructor() {
                 this.width = 30;
                 this.height = 36;
@@ -2099,8 +2110,6 @@
                 }
                 this.x = Math.max(0, Math.min(280 - this.width, this.x));
                 this.y = Math.max(0, Math.min(360 - this.height, this.y));
-
-                // Removed weaponTimer countdown so power-ups stay active permanently until you lose a life
 
                 const now = Date.now();
                 if (now - this.lastShot > this.shootDelay) {
@@ -2153,16 +2162,16 @@
         }
 
         class ShooterEnemy {
-            constructor(type = 'BASIC') {
-                this.type = type;
-                this.width = type === 'ADVANCED' ? 30 : 24;
-                this.height = type === 'ADVANCED' ? 30 : 24;
+            constructor(roundNum = 1) {
+                this.type = roundNum >= 2 && Math.random() > 0.4 ? 'ADVANCED' : 'BASIC';
+                this.width = this.type === 'ADVANCED' ? 30 : 24;
+                this.height = this.type === 'ADVANCED' ? 30 : 24;
                 this.x = Math.random() * (280 - this.width);
                 this.y = -this.height;
-                this.hp = type === 'ADVANCED' ? 3 : 1;
-                this.speed = type === 'ADVANCED' ? 1.5 : 2 + Math.random();
+                this.hp = this.type === 'ADVANCED' ? 3 : 1;
+                this.speed = (this.type === 'ADVANCED' ? 1.5 : 2) + (roundNum * 0.15);
                 this.lastShot = Date.now() + Math.random() * 1000;
-                this.shootInterval = type === 'ADVANCED' ? 1400 : 2200;
+                this.shootInterval = Math.max(1000, 2200 - (roundNum * 100));
             }
             update() {
                 this.y += this.speed;
@@ -2195,18 +2204,19 @@
         }
 
         class ShooterBoss {
-            constructor() {
+            constructor(roundNum) {
                 this.width = 80;
                 this.height = 55;
                 this.x = 280 / 2 - this.width / 2;
                 this.y = -this.height;
-                this.maxHp = 100;
+                this.maxHp = 100 + ((roundNum / 3 - 1) * 50);
                 this.hp = this.maxHp;
                 this.targetY = 40;
-                this.vx = 2;
+                this.vx = 2 + (roundNum * 0.2);
                 this.lastAttackTime = Date.now();
                 this.spiralAngle = 0;
                 this.phase = 1;
+                this.roundNum = roundNum;
             }
             update() {
                 if (this.y < this.targetY) { this.y += 1; return; }
@@ -2215,13 +2225,13 @@
                     this.x += this.vx;
                     if (this.x <= 15 || this.x + this.width >= 265) this.vx *= -1;
                 } else {
-                    this.vx = 3;
-                    this.x += Math.sin(Date.now() * 0.005) * 3;
+                    this.vx = 3.5;
+                    this.x += Math.sin(Date.now() * 0.005) * 4;
                     this.x = Math.max(10, Math.min(280 - this.width - 10, this.x));
                 }
 
                 const now = Date.now();
-                const cd = this.phase === 2 ? 750 : 1100;
+                const cd = this.phase === 2 ? 650 : 1000;
                 if (now - this.lastAttackTime > cd) {
                     this.attack();
                     this.lastAttackTime = now;
@@ -2232,20 +2242,20 @@
                 const by = this.y + this.height;
                 if (this.phase === 1) {
                     for (let i = -2; i <= 2; i++) {
-                        shooterEnemyBullets.push(new ShooterBullet(cx - 2 + (i * 6), by, i * 0.8, 3.5, '#e11d48'));
+                        shooterEnemyBullets.push(new ShooterBullet(cx - 2 + (i * 6), by, i * 0.8, 3.8, '#e11d48'));
                     }
                 } else {
-                    if (Math.random() > 0.4) {
+                    if (Math.random() > 0.3) {
                         this.spiralAngle += 0.4;
                         for (let i = 0; i < 6; i++) {
                             let angle = this.spiralAngle + (i * Math.PI / 3);
-                            shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(angle) * 2.5, Math.sin(angle) * 2.5, '#f43f5e'));
+                            shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(angle) * 3, Math.sin(angle) * 3, '#f43f5e'));
                         }
                     } else {
                         let angleToPlayer = Math.atan2((shooterPlayer.y + 18) - by, (shooterPlayer.x + 15) - cx);
                         for (let off of [-0.2, 0, 0.2]) {
                             let a = angleToPlayer + off;
-                            shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(a) * 4.5, Math.sin(a) * 4.5, '#a855f7'));
+                            shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(a) * 5, Math.sin(a) * 5, '#a855f7'));
                         }
                     }
                 }
@@ -2346,7 +2356,7 @@
 
         function updateShooterHUD() {
             document.getElementById('shooter-score').textContent = shooterScore;
-            document.getElementById('shooter-round').textContent = shooterBoss ? (shooterBoss.phase === 2 ? 'BOSS (P2)' : 'BOSS ROUND') : `Round ${shooterRound}`;
+            document.getElementById('shooter-round').textContent = shooterBoss ? (shooterBoss.phase === 2 ? `BOSS (P2)` : `BOSS (R${shooterRound})`) : `Round ${shooterRound}`;
             let livesHtml = '';
             for (let i = 0; i < shooterLives; i++) {
                 livesHtml += '<span class="shooter-heart">♥</span>';
@@ -2363,6 +2373,7 @@
             shooterLives = 5;
             shooterRound = 1;
             enemiesDefeatedInRound = 0;
+            requiredEnemiesForRound = 10;
             shooterBullets = [];
             shooterEnemyBullets = [];
             shooterEnemies = [];
@@ -2372,6 +2383,7 @@
             shooterPlayer = new ShooterPlayer();
             initShooterStars();
             updateShooterHUD();
+            triggerAnnouncement("ROUND 1 START", 120);
 
             cancelAnimationFrame(shooterAnimId);
             shooterLoop();
@@ -2386,7 +2398,7 @@
 
             shooterCtx.clearRect(0, 0, 280, 360);
 
-            // Stars
+            // Stars background
             shooterCtx.fillStyle = '#ffffff';
             shooterStars.forEach(s => {
                 s.y += s.speed;
@@ -2399,12 +2411,11 @@
             shooterPlayer.update();
             shooterPlayer.draw();
 
-            // Spawning
+            // Spawning normal enemies if no boss is active
             if (!shooterBoss) {
-                const maxEn = shooterRound === 1 ? 3 : shooterRound === 2 ? 4 : 5;
-                if (shooterEnemies.length < maxEn && Math.random() < 0.025) {
-                    let adv = shooterRound >= 2 && Math.random() > 0.5;
-                    shooterEnemies.push(new ShooterEnemy(adv ? 'ADVANCED' : 'BASIC'));
+                const maxEn = shooterRound === 1 ? 3 : 5;
+                if (shooterEnemies.length < maxEn && Math.random() < 0.03) {
+                    shooterEnemies.push(new ShooterEnemy(shooterRound));
                 }
             }
 
@@ -2413,11 +2424,26 @@
                 shooterBoss.draw();
             }
 
+            // Draw Pixelated Notifications/Announcements on Canvas
+            if (announcementTimer > 0) {
+                announcementTimer--;
+                shooterCtx.save();
+                shooterCtx.font = "bold 15px monospace";
+                shooterCtx.textAlign = "center";
+                shooterCtx.fillStyle = "#38bdf8";
+                shooterCtx.shadowBlur = 10;
+                shooterCtx.shadowColor = "#38bdf8";
+                shooterCtx.fillText(announcementText, 140, 180);
+                shooterCtx.restore();
+            }
+
+            // Bullets update
             shooterBullets.forEach((b, idx) => {
                 b.update(); b.draw();
                 if (b.y < -10) shooterBullets.splice(idx, 1);
             });
 
+            // Enemy bullets update & Crash/Life Check
             shooterEnemyBullets.forEach((eb, idx) => {
                 eb.update(); eb.draw();
                 if (eb.x > shooterPlayer.x && eb.x < shooterPlayer.x + shooterPlayer.width && eb.y > shooterPlayer.y && eb.y < shooterPlayer.y + shooterPlayer.height) {
@@ -2425,11 +2451,17 @@
                     shooterLives--;
                     audio.playSFX('gameover');
                     updateShooterHUD();
-                    if (shooterLives <= 0) endSpaceShooter();
+                    if (shooterLives <= 0) {
+                        endSpaceShooter();
+                        return;
+                    }
                 }
                 if (eb.y > 370 || eb.y < -10 || eb.x < -10 || eb.x > 290) shooterEnemyBullets.splice(idx, 1);
             });
 
+            if (!shooterRunning) return;
+
+            // Enemies update & Direct Ship Crash Check
             shooterEnemies.forEach((en, eIdx) => {
                 en.update(); en.draw();
                 if (en.x < shooterPlayer.x + shooterPlayer.width && en.x + en.width > shooterPlayer.x && en.y < shooterPlayer.y + shooterPlayer.height && en.y + en.height > shooterPlayer.y) {
@@ -2437,7 +2469,10 @@
                     shooterLives--;
                     audio.playSFX('gameover');
                     updateShooterHUD();
-                    if (shooterLives <= 0) endSpaceShooter();
+                    if (shooterLives <= 0) {
+                        endSpaceShooter();
+                        return;
+                    }
                 }
 
                 shooterBullets.forEach((b, bIdx) => {
@@ -2451,11 +2486,18 @@
                             shooterScore += en.type === 'ADVANCED' ? 200 : 100;
                         
                             enemiesDefeatedInRound++;
-                            if (shooterRound === 1 && enemiesDefeatedInRound >= 10) {
-                                shooterRound = 2; enemiesDefeatedInRound = 0;
-                            } else if (shooterRound === 2 && enemiesDefeatedInRound >= 14) {
-                                shooterRound = 3; enemiesDefeatedInRound = 0;
-                                shooterBoss = new ShooterBoss();
+                            
+                            if (enemiesDefeatedInRound >= requiredEnemiesForRound) {
+                                shooterRound++;
+                                enemiesDefeatedInRound = 0;
+                                
+                                if (shooterRound % 3 === 0) {
+                                    triggerAnnouncement(`WARNING: BOSS ROUND ${shooterRound}`, 150);
+                                    shooterBoss = new ShooterBoss(shooterRound);
+                                } else {
+                                    triggerAnnouncement(`ROUND ${shooterRound} START`, 120);
+                                    requiredEnemiesForRound += 4;
+                                }
                             }
                             updateShooterHUD();
                         }
@@ -2464,7 +2506,17 @@
                 if (en.y > 370) shooterEnemies.splice(eIdx, 1);
             });
 
+            if (!shooterRunning) return;
+
+            // Boss collisions & direct crash check
             if (shooterBoss) {
+                if (shooterBoss.x < shooterPlayer.x + shooterPlayer.width && shooterBoss.x + shooterBoss.width > shooterPlayer.x && shooterBoss.y < shooterPlayer.y + shooterPlayer.height && shooterBoss.y + shooterBoss.height > shooterPlayer.y) {
+                    shooterLives = 0;
+                    updateShooterHUD();
+                    endSpaceShooter();
+                    return;
+                }
+
                 shooterBullets.forEach((b, bIdx) => {
                     if (b.x > shooterBoss.x && b.x < shooterBoss.x + shooterBoss.width && b.y > shooterBoss.y && b.y < shooterBoss.y + shooterBoss.height) {
                         shooterBullets.splice(bIdx, 1);
@@ -2472,14 +2524,20 @@
                         if (shooterBoss.hp <= 0) {
                             audio.playSFX('win');
                             shooterScore += 2500;
+                            triggerAnnouncement("BOSS DEFEATED!", 150);
                             shooterBoss = null;
-                            shooterRound = 4;
+                            shooterRound++;
+                            enemiesDefeatedInRound = 0;
+                            requiredEnemiesForRound += 4;
                             updateShooterHUD();
                         }
                     }
                 });
             }
 
+            if (!shooterRunning) return;
+
+            // Powerups collection (Permanently active until death)
             shooterPowerups.forEach((p, pIdx) => {
                 p.update(); p.draw();
                 if (p.x < shooterPlayer.x + shooterPlayer.width && p.x + p.size > shooterPlayer.x && p.y < shooterPlayer.y + shooterPlayer.height && p.y + p.size > shooterPlayer.y) {
@@ -2488,7 +2546,6 @@
                         shooterLives = Math.min(5, shooterLives + 1);
                     } else {
                         shooterPlayer.weaponType = p.type;
-                        shooterPlayer.weaponTimer = 350;
                     }
                     shooterPowerups.splice(pIdx, 1);
                     updateShooterHUD();
@@ -2501,8 +2558,9 @@
 
         function endSpaceShooter() {
             shooterRunning = false;
+            cancelAnimationFrame(shooterAnimId);
             audio.playSFX('gameover');
-            alert(`Mission Failed!\nFinal Score: ${shooterScore}`);
+            alert(`Mission Failed! Your ship crashed / ran out of lives.\nFinal Score: ${shooterScore}`);
         }
 
         // Other Mini-game Implementations
