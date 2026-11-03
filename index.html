@@ -49,7 +49,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 16px;
+            padding: 12px;
             overflow-x: hidden;
             transition: background-color 0.3s ease;
         }
@@ -142,7 +142,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             padding: 0 4px;
         }
 
@@ -210,7 +210,7 @@
         }
 
         .category-section {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .category-title {
@@ -218,7 +218,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             color: var(--text-muted);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             border-left: 3px solid var(--primary);
             padding-left: 8px;
         }
@@ -284,71 +284,43 @@
             font-weight: 600;
         }
 
+        /* EXPANDED CONTAINER TO OCCUPY AVAILABLE SPACE */
         .game-container {
             position: relative;
             background-color: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 24px 16px 16px 16px;
+            padding: 16px 12px;
             width: 100%;
-            max-width: 600px;
+            max-width: 100%;
+            flex: 1;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             text-align: center;
             display: none;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
         }
 
         .game-container.active {
-            display: block;
+            display: flex;
         }
 
-        /* UNIVERSAL FULLSCREEN SCALING FOR ALL GAMES */
         .game-container:fullscreen {
             width: 100vw !important;
             height: 100vh !important;
             max-width: none !important;
             border-radius: 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
             justify-content: center !important;
             align-items: center !important;
             background-color: var(--bg-color) !important;
-            padding: 24px !important;
-            box-sizing: border-box !important;
+            padding: 20px !important;
             overflow: auto !important;
         }
 
         .game-container:fullscreen .game-title-header {
             font-size: 1.6rem;
-            margin-bottom: 24px;
-        }
-
-        .game-container:fullscreen canvas {
-            max-height: 70vh;
-            max-width: 85vw;
-            width: auto !important;
-            height: auto !important;
-            object-fit: contain;
-        }
-
-        .game-container:fullscreen .ttt-board-wrapper {
-            width: min(75vw, 75vh) !important;
-            max-width: 500px !important;
-            margin: 0 auto 24px auto !important;
-        }
-
-        .game-container:fullscreen .shooter-wrapper {
-            width: min(80vw, 75vh) !important;
-            max-width: 480px !important;
-        }
-
-        .game-container:fullscreen .claw-cabinet {
-            width: min(85vw, 60vh) !important;
-            max-width: 520px !important;
-            height: min(45vh, 320px) !important;
-        }
-
-        .game-container:fullscreen .candy-grid {
-            max-width: min(75vw, 65vh) !important;
+            margin-bottom: 20px;
         }
 
         .game-floating-nav {
@@ -378,30 +350,35 @@
         }
 
         .game-title-header {
-            font-size: 1.15rem;
+            font-size: 1.2rem;
             font-weight: 700;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             color: var(--text-main);
             letter-spacing: 0.5px;
         }
 
         .screen {
             display: none;
+            width: 100%;
         }
 
         .screen.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .setup-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             text-align: left;
+            width: 100%;
+            max-width: 360px;
         }
 
         .setup-label {
             font-size: 0.9rem;
             color: var(--text-muted);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: block;
             font-weight: 600;
         }
@@ -435,6 +412,7 @@
             color: white;
             border: none;
             width: 100%;
+            max-width: 360px;
             padding: 12px;
             border-radius: 10px;
             font-size: 1rem;
@@ -697,21 +675,21 @@
 
         .ttt-status {
             font-size: 1.1rem;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             font-weight: 500;
         }
 
         .ttt-board-wrapper {
             position: relative;
             width: 100%;
-            max-width: 340px;
-            margin: 0 auto 20px auto;
+            max-width: 320px;
+            margin: 0 auto 15px auto;
         }
 
         .ttt-board {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 8px;
         }
 
         .ttt-cell {
@@ -722,7 +700,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: bold;
             cursor: pointer;
             transition: background 0.2s;
@@ -753,13 +731,13 @@
         .claw-cabinet {
             position: relative;
             width: 100%;
-            max-width: 400px;
-            height: 220px;
+            max-width: 360px;
+            height: 200px;
             background-color: #0b0f19;
             border: 3px solid var(--border);
             border-radius: 12px;
             overflow: hidden;
-            margin: 0 auto 15px auto;
+            margin: 0 auto 12px auto;
         }
 
         #claw {
@@ -803,14 +781,14 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .action-btn {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
@@ -825,7 +803,7 @@
             background-color: #334155;
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 10px 16px;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
@@ -837,38 +815,45 @@
 
         #claw-message {
             min-height: 24px;
-            font-size: 0.95rem;
-            margin-bottom: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
             color: var(--text-muted);
         }
 
         .inventory {
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .score-board {
-            display: flex;
-            justify-content: space-around;
-            background: #0b0f19;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border);
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .score-box {
+            margin-top: 6px;
             font-size: 0.85rem;
             color: var(--text-muted);
         }
 
+        /* FIXED SCORE BOARD SPacing & Overflow */
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: #0b0f19;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 340px;
+            margin-left: auto;
+            margin-right: auto;
+            gap: 10px;
+        }
+
+        .score-box {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            flex: 1;
+            text-align: center;
+        }
+
         .score-box span {
             display: block;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: bold;
             color: var(--text-main);
         }
@@ -877,16 +862,17 @@
             display: flex;
             justify-content: space-around;
             gap: 10px;
-            margin: 15px auto;
-            max-width: 350px;
+            margin: 12px auto;
+            max-width: 320px;
+            width: 100%;
         }
 
         .rps-btn {
             background: #0b0f19;
             border: 2px solid var(--border);
             border-radius: 12px;
-            padding: 16px;
-            font-size: 2rem;
+            padding: 14px;
+            font-size: 1.8rem;
             cursor: pointer;
             flex: 1;
             transition: all 0.2s;
@@ -901,23 +887,24 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            font-size: 2.8rem;
-            margin: 15px auto;
-            max-width: 300px;
-            min-height: 70px;
+            font-size: 2.4rem;
+            margin: 10px auto;
+            max-width: 280px;
+            min-height: 60px;
+            width: 100%;
         }
 
         .guess-input {
             width: 100%;
-            max-width: 320px;
+            max-width: 300px;
             background: #0b0f19;
             border: 2px solid var(--border);
             color: white;
-            padding: 14px;
+            padding: 12px;
             border-radius: 8px;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             text-align: center;
-            margin: 15px auto;
+            margin: 10px auto;
             display: block;
             outline: none;
         }
@@ -929,9 +916,10 @@
         .mole-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            max-width: 360px;
-            margin: 0 auto 15px auto;
+            gap: 8px;
+            max-width: 300px;
+            width: 100%;
+            margin: 0 auto 12px auto;
         }
 
         .mole-hole {
@@ -942,7 +930,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.2rem;
+            font-size: 2rem;
             cursor: pointer;
             position: relative;
             overflow: hidden;
@@ -954,14 +942,14 @@
         }
 
         .mole-hole span {
-            transform: translateY(70px);
+            transform: translateY(60px);
             transition: transform 0.1s ease-in-out;
         }
 
         .reaction-box {
             width: 100%;
-            max-width: 400px;
-            height: 160px;
+            max-width: 340px;
+            height: 140px;
             background-color: #334155;
             border-radius: 12px;
             display: flex;
@@ -969,7 +957,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            margin: 0 auto 15px auto;
+            margin: 0 auto 12px auto;
             transition: background 0.2s;
             user-select: none;
         }
@@ -983,25 +971,25 @@
             border: 2px solid var(--border);
             border-radius: 10px;
             display: block;
-            margin: 0 auto 15px auto;
+            margin: 0 auto 10px auto;
             max-width: 100%;
         }
 
         .dir-pad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            max-width: 180px;
-            margin: 0 auto 15px auto;
+            gap: 6px;
+            max-width: 160px;
+            margin: 0 auto 10px auto;
         }
 
         .dir-btn {
             background: #334155;
             color: white;
             border: none;
-            padding: 14px;
+            padding: 12px;
             border-radius: 8px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             cursor: pointer;
             font-weight: bold;
         }
@@ -1011,11 +999,12 @@
         .candy-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            max-width: 360px;
-            margin: 0 auto 15px auto;
+            gap: 6px;
+            max-width: 320px;
+            width: 100%;
+            margin: 0 auto 12px auto;
             background: #0b0f19;
-            padding: 12px;
+            padding: 10px;
             border-radius: 10px;
             border: 2px solid var(--border);
         }
@@ -1028,7 +1017,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             cursor: pointer;
             transition: transform 0.1s, background-color 0.1s;
         }
@@ -1042,35 +1031,41 @@
         .shooter-wrapper {
             position: relative;
             width: 100%;
-            max-width: 340px;
+            max-width: 320px;
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .shooter-hud {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
+            width: 100%;
+            gap: 6px;
         }
 
         .shooter-hud-item {
             background: rgba(15, 23, 42, 0.65);
-            padding: 5px 12px;
-            border-radius: 20px;
+            padding: 4px 10px;
+            border-radius: 16px;
             border: 1px solid var(--border);
+            white-space: nowrap;
         }
 
         .shooter-lives-container {
             display: flex;
-            gap: 3px;
+            gap: 2px;
             align-items: center;
         }
 
         .shooter-heart {
             color: #ef4444;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         #shooter-gameover-overlay {
@@ -1392,7 +1387,7 @@
         <h3 class="game-title-header">Tic-Tac-Toe</h3>
 
         <div id="ttt-setup-screen" class="screen active">
-            <p style="margin-bottom: 15px; color: var(--text-muted);">Configure match settings</p>
+            <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.9rem;">Configure match settings</p>
             <div class="setup-group">
                 <label class="setup-label">Game Mode</label>
                 <div class="setup-options-2">
@@ -1433,7 +1428,7 @@
                 </div>
                 <div id="win-line"></div>
             </div>
-            <div style="display: flex; gap: 10px; max-width: 340px; margin: 0 auto;">
+            <div style="display: flex; gap: 10px; width: 100%; max-width: 320px; margin: 0 auto;">
                 <button class="action-btn" style="flex: 1;" onclick="resetTTT()">Restart</button>
                 <button class="control-btn" style="flex: 1;" onclick="backToSetup()">⚙️ Settings</button>
             </div>
@@ -1478,7 +1473,7 @@
                 <div class="shooter-hud-item" id="shooter-round">Round 1</div>
                 <div class="shooter-hud-item shooter-lives-container" id="shooter-lives"></div>
             </div>
-            <canvas id="shooter-canvas" class="arcade-canvas" width="280" height="360" style="touch-action: none; cursor: crosshair;"></canvas>
+            <canvas id="shooter-canvas" class="arcade-canvas" width="280" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
             
             <div id="shooter-gameover-overlay">
                 <h2 id="shooter-over-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.2rem;">MISSION FAILED</h2>
@@ -1501,7 +1496,7 @@
                 <div class="shooter-hud-item" id="frost-lvl">LVL 1</div>
                 <div class="shooter-hud-item">❄️ <span id="frost-lives">3</span></div>
             </div>
-            <canvas id="frost-canvas" class="arcade-canvas" width="280" height="360" style="touch-action: none; cursor: crosshair;"></canvas>
+            <canvas id="frost-canvas" class="arcade-canvas" width="280" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
             <div id="frost-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
                 <h2 style="color: #38bdf8; margin-bottom: 8px; font-size: 1.2rem;">FROST OVER</h2>
                 <p id="final-frost-score" style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">Final Score: 0</p>
@@ -1533,7 +1528,7 @@
             <button class="rps-btn" onclick="handleRPSInput('paper')">📄</button>
             <button class="rps-btn" onclick="handleRPSInput('scissors')">✂️</button>
         </div>
-        <button class="control-btn" style="width: 100%; max-width: 350px; margin: 10px auto 0 auto; display: block;" onclick="resetRPS()">Reset Scores</button>
+        <button class="control-btn" style="width: 100%; max-width: 320px; margin: 10px auto 0 auto; display: block;" onclick="resetRPS()">Reset Scores</button>
     </div>
 
     <!-- Number Guess -->
@@ -1545,13 +1540,13 @@
         <h3 class="game-title-header">Number Guessing</h3>
 
         <p style="font-size: 0.85rem; color: var(--text-muted);">Guess a number between 1 and 100</p>
-        <div class="score-board" style="margin-top: 12px;">
+        <div class="score-board" style="margin-top: 10px;">
             <div class="score-box">Attempts <span id="guess-attempts">0</span></div>
-            <div class="score-box">Best (Min Attempts) <span id="guess-best">-</span></div>
+            <div class="score-box">Best <span id="guess-best">-</span></div>
         </div>
         <input type="number" id="guess-input" class="guess-input" placeholder="Enter 1-100" min="1" max="100">
-        <p id="guess-status" style="margin-bottom: 15px; font-weight: 600;">Take a guess!</p>
-        <div style="display: flex; gap: 10px; max-width: 320px; margin: 0 auto;">
+        <p id="guess-status" style="margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">Take a guess!</p>
+        <div style="display: flex; gap: 10px; max-width: 300px; margin: 0 auto; width: 100%;">
             <button class="action-btn" style="flex: 1;" onclick="submitGuess()">Submit</button>
             <button class="control-btn" style="flex: 1;" onclick="resetGuessGame()">Reset</button>
         </div>
@@ -1565,7 +1560,7 @@
         </div>
         <h3 class="game-title-header">Whack-a-Mole</h3>
 
-        <div class="score-board" style="margin-top: 5px;">
+        <div class="score-board" style="margin-top: 4px;">
             <div class="score-box">Score <span id="mole-score">0</span></div>
             <div class="score-box">High Score <span id="mole-high">0</span></div>
         </div>
@@ -1577,7 +1572,7 @@
             <div class="mole-hole" onclick="whackMole(4)"><span id="m4">🐹</span></div>
             <div class="mole-hole" onclick="whackMole(5)"><span id="m5">🐹</span></div>
         </div>
-        <button class="action-btn" style="width: 100%; max-width: 360px; margin: 0 auto; display: block;" id="mole-start-btn" onclick="startMoleGame()">Start Game</button>
+        <button class="action-btn" style="width: 100%; max-width: 300px; margin: 0 auto; display: block;" id="mole-start-btn" onclick="startMoleGame()">Start Game</button>
     </div>
 
     <!-- Reaction Timer -->
@@ -1588,15 +1583,15 @@
         </div>
         <h3 class="game-title-header">Reaction Timer</h3>
 
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Test your reflexes!</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Test your reflexes!</p>
         <div class="score-board">
             <div class="score-box">Time <span id="reaction-time">0 ms</span></div>
             <div class="score-box">Best <span id="reaction-best">-</span></div>
         </div>
         <div class="reaction-box" id="reaction-box" onclick="handleReactionClick()">
-            <span id="reaction-text" style="font-size: 1.05rem; font-weight: bold;">Click to Start</span>
+            <span id="reaction-text" style="font-size: 1rem; font-weight: bold;">Click to Start</span>
         </div>
-        <button class="control-btn" style="width: 100%; max-width: 400px; margin: 0 auto; display: block;" onclick="resetReactionGame()">Reset</button>
+        <button class="control-btn" style="width: 100%; max-width: 340px; margin: 0 auto; display: block;" onclick="resetReactionGame()">Reset</button>
     </div>
 
     <!-- Snake -->
@@ -1607,11 +1602,11 @@
         </div>
         <h3 class="game-title-header">Snake Game</h3>
 
-        <div class="score-board" style="margin-top: 5px;">
+        <div class="score-board" style="margin-top: 4px;">
             <div class="score-box">Score <span id="snake-score">0</span></div>
             <div class="score-box">High <span id="snake-high">0</span></div>
         </div>
-        <canvas id="snake-canvas" class="arcade-canvas" width="260" height="260"></canvas>
+        <canvas id="snake-canvas" class="arcade-canvas" width="240" height="240"></canvas>
         <div class="dir-pad">
             <div></div>
             <button class="dir-btn" onclick="changeSnakeDir('UP')">⬆️</button>
@@ -1620,7 +1615,7 @@
             <button class="dir-btn" onclick="changeSnakeDir('DOWN')">⬇️</button>
             <button class="dir-btn" onclick="changeSnakeDir('RIGHT')">➡️</button>
         </div>
-        <button class="action-btn" style="width: 100%; max-width: 260px; margin: 0 auto; display: block;" onclick="startSnakeGame()">Start / Reset</button>
+        <button class="action-btn" style="width: 100%; max-width: 240px; margin: 0 auto; display: block;" onclick="startSnakeGame()">Start / Reset</button>
     </div>
 
     <!-- Flappy -->
@@ -1630,12 +1625,12 @@
             <button class="nav-btn" onclick="toggleFullscreen('flappygame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Flappy Arcade</h3>
-        <div class="score-board" style="margin-top: 5px;">
+        <div class="score-board" style="margin-top: 4px;">
             <div class="score-box">Score <span id="flappy-score">0</span></div>
-            <div class="score-box">High Score <span id="flappy-high">0</span></div>
+            <div class="score-box">High <span id="flappy-high">0</span></div>
         </div>
-        <canvas id="flappy-canvas" class="arcade-canvas" width="260" height="260" onclick="jumpFlappy()"></canvas>
-        <button class="action-btn" style="width: 100%; max-width: 260px; margin: 0 auto; display: block;" onclick="startFlappyGame()">Tap/Click to Jump & Start</button>
+        <canvas id="flappy-canvas" class="arcade-canvas" width="240" height="240" onclick="jumpFlappy()"></canvas>
+        <button class="action-btn" style="width: 100%; max-width: 240px; margin: 0 auto; display: block;" onclick="startFlappyGame()">Tap/Click to Jump & Start</button>
     </div>
 
     <!-- Dino -->
@@ -1645,12 +1640,12 @@
             <button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Dino Jump</h3>
-        <div class="score-board" style="margin-top: 5px;">
+        <div class="score-board" style="margin-top: 4px;">
             <div class="score-box">Score <span id="dino-score">0</span></div>
-            <div class="score-box">High Score <span id="dino-high">0</span></div>
+            <div class="score-box">High <span id="dino-high">0</span></div>
         </div>
-        <canvas id="dino-canvas" class="arcade-canvas" width="260" height="200" onclick="jumpDino()"></canvas>
-        <button class="action-btn" style="width: 100%; max-width: 260px; margin: 0 auto; display: block;" onclick="jumpDino()">Jump / Start</button>
+        <canvas id="dino-canvas" class="arcade-canvas" width="240" height="180" onclick="jumpDino()"></canvas>
+        <button class="action-btn" style="width: 100%; max-width: 240px; margin: 0 auto; display: block;" onclick="jumpDino()">Jump / Start</button>
     </div>
 
     <!-- Candy -->
@@ -1661,12 +1656,12 @@
         </div>
         <h3 class="game-title-header">Candy Match-3</h3>
 
-        <div class="score-board" style="margin-top: 5px;">
+        <div class="score-board" style="margin-top: 4px;">
             <div class="score-box">Score <span id="candy-score">0</span></div>
             <div class="score-box">Moves <span id="candy-moves">20</span></div>
         </div>
         <div class="candy-grid" id="candy-grid"></div>
-        <button class="action-btn" style="width: 100%; max-width: 360px; margin: 0 auto; display: block;" onclick="startCandyGame()">New Game</button>
+        <button class="action-btn" style="width: 100%; max-width: 320px; margin: 0 auto; display: block;" onclick="startCandyGame()">New Game</button>
     </div>
 
     <div class="modal-overlay" id="settings-modal">
@@ -1918,7 +1913,6 @@
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
 
-        // Space Shooter variables (Smooth progressive boss HP curve up to Round 50)
         let shooterCanvas, shooterCtx, shooterRunning = false, shooterScore = 0, shooterLives = 5, shooterRound = 1;
         let enemiesDefeatedInRound = 0, requiredEnemiesForRound = 10, shooterAnimId, shooterPlayer, shooterBullets = [], shooterEnemyBullets = [], shooterEnemies = [], shooterPowerups = [], shooterStars = [], shooterBoss = null;
         let isPointerDown = false, pointerX = 140, pointerY = 300, announcementText = "", announcementTimer = 0;
@@ -2124,7 +2118,7 @@
             const claw = document.getElementById('claw');
             const msg = document.getElementById('claw-message');
             msg.textContent = "Dropping claw...";
-            claw.style.top = '120px';
+            claw.style.top = '110px';
 
             setTimeout(() => {
                 let caught = false, prizeIndex = -1;
@@ -2132,7 +2126,7 @@
                 else if (Math.abs(clawOffset - 0) < 25) { prizeIndex = 1; caught = true; }
                 else if (Math.abs(clawOffset - 60) < 25) { prizeIndex = 2; caught = true; }
 
-                if (caught) document.getElementById(`p${prizeIndex}`).style.transform = "translateY(-90px) scale(0)";
+                if (caught) document.getElementById(`p${prizeIndex}`).style.transform = "translateY(-80px) scale(0)";
                 claw.style.top = '10px';
 
                 setTimeout(() => {
@@ -2155,7 +2149,7 @@
             const val = parseInt(document.getElementById('guess-input').value);
             const status = document.getElementById('guess-status');
             if (isNaN(val) || val < 1 || val > 100) {
-                status.textContent = "Please enter a valid number between 1 and 100!";
+                status.textContent = "Please enter 1-100!";
                 return;
             }
             audio.playSFX('click');
@@ -2164,16 +2158,16 @@
 
             if (val === targetNumber) {
                 audio.playSFX('win');
-                status.textContent = `🎉 Correct! The number was ${targetNumber}.`;
+                status.textContent = `🎉 Correct! Number was ${targetNumber}.`;
                 let best = localStorage.getItem('arcadehub_guess');
                 if (!best || guessAttempts < parseInt(best)) {
                     localStorage.setItem('arcadehub_guess', guessAttempts);
                     document.getElementById('guess-best').textContent = guessAttempts;
                 }
             } else if (val < targetNumber) {
-                status.textContent = "📈 Too low! Try a higher number.";
+                status.textContent = "📈 Too low! Go higher.";
             } else {
-                status.textContent = "📉 Too high! Try a lower number.";
+                status.textContent = "📉 Too high! Go lower.";
             }
         }
 
@@ -2244,7 +2238,7 @@
             isMolePlaying = true;
             moleScore = 0;
             document.getElementById('mole-score').textContent = '0';
-            document.getElementById('mole-start-btn').textContent = 'Game in Progress...';
+            document.getElementById('mole-start-btn').textContent = 'Playing...';
 
             moleTimer = setInterval(() => {
                 document.querySelectorAll('.mole-hole').forEach(h => h.classList.remove('active'));
@@ -2296,13 +2290,13 @@
                 clearTimeout(reactionTimeout);
                 audio.playSFX('gameover');
                 box.className = 'reaction-box result';
-                text.textContent = "Too early! Click to retry.";
+                text.textContent = "Too early! Retry.";
                 reactionState = 'waiting';
             } else if (reactionState === 'ready') {
                 reactionTime = Date.now() - reactionStart;
                 audio.playSFX('win');
                 box.className = 'reaction-box result';
-                text.textContent = `${reactionTime} ms! Click to retry.`;
+                text.textContent = `${reactionTime} ms! Retry.`;
                 document.getElementById('reaction-time').textContent = `${reactionTime} ms`;
                 if (!bestReaction || reactionTime < bestReaction) {
                     bestReaction = reactionTime;
@@ -2344,8 +2338,8 @@
 
         function spawnSnakeFood() {
             snakeFood = {
-                x: Math.floor(Math.random() * 26),
-                y: Math.floor(Math.random() * 26)
+                x: Math.floor(Math.random() * 24),
+                y: Math.floor(Math.random() * 24)
             };
         }
 
@@ -2365,7 +2359,7 @@
             if (snakeDir === 'LEFT') head.x--;
             if (snakeDir === 'RIGHT') head.x++;
 
-            if (head.x < 0 || head.x >= 26 || head.y < 0 || head.y >= 26 || snake.some(s => s.x === head.x && s.y === head.y)) {
+            if (head.x < 0 || head.x >= 24 || head.y < 0 || head.y >= 24 || snake.some(s => s.x === head.x && s.y === head.y)) {
                 audio.playSFX('gameover');
                 clearInterval(snakeInterval);
                 let stats = ScoreManager.saveScore('snake', snakeScore);
@@ -2388,7 +2382,7 @@
 
         function drawSnake() {
             snakeCtx.fillStyle = '#0b0f19';
-            snakeCtx.fillRect(0, 0, 260, 260);
+            snakeCtx.fillRect(0, 0, 240, 240);
 
             snakeCtx.fillStyle = '#ec4899';
             snakeCtx.fillRect(snakeFood.x * 10, snakeFood.y * 10, 9, 9);
@@ -2410,7 +2404,7 @@
             if (!flappyCtx) return;
             if (flappyInterval) clearInterval(flappyInterval);
 
-            bird = {x: 50, y: 130, vy: 0, radius: 10};
+            bird = {x: 50, y: 120, vy: 0, radius: 10};
             pipes = [];
             flappyScore = 0;
             isFlappyRunning = true;
@@ -2432,10 +2426,10 @@
             bird.vy += 0.4;
             bird.y += bird.vy;
 
-            if (pipes.length === 0 || pipes[pipes.length - 1].x < 160) {
+            if (pipes.length === 0 || pipes[pipes.length - 1].x < 150) {
                 let gapH = 80;
-                let topH = Math.floor(Math.random() * 100) + 40;
-                pipes.push({x: 260, top: topH, bottom: topH + gapH, passed: false});
+                let topH = Math.floor(Math.random() * 90) + 40;
+                pipes.push({x: 240, top: topH, bottom: topH + gapH, passed: false});
             }
 
             pipes.forEach(p => { p.x -= 3; });
@@ -2455,7 +2449,7 @@
                 }
             });
 
-            if (bird.y > 260 || bird.y < 0) {
+            if (bird.y > 240 || bird.y < 0) {
                 endFlappyGame();
             }
 
@@ -2472,12 +2466,12 @@
 
         function drawFlappy() {
             flappyCtx.fillStyle = '#0b0f19';
-            flappyCtx.fillRect(0, 0, 260, 260);
+            flappyCtx.fillRect(0, 0, 240, 240);
 
             flappyCtx.fillStyle = '#10b981';
             pipes.forEach(p => {
                 flappyCtx.fillRect(p.x, 0, 35, p.top);
-                flappyCtx.fillRect(p.x, p.bottom, 35, 260 - p.bottom);
+                flappyCtx.fillRect(p.x, p.bottom, 35, 240 - p.bottom);
             });
 
             flappyCtx.fillStyle = '#facc15';
@@ -2497,7 +2491,7 @@
             if (!dinoCtx) return;
             if (dinoInterval) clearInterval(dinoInterval);
 
-            dino = {x: 30, y: 150, vy: 0, width: 20, height: 25, isJumping: false};
+            dino = {x: 30, y: 130, vy: 0, width: 20, height: 25, isJumping: false};
             obstacles = [];
             dinoScore = 0;
             isDinoRunning = true;
@@ -2521,14 +2515,14 @@
         function updateDino() {
             dino.vy += 0.5;
             dino.y += dino.vy;
-            if (dino.y > 150) {
-                dino.y = 150;
+            if (dino.y > 130) {
+                dino.y = 130;
                 dino.vy = 0;
                 dino.isJumping = false;
             }
 
-            if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < 150) {
-                obstacles.push({x: 260, width: 15, height: 25});
+            if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < 140) {
+                obstacles.push({x: 240, width: 15, height: 25});
             }
 
             obstacles.forEach(o => { o.x -= 4; });
@@ -2538,7 +2532,7 @@
             document.getElementById('dino-score').textContent = Math.floor(dinoScore / 5);
 
             obstacles.forEach(o => {
-                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dino.y + dino.height > 200 - o.height) {
+                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dino.y + dino.height > 155 - o.height) {
                     endDinoGame();
                 }
             });
@@ -2557,12 +2551,12 @@
 
         function drawDino() {
             dinoCtx.fillStyle = '#0b0f19';
-            dinoCtx.fillRect(0, 0, 260, 200);
+            dinoCtx.fillRect(0, 0, 240, 180);
 
             dinoCtx.strokeStyle = 'rgba(255,255,255,0.2)';
             dinoCtx.beginPath();
-            dinoCtx.moveTo(0, 175);
-            dinoCtx.lineTo(260, 175);
+            dinoCtx.moveTo(0, 155);
+            dinoCtx.lineTo(240, 155);
             dinoCtx.stroke();
 
             dinoCtx.fillStyle = '#a855f7';
@@ -2570,7 +2564,7 @@
 
             dinoCtx.fillStyle = '#ef4444';
             obstacles.forEach(o => {
-                dinoCtx.fillRect(o.x, 175 - o.height, o.width, o.height);
+                dinoCtx.fillRect(o.x, 155 - o.height, o.width, o.height);
             });
         }
 
@@ -2663,11 +2657,10 @@
             renderCandyBoard();
         }
 
-        // Space Shooter classes & loop (Smooth boss progression from 35% HP up to 95% HP by Round 50)
         class ShooterPlayer {
             constructor() {
                 this.width = 30; this.height = 36;
-                this.x = 140 - this.width / 2; this.y = 290;
+                this.x = 140 - this.width / 2; this.y = 270;
                 this.weaponType = 'STANDARD';
                 this.lastShot = 0; this.shootDelay = 150;
             }
@@ -2677,7 +2670,7 @@
                     this.y += (pointerY - this.height / 2 - this.y) * 0.4;
                 }
                 this.x = Math.max(0, Math.min(280 - this.width, this.x));
-                this.y = Math.max(0, Math.min(360 - this.height, this.y));
+                this.y = Math.max(0, Math.min(340 - this.height, this.y));
 
                 const now = Date.now();
                 if (now - this.lastShot > this.shootDelay) {
@@ -2741,7 +2734,7 @@
                 this.y += this.speed;
                 if (this.type === 'ADVANCED') this.x += Math.sin(this.y * 0.05) * 1.5;
                 const now = Date.now();
-                if (now - this.lastShot > this.shootInterval && this.y > 0 && this.y < 280) {
+                if (now - this.lastShot > this.shootInterval && this.y > 0 && this.y < 260) {
                     this.shoot();
                     this.lastShot = now;
                 }
@@ -2770,8 +2763,6 @@
             constructor(roundNum) {
                 this.width = 80; this.height = 55;
                 this.x = 280 / 2 - this.width / 2; this.y = -this.height;
-                
-                // Progressive Boss HP curve: Starts around 35% baseline (approx 35 HP on round 3) up to 95% on round 50
                 const scalingFactor = (roundNum / 50);
                 this.maxHp = Math.floor(25 + (scalingFactor * 220));
                 this.hp = this.maxHp; 
@@ -2868,7 +2859,7 @@
         function initShooterStars() {
             shooterStars = [];
             for (let i = 0; i < 40; i++) {
-                shooterStars.push({ x: Math.random() * 280, y: Math.random() * 360, size: Math.random() * 1.5 + 0.5, speed: Math.random() * 1 + 0.5 });
+                shooterStars.push({ x: Math.random() * 280, y: Math.random() * 340, size: Math.random() * 1.5 + 0.5, speed: Math.random() * 1 + 0.5 });
             }
         }
 
@@ -2899,11 +2890,11 @@
             if (!shooterRunning) return;
             if (!shooterCtx) { initShooterCanvas(); if (!shooterCtx) return; }
 
-            shooterCtx.clearRect(0, 0, 280, 360);
+            shooterCtx.clearRect(0, 0, 280, 340);
             shooterCtx.fillStyle = '#ffffff';
             shooterStars.forEach(s => {
                 s.y += s.speed;
-                if (s.y > 360) { s.y = 0; s.x = Math.random() * 280; }
+                if (s.y > 340) { s.y = 0; s.x = Math.random() * 280; }
                 shooterCtx.globalAlpha = s.speed / 2;
                 shooterCtx.fillRect(s.x, s.y, s.size, s.size);
             });
@@ -2912,7 +2903,7 @@
             shooterPlayer.update();
             shooterPlayer.draw();
 
-            if (!shooterBoss && shooterRound <= 50 && shooterEnemies.length < 4 && Math.random() < 0.03) {
+            if (!shooterBoss && shooterEnemies.length < 4 && Math.random() < 0.03) {
                 shooterEnemies.push(new ShooterEnemy(shooterRound));
             }
 
@@ -2927,7 +2918,7 @@
                 shooterCtx.font = "bold 15px monospace";
                 shooterCtx.textAlign = "center";
                 shooterCtx.fillStyle = "#38bdf8";
-                shooterCtx.fillText(announcementText, 140, 180);
+                shooterCtx.fillText(announcementText, 140, 170);
                 shooterCtx.restore();
             }
 
@@ -2945,7 +2936,7 @@
                     updateShooterHUD();
                     if (shooterLives <= 0) { endSpaceShooter(false); return; }
                 }
-                if (eb.y > 370 || eb.y < -10) shooterEnemyBullets.splice(idx, 1);
+                if (eb.y > 350 || eb.y < -10) shooterEnemyBullets.splice(idx, 1);
             });
 
             if (!shooterRunning) return;
@@ -2976,13 +2967,10 @@
                                 enemiesDefeatedInRound = 0;
                                 requiredEnemiesForRound += 2;
                                 
-                                if (shooterRound % 3 === 0 && shooterRound <= 50) {
+                                if (shooterRound % 3 === 0) {
                                     announcementText = `WARNING: BOSS ROUND`;
                                     announcementTimer = 120;
                                     shooterBoss = new ShooterBoss(shooterRound);
-                                } else if (shooterRound > 50) {
-                                    endSpaceShooter(true);
-                                    return;
                                 } else {
                                     announcementText = `ROUND ${shooterRound}`;
                                     announcementTimer = 90;
@@ -2992,7 +2980,7 @@
                         }
                     }
                 });
-                if (en.y > 370) shooterEnemies.splice(eIdx, 1);
+                if (en.y > 350) shooterEnemies.splice(eIdx, 1);
             });
 
             if (!shooterRunning) return;
@@ -3010,13 +2998,8 @@
                             enemiesDefeatedInRound = 0;
                             requiredEnemiesForRound += 3;
 
-                            if (shooterRound > 50) {
-                                endSpaceShooter(true);
-                                return;
-                            } else {
-                                announcementText = `ROUND ${shooterRound}`;
-                                announcementTimer = 90;
-                            }
+                            announcementText = `ROUND ${shooterRound}`;
+                            announcementTimer = 90;
                             updateShooterHUD();
                         }
                     }
@@ -3034,25 +3017,19 @@
                     shooterPowerups.splice(pIdx, 1);
                     updateShooterHUD();
                 }
-                if (p.y > 370) shooterPowerups.splice(pIdx, 1);
+                if (p.y > 350) shooterPowerups.splice(pIdx, 1);
             });
 
             shooterAnimId = requestAnimationFrame(shooterLoop);
         }
 
-        function endSpaceShooter(isVictory = false) {
+        function endSpaceShooter() {
             shooterRunning = false;
             cancelAnimationFrame(shooterAnimId);
+            audio.playSFX('gameover');
             const overlayTitle = document.getElementById('shooter-over-title');
-            if (isVictory) {
-                audio.playSFX('win');
-                overlayTitle.textContent = "VICTORY! ROUND 50 CLEARED";
-                overlayTitle.style.color = "#38bdf8";
-            } else {
-                audio.playSFX('gameover');
-                overlayTitle.textContent = "MISSION FAILED";
-                overlayTitle.style.color = "#ef4444";
-            }
+            overlayTitle.textContent = "MISSION FAILED";
+            overlayTitle.style.color = "#ef4444";
             document.getElementById('final-shooter-score').textContent = `Final Score: ${shooterScore}`;
             document.getElementById('shooter-gameover-overlay').classList.add('active');
         }
@@ -3078,8 +3055,8 @@
             if (!frostCtx) return;
             frostRunning = true;
             frostScore = 0; frostLives = 3; frostLvl = 1; frostScreenShake = 0;
-            frostPaddle = { x: 105, y: 335, width: 70, height: 10 };
-            frostBall = { x: 140, y: 200, vx: 2.5, vy: -3, radius: 5 };
+            frostPaddle = { x: 105, y: 315, width: 70, height: 10 };
+            frostBall = { x: 140, y: 180, vx: 2.5, vy: -3, radius: 5 };
             buildFrostBricks();
             updateFrostHUD();
             cancelAnimationFrame(frostAnimId);
@@ -3113,11 +3090,11 @@
             }
 
             frostCtx.fillStyle = '#080d1a';
-            frostCtx.fillRect(0, 0, 280, 360);
+            frostCtx.fillRect(0, 0, 280, 340);
 
             frostCtx.strokeStyle = '#0284c7';
             frostCtx.lineWidth = 3;
-            frostCtx.strokeRect(4, 4, 272, 352);
+            frostCtx.strokeRect(4, 4, 272, 332);
 
             let activeBricks = 0;
             frostBricks.forEach(b => {
@@ -3170,7 +3147,7 @@
                 }
             });
 
-            if (frostBall.y > 360) {
+            if (frostBall.y > 340) {
                 frostLives--;
                 audio.playSFX('gameover');
                 updateFrostHUD();
@@ -3181,7 +3158,7 @@
                     frostCtx.restore();
                     return;
                 } else {
-                    frostBall.x = 140; frostBall.y = 200; frostBall.vy = -3;
+                    frostBall.x = 140; frostBall.y = 180; frostBall.vy = -3;
                 }
             }
 
