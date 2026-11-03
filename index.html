@@ -626,19 +626,18 @@
         .dir-pad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            max-width: 220px;
+            gap: 6px;
+            max-width: 160px;
             width: 100%;
-            margin: 8px auto;
         }
 
         .dir-btn {
             background: linear-gradient(135deg, #334155, #1e293b);
             color: white;
             border: 2px solid var(--border);
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 1.3rem;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 1.1rem;
             cursor: pointer;
             font-weight: bold;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -960,7 +959,7 @@
         </div>
     </div>
 
-    <!-- Retro Bomber Man (Rearranged Layout) -->
+    <!-- Retro Bomber Man -->
     <div id="bomber-container" class="game-container">
         <!-- 1. Top Section: Nav Buttons and Score Board -->
         <div class="game-floating-nav">
@@ -974,8 +973,8 @@
             <div class="score-box">Lvl 🏆 <span id="bomb-lvl">1</span></div>
         </div>
 
-        <!-- 2. Middle Section: Game Canvas and Drop Bomb Button -->
-        <div style="position: relative; display: inline-block; margin-bottom: 6px;">
+        <!-- 2. Middle Section: Game Canvas -->
+        <div style="position: relative; display: inline-block; margin-bottom: 8px;">
             <canvas id="bomb-canvas" class="arcade-canvas" width="280" height="280" style="touch-action: none;"></canvas>
             <div id="bomb-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
                 <h2 id="bomb-end-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
@@ -983,19 +982,23 @@
             </div>
         </div>
 
-        <div style="width: 100%; max-width: 320px; display: flex; justify-content: center; margin-bottom: 8px;">
-            <button class="action-btn" style="width: 100%; padding: 12px; font-size: 0.95rem;" onclick="dropBomberBomb()">💣 Drop Bomb</button>
+        <!-- 3. Bottom Controls Section: D-Pad on Left, Drop Bomb on Right -->
+        <div style="width: 100%; max-width: 320px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div class="dir-pad">
+                <div></div>
+                <button class="dir-btn" onclick="moveBomberPlayer(0, -1)">⬆️</button>
+                <div></div>
+                <button class="dir-btn" onclick="moveBomberPlayer(-1, 0)">⬅️</button>
+                <button class="dir-btn" onclick="moveBomberPlayer(0, 1)">⬇️</button>
+                <button class="dir-btn" onclick="moveBomberPlayer(1, 0)">➡️</button>
+            </div>
+            <div style="flex: 1; display: flex; justify-content: flex-end; padding-left: 12px;">
+                <button class="action-btn" style="width: 100%; max-width: 130px; height: 95px; font-size: 0.95rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;" onclick="dropBomberBomb()">
+                    <span style="font-size: 1.4rem;">💣</span> Drop Bomb
+                </button>
+            </div>
         </div>
 
-        <!-- 3. Bottom Section: Directional Pad -->
-        <div class="dir-pad">
-            <div></div>
-            <button class="dir-btn" onclick="moveBomberPlayer(0, -1)">⬆️</button>
-            <div></div>
-            <button class="dir-btn" onclick="moveBomberPlayer(-1, 0)">⬅️</button>
-            <button class="dir-btn" onclick="moveBomberPlayer(0, 1)">⬇️</button>
-            <button class="dir-btn" onclick="moveBomberPlayer(1, 0)">➡️</button>
-        </div>
         <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Blast 📦 to find 🚪 or 🏆 and clear endless levels!</p>
     </div>
 
