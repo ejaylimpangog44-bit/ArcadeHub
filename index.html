@@ -926,6 +926,34 @@
             transform: scale(1.05);
         }
 
+        /* Space Shooter HUD styles */
+        .shooter-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .shooter-hud-item {
+            background: rgba(15, 23, 42, 0.65);
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .shooter-lives-container {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+        }
+
+        .shooter-heart {
+            color: #ef4444;
+            font-size: 14px;
+        }
+
         .robot-container {
             position: fixed;
             bottom: 15px;
@@ -1164,8 +1192,8 @@
                     <span class="game-name">Whack-a-Mole</span>
                 </div>
                 <div class="game-card" onclick="openGame('dartgame-container')">
-                    <span class="game-icon">🎯</span>
-                    <span class="game-name">Dart PvP</span>
+                    <span class="game-icon">🚀</span>
+                    <span class="game-name">Space Shooter</span>
                 </div>
                 <div class="game-card" onclick="openGame('snakegame-container')">
                     <span class="game-icon">🐍</span>
@@ -1290,17 +1318,16 @@
     <div id="dartgame-container" class="game-container">
         <div class="game-screen-header">
             <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
-            <h3 style="font-size: 15px;">Dart PvP</h3>
+            <h3 style="font-size: 15px;">Space Shooter</h3>
             <div style="width: 70px;"></div>
         </div>
-        <div class="score-board" style="margin-top: 5px;">
-            <div class="score-box">P1 Score <span id="dart-p1-score">0</span></div>
-            <div class="score-box">P2 Score <span id="dart-p2-score">0</span></div>
-            <div class="score-box">Darts Left <span id="dart-left">3/3</span></div>
+        <div class="shooter-hud">
+            <div class="shooter-hud-item">Score: <span id="shooter-score">0</span></div>
+            <div class="shooter-hud-item" id="shooter-round">Round 1</div>
+            <div class="shooter-hud-item shooter-lives-container" id="shooter-lives"></div>
         </div>
-        <div id="dart-turn-status" style="margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--accent);">Player 1's Turn (3 Darts)</div>
-        <canvas id="dart-canvas" class="arcade-canvas" width="260" height="220" style="cursor: crosshair;"></canvas>
-        <button class="action-btn" style="width: 100%;" onclick="startDartGame()">Reset Match</button>
+        <canvas id="shooter-canvas" class="arcade-canvas" width="280" height="360" style="touch-action: none; cursor: crosshair;"></canvas>
+        <button class="action-btn" style="width: 100%;" onclick="startSpaceShooter()">Start / Restart Mission</button>
     </div>
 
     <div id="rpsgame-container" class="game-container">
@@ -1733,20 +1760,31 @@
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
 
-        let dartCanvas, dartCtx;
-        let dartP1Score = 0, dartP2Score = 0;
-        let dartCurrentPlayer = 1;
-        let dartDartsLeft = 3;
-        let targetX = 130, targetY = 80;
-        let crosshairX = 130, crosshairY = 110;
-        let dartHitText = "Player 1: Aim & Throw!";
+        // Space Shooter variables (Replacing Dart PvP)
+        let shooterCanvas, shooterCtx;
+        let shooterRunning = false;
+        let shooterScore = 0;
+        let shooterLives = 5;
+        let shooterRound = 1;
+        let enemiesDefeatedInRound = 0;
+        let shooterAnimId;
+        let shooterPlayer;
+        let shooterBullets = [];
+        let shooterEnemyBullets = [];
+        let shooterEnemies = [];
+        let shooterPowerups = [];
+        let shooterParticles = [];
+        let shooterStars = [];
+        let shooterBoss = null;
+        let isPointerDown = false;
+        let pointerX = 140, pointerY = 300;
 
         window.onload = function() {
             generateQRCode();
             initSnakeCanvas();
             initFlappyCanvas();
             initDinoCanvas();
-            initDartCanvas();
+            initShooterCanvas();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -1772,7 +1810,7 @@
             if (containerId === 'snakegame-container') initSnakeCanvas();
             if (containerId === 'flappygame-container') startFlappyGame();
             if (containerId === 'dinogame-container') startDinoGame();
-            if (containerId === 'dartgame-container') startDartGame();
+            if (containerId === 'dartgame-container') startSpaceShooter();
             if (containerId === 'candygame-container' && candyBoard.length === 0) startCandyGame();
         }
 
@@ -1783,6 +1821,10 @@
             if (dinoInterval) clearInterval(dinoInterval);
             if (moleTimer) clearInterval(moleTimer);
             if (activeMoleTimer) clearInterval(activeMoleTimer);
+            if (shooterRunning) {
+                shooterRunning = false;
+                cancelAnimationFrame(shooterAnimId);
+            }
 
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
@@ -2034,522 +2076,452 @@
             }, 400);
         }
 
-        function initDartCanvas() {
-            dartCanvas = document.getElementById('dart-canvas');
-            if (dartCanvas) {
-                dartCtx = dartCanvas.getContext('2d');
-                dartCanvas.onmousemove = (e) => {
-                    const rect = dartCanvas.getBoundingClientRect();
-                    crosshairX = e.clientX - rect.left;
-                    crosshairY = e.clientY - rect.top;
-                    drawDartScene();
+        // ==========================================
+        // SPACE SHOOTER IMPLEMENTATION (Replaces Dart PvP)
+        // ==========================================
+        class ShooterPlayer {
+            constructor() {
+                this.width = 30;
+                this.height = 36;
+                this.x = 140 - this.width / 2;
+                this.y = 290;
+                this.weaponType = 'STANDARD';
+                this.weaponTimer = 0;
+                this.lastShot = 0;
+                this.shootDelay = 150;
+            }
+
+            update() {
+                if (isPointerDown) {
+                    this.x += (pointerX - this.width / 2 - this.x) * 0.25;
+                    this.y += (pointerY - this.height / 2 - this.y) * 0.25;
+                }
+                this.x = Math.max(0, Math.min(280 - this.width, this.x));
+                this.y = Math.max(0, Math.min(360 - this.height, this.y));
+
+                if (this.weaponTimer > 0) {
+                    this.weaponTimer--;
+                    if (this.weaponTimer <= 0) this.weaponType = 'STANDARD';
+                }
+
+                const now = Date.now();
+                if (now - this.lastShot > this.shootDelay) {
+                    this.shoot();
+                    this.lastShot = now;
+                }
+            }
+
+            shoot() {
+                if (this.weaponType === 'STANDARD') {
+                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, 0, -8, '#38bdf8'));
+                } else if (this.weaponType === 'TRIPLE') {
+                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, 0, -8, '#f43f5e'));
+                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, -2, -7.5, '#f43f5e'));
+                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, 2, -7.5, '#f43f5e'));
+                } else if (this.weaponType === 'LASER') {
+                    shooterBullets.push(new ShooterBullet(this.x + 4, this.y, 0, -11, '#a855f7'));
+                    shooterBullets.push(new ShooterBullet(this.x + this.width - 8, this.y, 0, -11, '#a855f7'));
+                }
+            }
+
+            draw() {
+                shooterCtx.save();
+                shooterCtx.shadowBlur = 8;
+                shooterCtx.shadowColor = '#6366f1';
+                shooterCtx.fillStyle = '#6366f1';
+                shooterCtx.beginPath();
+                shooterCtx.moveTo(this.x + this.width / 2, this.y);
+                shooterCtx.lineTo(this.x + this.width, this.y + this.height);
+                shooterCtx.lineTo(this.x + this.width / 2, this.y + this.height - 8);
+                shooterCtx.lineTo(this.x, this.y + this.height);
+                shooterCtx.closePath();
+                shooterCtx.fill();
+                shooterCtx.restore();
+            }
+        }
+
+        class ShooterBullet {
+            constructor(x, y, vx, vy, color) {
+                this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+                this.width = 4; this.height = 10; this.color = color;
+            }
+            update() { this.x += this.vx; this.y += this.vy; }
+            draw() {
+                shooterCtx.fillStyle = this.color;
+                shooterCtx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        }
+
+        class ShooterEnemy {
+            constructor(type = 'BASIC') {
+                this.type = type;
+                this.width = type === 'ADVANCED' ? 30 : 24;
+                this.height = type === 'ADVANCED' ? 30 : 24;
+                this.x = Math.random() * (280 - this.width);
+                this.y = -this.height;
+                this.hp = type === 'ADVANCED' ? 3 : 1;
+                this.speed = type === 'ADVANCED' ? 1.5 : 2 + Math.random();
+                this.lastShot = Date.now() + Math.random() * 1000;
+                this.shootInterval = type === 'ADVANCED' ? 1400 : 2200;
+            }
+            update() {
+                this.y += this.speed;
+                if (this.type === 'ADVANCED') this.x += Math.sin(this.y * 0.05) * 1.5;
+
+                const now = Date.now();
+                if (now - this.lastShot > this.shootInterval && this.y > 0 && this.y < 280) {
+                    this.shoot();
+                    this.lastShot = now;
+                }
+            }
+            shoot() {
+                if (this.type === 'BASIC') {
+                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y + this.height, 0, 3.5, '#ef4444'));
+                } else {
+                    shooterEnemyBullets.push(new ShooterBullet(this.x + 4, this.y + this.height, -0.8, 4, '#f97316'));
+                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width - 8, this.y + this.height, 0.8, 4, '#f97316'));
+                }
+            }
+            draw() {
+                shooterCtx.fillStyle = this.type === 'ADVANCED' ? '#f97316' : '#ef4444';
+                shooterCtx.beginPath();
+                shooterCtx.moveTo(this.x, this.y);
+                shooterCtx.lineTo(this.x + this.width, this.y);
+                shooterCtx.lineTo(this.x + this.width / 2, this.y + this.height);
+                shooterCtx.closePath();
+                shooterCtx.fill();
+            }
+        }
+
+        class ShooterBoss {
+            constructor() {
+                this.width = 80;
+                this.height = 55;
+                this.x = 280 / 2 - this.width / 2;
+                this.y = -this.height;
+                this.maxHp = 100;
+                this.hp = this.maxHp;
+                this.targetY = 40;
+                this.vx = 2;
+                this.lastAttackTime = Date.now();
+                this.spiralAngle = 0;
+                this.phase = 1;
+            }
+            update() {
+                if (this.y < this.targetY) { this.y += 1; return; }
+                this.phase = (this.hp / this.maxHp) <= 0.5 ? 2 : 1;
+                if (this.phase === 1) {
+                    this.x += this.vx;
+                    if (this.x <= 15 || this.x + this.width >= 265) this.vx *= -1;
+                } else {
+                    this.vx = 3;
+                    this.x += Math.sin(Date.now() * 0.005) * 3;
+                    this.x = Math.max(10, Math.min(280 - this.width - 10, this.x));
+                }
+
+                const now = Date.now();
+                const cd = this.phase === 2 ? 750 : 1100;
+                if (now - this.lastAttackTime > cd) {
+                    this.attack();
+                    this.lastAttackTime = now;
+                }
+            }
+            attack() {
+                const cx = this.x + this.width / 2;
+                const by = this.y + this.height;
+                if (this.phase === 1) {
+                    for (let i = -2; i <= 2; i++) {
+                        shooterEnemyBullets.push(new ShooterBullet(cx - 2 + (i * 6), by, i * 0.8, 3.5, '#e11d48'));
+                    }
+                } else {
+                    if (Math.random() > 0.4) {
+                        this.spiralAngle += 0.4;
+                        for (let i = 0; i < 6; i++) {
+                            let angle = this.spiralAngle + (i * Math.PI / 3);
+                            shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(angle) * 2.5, Math.sin(angle) * 2.5, '#f43f5e'));
+                        }
+                    } else {
+                        let angleToPlayer = Math.atan2((shooterPlayer.y + 18) - by, (shooterPlayer.x + 15) - cx);
+                        for (let off of [-0.2, 0, 0.2]) {
+                            let a = angleToPlayer + off;
+                            shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(a) * 4.5, Math.sin(a) * 4.5, '#a855f7'));
+                        }
+                    }
+                }
+            }
+            draw() {
+                shooterCtx.save();
+                shooterCtx.shadowBlur = this.phase === 2 ? 18 : 10;
+                shooterCtx.shadowColor = this.phase === 2 ? '#f43f5e' : '#e11d48';
+                shooterCtx.fillStyle = this.phase === 2 ? '#9f1239' : '#be123c';
+                shooterCtx.beginPath();
+                shooterCtx.moveTo(this.x + this.width / 2, this.y + this.height);
+                shooterCtx.lineTo(this.x + this.width, this.y);
+                shooterCtx.lineTo(this.x + this.width * 0.75, this.y + 12);
+                shooterCtx.lineTo(this.x + this.width * 0.25, this.y + 12);
+                shooterCtx.lineTo(this.x, this.y);
+                shooterCtx.closePath();
+                shooterCtx.fill();
+
+                // HP Bar
+                const bw = 140, bh = 6;
+                const bx = (280 - bw) / 2;
+                const by = 15;
+                shooterCtx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+                shooterCtx.fillRect(bx, by, bw, bh);
+                shooterCtx.fillStyle = this.phase === 2 ? '#f43f5e' : '#ef4444';
+                shooterCtx.fillRect(bx, by, bw * (this.hp / this.maxHp), bh);
+                shooterCtx.restore();
+            }
+        }
+
+        class ShooterPowerup {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.size = 16; this.speed = 1.5;
+                const types = ['TRIPLE', 'LASER', 'LIFE'];
+                this.type = types[Math.floor(Math.random() * types.length)];
+            }
+            update() { this.y += this.speed; }
+            draw() {
+                shooterCtx.font = '14px sans-serif';
+                shooterCtx.textAlign = 'center';
+                shooterCtx.textBaseline = 'middle';
+                let label = '🔴';
+                if (this.type === 'LASER') label = '⚡';
+                if (this.type === 'LIFE') label = '🛡️';
+                shooterCtx.fillText(label, this.x + this.size / 2, this.y + this.size / 2);
+            }
+        }
+
+        class ShooterParticle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y;
+                this.vx = (Math.random() - 0.5) * 5;
+                this.vy = (Math.random() - 0.5) * 5;
+                this.radius = Math.random() * 2.5 + 1;
+                this.alpha = 1;
+                this.color = color;
+            }
+            update() { this.x += this.vx; this.y += this.vy; this.alpha -= 0.04; }
+            draw() {
+                shooterCtx.save();
+                shooterCtx.globalAlpha = Math.max(0, this.alpha);
+                shooterCtx.fillStyle = this.color;
+                shooterCtx.beginPath();
+                shooterCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                shooterCtx.fill();
+                shooterCtx.restore();
+            }
+        }
+
+        function initShooterCanvas() {
+            shooterCanvas = document.getElementById('shooter-canvas');
+            if (shooterCanvas) {
+                shooterCtx = shooterCanvas.getContext('2d');
+                
+                const ptrStart = (cx, cy) => {
+                    isPointerDown = true;
+                    const rect = shooterCanvas.getBoundingClientRect();
+                    pointerX = cx - rect.left;
+                    pointerY = cy - rect.top;
                 };
-                dartCanvas.onclick = () => throwDart();
+                const ptrMove = (cx, cy) => {
+                    if (!isPointerDown) return;
+                    const rect = shooterCanvas.getBoundingClientRect();
+                    pointerX = cx - rect.left;
+                    pointerY = cy - rect.top;
+                };
+                const ptrEnd = () => { isPointerDown = false; };
+
+                shooterCanvas.addEventListener('mousedown', e => ptrStart(e.clientX, e.clientY));
+                window.addEventListener('mousemove', e => ptrMove(e.clientX, e.clientY));
+                window.addEventListener('mouseup', ptrEnd);
+
+                shooterCanvas.addEventListener('touchstart', e => {
+                    e.preventDefault();
+                    ptrStart(e.touches[0].clientX, e.touches[0].clientY);
+                }, { passive: false });
+                shooterCanvas.addEventListener('touchmove', e => {
+                    e.preventDefault();
+                    ptrMove(e.touches[0].clientX, e.touches[0].clientY);
+                }, { passive: false });
+                shooterCanvas.addEventListener('touchend', ptrEnd);
+                shooterCanvas.addEventListener('touchcancel', ptrEnd);
             }
-            drawDartScene();
+            initShooterStars();
         }
 
-        function startDartGame() {
+        function initShooterStars() {
+            shooterStars = [];
+            for (let i = 0; i < 40; i++) {
+                shooterStars.push({
+                    x: Math.random() * 280,
+                    y: Math.random() * 360,
+                    size: Math.random() * 1.5 + 0.5,
+                    speed: Math.random() * 1 + 0.5
+                });
+            }
+        }
+
+        function updateShooterHUD() {
+            document.getElementById('shooter-score').textContent = shooterScore;
+            document.getElementById('shooter-round').textContent = shooterBoss ? (shooterBoss.phase === 2 ? 'BOSS (P2)' : 'BOSS ROUND') : `Round ${shooterRound}`;
+            let livesHtml = '';
+            for (let i = 0; i < shooterLives; i++) {
+                livesHtml += '<span class="shooter-heart">♥</span>';
+            }
+            document.getElementById('shooter-lives').innerHTML = livesHtml;
+        }
+
+        function startSpaceShooter() {
             audio.playSFX('click');
-            dartP1Score = 0;
-            dartP2Score = 0;
-            dartCurrentPlayer = 1;
-            dartDartsLeft = 3;
-            dartHitText = "Player 1: Aim & Throw!";
-            document.getElementById('dart-p1-score').textContent = dartP1Score;
-            document.getElementById('dart-p2-score').textContent = dartP2Score;
-            document.getElementById('dart-left').textContent = `${dartDartsLeft}/3`;
-            document.getElementById('dart-turn-status').textContent = "Player 1's Turn (3 Darts)";
-            targetX = 130 + (Math.random() * 30 - 15);
-            targetY = 80 + (Math.random() * 20 - 10);
-            drawDartScene();
+            shooterRunning = true;
+            shooterScore = 0;
+            shooterLives = 5;
+            shooterRound = 1;
+            enemiesDefeatedInRound = 0;
+            shooterBullets = [];
+            shooterEnemyBullets = [];
+            shooterEnemies = [];
+            shooterPowerups = [];
+            shooterParticles = [];
+            shooterBoss = null;
+            shooterPlayer = new ShooterPlayer();
+            initShooterStars();
+            updateShooterHUD();
+
+            cancelAnimationFrame(shooterAnimId);
+            shooterLoop();
         }
 
-        function throwDart() {
-            if (dartDartsLeft <= 0) return;
-            audio.playSFX('move');
-            dartDartsLeft--;
+        function shooterLoop() {
+            if (!shooterRunning) return;
 
-            let distance = Math.hypot(crosshairX - targetX, crosshairY - targetY);
-            let points = 0;
-            if (distance < 8) { points = 50; dartHitText = `🎯 BULLSEYE! (+50 pts)`; audio.playSFX('win'); }
-            else if (distance < 18) { points = 25; dartHitText = `🎯 Inner Ring! (+25 pts)`; audio.playSFX('score'); }
-            else if (distance < 32) { points = 10; dartHitText = `🎯 Outer Ring! (+10 pts)`; audio.playSFX('click'); }
-            else { points = 0; dartHitText = `❌ Missed Dart! (0 pts)`; audio.playSFX('gameover'); }
+            shooterCtx.clearRect(0, 0, 280, 360);
 
-            if (dartCurrentPlayer === 1) {
-                dartP1Score += points;
-                document.getElementById('dart-p1-score').textContent = dartP1Score;
-            } else {
-                dartP2Score += points;
-                document.getElementById('dart-p2-score').textContent = dartP2Score;
-            }
+            // Stars
+            shooterCtx.fillStyle = '#ffffff';
+            shooterStars.forEach(s => {
+                s.y += s.speed;
+                if (s.y > 360) { s.y = 0; s.x = Math.random() * 280; }
+                shooterCtx.globalAlpha = s.speed / 2;
+                shooterCtx.fillRect(s.x, s.y, s.size, s.size);
+            });
+            shooterCtx.globalAlpha = 1;
 
-            document.getElementById('dart-left').textContent = `${dartDartsLeft}/3`;
-            drawDartScene(crosshairX, crosshairY, true);
+            shooterPlayer.update();
+            shooterPlayer.draw();
 
-            if (dartDartsLeft <= 0) {
-                if (dartCurrentPlayer === 1) {
-                    dartCurrentPlayer = 2;
-                    dartDartsLeft = 3;
-                    setTimeout(() => {
-                        alert("Player 1 finished turn! Pass to Player 2.");
-                        document.getElementById('dart-turn-status').textContent = "Player 2's Turn (3 Darts)";
-                        document.getElementById('dart-left').textContent = `3/3`;
-                        targetX = 130 + (Math.random() * 30 - 15);
-                        targetY = 80 + (Math.random() * 20 - 10);
-                        dartHitText = "Player 2: Aim & Throw!";
-                        drawDartScene();
-                    }, 300);
-                } else {
-                    setTimeout(() => {
-                        let winnerMsg = dartP1Score > dartP2Score ? "🎉 Player 1 Wins the Match!" : dartP2Score > dartP1Score ? "🎉 Player 2 Wins the Match!" : "🤝 It's a Tie Match!";
-                        alert(`Match Over!\nP1 Score: ${dartP1Score}\nP2 Score: ${dartP2Score}\n\n${winnerMsg}`);
-                    }, 300);
+            // Spawning
+            if (!shooterBoss) {
+                const maxEn = shooterRound === 1 ? 3 : shooterRound === 2 ? 4 : 5;
+                if (shooterEnemies.length < maxEn && Math.random() < 0.025) {
+                    let adv = shooterRound >= 2 && Math.random() > 0.5;
+                    shooterEnemies.push(new ShooterEnemy(adv ? 'ADVANCED' : 'BASIC'));
                 }
             }
-        }
 
-        function drawDartScene(hitX = null, hitY = null, showHit = false) {
-            if (!dartCtx) return;
-            dartCtx.fillStyle = '#0b0f19';
-            dartCtx.fillRect(0, 0, 260, 220);
-
-            dartCtx.fillStyle = '#1e293b';
-            dartCtx.fillRect(0, 130, 260, 90);
-            dartCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            dartCtx.beginPath();
-            dartCtx.moveTo(0, 130); dartCtx.lineTo(260, 130);
-            dartCtx.stroke();
-
-            dartCtx.fillStyle = '#1e293b';
-            dartCtx.beginPath(); dartCtx.arc(targetX, targetY, 36, 0, Math.PI * 2); dartCtx.fill();
-            dartCtx.strokeStyle = '#475569'; dartCtx.stroke();
-
-            dartCtx.fillStyle = '#ef4444';
-            dartCtx.beginPath(); dartCtx.arc(targetX, targetY, 28, 0, Math.PI * 2); dartCtx.fill();
-            dartCtx.fillStyle = '#f8fafc';
-            dartCtx.beginPath(); dartCtx.arc(targetX, targetY, 20, 0, Math.PI * 2); dartCtx.fill();
-            dartCtx.fillStyle = '#ef4444';
-            dartCtx.beginPath(); dartCtx.arc(targetX, targetY, 12, 0, Math.PI * 2); dartCtx.fill();
-            dartCtx.fillStyle = '#3b82f6';
-            dartCtx.beginPath(); dartCtx.arc(targetX, targetY, 6, 0, Math.PI * 2); dartCtx.fill();
-            dartCtx.fillStyle = '#fbbf24';
-            dartCtx.beginPath(); dartCtx.arc(targetX, targetY, 2.5, 0, Math.PI * 2); dartCtx.fill();
-
-            if (showHit && hitX !== null) {
-                dartCtx.font = '14px sans-serif';
-                dartCtx.textAlign = 'center';
-                dartCtx.textBaseline = 'middle';
-                dartCtx.fillText('🎯', hitX, hitY);
+            if (shooterBoss) {
+                shooterBoss.update();
+                shooterBoss.draw();
             }
 
-            dartCtx.strokeStyle = '#38bdf8';
-            dartCtx.lineWidth = 1.5;
-            dartCtx.beginPath();
-            dartCtx.arc(crosshairX, crosshairY, 10, 0, Math.PI * 2);
-            dartCtx.moveTo(crosshairX - 14, crosshairY); dartCtx.lineTo(crosshairX + 14, crosshairY);
-            dartCtx.moveTo(crosshairX, crosshairY - 14); dartCtx.lineTo(crosshairX, crosshairY + 14);
-            dartCtx.stroke();
+            // Bullets update
+            shooterBullets.forEach((b, idx) => {
+                b.update(); b.draw();
+                if (b.y < -10) shooterBullets.splice(idx, 1);
+            });
 
-            dartCtx.fillStyle = '#f3f4f6';
-            dartCtx.font = '11px sans-serif';
-            dartCtx.textAlign = 'left';
-            dartCtx.fillText(dartHitText, 10, 18);
-        }
-
-        function handleRPSInput(choice) {
-            audio.playSFX('move');
-            if (rpsTurn === 1) {
-                rpsP1Choice = choice;
-                rpsTurn = 2;
-                document.getElementById('rps-p1-choice').textContent = '🔒';
-                document.getElementById('rps-p2-choice').textContent = '❓';
-                document.getElementById('rps-status').textContent = "Player 2's Turn (Pass the phone)";
-            } else {
-                const icons = { rock: '🪨', paper: '📄', scissors: '✂️' };
-                document.getElementById('rps-p1-choice').textContent = icons[rpsP1Choice];
-                document.getElementById('rps-p2-choice').textContent = icons[choice];
-
-                if (rpsP1Choice === choice) {
+            // Enemy bullets update
+            shooterEnemyBullets.forEach((eb, idx) => {
+                eb.update(); eb.draw();
+                if (eb.x > shooterPlayer.x && eb.x < shooterPlayer.x + shooterPlayer.width && eb.y > shooterPlayer.y && eb.y < shooterPlayer.y + shooterPlayer.height) {
+                    shooterEnemyBullets.splice(idx, 1);
+                    shooterLives--;
                     audio.playSFX('gameover');
-                    document.getElementById('rps-status').textContent = "It's a Tie! 🤝";
-                } else if ((rpsP1Choice === 'rock' && choice === 'scissors') || (rpsP1Choice === 'paper' && choice === 'rock') || (rpsP1Choice === 'scissors' && choice === 'paper')) {
-                    rpsP1Score++;
-                    audio.playSFX('win');
-                    document.getElementById('rps-p1-score').textContent = rpsP1Score;
-                    document.getElementById('rps-status').textContent = "Player 1 Wins Round! 🎉";
-                } else {
-                    rpsP2Score++;
-                    audio.playSFX('win');
-                    document.getElementById('rps-p2-score').textContent = rpsP2Score;
-                    document.getElementById('rps-status').textContent = "Player 2 Wins Round! 🎉";
+                    updateShooterHUD();
+                    if (shooterLives <= 0) endSpaceShooter();
                 }
-                rpsTurn = 3;
-                setTimeout(() => {
-                    if (rpsTurn === 3) {
-                        rpsTurn = 1; rpsP1Choice = null;
-                        document.getElementById('rps-p1-choice').textContent = '❓';
-                        document.getElementById('rps-p2-choice').textContent = '❓';
-                        document.getElementById('rps-status').textContent = "Player 1's Turn (Choose Secretly)";
-                    }
-                }, 2000);
-            }
-        }
-
-        function resetRPS() {
-            audio.playSFX('click');
-            rpsP1Score = 0; rpsP2Score = 0; rpsP1Choice = null; rpsTurn = 1;
-            document.getElementById('rps-p1-score').textContent = '0';
-            document.getElementById('rps-p2-score').textContent = '0';
-            document.getElementById('rps-p1-choice').textContent = '❓';
-            document.getElementById('rps-p2-choice').textContent = '❓';
-            document.getElementById('rps-status').textContent = "Player 1's Turn (Choose Secretly)";
-        }
-
-        function submitGuess() {
-            const inputEl = document.getElementById('guess-input');
-            const val = parseInt(inputEl.value);
-            if (isNaN(val) || val < 1 || val > 100) { document.getElementById('guess-status').textContent = "Enter 1-100!"; return; }
-
-            guessAttemptsCount++;
-            document.getElementById('guess-attempts').textContent = guessAttemptsCount;
-
-            if (val === targetNumber) {
-                audio.playSFX('win');
-                document.getElementById('guess-status').textContent = `🎉 Correct in ${guessAttemptsCount} tries!`;
-                if (bestGuessScore === null || guessAttemptsCount < bestGuessScore) {
-                    bestGuessScore = guessAttemptsCount;
-                    document.getElementById('guess-best').textContent = bestGuessScore;
-                }
-            } else if (val < targetNumber) {
-                audio.playSFX('move');
-                document.getElementById('guess-status').textContent = "📈 Too Low! Go higher.";
-            } else {
-                audio.playSFX('move');
-                document.getElementById('guess-status').textContent = "📉 Too High! Go lower.";
-            }
-            inputEl.value = '';
-        }
-
-        function resetGuessGame() {
-            audio.playSFX('click');
-            targetNumber = Math.floor(Math.random() * 100) + 1;
-            guessAttemptsCount = 0;
-            document.getElementById('guess-attempts').textContent = '0';
-            document.getElementById('guess-status').textContent = 'Take a guess!';
-            document.getElementById('guess-input').value = '';
-        }
-
-        function startMoleGame() {
-            if (isMolePlaying) return;
-            audio.playSFX('click');
-            isMolePlaying = true; moleScore = 0; moleTimeLeft = 20;
-            document.getElementById('mole-score').textContent = moleScore;
-            document.getElementById('mole-start-btn').disabled = true;
-
-            moleTimer = setInterval(() => {
-                moleTimeLeft--;
-                if (moleTimeLeft <= 0) {
-                    clearInterval(moleTimer); clearInterval(activeMoleTimer);
-                    if (currentActiveMole !== null) document.querySelectorAll('.mole-hole')[currentActiveMole].classList.remove('active');
-                    currentActiveMole = null; isMolePlaying = false;
-                    audio.playSFX('win');
-                    document.getElementById('mole-start-btn').disabled = false;
-                    const stats = ScoreManager.saveScore('mole', moleScore);
-                    document.getElementById('mole-high').textContent = stats.highScore;
-                }
-            }, 1000);
-
-            activeMoleTimer = setInterval(() => {
-                if (currentActiveMole !== null) document.querySelectorAll('.mole-hole')[currentActiveMole].classList.remove('active');
-                currentActiveMole = Math.floor(Math.random() * 6);
-                document.querySelectorAll('.mole-hole')[currentActiveMole].classList.add('active');
-            }, 750);
-        }
-
-        function whackMole(index) {
-            if (!isMolePlaying) return;
-            if (currentActiveMole === index) {
-                audio.playSFX('score');
-                moleScore++;
-                document.getElementById('mole-score').textContent = moleScore;
-                document.querySelectorAll('.mole-hole')[index].classList.remove('active');
-                currentActiveMole = null;
-            }
-        }
-
-        function handleReactionClick() {
-            const box = document.getElementById('reaction-box');
-            const text = document.getElementById('reaction-text');
-
-            if (reactionState === 'idle') {
-                audio.playSFX('click');
-                reactionState = 'waiting'; box.className = 'reaction-box waiting'; text.textContent = 'Wait for green...';
-                reactionTimeout = setTimeout(() => {
-                    reactionState = 'ready'; box.className = 'reaction-box ready'; text.textContent = 'CLICK NOW!';
-                    reactionStartTime = Date.now();
-                }, Math.floor(Math.random() * 2000) + 1500);
-            } else if (reactionState === 'waiting') {
-                audio.playSFX('gameover');
-                clearTimeout(reactionTimeout); reactionState = 'idle'; box.className = 'reaction-box'; text.textContent = 'Too soon! Click to retry';
-            } else if (reactionState === 'ready') {
-                const duration = Date.now() - reactionStartTime;
-                audio.playSFX('win');
-                reactionState = 'idle'; box.className = 'reaction-box result'; text.textContent = `${duration} ms! Retry`;
-                document.getElementById('reaction-time').textContent = `${duration} ms`;
-                if (bestReactionTime === null || duration < bestReactionTime) {
-                    bestReactionTime = duration; document.getElementById('reaction-best').textContent = `${bestReactionTime} ms`;
-                }
-            } else if (reactionState === 'idle' && text.textContent.includes('Retry')) {
-                handleReactionClick();
-            }
-        }
-
-        function resetReactionGame() {
-            audio.playSFX('click');
-            clearTimeout(reactionTimeout); reactionState = 'idle';
-            document.getElementById('reaction-box').className = 'reaction-box';
-            document.getElementById('reaction-text').textContent = 'Click to Start';
-            document.getElementById('reaction-time').textContent = '0 ms';
-        }
-
-        function initSnakeCanvas() {
-            snakeCanvas = document.getElementById('snake-canvas');
-            if (snakeCanvas) snakeCtx = snakeCanvas.getContext('2d');
-            drawSnakeGrid();
-        }
-
-        function startSnakeGame() {
-            audio.playSFX('click');
-            if (snakeInterval) clearInterval(snakeInterval);
-            snake = [{x: 120, y: 120}, {x: 100, y: 120}, {x: 80, y: 120}];
-            snakeDir = 'RIGHT'; nextSnakeDir = 'RIGHT'; snakeScore = 0;
-            document.getElementById('snake-score').textContent = snakeScore;
-            spawnSnakeFood();
-            snakeInterval = setInterval(updateSnake, 130);
-        }
-
-        function changeSnakeDir(dir) {
-            audio.playSFX('move');
-            if (dir === 'UP' && snakeDir !== 'DOWN') nextSnakeDir = 'UP';
-            if (dir === 'DOWN' && snakeDir !== 'UP') nextSnakeDir = 'DOWN';
-            if (dir === 'LEFT' && snakeDir !== 'RIGHT') nextSnakeDir = 'LEFT';
-            if (dir === 'RIGHT' && snakeDir !== 'LEFT') nextSnakeDir = 'RIGHT';
-        }
-
-        function spawnSnakeFood() {
-            snakeFood = { x: Math.floor(Math.random() * 13) * 20, y: Math.floor(Math.random() * 13) * 20 };
-        }
-
-        function updateSnake() {
-            snakeDir = nextSnakeDir;
-            let head = { x: snake[0].x, y: snake[0].y };
-            if (snakeDir === 'UP') head.y -= 20;
-            if (snakeDir === 'DOWN') head.y += 20;
-            if (snakeDir === 'LEFT') head.x -= 20;
-            if (snakeDir === 'RIGHT') head.x += 20;
-
-            if (head.x < 0 || head.x >= 260 || head.y < 0 || head.y >= 260 || snake.some(p => p.x === head.x && p.y === head.y)) {
-                clearInterval(snakeInterval);
-                audio.playSFX('gameover');
-                const stats = ScoreManager.saveScore('snake', snakeScore);
-                document.getElementById('snake-high').textContent = stats.highScore;
-                alert(`Snake Over! Score: ${snakeScore}`);
-                return;
-            }
-
-            snake.unshift(head);
-            if (head.x === snakeFood.x && head.y === snakeFood.y) {
-                audio.playSFX('score');
-                snakeScore += 10;
-                document.getElementById('snake-score').textContent = snakeScore;
-                spawnSnakeFood();
-            } else {
-                snake.pop();
-            }
-            drawSnakeGrid();
-        }
-
-        function drawSnakeGrid() {
-            if (!snakeCtx) return;
-            snakeCtx.fillStyle = '#0b0f19'; 
-            snakeCtx.fillRect(0, 0, 260, 260);
-
-            snakeCtx.font = '16px sans-serif';
-            snakeCtx.textAlign = 'center';
-            snakeCtx.textBaseline = 'middle';
-            snakeCtx.fillText('🍓', snakeFood.x + 10, snakeFood.y + 10);
-
-            snake.forEach((p, idx) => {
-                snakeCtx.fillText(idx === 0 ? '🐍' : '🟩', p.x + 10, p.y + 10);
+                if (eb.y > 370 || eb.y < -10 || eb.x < -10 || eb.x > 290) shooterEnemyBullets.splice(idx, 1);
             });
-        }
 
-        function initFlappyCanvas() {
-            flappyCanvas = document.getElementById('flappy-canvas');
-            if (flappyCanvas) flappyCtx = flappyCanvas.getContext('2d');
-        }
-
-        function startFlappyGame() {
-            audio.playSFX('click');
-            if (flappyInterval) clearInterval(flappyInterval);
-            bird = { x: 50, y: 130, gravity: 0.35, lift: -6.5, velocity: 0 };
-            pipes = [];
-            flappyScore = 0;
-            isFlappyRunning = true;
-            document.getElementById('flappy-score').textContent = flappyScore;
-
-            flappyCanvas.onclick = () => {
-                if (isFlappyRunning) {
-                    bird.velocity = bird.lift;
-                    audio.playSFX('move');
-                }
-            };
-
-            let frame = 0;
-            flappyInterval = setInterval(() => {
-                frame++;
-                bird.velocity += bird.gravity;
-                bird.y += bird.velocity;
-
-                if (frame % 90 === 0) {
-                    let topH = Math.floor(Math.random() * 100) + 40;
-                    pipes.push({ x: 260, top: topH, bottom: topH + 85, passed: false });
+            // Enemies update
+            shooterEnemies.forEach((en, eIdx) => {
+                en.update(); en.draw();
+                if (en.x < shooterPlayer.x + shooterPlayer.width && en.x + en.width > shooterPlayer.x && en.y < shooterPlayer.y + shooterPlayer.height && en.y + en.height > shooterPlayer.y) {
+                    shooterEnemies.splice(eIdx, 1);
+                    shooterLives--;
+                    audio.playSFX('gameover');
+                    updateShooterHUD();
+                    if (shooterLives <= 0) endSpaceShooter();
                 }
 
-                pipes.forEach(p => p.x -= 3);
-                pipes = pipes.filter(p => p.x > -40);
-
-                pipes.forEach(p => {
-                    if (!p.passed && p.x < bird.x) {
-                        p.passed = true;
-                        flappyScore += 1;
-                        audio.playSFX('score');
-                        document.getElementById('flappy-score').textContent = flappyScore;
-                    }
-                    if (bird.x + 12 > p.x && bird.x - 12 < p.x + 35 && (bird.y - 12 < p.top || bird.y + 12 > p.bottom)) {
-                        endFlappyGame();
+                shooterBullets.forEach((b, bIdx) => {
+                    if (b.x > en.x && b.x < en.x + en.width && b.y > en.y && b.y < en.y + en.height) {
+                        shooterBullets.splice(bIdx, 1);
+                        en.hp--;
+                        if (en.hp <= 0) {
+                            audio.playSFX('score');
+                            if (Math.random() < 0.25) shooterPowerups.push(new ShooterPowerup(en.x, en.y));
+                            shooterEnemies.splice(eIdx, 1);
+                            shooterScore += en.type === 'ADVANCED' ? 200 : 100;
+                            enemiesDefeatedInRound++;
+                            
+                            // Round progression check
+                            if (shooterRound === 1 && enemiesDefeatedInRound >= 10) {
+                                shooterRound = 2; enemiesDefeatedInRound = 0;
+                            } else if (shooterRound === 2 && enemiesDefeatedInRound >= 14) {
+                                shooterRound = 3; enemiesDefeatedInRound = 0;
+                                shooterBoss = new ShooterBoss();
+                            }
+                            updateShooterHUD();
+                        }
                     }
                 });
-
-                if (bird.y > 260 || bird.y < 0) {
-                    endFlappyGame();
-                }
-
-                drawFlappyScene();
-            }, 30);
-        }
-
-        function endFlappyGame() {
-            clearInterval(flappyInterval);
-            isFlappyRunning = false;
-            audio.playSFX('gameover');
-            const stats = ScoreManager.saveScore('flappy', flappyScore);
-            document.getElementById('flappy-high').textContent = stats.highScore;
-        }
-
-        function drawFlappyScene() {
-            if (!flappyCtx) return;
-            flappyCtx.fillStyle = '#0b0f19';
-            flappyCtx.fillRect(0, 0, 260, 260);
-
-            flappyCtx.fillStyle = '#10b981';
-            pipes.forEach(p => {
-                flappyCtx.fillRect(p.x, 0, 35, p.top);
-                flappyCtx.fillRect(p.x, p.bottom, 35, 260 - p.bottom);
+                if (en.y > 370) shooterEnemies.splice(eIdx, 1);
             });
 
-            flappyCtx.font = '24px sans-serif';
-            flappyCtx.textAlign = 'center';
-            flappyCtx.textBaseline = 'middle';
-            flappyCtx.fillText('🐦', bird.x, bird.y);
-        }
-
-        function initDinoCanvas() {
-            dinoCanvas = document.getElementById('dino-canvas');
-            if (dinoCanvas) dinoCtx = dinoCanvas.getContext('2d');
-        }
-
-        function startDinoGame() {
-            audio.playSFX('click');
-            if (dinoInterval) clearInterval(dinoInterval);
-            dino = { x: 30, y: 145, width: 24, height: 24, vy: 0, gravity: 0.6, jump: -9, grounded: true };
-            obstacles = [];
-            dinoScore = 0;
-            isDinoRunning = true;
-            document.getElementById('dino-score').textContent = dinoScore;
-
-            dinoCanvas.onclick = () => jumpDino();
-
-            let frame = 0;
-            dinoInterval = setInterval(() => {
-                frame++;
-                if (!dino.grounded) {
-                    dino.vy += dino.gravity;
-                    dino.y += dino.vy;
-                    if (dino.y >= 145) {
-                        dino.y = 145;
-                        dino.grounded = true;
-                        dino.vy = 0;
-                    }
-                }
-
-                if (frame % 100 === 0) {
-                    obstacles.push({ x: 260, y: 150, width: 20, height: 20 });
-                }
-
-                obstacles.forEach(o => o.x -= 4);
-                obstacles = obstacles.filter(o => o.x > -20);
-
-                obstacles.forEach(o => {
-                    if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dino.y < o.y + o.height && dino.y + dino.height > o.y) {
-                        endDinoGame();
+            // Boss collisions
+            if (shooterBoss) {
+                shooterBullets.forEach((b, bIdx) => {
+                    if (b.x > shooterBoss.x && b.x < shooterBoss.x + shooterBoss.width && b.y > shooterBoss.y && b.y < shooterBoss.y + shooterBoss.height) {
+                        shooterBullets.splice(bIdx, 1);
+                        shooterBoss.hp--;
+                        if (shooterBoss.hp <= 0) {
+                            audio.playSFX('win');
+                            shooterScore += 2500;
+                            shooterBoss = null;
+                            shooterRound = 4; // Endless survival
+                            updateShooterHUD();
+                        }
                     }
                 });
-
-                dinoScore++;
-                document.getElementById('dino-score').textContent = Math.floor(dinoScore / 10);
-                drawDinoScene();
-            }, 30);
-        }
-
-        function jumpDino() {
-            if (dino.grounded && isDinoRunning) {
-                dino.vy = dino.jump;
-                dino.grounded = false;
-                audio.playSFX('move');
             }
-        }
 
-        function endDinoGame() {
-            clearInterval(dinoInterval);
-            isDinoRunning = false;
-            audio.playSFX('gameover');
-            const finalScore = Math.floor(dinoScore / 10);
-            const stats = ScoreManager.saveScore('dino', finalScore);
-            document.getElementById('dino-high').textContent = stats.highScore;
-        }
-
-        function drawDinoScene() {
-            if (!dinoCtx) return;
-            dinoCtx.fillStyle = '#0b0f19';
-            dinoCtx.fillRect(0, 0, 260, 200);
-
-            dinoCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-            dinoCtx.beginPath();
-            dinoCtx.moveTo(0, 175);
-            dinoCtx.lineTo(260, 175);
-            dinoCtx.stroke();
-
-            dinoCtx.font = '24px sans-serif';
-            dinoCtx.textAlign = 'center';
-            dinoCtx.textBaseline = 'middle';
-            dinoCtx.fillText('🦖', dino.x + 12, dino.y + 12);
-
-            obstacles.forEach(o => {
-                dinoCtx.fillText('🌵', o.x + 10, o.y + 10);
+            // Powerups
+            shooterPowerups.forEach((p, pIdx) => {
+                p.update(); p.draw();
+                if (p.x < shooterPlayer.x + shooterPlayer.width && p.x + p.size > shooterPlayer.x && p.y < shooterPlayer.y + shooterPlayer.height && p.y + p.size > shooterPlayer.y) {
+                    audio.playSFX('win');
+                    if (p.type === 'LIFE') {
+                        shooterLives = Math.min(5, shooterLives + 1);
+                    } else {
+                        shooterPlayer.weaponType = p.type;
+                        shooterPlayer.weaponTimer = 350;
+                    }
+                    shooterPowerups.splice(pIdx, 1);
+                    updateShooterHUD();
+                }
+                if (p.y > 370) shooterPowerups.splice(pIdx, 1);
             });
+
+            shooterAnimId = requestAnimationFrame(shooterLoop);
+        }
+
+        function endSpaceShooter() {
+            shooterRunning = false;
+            audio.playSFX('gameover');
+            alert(`Mission Failed!\nFinal Score: ${shooterScore}`);
         }
 
         function startCandyGame() {
