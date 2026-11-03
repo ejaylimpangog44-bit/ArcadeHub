@@ -284,17 +284,17 @@
             font-weight: 600;
         }
 
-        /* EXPANDED CONTAINER TO OCCUPY AVAILABLE SPACE */
+        /* FULL FLUSH SCREEN GAME CONTAINER (NO RIGID CARDS) */
         .game-container {
             position: relative;
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 16px 12px;
+            background-color: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 8px 4px;
             width: 100%;
             max-width: 100%;
             flex: 1;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: none;
             text-align: center;
             display: none;
             flex-direction: column;
@@ -325,8 +325,8 @@
 
         .game-floating-nav {
             position: absolute;
-            top: 12px;
-            left: 12px;
+            top: 4px;
+            left: 4px;
             display: flex;
             gap: 6px;
             z-index: 30;
@@ -350,9 +350,10 @@
         }
 
         .game-title-header {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: 700;
             margin-bottom: 12px;
+            margin-top: 2px;
             color: var(--text-main);
             letter-spacing: 0.5px;
         }
@@ -694,7 +695,7 @@
 
         .ttt-cell {
             aspect-ratio: 1;
-            background-color: #0b0f19;
+            background-color: #111827;
             border: 2px solid var(--border);
             border-radius: 10px;
             display: flex;
@@ -733,7 +734,7 @@
             width: 100%;
             max-width: 360px;
             height: 200px;
-            background-color: #0b0f19;
+            background-color: #111827;
             border: 3px solid var(--border);
             border-radius: 12px;
             overflow: hidden;
@@ -826,12 +827,11 @@
             color: var(--text-muted);
         }
 
-        /* FIXED SCORE BOARD SPacing & Overflow */
         .score-board {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            background: #0b0f19;
+            background: #111827;
             padding: 8px 12px;
             border-radius: 10px;
             margin-bottom: 12px;
@@ -868,7 +868,7 @@
         }
 
         .rps-btn {
-            background: #0b0f19;
+            background: #111827;
             border: 2px solid var(--border);
             border-radius: 12px;
             padding: 14px;
@@ -897,7 +897,7 @@
         .guess-input {
             width: 100%;
             max-width: 300px;
-            background: #0b0f19;
+            background: #111827;
             border: 2px solid var(--border);
             color: white;
             padding: 12px;
@@ -924,7 +924,7 @@
 
         .mole-hole {
             aspect-ratio: 1;
-            background-color: #0b0f19;
+            background-color: #111827;
             border: 2px solid var(--border);
             border-radius: 10px;
             display: flex;
@@ -967,7 +967,7 @@
         .reaction-box.result { background-color: #1e293b; border: 2px solid var(--primary); }
 
         .arcade-canvas {
-            background-color: #0b0f19;
+            background-color: #111827;
             border: 2px solid var(--border);
             border-radius: 10px;
             display: block;
@@ -1003,7 +1003,7 @@
             max-width: 320px;
             width: 100%;
             margin: 0 auto 12px auto;
-            background: #0b0f19;
+            background: #111827;
             padding: 10px;
             border-radius: 10px;
             border: 2px solid var(--border);
@@ -2381,7 +2381,7 @@
         }
 
         function drawSnake() {
-            snakeCtx.fillStyle = '#0b0f19';
+            snakeCtx.fillStyle = '#111827';
             snakeCtx.fillRect(0, 0, 240, 240);
 
             snakeCtx.fillStyle = '#ec4899';
@@ -2465,7 +2465,7 @@
         }
 
         function drawFlappy() {
-            flappyCtx.fillStyle = '#0b0f19';
+            flappyCtx.fillStyle = '#111827';
             flappyCtx.fillRect(0, 0, 240, 240);
 
             flappyCtx.fillStyle = '#10b981';
@@ -2550,7 +2550,7 @@
         }
 
         function drawDino() {
-            dinoCtx.fillStyle = '#0b0f19';
+            dinoCtx.fillStyle = '#111827';
             dinoCtx.fillRect(0, 0, 240, 180);
 
             dinoCtx.strokeStyle = 'rgba(255,255,255,0.2)';
