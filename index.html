@@ -1183,6 +1183,16 @@
 
     <div id="main-menu" class="view active">
         <div class="category-section">
+            <div class="category-title">Adventure & RPG</div>
+            <div class="game-grid">
+                <div class="game-card featured" onclick="openGame('dungeon-container')">
+                    <span class="game-icon">🗡️</span>
+                    <span class="game-name">Retro Dungeon Adventure (Play Now)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
             <div class="category-title">Puzzle & Strategy</div>
             <div class="game-grid">
                 <div class="game-card" onclick="openGame('tictactoe-container')">
@@ -1206,10 +1216,6 @@
                 <div class="game-card" onclick="openGame('spaceinvaders-container')">
                     <span class="game-icon">👾</span>
                     <span class="game-name">Space Invaders</span>
-                </div>
-                <div class="game-card" onclick="openGame('zombieshooter-container')">
-                    <span class="game-icon">🧟</span>
-                    <span class="game-name">3D Zombie Shooter</span>
                 </div>
                 <div class="game-card" onclick="openGame('fruitslice-container')">
                     <span class="game-icon">🍉</span>
@@ -1253,13 +1259,45 @@
         </div>
 
         <div class="category-section">
-            <div class="category-title">Featured Game</div>
+            <div class="category-title">Match-3</div>
             <div class="game-grid">
-                <div class="game-card featured" onclick="openGame('candygame-container')">
+                <div class="game-card" onclick="openGame('candygame-container')">
                     <span class="game-icon">🍬</span>
-                    <span class="game-name">Candy Match-3 (Play Now)</span>
+                    <span class="game-name">Candy Match-3</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Retro Dungeon Adventure -->
+    <div id="dungeon-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('dungeon-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Retro Dungeon Adventure 🗡️</h3>
+        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 2px; width: 100%;">
+                <div class="score-box">Gold 🪙 <span id="dung-gold">0</span></div>
+                <div class="score-box">HP ❤️ <span id="dung-hp">5</span></div>
+                <div class="score-box">Keys 🔑 <span id="dung-keys">0</span></div>
+            </div>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="dung-canvas" class="arcade-canvas" width="280" height="280" style="touch-action: none;"></canvas>
+                <div id="dung-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 id="dung-end-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">YOU DIED</h2>
+                    <button class="action-btn" onclick="startDungeonGame()">PLAY AGAIN</button>
+                </div>
+            </div>
+            <div class="dir-pad">
+                <div></div>
+                <button class="dir-btn" onclick="moveDungeonPlayer(0, -1)">⬆️</button>
+                <div></div>
+                <button class="dir-btn" onclick="moveDungeonPlayer(-1, 0)">⬅️</button>
+                <button class="dir-btn" onclick="moveDungeonPlayer(0, 1)">⬇️</button>
+                <button class="dir-btn" onclick="moveDungeonPlayer(1, 0)">➡️</button>
+            </div>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Collect 🔑 to unlock 🚪. Defeat 👾 and reach 🏆!</p>
         </div>
     </div>
 
@@ -1368,30 +1406,6 @@
                     <button class="action-btn" onclick="startSpaceInvadersGame()">PLAY AGAIN</button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- 3D Zombie Shooter Arcade -->
-    <div id="zombieshooter-container" class="game-container">
-        <div class="game-floating-nav">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('zombieshooter-container')">⛶</button>
-        </div>
-        <h3 class="game-title-header">3D Zombie Shooter 🧟</h3>
-        <div style="width: 100%; max-width: 340px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
-            <div class="score-board" style="margin-top: 2px; width: 100%;">
-                <div class="score-box">Score <span id="zs-score">0</span></div>
-                <div class="score-box">Lives ❤️ <span id="zs-lives">5</span></div>
-                <div class="score-box">High <span id="zs-high">0</span></div>
-            </div>
-            <div style="position: relative; display: inline-block;">
-                <canvas id="zs-canvas" class="arcade-canvas" width="320" height="260" style="touch-action: none; cursor: crosshair;"></canvas>
-                <div id="zs-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">YOU WERE OVERRUN!</h2>
-                    <button class="action-btn" onclick="startZombieGame()">PLAY AGAIN</button>
-                </div>
-            </div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">👉 Drag anywhere to aim/move & auto-shoot real zombies!</p>
         </div>
     </div>
 
@@ -1860,11 +1874,10 @@
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
 
-        // 3D First-Person Zombie Shooter Game State
-        let zsCanvas, zsCtx, zsRunning = false, zsAnimId, zsCamX = 0, zsCamY = 0, zsCamAngle = 0;
-        let zsScore = 0, zsLives = 5, zsTick = 0;
-        let zsBullets = [], zs3DZombies = [], zs3DPowerUps = [];
-        let zsPowerType = 'normal', zsPowerTimer = 0;
+        // Retro Dungeon Adventure State
+        let dungCanvas, dungCtx, dungRunning = false, dungGold = 0, dungHp = 5, dungKeys = 0, dungLevel = 1;
+        let dungMap = [], dungPlayer = { x: 1, y: 1 };
+        const dungGridSize = 10;
 
         let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
@@ -1911,8 +1924,8 @@
             initFrostCanvas();
             initPacManCanvas();
             initSpaceInvadersCanvas();
-            initZombieShooterCanvas();
             initFruitCanvas();
+            initDungeonCanvas();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -1924,7 +1937,6 @@
             document.getElementById('pac-high').textContent = ScoreManager.getStats('pacman').highScore;
             document.getElementById('si-high').textContent = ScoreManager.getStats('spaceinvaders').highScore;
             document.getElementById('frost-score').textContent = ScoreManager.getStats('brickbreaker').highScore;
-            document.getElementById('zs-high').textContent = ScoreManager.getStats('zombieshooter').highScore;
 
             const bestGuessData = localStorage.getItem('arcadehub_guess');
             if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
@@ -1948,10 +1960,10 @@
             if (containerId === 'dinogame-container') startDinoGame();
             if (containerId === 'pacman-container') startPacManGame();
             if (containerId === 'spaceinvaders-container') startSpaceInvadersGame();
-            if (containerId === 'zombieshooter-container') startZombieGame();
             if (containerId === 'fruitslice-container') startFruitGame();
             if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
             if (containerId === 'candygame-container') startCandyGame();
+            if (containerId === 'dungeon-container') startDungeonGame();
         }
 
         function backToHub() {
@@ -1965,8 +1977,8 @@
             if (pacRunning) { pacRunning = false; cancelAnimationFrame(pacAnimId); }
             if (siRunning) { siRunning = false; cancelAnimationFrame(siAnimId); }
             if (frostRunning) { frostRunning = false; cancelAnimationFrame(frostAnimId); }
-            if (zsRunning) { zsRunning = false; cancelAnimationFrame(zsAnimId); }
             if (fruitRunning) { fruitRunning = false; cancelAnimationFrame(fruitAnimId); }
+            dungRunning = false;
 
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
@@ -1976,6 +1988,170 @@
             const targetUrl = window.location.href || "https://arcadehubgames-july12.vercel.app/";
             document.getElementById('current-url-text').textContent = targetUrl;
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
+        }
+
+        // RETRO DUNGEON ADVENTURE LOGIC
+        function initDungeonCanvas() {
+            dungCanvas = document.getElementById('dung-canvas');
+            if (dungCanvas) dungCtx = dungCanvas.getContext('2d');
+        }
+
+        function startDungeonGame() {
+            audio.playSFX('click');
+            document.getElementById('dung-gameover-overlay').style.display = 'none';
+            initDungeonCanvas();
+            if (!dungCtx) return;
+            dungRunning = true;
+            dungGold = 0;
+            dungHp = 5;
+            dungKeys = 0;
+            dungLevel = 1;
+            generateDungeonLevel();
+            updateDungeonHUD();
+            drawDungeon();
+        }
+
+        function generateDungeonLevel() {
+            dungMap = [];
+            for (let r = 0; r < dungGridSize; r++) {
+                let row = [];
+                for (let c = 0; c < dungGridSize; c++) {
+                    if (r === 0 || r === dungGridSize - 1 || c === 0 || c === dungGridSize - 1) {
+                        row.push('W');
+                    } else {
+                        let rand = Math.random();
+                        if (rand < 0.22) row.push('W');
+                        else if (rand < 0.32) row.push('C');
+                        else if (rand < 0.38) row.push('K');
+                        else if (rand < 0.43) row.push('H');
+                        else if (rand < 0.52) row.push('M');
+                        else row.push('.');
+                    }
+                }
+                dungMap.push(row);
+            }
+            dungPlayer = { x: 1, y: 1 };
+            dungMap[1][1] = '.';
+            dungMap[dungGridSize - 2][dungGridSize - 2] = 'E';
+            dungMap[dungGridSize - 2][dungGridSize - 3] = 'D';
+            dungMap[2][dungGridSize - 2] = 'K';
+        }
+
+        function updateDungeonHUD() {
+            document.getElementById('dung-gold').textContent = dungGold;
+            document.getElementById('dung-hp').textContent = dungHp;
+            document.getElementById('dung-keys').textContent = dungKeys;
+        }
+
+        function moveDungeonPlayer(dx, dy) {
+            if (!dungRunning) return;
+            let newX = dungPlayer.x + dx;
+            let newY = dungPlayer.y + dy;
+
+            if (newX < 0 || newX >= dungGridSize || newY < 0 || newY >= dungGridSize) return;
+            let tile = dungMap[newY][newX];
+
+            if (tile === 'W') {
+                audio.playSFX('click');
+                return;
+            }
+
+            if (tile === 'D') {
+                if (dungKeys > 0) {
+                    audio.playSFX('win');
+                    dungKeys--;
+                    dungMap[newY][newX] = '.';
+                    dungPlayer.x = newX;
+                    dungPlayer.y = newY;
+                } else {
+                    audio.playSFX('gameover');
+                    return;
+                }
+            } else if (tile === 'E') {
+                audio.playSFX('win');
+                dungLevel++;
+                dungGold += 100;
+                generateDungeonLevel();
+            } else {
+                audio.playSFX('move');
+                if (tile === 'C') {
+                    audio.playSFX('score');
+                    dungGold += 25;
+                    dungMap[newY][newX] = '.';
+                } else if (tile === 'K') {
+                    audio.playSFX('win');
+                    dungKeys++;
+                    dungMap[newY][newX] = '.';
+                } else if (tile === 'H') {
+                    audio.playSFX('score');
+                    dungHp = Math.min(10, dungHp + 2);
+                    dungMap[newY][newX] = '.';
+                } else if (tile === 'M') {
+                    audio.playSFX('gameover');
+                    dungHp--;
+                    dungMap[newY][newX] = '.';
+                    if (dungHp <= 0) {
+                        endDungeonGame(false);
+                        return;
+                    }
+                }
+                dungPlayer.x = newX;
+                dungPlayer.y = newY;
+            }
+
+            updateDungeonHUD();
+            drawDungeon();
+        }
+
+        function drawDungeon() {
+            if (!dungCtx) return;
+            let tileSize = dungCanvas.width / dungGridSize;
+            dungCtx.fillStyle = '#0b0f19';
+            dungCtx.fillRect(0, 0, dungCanvas.width, dungCanvas.height);
+
+            for (let r = 0; r < dungGridSize; r++) {
+                for (let c = 0; c < dungGridSize; c++) {
+                    let t = dungMap[r][c];
+                    let x = c * tileSize;
+                    let y = r * tileSize;
+
+                    if (t === 'W') {
+                        dungCtx.fillStyle = '#1e293b';
+                        dungCtx.fillRect(x, y, tileSize, tileSize);
+                        dungCtx.strokeStyle = '#334155';
+                        dungCtx.strokeRect(x, y, tileSize, tileSize);
+                    } else {
+                        dungCtx.fillStyle = '#111827';
+                        dungCtx.fillRect(x, y, tileSize, tileSize);
+
+                        dungCtx.font = `${Math.floor(tileSize * 0.65)}px sans-serif`;
+                        dungCtx.textAlign = 'center';
+                        dungCtx.textBaseline = 'middle';
+
+                        if (t === 'C') dungCtx.fillText('🪙', x + tileSize/2, y + tileSize/2);
+                        if (t === 'K') dungCtx.fillText('🔑', x + tileSize/2, y + tileSize/2);
+                        if (t === 'H') dungCtx.fillText('❤️', x + tileSize/2, y + tileSize/2);
+                        if (t === 'M') dungCtx.fillText('👾', x + tileSize/2, y + tileSize/2);
+                        if (t === 'D') dungCtx.fillText('🚪', x + tileSize/2, y + tileSize/2);
+                        if (t === 'E') dungCtx.fillText('🏆', x + tileSize/2, y + tileSize/2);
+                    }
+                }
+            }
+
+            let px = dungPlayer.x * tileSize;
+            let py = dungPlayer.y * tileSize;
+            dungCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
+            dungCtx.textAlign = 'center';
+            dungCtx.textBaseline = 'middle';
+            dungCtx.fillText('🧙‍♂️', px + tileSize/2, py + tileSize/2);
+        }
+
+        function endDungeonGame(isVictory) {
+            dungRunning = false;
+            audio.playSFX('gameover');
+            document.getElementById('dung-end-title').textContent = isVictory ? 'VICTORY! 🎉' : 'YOU DIED 💀';
+            document.getElementById('dung-gameover-overlay').style.display = 'flex';
+            ScoreManager.saveScore('dungeon', dungGold);
         }
 
         function selectSetupMode(mode) {
@@ -2093,307 +2269,6 @@
             document.getElementById('ttt-status').textContent = `Player X's Turn`;
             document.getElementById('win-line').style.display = 'none';
             Array.from(document.getElementsByClassName('ttt-cell')).forEach(cell => { cell.textContent = ''; cell.className = 'ttt-cell'; });
-        }
-
-        // 3D FIRST-PERSON REALISTIC ZOMBIE SHOOTER LOGIC
-        function initZombieShooterCanvas() {
-            zsCanvas = document.getElementById('zs-canvas');
-            if (zsCanvas) {
-                zsCtx = zsCanvas.getContext('2d');
-                let isDragging = false;
-
-                const handleAimMove = (clientX, clientY) => {
-                    if (!zsRunning) return;
-                    const rect = zsCanvas.getBoundingClientRect();
-                    let cx = (clientX - rect.left) * (zsCanvas.width / rect.width);
-                    // Map horizontal drag to camera view angle & strafe position
-                    let normX = (cx / zsCanvas.width) - 0.5;
-                    zsCamAngle = normX * 1.2;
-                    zsCamX = normX * 40;
-                };
-
-                zsCanvas.onmousedown = e => { isDragging = true; handleAimMove(e.clientX, e.clientY); };
-                window.onmousemove = e => { if (isDragging) handleAimMove(e.clientX, e.clientY); };
-                window.onmouseup = () => { isDragging = false; };
-
-                zsCanvas.ontouchstart = e => { isDragging = true; handleAimMove(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
-                window.ontouchmove = e => { if (isDragging) handleAimMove(e.touches[0].clientX, e.touches[0].clientY); };
-                window.ontouchend = () => { isDragging = false; };
-
-                zsCanvas.onclick = () => {
-                    // Manual shoot trigger
-                    if (zsRunning) fire3DBullet();
-                };
-            }
-        }
-
-        function startZombieGame() {
-            audio.playSFX('click');
-            document.getElementById('zs-gameover-overlay').style.display = 'none';
-            initZombieShooterCanvas();
-            if (!zsCtx) return;
-            zsRunning = true;
-            zsScore = 0;
-            zsLives = 5;
-            zsTick = 0;
-            zsCamX = 0;
-            zsCamY = 0;
-            zsCamAngle = 0;
-            zsBullets = [];
-            zs3DZombies = [];
-            zs3DPowerUps = [];
-            zsPowerType = 'normal';
-            zsPowerTimer = 0;
-
-            document.getElementById('zs-score').textContent = zsScore;
-            document.getElementById('zs-lives').textContent = zsLives;
-            cancelAnimationFrame(zsAnimId);
-            zombie3DGameLoop();
-        }
-
-        function fire3DBullet() {
-            audio.playSFX('move');
-            if (zsPowerType === 'triple') {
-                zsBullets.push({ x: 0, y: 0, z: 0.1, angleOffset: -0.15 });
-                zsBullets.push({ x: 0, y: 0, z: 0.1, angleOffset: 0 });
-                zsBullets.push({ x: 0, y: 0, z: 0.1, angleOffset: 0.15 });
-            } else if (zsPowerType === 'laser') {
-                zsBullets.push({ x: 0, y: 0, z: 0.1, angleOffset: 0, isLaser: true });
-            } else {
-                zsBullets.push({ x: 0, y: 0, z: 0.1, angleOffset: 0 });
-            }
-        }
-
-        function zombie3DGameLoop() {
-            if (!zsRunning) return;
-            zsTick++;
-
-            if (zsPowerTimer > 0) {
-                zsPowerTimer--;
-                if (zsPowerTimer <= 0) zsPowerType = 'normal';
-            }
-
-            // Progressive Real Zombie Spawning
-            let spawnInterval = Math.max(30, 75 - Math.floor(zsScore / 70));
-            if (zsTick % spawnInterval === 0) {
-                let typeRoll = Math.random();
-                let type = 'shambler';
-                let hp = 1;
-                let speed = 0.04 + Math.min(0.08, zsScore / 400);
-                let color = '#4ade80';
-
-                if (zsScore > 120 && typeRoll < 0.3) {
-                    type = 'brute';
-                    hp = 3;
-                    speed *= 0.7;
-                    color = '#facc15';
-                } else if (zsScore > 250 && typeRoll > 0.75) {
-                    type = 'crawler';
-                    hp = 1;
-                    speed *= 1.4;
-                    color = '#f87171';
-                }
-
-                zs3DZombies.push({
-                    x: (Math.random() - 0.5) * 120,
-                    z: 180 + Math.random() * 40, // Distance away in 3D space
-                    hp: hp,
-                    maxHp: hp,
-                    speed: speed,
-                    type: type,
-                    color: color
-                });
-            }
-
-            // Automatic Firing
-            let autoFireInterval = zsPowerType === 'rapid' ? 8 : 22;
-            if (zsTick % autoFireInterval === 0) {
-                fire3DBullet();
-            }
-
-            // Update Bullets in 3D
-            zsBullets.forEach(b => {
-                b.z -= 4.5;
-            });
-            zsBullets = zsBullets.filter(b => b.z > 2);
-
-            // Update 3D Zombies (Walking/Crawling towards the player camera)
-            zs3DZombies.forEach(z => {
-                z.z -= z.speed;
-                // If zombie reaches the camera screen
-                if (z.z <= 4) {
-                    z.reached = true;
-                    zsLives--;
-                    audio.playSFX('gameover');
-                    document.getElementById('zs-lives').textContent = zsLives;
-                    if (zsLives <= 0) {
-                        endZombieGame();
-                    }
-                }
-            });
-            zs3DZombies = zs3DZombies.filter(z => !z.reached && z.hp > 0);
-
-            // Update 3D Power-Up Drops
-            zs3DPowerUps.forEach(p => {
-                p.z -= 0.2;
-                // Pickup check if close to player camera
-                if (p.z <= 6 && Math.abs(p.x) < 25) {
-                    audio.playSFX('win');
-                    if (p.type === 'nuke') {
-                        zs3DZombies = []; // Wipe all zombies on screen
-                        zsScore += 80;
-                    } else {
-                        zsPowerType = p.type;
-                        zsPowerTimer = 450;
-                    }
-                    p.collected = true;
-                }
-            });
-            zs3DPowerUps = zs3DPowerUps.filter(p => !p.collected && p.z > 2);
-
-            // Collision Detection for Bullets hitting 3D Zombies
-            zsBullets.forEach(b => {
-                zs3DZombies.forEach(z => {
-                    if (!b.hit && z.z > 5 && z.z < 120) {
-                        // Project 3D position to screen coordinates for hit test
-                        let screenX = zsCanvas.width / 2 + (z.x - zsCamX) * (180 / z.z);
-                        let bulletScreenX = zsCanvas.width / 2 + (b.angleOffset * 250);
-                        if (Math.abs(screenX - bulletScreenX) < (35 / (z.z * 0.05))) {
-                            b.hit = true;
-                            z.hp--;
-                            if (z.hp <= 0) {
-                                audio.playSFX('score');
-                                zsScore += z.maxHp * 20;
-                                document.getElementById('zs-score').textContent = zsScore;
-
-                                // Real Item Power-up Drop (30%)
-                                if (Math.random() < 0.3) {
-                                    const pTypes = ['triple', 'rapid', 'laser', 'nuke'];
-                                    let chosen = pTypes[Math.floor(Math.random() * pTypes.length)];
-                                    zs3DPowerUps.push({ x: z.x, z: z.z, type: chosen });
-                                }
-                            }
-                        }
-                    }
-                });
-            });
-            zsBullets = zsBullets.filter(b => !b.hit);
-
-            // Render 3D First-Person Scene
-            zsCtx.fillStyle = '#05070d';
-            zsCtx.fillRect(0, 0, zsCanvas.width, zsCanvas.height);
-
-            // Draw 3D Ground and Dark Horizon Sky
-            let horizonY = zsCanvas.height / 2 + 10;
-            let skyGrad = zsCtx.createLinearGradient(0, 0, 0, horizonY);
-            skyGrad.addColorStop(0, '#020617');
-            skyGrad.addColorStop(1, '#1e1b4b');
-            zsCtx.fillStyle = skyGrad;
-            zsCtx.fillRect(0, 0, zsCanvas.width, horizonY);
-
-            let groundGrad = zsCtx.createLinearGradient(0, horizonY, 0, zsCanvas.height);
-            groundGrad.addColorStop(0, '#111827');
-            groundGrad.addColorStop(1, '#022c22');
-            zsCtx.fillStyle = groundGrad;
-            zsCtx.fillRect(0, horizonY, zsCanvas.width, zsCanvas.height - horizonY);
-
-            // Sort 3D entities by depth (painter's algorithm)
-            let renderEntities = [];
-            zs3DZombies.forEach(z => renderEntities.push({ type: 'zombie', entity: z, z: z.z }));
-            zs3DPowerUps.forEach(p => renderEntities.push({ type: 'powerup', entity: p, z: p.z }));
-            renderEntities.sort((a, b) => b.z - a.z);
-
-            // Render Sorted 3D Entities
-            renderEntities.forEach(item => {
-                if (item.type === 'zombie') {
-                    let z = item.entity;
-                    let scale = 180 / z.z;
-                    let screenX = zsCanvas.width / 2 + (z.x - zsCamX) * scale;
-                    let screenY = horizonY + (10 * scale);
-                    let width = 45 * scale;
-                    let height = 75 * scale;
-
-                    if (z.z > 2 && z.z < 180) {
-                        // Realistic 3D Shaded Zombie Body
-                        zsCtx.fillStyle = z.color;
-                        zsCtx.beginPath();
-                        zsCtx.ellipse(screenX, screenY - height / 2, width / 2, height / 2.2, 0, 0, Math.PI * 2);
-                        zsCtx.fill();
-
-                        // Zombie Head
-                        zsCtx.fillStyle = '#166534';
-                        zsCtx.beginPath();
-                        zsCtx.arc(screenX, screenY - height + (10 * scale), width / 3, 0, Math.PI * 2);
-                        zsCtx.fill();
-
-                        // Glowing Red Eyes
-                        zsCtx.fillStyle = '#ef4444';
-                        zsCtx.fillRect(screenX - (4 * scale), screenY - height + (6 * scale), 3 * scale, 3 * scale);
-                        zsCtx.fillRect(screenX + (2 * scale), screenY - height + (6 * scale), 3 * scale, 3 * scale);
-
-                        // Health bar for brute zombies
-                        if (z.maxHp > 1) {
-                            zsCtx.fillStyle = 'rgba(0,0,0,0.6)';
-                            zsCtx.fillRect(screenX - 20, screenY - height - 12, 40, 5);
-                            zsCtx.fillStyle = '#22c55e';
-                            zsCtx.fillRect(screenX - 20, screenY - height - 12, 40 * (z.hp / z.maxHp), 5);
-                        }
-                    }
-                } else if (item.type === 'powerup') {
-                    let p = item.entity;
-                    let scale = 180 / p.z;
-                    let screenX = zsCanvas.width / 2 + (p.x - zsCamX) * scale;
-                    let screenY = horizonY + (30 * scale);
-
-                    if (p.z > 2 && p.z < 150) {
-                        zsCtx.fillStyle = '#facc15';
-                        zsCtx.beginPath();
-                        zsCtx.arc(screenX, screenY, 14 * scale, 0, Math.PI * 2);
-                        zsCtx.fill();
-                        zsCtx.fillStyle = '#000';
-                        zsCtx.font = `${Math.max(9, Math.floor(11 * scale))}px sans-serif`;
-                        zsCtx.textAlign = 'center';
-                        let label = p.type === 'triple' ? '🎒' : p.type === 'rapid' ? '⚡' : p.type === 'laser' ? '🎯' : '💣';
-                        zsCtx.fillText(label, screenX, screenY + (4 * scale));
-                    }
-                }
-            });
-
-            // Draw First-Person 3D Crosshair / Aiming Reticle & Weapon Barrel
-            zsCtx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
-            zsCtx.lineWidth = 2;
-            let cx = zsCanvas.width / 2;
-            let cy = zsCanvas.height / 2;
-            zsCtx.beginPath();
-            zsCtx.arc(cx, cy, 12, 0, Math.PI * 2);
-            zsCtx.stroke();
-            zsCtx.fillStyle = '#ef4444';
-            zsCtx.fillRect(cx - 2, cy - 2, 4, 4);
-
-            // First-person weapon barrel at bottom center
-            zsCtx.fillStyle = '#334155';
-            zsCtx.fillRect(cx - 18, zsCanvas.height - 45, 36, 45);
-            zsCtx.fillStyle = '#1e293b';
-            zsCtx.fillRect(cx - 8, zsCanvas.height - 70, 16, 30);
-
-            // Active Powerup real gear label indicator
-            if (zsPowerType !== 'normal') {
-                zsCtx.fillStyle = '#38bdf8';
-                zsCtx.font = '11px sans-serif';
-                zsCtx.textAlign = 'left';
-                let gearName = zsPowerType === 'triple' ? 'TACTICAL AMMO VEST (3X)' : zsPowerType === 'rapid' ? 'HIGH-CAPACITY BATTERY' : zsPowerType === 'laser' ? 'LASER SIGHT SCOPE' : 'FRAG GRENADE';
-                zsCtx.fillText(`GEAR: ${gearName}`, 10, 18);
-            }
-
-            if (zsRunning) zsAnimId = requestAnimationFrame(zombie3DGameLoop);
-        }
-
-        function endZombieGame() {
-            zsRunning = false;
-            audio.playSFX('gameover');
-            document.getElementById('zs-gameover-overlay').style.display = 'flex';
-            let stats = ScoreManager.saveScore('zombieshooter', zsScore);
-            document.getElementById('zs-high').textContent = stats.highScore;
         }
 
         // REAL SNAKE GAME LOGIC
@@ -3088,7 +2963,7 @@
                 let prevR = selectedCandy.r, prevC = selectedCandy.c;
                 document.getElementsByClassName('candy-cell')[prevR * 5 + prevC].classList.remove('selected');
 
-                let isAdjacent = (Math.abs(prevR - r) === 1 && prevC === c) || (Math.abs(prevC - c) === 1 && prevR === r);
+                let isAdjacent = (Math.abs(prevR - r) === 1 && prevC === c) || (Math.abs(prevC - c) === 1 && prevR === c);
                 if (isAdjacent) {
                     let temp = candyBoard[prevR][prevC];
                     candyBoard[prevR][prevC] = candyBoard[r][c];
