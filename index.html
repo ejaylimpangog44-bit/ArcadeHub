@@ -1027,66 +1027,6 @@
             transform: scale(1.05);
         }
 
-        .shooter-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 360px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .shooter-hud {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 12px;
-            width: 100%;
-            gap: 6px;
-        }
-
-        .shooter-hud-item {
-            background: rgba(15, 23, 42, 0.65);
-            padding: 4px 10px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            white-space: nowrap;
-        }
-
-        .shooter-lives-container {
-            display: flex;
-            gap: 2px;
-            align-items: center;
-        }
-
-        .shooter-heart {
-            color: #ef4444;
-            font-size: 13px;
-        }
-
-        #shooter-gameover-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(11, 15, 25, 0.85);
-            backdrop-filter: blur(3px);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 10px;
-            z-index: 20;
-        }
-
-        #shooter-gameover-overlay.active {
-            display: flex;
-        }
-
         .robot-container {
             position: fixed;
             bottom: 15px;
@@ -1321,6 +1261,10 @@
         <div class="category-section">
             <div class="category-title">Action & Arcade</div>
             <div class="game-grid">
+                <div class="game-card" onclick="openGame('pacman-container')">
+                    <span class="game-icon">🟡</span>
+                    <span class="game-name">Pac-Man Arcade</span>
+                </div>
                 <div class="game-card" onclick="openGame('clawgame-container')">
                     <span class="game-icon">🦾</span>
                     <span class="game-name">Claw Machine</span>
@@ -1328,10 +1272,6 @@
                 <div class="game-card" onclick="openGame('molegame-container')">
                     <span class="game-icon">🔨</span>
                     <span class="game-name">Whack-a-Mole</span>
-                </div>
-                <div class="game-card" onclick="openGame('dartgame-container')">
-                    <span class="game-icon">🚀</span>
-                    <span class="game-name">Space Shooter</span>
                 </div>
                 <div class="game-card" onclick="openGame('frostgame-container')">
                     <span class="game-icon">❄️</span>
@@ -1434,6 +1374,32 @@
         </div>
     </div>
 
+    <!-- Pac-Man Arcade -->
+    <div id="pacman-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('pacman-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Pac-Man Arcade</h3>
+        <div style="width: 100%; max-width: 320px; margin: 0 auto;">
+            <div class="score-board" style="margin-top: 4px;">
+                <div class="score-box">Score <span id="pac-score">0</span></div>
+                <div class="score-box">High <span id="pac-high">0</span></div>
+                <div class="score-box">Lives <span id="pac-lives">3</span></div>
+            </div>
+            <canvas id="pac-canvas" class="arcade-canvas" width="300" height="300"></canvas>
+            <div class="dir-pad">
+                <div></div>
+                <button class="dir-btn" onclick="changePacDir('UP')">⬆️</button>
+                <div></div>
+                <button class="dir-btn" onclick="changePacDir('LEFT')">⬅️</button>
+                <button class="dir-btn" onclick="changePacDir('DOWN')">⬇️</button>
+                <button class="dir-btn" onclick="changePacDir('RIGHT')">➡️</button>
+            </div>
+            <button class="action-btn" style="width: 100%; margin-top: 8px;" onclick="startPacManGame()">Start / Reset</button>
+        </div>
+    </div>
+
     <!-- Claw Machine -->
     <div id="clawgame-container" class="game-container">
         <div class="game-floating-nav">
@@ -1459,29 +1425,6 @@
         <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
     </div>
 
-    <!-- Space Shooter -->
-    <div id="dartgame-container" class="game-container">
-        <div class="game-floating-nav">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('dartgame-container')">⛶</button>
-        </div>
-        <h3 class="game-title-header">Space Shooter</h3>
-        <div class="shooter-wrapper">
-            <div class="shooter-hud">
-                <div class="shooter-hud-item">Score: <span id="shooter-score">0</span></div>
-                <div class="shooter-hud-item" id="shooter-round">Round 1</div>
-                <div class="shooter-hud-item shooter-lives-container" id="shooter-lives"></div>
-            </div>
-            <canvas id="shooter-canvas" class="arcade-canvas" width="360" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
-            
-            <div id="shooter-gameover-overlay">
-                <h2 id="shooter-over-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.2rem;">MISSION FAILED</h2>
-                <p id="final-shooter-score" style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">Final Score: 0</p>
-                <button class="action-btn" onclick="startSpaceShooter()">RESTART MISSION</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Frost Breakout -->
     <div id="frostgame-container" class="game-container">
         <div class="game-floating-nav">
@@ -1489,11 +1432,11 @@
             <button class="nav-btn" onclick="toggleFullscreen('frostgame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Frost Breakout ❄️</h3>
-        <div class="shooter-wrapper">
-            <div class="shooter-hud">
-                <div class="shooter-hud-item">Score: <span id="frost-score">000000</span></div>
-                <div class="shooter-hud-item" id="frost-lvl">LVL 1</div>
-                <div class="shooter-hud-item">❄️ <span id="frost-lives">3</span></div>
+        <div style="width: 100%; max-width: 360px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board">
+                <div class="score-box">Score <span id="frost-score">000000</span></div>
+                <div class="score-box" id="frost-lvl">LVL 1</div>
+                <div class="score-box">❄️ <span id="frost-lives">3</span></div>
             </div>
             <canvas id="frost-canvas" class="arcade-canvas" width="360" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
             <div id="frost-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
@@ -1912,19 +1855,43 @@
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
 
-        let shooterCanvas, shooterCtx, shooterRunning = false, shooterScore = 0, shooterLives = 5, shooterRound = 1;
-        let enemiesDefeatedInRound = 0, requiredEnemiesForRound = 10, shooterAnimId, shooterPlayer, shooterBullets = [], shooterEnemyBullets = [], shooterEnemies = [], shooterPowerups = [], shooterStars = [], shooterBoss = null;
-        let isPointerDown = false, pointerX = 180, pointerY = 300, announcementText = "", announcementTimer = 0;
-
         let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBall, frostBricks = [], frostScreenShake = 0;
+
+        // Pac-Man Variables
+        let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
+        let pacman = { x: 1, y: 1, dir: 'RIGHT', nextDir: 'RIGHT', speed: 2 };
+        let ghosts = [
+            { x: 12, y: 11, color: '#ef4444', dir: 'UP' },
+            { x: 13, y: 11, color: '#ec4899', dir: 'LEFT' },
+            { x: 12, y: 12, color: '#06b6d4', dir: 'RIGHT' },
+            { x: 13, y: 12, color: '#f97316', dir: 'DOWN' }
+        ];
+        let pacGrid = [];
+        const basePacMap = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1],
+            [1,3,1,1,2,1,1,1,1,1,2,1,1,3,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,2,1,2,1,2,1,2,1,1,2,1],
+            [1,2,2,2,2,1,2,1,2,1,2,2,2,2,1],
+            [1,1,1,1,2,1,1,0,1,1,2,1,1,1,1],
+            [0,0,0,1,2,1,0,0,0,1,2,1,0,0,0],
+            [1,1,1,1,2,1,0,0,0,1,2,1,1,1,1],
+            [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1],
+            [1,2,1,1,2,1,1,1,1,1,2,1,1,2,1],
+            [1,3,2,1,2,2,2,0,2,2,2,1,2,3,1],
+            [1,1,2,1,2,1,2,1,2,1,2,1,2,1,1],
+            [1,2,2,2,2,1,2,1,2,1,2,2,2,2,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
 
         window.onload = function() {
             generateQRCode();
             initSnakeCanvas();
             initFlappyCanvas();
             initDinoCanvas();
-            initShooterCanvas();
             initFrostCanvas();
+            initPacManCanvas();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -1933,6 +1900,7 @@
             document.getElementById('mole-high').textContent = ScoreManager.getStats('mole').highScore;
             document.getElementById('flappy-high').textContent = ScoreManager.getStats('flappy').highScore;
             document.getElementById('dino-high').textContent = ScoreManager.getStats('dino').highScore;
+            document.getElementById('pac-high').textContent = ScoreManager.getStats('pacman').highScore;
             
             const bestGuessData = localStorage.getItem('arcadehub_guess');
             if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
@@ -1954,10 +1922,7 @@
             if (containerId === 'snakegame-container') startSnakeGame();
             if (containerId === 'flappygame-container') startFlappyGame();
             if (containerId === 'dinogame-container') startDinoGame();
-            if (containerId === 'dartgame-container') {
-                initShooterCanvas();
-                startSpaceShooter();
-            }
+            if (containerId === 'pacman-container') startPacManGame();
             if (containerId === 'frostgame-container') {
                 initFrostCanvas();
                 startFrostGame();
@@ -1973,7 +1938,7 @@
             if (dinoInterval) clearInterval(dinoInterval);
             if (moleTimer) clearInterval(moleTimer);
             if (reactionTimeout) clearTimeout(reactionTimeout);
-            if (shooterRunning) { shooterRunning = false; cancelAnimationFrame(shooterAnimId); }
+            if (pacRunning) { pacRunning = false; cancelAnimationFrame(pacAnimId); }
             if (frostRunning) { frostRunning = false; cancelAnimationFrame(frostAnimId); }
 
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
@@ -2659,403 +2624,163 @@
             renderCandyBoard();
         }
 
-        class ShooterPlayer {
-            constructor() {
-                this.width = 30; this.height = 36;
-                this.x = 180 - this.width / 2; this.y = 270;
-                this.weaponType = 'STANDARD';
-                this.lastShot = 0; this.shootDelay = 150;
-            }
-            update() {
-                if (isPointerDown) {
-                    this.x += (pointerX - this.width / 2 - this.x) * 0.4;
-                    this.y += (pointerY - this.height / 2 - this.y) * 0.4;
-                }
-                this.x = Math.max(0, Math.min(360 - this.width, this.x));
-                this.y = Math.max(0, Math.min(340 - this.height, this.y));
-
-                const now = Date.now();
-                if (now - this.lastShot > this.shootDelay) {
-                    this.shoot();
-                    this.lastShot = now;
-                }
-            }
-            shoot() {
-                if (this.weaponType === 'STANDARD') {
-                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, 0, -8, '#38bdf8'));
-                } else if (this.weaponType === 'TRIPLE') {
-                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, 0, -8, '#f43f5e'));
-                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, -2, -7.5, '#f43f5e'));
-                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, 2, -7.5, '#f43f5e'));
-                } else if (this.weaponType === 'LASER') {
-                    shooterBullets.push(new ShooterBullet(this.x + 4, this.y, 0, -11, '#a855f7'));
-                    shooterBullets.push(new ShooterBullet(this.x + this.width - 8, this.y, 0, -11, '#a855f7'));
-                }
-            }
-            draw() {
-                if (!shooterCtx) return;
-                shooterCtx.save();
-                shooterCtx.fillStyle = '#6366f1';
-                shooterCtx.beginPath();
-                shooterCtx.moveTo(this.x + this.width / 2, this.y);
-                shooterCtx.lineTo(this.x + this.width, this.y + this.height);
-                shooterCtx.lineTo(this.x + this.width / 2, this.y + this.height - 8);
-                shooterCtx.lineTo(this.x, this.y + this.height);
-                shooterCtx.closePath();
-                shooterCtx.fill();
-                shooterCtx.restore();
-            }
+        // Pac-Man Logic
+        function initPacManCanvas() {
+            pacCanvas = document.getElementById('pac-canvas');
+            if (pacCanvas) pacCtx = pacCanvas.getContext('2d');
         }
 
-        class ShooterBullet {
-            constructor(x, y, vx, vy, color) {
-                this.x = x; this.y = y; this.vx = vx; this.vy = vy;
-                this.width = 4; this.height = 10; this.color = color;
-            }
-            update() { this.x += this.vx; this.y += this.vy; }
-            draw() {
-                if (!shooterCtx) return;
-                shooterCtx.fillStyle = this.color;
-                shooterCtx.fillRect(this.x, this.y, this.width, this.height);
-            }
-        }
-
-        class ShooterEnemy {
-            constructor(roundNum = 1) {
-                this.type = roundNum >= 2 && Math.random() > 0.35 ? 'ADVANCED' : 'BASIC';
-                this.width = this.type === 'ADVANCED' ? 30 : 24;
-                this.height = this.type === 'ADVANCED' ? 30 : 24;
-                this.x = Math.random() * (360 - this.width);
-                this.y = -this.height;
-                this.hp = this.type === 'ADVANCED' ? Math.min(6, Math.floor(2 + (roundNum * 0.4))) : 1;
-                this.speed = (this.type === 'ADVANCED' ? 1.6 : 2.2) + (roundNum * 0.12);
-                this.lastShot = Date.now() + Math.random() * 1000;
-                this.shootInterval = Math.max(600, 2200 - (roundNum * 50));
-            }
-            update() {
-                this.y += this.speed;
-                if (this.type === 'ADVANCED') this.x += Math.sin(this.y * 0.05) * 2;
-                const now = Date.now();
-                if (now - this.lastShot > this.shootInterval && this.y > 0 && this.y < 260) {
-                    this.shoot();
-                    this.lastShot = now;
-                }
-            }
-            shoot() {
-                if (this.type === 'BASIC') {
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y + this.height, 0, 3.5, '#ef4444'));
-                } else {
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + 4, this.y + this.height, -0.8, 3.8, '#f97316'));
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width - 8, this.y + this.height, 0.8, 3.8, '#f97316'));
-                }
-            }
-            draw() {
-                if (!shooterCtx) return;
-                shooterCtx.fillStyle = this.type === 'ADVANCED' ? '#f97316' : '#ef4444';
-                shooterCtx.beginPath();
-                shooterCtx.moveTo(this.x, this.y);
-                shooterCtx.lineTo(this.x + this.width, this.y);
-                shooterCtx.lineTo(this.x + this.width / 2, this.y + this.height);
-                shooterCtx.closePath();
-                shooterCtx.fill();
-            }
-        }
-
-        class ShooterBoss {
-            constructor(roundNum) {
-                this.width = 80; this.height = 55;
-                this.x = 360 / 2 - this.width / 2; this.y = -this.height;
-                const scalingFactor = Math.pow(1.15, Math.max(0, roundNum - 3));
-                this.maxHp = Math.floor(30 * scalingFactor);
-                this.hp = this.maxHp; 
-                this.targetY = 40;
-                this.vx = 1.6 + (roundNum * 0.05);
-                this.lastAttackTime = Date.now();
-                this.spiralAngle = 0; this.phase = 1; this.roundNum = roundNum;
-            }
-            update() {
-                if (this.y < this.targetY) { this.y += 1; return; }
-                this.phase = (this.hp / this.maxHp) <= 0.4 ? 2 : 1;
-                if (this.phase === 1) {
-                    this.x += this.vx;
-                    if (this.x <= 15 || this.x + this.width >= 345) this.vx *= -1;
-                } else {
-                    this.x += Math.sin(Date.now() * 0.005) * 4;
-                    this.x = Math.max(10, Math.min(360 - this.width - 10, this.x));
-                }
-                const now = Date.now();
-                const cd = this.phase === 2 ? 550 : 850;
-                if (now - this.lastAttackTime > cd) {
-                    this.attack();
-                    this.lastAttackTime = now;
-                }
-            }
-            attack() {
-                const cx = this.x + this.width / 2;
-                const by = this.y + this.height;
-                if (this.phase === 1) {
-                    for (let i = -1; i <= 1; i++) {
-                        shooterEnemyBullets.push(new ShooterBullet(cx - 2 + (i * 8), by, i * 0.7, 3.8, '#e11d48'));
-                    }
-                } else {
-                    this.spiralAngle += 0.4;
-                    for (let i = 0; i < 6; i++) {
-                        let angle = this.spiralAngle + (i * Math.PI / 3);
-                        shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(angle) * 3, Math.sin(angle) * 3, '#f43f5e'));
-                    }
-                }
-            }
-            draw() {
-                if (!shooterCtx) return;
-                shooterCtx.fillStyle = this.phase === 2 ? '#9f1239' : '#be123c';
-                shooterCtx.beginPath();
-                shooterCtx.moveTo(this.x + this.width / 2, this.y + this.height);
-                shooterCtx.lineTo(this.x + this.width, this.y);
-                shooterCtx.lineTo(this.x, this.y);
-                shooterCtx.closePath();
-                shooterCtx.fill();
-
-                const bw = 140, bh = 6, bx = (360 - bw) / 2, by = 15;
-                shooterCtx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-                shooterCtx.fillRect(bx, by, bw, bh);
-                shooterCtx.fillStyle = this.phase === 2 ? '#f43f5e' : '#ef4444';
-                shooterCtx.fillRect(bx, by, bw * Math.max(0, this.hp / this.maxHp), bh);
-            }
-        }
-
-        class ShooterPowerup {
-            constructor(x, y) {
-                this.x = x; this.y = y; this.size = 16; this.speed = 1.5;
-                const types = ['TRIPLE', 'LASER', 'LIFE'];
-                this.type = types[Math.floor(Math.random() * types.length)];
-            }
-            update() { this.y += this.speed; }
-            draw() {
-                if (!shooterCtx) return;
-                shooterCtx.font = '14px sans-serif';
-                shooterCtx.textAlign = 'center';
-                let label = this.type === 'LASER' ? '⚡' : this.type === 'LIFE' ? '🛡️' : '🔴';
-                shooterCtx.fillText(label, this.x + this.size / 2, this.y + this.size / 2);
-            }
-        }
-
-        function initShooterCanvas() {
-            shooterCanvas = document.getElementById('shooter-canvas');
-            if (shooterCanvas) {
-                shooterCtx = shooterCanvas.getContext('2d');
-                const updatePointer = (clientX, clientY) => {
-                    const rect = shooterCanvas.getBoundingClientRect();
-                    pointerX = (clientX - rect.left) * (shooterCanvas.width / rect.width);
-                    pointerY = (clientY - rect.top) * (shooterCanvas.height / rect.height);
-                };
-                shooterCanvas.onmousedown = e => { isPointerDown = true; updatePointer(e.clientX, e.clientY); };
-                window.onmousemove = e => { if (isPointerDown) updatePointer(e.clientX, e.clientY); };
-                window.onmouseup = () => { isPointerDown = false; };
-                shooterCanvas.ontouchstart = e => { e.preventDefault(); isPointerDown = true; updatePointer(e.touches[0].clientX, e.touches[0].clientY); };
-                shooterCanvas.ontouchmove = e => { e.preventDefault(); updatePointer(e.touches[0].clientX, e.touches[0].clientY); };
-                shooterCanvas.ontouchend = () => { isPointerDown = false; };
-            }
-            initShooterStars();
-        }
-
-        function initShooterStars() {
-            shooterStars = [];
-            for (let i = 0; i < 40; i++) {
-                shooterStars.push({ x: Math.random() * 360, y: Math.random() * 340, size: Math.random() * 1.5 + 0.5, speed: Math.random() * 1 + 0.5 });
-            }
-        }
-
-        function updateShooterHUD() {
-            document.getElementById('shooter-score').textContent = shooterScore;
-            document.getElementById('shooter-round').textContent = shooterBoss ? `BOSS` : `Round ${shooterRound}`;
-            let livesHtml = '';
-            for (let i = 0; i < shooterLives; i++) livesHtml += '<span class="shooter-heart">♥</span>';
-            document.getElementById('shooter-lives').innerHTML = livesHtml;
-        }
-
-        function startSpaceShooter() {
+        function startPacManGame() {
             audio.playSFX('click');
-            document.getElementById('shooter-gameover-overlay').classList.remove('active');
-            initShooterCanvas();
-            if (!shooterCtx) return;
-            shooterRunning = true;
-            shooterScore = 0; shooterLives = 5; shooterRound = 1;
-            enemiesDefeatedInRound = 0; requiredEnemiesForRound = 5;
-            shooterBullets = []; shooterEnemyBullets = []; shooterEnemies = []; shooterPowerups = []; shooterBoss = null;
-            shooterPlayer = new ShooterPlayer();
-            updateShooterHUD();
-            cancelAnimationFrame(shooterAnimId);
-            shooterLoop();
+            initPacManCanvas();
+            if (!pacCtx) return;
+            pacRunning = true;
+            pacScore = 0; pacLives = 3;
+            pacman = { x: 1, y: 1, dir: 'RIGHT', nextDir: 'RIGHT' };
+            ghosts = [
+                { x: 12, y: 11, color: '#ef4444', dir: 'UP' },
+                { x: 13, y: 11, color: '#ec4899', dir: 'LEFT' },
+                { x: 12, y: 12, color: '#06b6d4', dir: 'RIGHT' },
+                { x: 13, y: 12, color: '#f97316', dir: 'DOWN' }
+            ];
+            pacGrid = basePacMap.map(row => [...row]);
+            document.getElementById('pac-score').textContent = pacScore;
+            document.getElementById('pac-lives').textContent = pacLives;
+            cancelAnimationFrame(pacAnimId);
+            pacManLoop();
         }
 
-        function advanceShooterRound() {
-            shooterRound = Math.min(50, shooterRound + 1);
-            enemiesDefeatedInRound = 0;
-            requiredEnemiesForRound += 2;
-
-            if (shooterRound > 50) {
-                completeShooterGame();
-                return;
-            }
-
-            if (shooterRound % 3 === 0) {
-                announcementText = `WARNING: BOSS ROUND`;
-                announcementTimer = 120;
-                shooterBoss = new ShooterBoss(shooterRound);
-            } else {
-                announcementText = `ROUND ${shooterRound}`;
-                announcementTimer = 90;
-            }
-            updateShooterHUD();
+        function changePacDir(dir) {
+            audio.playSFX('move');
+            pacman.nextDir = dir;
         }
 
-        function completeShooterGame() {
-            shooterRunning = false;
-            cancelAnimationFrame(shooterAnimId);
-            shooterBoss = null;
-            audio.playSFX('win');
-            const overlayTitle = document.getElementById('shooter-over-title');
-            overlayTitle.textContent = "VICTORY!";
-            overlayTitle.style.color = "#22c55e";
-            document.getElementById('final-shooter-score').textContent = `Final Score: ${shooterScore}`;
-            document.getElementById('shooter-gameover-overlay').classList.add('active');
+        function getNextCoords(x, y, dir) {
+            let nx = x, ny = y;
+            if (dir === 'UP') ny--;
+            if (dir === 'DOWN') ny++;
+            if (dir === 'LEFT') nx--;
+            if (dir === 'RIGHT') nx++;
+            if (nx < 0) nx = pacGrid[0].length - 1;
+            if (nx >= pacGrid[0].length) nx = 0;
+            return {x: nx, y: ny};
         }
 
-        function shooterLoop() {
-            if (!shooterRunning) return;
-            if (!shooterCtx) { initShooterCanvas(); if (!shooterCtx) return; }
-
-            shooterCtx.clearRect(0, 0, 360, 340);
-            shooterCtx.fillStyle = '#ffffff';
-            shooterStars.forEach(s => {
-                s.y += s.speed;
-                if (s.y > 340) { s.y = 0; s.x = Math.random() * 360; }
-                shooterCtx.globalAlpha = s.speed / 2;
-                shooterCtx.fillRect(s.x, s.y, s.size, s.size);
-            });
-            shooterCtx.globalAlpha = 1;
-
-            shooterPlayer.update();
-            shooterPlayer.draw();
-
-            if (!shooterBoss && shooterEnemies.length < 5 && Math.random() < 0.04) {
-                shooterEnemies.push(new ShooterEnemy(shooterRound));
-            }
-
-            if (shooterBoss) {
-                shooterBoss.update();
-                shooterBoss.draw();
-            }
-
-            if (announcementTimer > 0) {
-                announcementTimer--;
-                shooterCtx.save();
-                shooterCtx.font = "bold 15px monospace";
-                shooterCtx.textAlign = "center";
-                shooterCtx.fillStyle = "#38bdf8";
-                shooterCtx.fillText(announcementText, 180, 170);
-                shooterCtx.restore();
-            }
-
-            shooterBullets.forEach((b, idx) => {
-                b.update(); b.draw();
-                if (b.y < -10) shooterBullets.splice(idx, 1);
-            });
-
-            shooterEnemyBullets.forEach((eb, idx) => {
-                eb.update(); eb.draw();
-                if (eb.x > shooterPlayer.x && eb.x < shooterPlayer.x + shooterPlayer.width && eb.y > shooterPlayer.y && eb.y < shooterPlayer.y + shooterPlayer.height) {
-                    shooterEnemyBullets.splice(idx, 1);
-                    shooterLives--;
-                    audio.playSFX('gameover');
-                    updateShooterHUD();
-                    if (shooterLives <= 0) { endSpaceShooter(); return; }
+        let pacTickCounter = 0;
+        function pacManLoop() {
+            if (!pacRunning) return;
+            pacTickCounter++;
+            if (pacTickCounter % 10 === 0) {
+                // Try applying next direction if valid
+                let nextPos = getNextCoords(pacman.x, pacman.y, pacman.nextDir);
+                if (pacGrid[nextPos.y] && pacGrid[nextPos.y][nextPos.x] !== 1) {
+                    pacman.dir = pacman.nextDir;
                 }
-                if (eb.y > 350 || eb.y < -10) shooterEnemyBullets.splice(idx, 1);
-            });
+                let movePos = getNextCoords(pacman.x, pacman.y, pacman.dir);
+                if (pacGrid[movePos.y] && pacGrid[movePos.y][movePos.x] !== 1) {
+                    pacman.x = movePos.x;
+                    pacman.y = movePos.y;
 
-            if (!shooterRunning) return;
-
-            shooterEnemies.forEach((en, eIdx) => {
-                en.update(); en.draw();
-                if (en.x < shooterPlayer.x + shooterPlayer.width && en.x + en.width > shooterPlayer.x && en.y < shooterPlayer.y + shooterPlayer.height && en.y + en.height > shooterPlayer.y) {
-                    shooterEnemies.splice(eIdx, 1);
-                    shooterLives--;
-                    audio.playSFX('gameover');
-                    updateShooterHUD();
-                    if (shooterLives <= 0) { endSpaceShooter(); return; }
-                }
-
-                shooterBullets.forEach((b, bIdx) => {
-                    if (b.x > en.x && b.x < en.x + en.width && b.y > en.y && b.y < en.y + en.height) {
-                        shooterBullets.splice(bIdx, 1);
-                        en.hp--;
-                        if (en.hp <= 0) {
-                            audio.playSFX('score');
-                            if (Math.random() < 0.25) shooterPowerups.push(new ShooterPowerup(en.x, en.y));
-                            shooterEnemies.splice(eIdx, 1);
-                            shooterScore += 100;
-                            enemiesDefeatedInRound++;
-                            
-                            if (
-                                enemiesDefeatedInRound >= requiredEnemiesForRound &&
-                                !shooterBoss
-                            ) {
-                                advanceShooterRound();
-                            }
-                            updateShooterHUD();
-                        }
+                    if (pacGrid[pacman.y][pacman.x] === 2) {
+                        pacGrid[pacman.y][pacman.x] = 0;
+                        pacScore += 10;
+                        audio.playSFX('score');
+                        document.getElementById('pac-score').textContent = pacScore;
+                    } else if (pacGrid[pacman.y][pacman.x] === 3) {
+                        pacGrid[pacman.y][pacman.x] = 0;
+                        pacScore += 50;
+                        audio.playSFX('win');
+                        document.getElementById('pac-score').textContent = pacScore;
                     }
-                });
-                if (en.y > 350) shooterEnemies.splice(eIdx, 1);
-            });
+                }
 
-            if (!shooterRunning) return;
+                // Move ghosts
+                ghosts.forEach(g => {
+                    const dirs = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+                    let validDirs = dirs.filter(d => {
+                        let cp = getNextCoords(g.x, g.y, d);
+                        return pacGrid[cp.y] && pacGrid[cp.y][cp.x] !== 1;
+                    });
+                    if (validDirs.length > 0 && (Math.random() < 0.6 || !validDirs.includes(g.dir))) {
+                        g.dir = validDirs[Math.floor(Math.random() * validDirs.length)];
+                    }
+                    let gp = getNextCoords(g.x, g.y, g.dir);
+                    if (pacGrid[gp.y] && pacGrid[gp.y][gp.x] !== 1) {
+                        g.x = gp.x;
+                        g.y = gp.y;
+                    }
 
-            if (shooterBoss) {
-                shooterBullets.forEach((b, bIdx) => {
-                    if (b.x > shooterBoss.x && b.x < shooterBoss.x + shooterBoss.width && b.y > shooterBoss.y && b.y < shooterBoss.y + shooterBoss.height) {
-                        shooterBullets.splice(bIdx, 1);
-                        shooterBoss.hp--;
-                        if (shooterBoss.hp <= 0) {
-                            audio.playSFX('win');
-                            shooterScore += 2500;
-                            shooterBoss = null;
-                            shooterEnemies = [];
-                            shooterEnemyBullets = [];
-                            advanceShooterRound();
+                    // Check collision
+                    if (g.x === pacman.x && g.y === pacman.y) {
+                        pacLives--;
+                        audio.playSFX('gameover');
+                        document.getElementById('pac-lives').textContent = pacLives;
+                        pacman.x = 1; pacman.y = 1;
+                        if (pacLives <= 0) {
+                            pacRunning = false;
+                            let stats = ScoreManager.saveScore('pacman', pacScore);
+                            document.getElementById('pac-high').textContent = stats.highScore;
+                            alert(`Game Over! Final Score: ${pacScore}`);
+                            return;
                         }
                     }
                 });
             }
 
-            if (!shooterRunning) return;
+            drawPacMan();
+            if (pacRunning) pacAnimId = requestAnimationFrame(pacManLoop);
+        }
 
-            shooterPowerups.forEach((p, pIdx) => {
-                p.update(); p.draw();
-                if (p.x < shooterPlayer.x + shooterPlayer.width && p.x + p.size > shooterPlayer.x && p.y < shooterPlayer.y + shooterPlayer.height && p.y + p.size > shooterPlayer.y) {
-                    audio.playSFX('win');
-                    if (p.type === 'LIFE') shooterLives = Math.min(5, shooterLives + 1);
-                    else shooterPlayer.weaponType = p.type;
-                    shooterPowerups.splice(pIdx, 1);
-                    updateShooterHUD();
+        function drawPacMan() {
+            let cw = pacCanvas.width / pacGrid[0].length;
+            let ch = pacCanvas.height / pacGrid.length;
+            pacCtx.fillStyle = '#111827';
+            pacCtx.fillRect(0, 0, pacCanvas.width, pacCanvas.height);
+
+            for (let r = 0; r < pacGrid.length; r++) {
+                for (let c = 0; c < pacGrid[r].length; c++) {
+                    if (pacGrid[r][c] === 1) {
+                        pacCtx.fillStyle = '#3b82f6';
+                        pacCtx.fillRect(c * cw, r * ch, cw, ch);
+                    } else if (pacGrid[r][c] === 2) {
+                        pacCtx.fillStyle = '#facc15';
+                        pacCtx.beginPath();
+                        pacCtx.arc(c * cw + cw/2, r * ch + ch/2, 3, 0, Math.PI * 2);
+                        pacCtx.fill();
+                    } else if (pacGrid[r][c] === 3) {
+                        pacCtx.fillStyle = '#ec4899';
+                        pacCtx.beginPath();
+                        pacCtx.arc(c * cw + cw/2, r * ch + ch/2, 6, 0, Math.PI * 2);
+                        pacCtx.fill();
+                    }
                 }
-                if (p.y > 350) shooterPowerups.splice(pIdx, 1);
+            }
+
+            // Draw Pac-Man
+            pacCtx.fillStyle = '#facc15';
+            pacCtx.beginPath();
+            pacCtx.arc(pacman.x * cw + cw/2, pacman.y * ch + ch/2, cw/2 - 1, 0, Math.PI * 2);
+            pacCtx.fill();
+
+            // Draw Ghosts
+            ghosts.forEach(g => {
+                pacCtx.fillStyle = g.color;
+                pacCtx.beginPath();
+                pacCtx.arc(g.x * cw + cw/2, g.y * ch + ch/2, cw/2 - 1, Math.PI, 0, false);
+                pacCtx.fill();
+                pacCtx.fillRect(g.x * cw + 2, g.y * ch + ch/2, cw - 4, ch/2 - 1);
             });
-
-            shooterAnimId = requestAnimationFrame(shooterLoop);
         }
 
-        function endSpaceShooter() {
-            shooterRunning = false;
-            cancelAnimationFrame(shooterAnimId);
-            audio.playSFX('gameover');
-            const overlayTitle = document.getElementById('shooter-over-title');
-            overlayTitle.textContent = "MISSION FAILED";
-            overlayTitle.style.color = "#ef4444";
-            document.getElementById('final-shooter-score').textContent = `Final Score: ${shooterScore}`;
-            document.getElementById('shooter-gameover-overlay').classList.add('active');
-        }
+        // Keyboard directional listener
+        window.addEventListener('keydown', e => {
+            if (e.key === 'ArrowUp') changePacDir('UP');
+            if (e.key === 'ArrowDown') changePacDir('DOWN');
+            if (e.key === 'ArrowLeft') changePacDir('LEFT');
+            if (e.key === 'ArrowRight') changePacDir('RIGHT');
+        });
+
+        initFrostCanvas();
 
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
