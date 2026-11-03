@@ -54,7 +54,6 @@
             transition: background-color 0.3s ease;
         }
 
-        /* Splash Screen */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -285,7 +284,6 @@
             font-weight: 600;
         }
 
-        /* Fullscreen Game Container Auto-Adjustment */
         .game-container {
             position: relative;
             background-color: var(--card-bg);
@@ -303,6 +301,7 @@
             display: block;
         }
 
+        /* UNIVERSAL FULLSCREEN SCALING FOR ALL GAMES */
         .game-container:fullscreen {
             width: 100vw !important;
             height: 100vh !important;
@@ -313,16 +312,43 @@
             justify-content: center !important;
             align-items: center !important;
             background-color: var(--bg-color) !important;
-            padding: 40px 16px 16px 16px !important;
+            padding: 24px !important;
+            box-sizing: border-box !important;
             overflow: auto !important;
         }
 
+        .game-container:fullscreen .game-title-header {
+            font-size: 1.6rem;
+            margin-bottom: 24px;
+        }
+
         .game-container:fullscreen canvas {
-            max-height: 72vh;
+            max-height: 70vh;
+            max-width: 85vw;
             width: auto !important;
             height: auto !important;
-            max-width: 100% !important;
             object-fit: contain;
+        }
+
+        .game-container:fullscreen .ttt-board-wrapper {
+            width: min(75vw, 75vh) !important;
+            max-width: 500px !important;
+            margin: 0 auto 24px auto !important;
+        }
+
+        .game-container:fullscreen .shooter-wrapper {
+            width: min(80vw, 75vh) !important;
+            max-width: 480px !important;
+        }
+
+        .game-container:fullscreen .claw-cabinet {
+            width: min(85vw, 60vh) !important;
+            max-width: 520px !important;
+            height: min(45vh, 320px) !important;
+        }
+
+        .game-container:fullscreen .candy-grid {
+            max-width: min(75vw, 65vh) !important;
         }
 
         .game-floating-nav {
@@ -1263,7 +1289,6 @@
 </head>
 <body>
 
-    <!-- Functional Splash Screen -->
     <div id="splash-screen">
         <div class="splash-logo-box">
             <div class="splash-icon">🎮</div>
@@ -1440,7 +1465,7 @@
         <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
     </div>
 
-    <!-- Space Shooter (Round 50 Progression & Boss Win Condition) -->
+    <!-- Space Shooter -->
     <div id="dartgame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1877,7 +1902,6 @@
             }
         }
 
-        // Global Game variables
         const winningConditions = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
         let tttBoard = ['', '', '', '', '', '', '', '', ''];
         let currentPlayer = 'X', isGameActive = true, selectedMode = 'pvp', selectedDiff = 'easy', gameMode = 'pvp', aiDifficulty = 'easy';
@@ -1887,25 +1911,18 @@
         let moleActiveIdx = -1, moleScore = 0, moleTimer = null, isMolePlaying = false;
         let reactionState = 'waiting', reactionStart = 0, reactionTimeout = null, reactionTime = 0, bestReaction = null;
 
-        // Snake variables
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
-
-        // Flappy variables
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
-
-        // Dino variables
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, obstacles = [], dinoScore = 0, isDinoRunning = false;
 
-        // Candy variables
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
 
-        // Space Shooter variables (Up to Round 50 and boss win condition)
+        // Space Shooter variables (Smooth progressive boss HP curve up to Round 50)
         let shooterCanvas, shooterCtx, shooterRunning = false, shooterScore = 0, shooterLives = 5, shooterRound = 1;
         let enemiesDefeatedInRound = 0, requiredEnemiesForRound = 10, shooterAnimId, shooterPlayer, shooterBullets = [], shooterEnemyBullets = [], shooterEnemies = [], shooterPowerups = [], shooterStars = [], shooterBoss = null;
         let isPointerDown = false, pointerX = 140, pointerY = 300, announcementText = "", announcementTimer = 0;
 
-        // Frost Breakout variables
         let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBall, frostBricks = [], frostScreenShake = 0;
 
         window.onload = function() {
@@ -1976,7 +1993,6 @@
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
         }
 
-        // Tic Tac Toe functions
         function selectSetupMode(mode) {
             audio.playSFX('move');
             selectedMode = mode;
@@ -2094,7 +2110,6 @@
             Array.from(document.getElementsByClassName('ttt-cell')).forEach(cell => { cell.textContent = ''; cell.className = 'ttt-cell'; });
         }
 
-        // Claw Machine functions
         function moveClaw(amount) {
             if (isClawBusy) return;
             audio.playSFX('move');
@@ -2136,7 +2151,6 @@
             }, 400);
         }
 
-        // Number Guessing functions
         function submitGuess() {
             const val = parseInt(document.getElementById('guess-input').value);
             const status = document.getElementById('guess-status');
@@ -2172,7 +2186,6 @@
             document.getElementById('guess-status').textContent = "Take a guess!";
         }
 
-        // RPS functions
         function handleRPSInput(choice) {
             audio.playSFX('click');
             const status = document.getElementById('rps-status');
@@ -2225,7 +2238,6 @@
             document.getElementById('rps-status').textContent = "Player 1's Turn (Choose Secretly)";
         }
 
-        // Whack a Mole functions
         function startMoleGame() {
             audio.playSFX('click');
             if (isMolePlaying) return;
@@ -2262,7 +2274,6 @@
             }
         }
 
-        // Reaction Timer functions
         function handleReactionClick() {
             const box = document.getElementById('reaction-box');
             const text = document.getElementById('reaction-text');
@@ -2310,7 +2321,6 @@
             document.getElementById('reaction-time').textContent = "0 ms";
         }
 
-        // Snake Canvas functions
         function initSnakeCanvas() {
             snakeCanvas = document.getElementById('snake-canvas');
             if (snakeCanvas) snakeCtx = snakeCanvas.getContext('2d');
@@ -2389,7 +2399,6 @@
             });
         }
 
-        // Flappy Arcade functions
         function initFlappyCanvas() {
             flappyCanvas = document.getElementById('flappy-canvas');
             if (flappyCanvas) flappyCtx = flappyCanvas.getContext('2d');
@@ -2477,7 +2486,6 @@
             flappyCtx.fill();
         }
 
-        // Dino Jump functions
         function initDinoCanvas() {
             dinoCanvas = document.getElementById('dino-canvas');
             if (dinoCanvas) dinoCtx = dinoCanvas.getContext('2d');
@@ -2566,7 +2574,6 @@
             });
         }
 
-        // Candy Match-3 functions
         function startCandyGame() {
             audio.playSFX('click');
             candyScore = 0; candyMoves = 20; selectedCandy = null;
@@ -2656,7 +2663,7 @@
             renderCandyBoard();
         }
 
-        // Space Shooter classes & loop (Round 1 to 50, Boss defeat required to win)
+        // Space Shooter classes & loop (Smooth boss progression from 35% HP up to 95% HP by Round 50)
         class ShooterPlayer {
             constructor() {
                 this.width = 30; this.height = 36;
@@ -2726,9 +2733,9 @@
                 this.x = Math.random() * (280 - this.width);
                 this.y = -this.height;
                 this.hp = this.type === 'ADVANCED' ? 3 : 1;
-                this.speed = (this.type === 'ADVANCED' ? 1.5 : 2) + (roundNum * 0.1);
+                this.speed = (this.type === 'ADVANCED' ? 1.5 : 2) + (roundNum * 0.08);
                 this.lastShot = Date.now() + Math.random() * 1000;
-                this.shootInterval = Math.max(700, 2200 - (roundNum * 40));
+                this.shootInterval = Math.max(800, 2400 - (roundNum * 30));
             }
             update() {
                 this.y += this.speed;
@@ -2741,10 +2748,10 @@
             }
             shoot() {
                 if (this.type === 'BASIC') {
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y + this.height, 0, 3.5, '#ef4444'));
+                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y + this.height, 0, 3.2, '#ef4444'));
                 } else {
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + 4, this.y + this.height, -0.8, 4, '#f97316'));
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width - 8, this.y + this.height, 0.8, 4, '#f97316'));
+                    shooterEnemyBullets.push(new ShooterBullet(this.x + 4, this.y + this.height, -0.6, 3.6, '#f97316'));
+                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width - 8, this.y + this.height, 0.6, 3.6, '#f97316'));
                 }
             }
             draw() {
@@ -2763,24 +2770,28 @@
             constructor(roundNum) {
                 this.width = 80; this.height = 55;
                 this.x = 280 / 2 - this.width / 2; this.y = -this.height;
-                this.maxHp = 120 + (roundNum * 15);
-                this.hp = this.maxHp; this.targetY = 40;
-                this.vx = 2 + (roundNum * 0.08);
+                
+                // Progressive Boss HP curve: Starts around 35% baseline (approx 35 HP on round 3) up to 95% on round 50
+                const scalingFactor = (roundNum / 50);
+                this.maxHp = Math.floor(25 + (scalingFactor * 220));
+                this.hp = this.maxHp; 
+                this.targetY = 40;
+                this.vx = 1.5 + (roundNum * 0.05);
                 this.lastAttackTime = Date.now();
                 this.spiralAngle = 0; this.phase = 1; this.roundNum = roundNum;
             }
             update() {
                 if (this.y < this.targetY) { this.y += 1; return; }
-                this.phase = (this.hp / this.maxHp) <= 0.5 ? 2 : 1;
+                this.phase = (this.hp / this.maxHp) <= 0.4 ? 2 : 1;
                 if (this.phase === 1) {
                     this.x += this.vx;
                     if (this.x <= 15 || this.x + this.width >= 265) this.vx *= -1;
                 } else {
-                    this.x += Math.sin(Date.now() * 0.005) * 4;
+                    this.x += Math.sin(Date.now() * 0.005) * 3.5;
                     this.x = Math.max(10, Math.min(280 - this.width - 10, this.x));
                 }
                 const now = Date.now();
-                const cd = this.phase === 2 ? 500 : 800;
+                const cd = this.phase === 2 ? 650 : 950;
                 if (now - this.lastAttackTime > cd) {
                     this.attack();
                     this.lastAttackTime = now;
@@ -2790,14 +2801,14 @@
                 const cx = this.x + this.width / 2;
                 const by = this.y + this.height;
                 if (this.phase === 1) {
-                    for (let i = -2; i <= 2; i++) {
-                        shooterEnemyBullets.push(new ShooterBullet(cx - 2 + (i * 6), by, i * 0.8, 3.8, '#e11d48'));
+                    for (let i = -1; i <= 1; i++) {
+                        shooterEnemyBullets.push(new ShooterBullet(cx - 2 + (i * 8), by, i * 0.6, 3.4, '#e11d48'));
                     }
                 } else {
-                    this.spiralAngle += 0.4;
-                    for (let i = 0; i < 6; i++) {
-                        let angle = this.spiralAngle + (i * Math.PI / 3);
-                        shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(angle) * 3, Math.sin(angle) * 3, '#f43f5e'));
+                    this.spiralAngle += 0.35;
+                    for (let i = 0; i < 4; i++) {
+                        let angle = this.spiralAngle + (i * Math.PI / 2);
+                        shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(angle) * 2.6, Math.sin(angle) * 2.6, '#f43f5e'));
                     }
                 }
             }
@@ -2963,7 +2974,7 @@
                             if (enemiesDefeatedInRound >= requiredEnemiesForRound) {
                                 shooterRound++;
                                 enemiesDefeatedInRound = 0;
-                                requiredEnemiesForRound += 3;
+                                requiredEnemiesForRound += 2;
                                 
                                 if (shooterRound % 3 === 0 && shooterRound <= 50) {
                                     announcementText = `WARNING: BOSS ROUND`;
@@ -2997,7 +3008,7 @@
                             shooterBoss = null;
                             shooterRound++;
                             enemiesDefeatedInRound = 0;
-                            requiredEnemiesForRound += 4;
+                            requiredEnemiesForRound += 3;
 
                             if (shooterRound > 50) {
                                 endSpaceShooter(true);
@@ -3046,7 +3057,6 @@
             document.getElementById('shooter-gameover-overlay').classList.add('active');
         }
 
-        // Frost Breakout functions
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
             if (frostCanvas) {
