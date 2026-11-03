@@ -317,25 +317,25 @@
             overflow: auto !important;
         }
 
-        .game-floating-nav {
-            position: absolute;
-            top: 4px;
-            left: 4px;
+        /* Clean non-overlapping navigation bar for games */
+        .game-nav-bar {
+            width: 100%;
+            max-width: 360px;
             display: flex;
-            gap: 6px;
-            z-index: 30;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
         .nav-btn {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--border);
             color: #fff;
-            padding: 6px 10px;
+            padding: 6px 14px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            backdrop-filter: blur(4px);
             transition: background 0.2s;
         }
 
@@ -425,13 +425,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 8px;
         }
 
         .modal-overlay {
@@ -1262,9 +1255,9 @@
 
     <!-- Piano Tiles -->
     <div id="piano-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('piano-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('piano-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 280px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
@@ -1284,9 +1277,9 @@
 
     <!-- Tic Tac Toe -->
     <div id="tictactoe-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('tictactoe-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('tictactoe-container')">⛶ Fullscreen</button>
         </div>
         <div id="ttt-setup-screen" class="screen active">
             <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.9rem;">Configure match settings</p>
@@ -1309,7 +1302,7 @@
         </div>
         <div id="ttt-loading-screen" class="screen">
             <div class="loading-spinner"></div>
-            <div class="loading-text" id="loading-msg">Loading Arena...</div>
+            <div style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-bottom: 8px;" id="loading-msg">Loading Arena...</div>
             <p style="color: var(--text-muted);">Get ready to play!</p>
         </div>
         <div id="ttt-game-screen" class="screen">
@@ -1337,9 +1330,9 @@
 
     <!-- Pac-Man Arcade -->
     <div id="pacman-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('pacman-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('pacman-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
@@ -1367,9 +1360,9 @@
 
     <!-- Space Invaders -->
     <div id="spaceinvaders-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('spaceinvaders-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('spaceinvaders-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
@@ -1384,14 +1377,19 @@
                     <button class="action-btn" onclick="startSpaceInvadersGame()">PLAY AGAIN</button>
                 </div>
             </div>
+            <div style="display: flex; gap: 10px; width: 100%; max-width: 300px; margin-top: 8px;">
+                <button class="action-btn" style="flex: 1;" onclick="moveSIShip(-15)">◀️ Left</button>
+                <button class="control-btn" style="flex: 1; background: var(--accent);" onclick="fireSILaser()">🚀 FIRE</button>
+                <button class="action-btn" style="flex: 1;" onclick="moveSIShip(15)">Right ▶️</button>
+            </div>
         </div>
     </div>
 
     <!-- Fruit Slasher -->
     <div id="fruitslice-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('fruitslice-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('fruitslice-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
@@ -1411,9 +1409,9 @@
 
     <!-- Brick Breaker -->
     <div id="frostgame-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('frostgame-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('frostgame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 360px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board">
@@ -1429,14 +1427,18 @@
                     <button class="action-btn" onclick="startFrostGame()">PLAY AGAIN</button>
                 </div>
             </div>
+            <div style="display: flex; gap: 10px; width: 100%; max-width: 360px; margin-top: 8px;">
+                <button class="action-btn" style="flex: 1;" onclick="moveFrostPaddle(-25)">◀️ Move Left</button>
+                <button class="action-btn" style="flex: 1;" onclick="moveFrostPaddle(25)">Move Right ▶️</button>
+            </div>
         </div>
     </div>
 
     <!-- RPS -->
     <div id="rpsgame-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('rpsgame-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('rpsgame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board">
@@ -1460,9 +1462,9 @@
 
     <!-- Number Guess -->
     <div id="guessgame-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('guessgame-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('guessgame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <p style="font-size: 0.85rem; color: var(--text-muted);">Guess a number between 1 and 100</p>
@@ -1481,9 +1483,9 @@
 
     <!-- Whack a Mole -->
     <div id="molegame-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('molegame-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('molegame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
@@ -1504,9 +1506,9 @@
 
     <!-- Reaction Timer -->
     <div id="reactiongame-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('reactiongame-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('reactiongame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 340px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Test your reflexes!</p>
@@ -1523,9 +1525,9 @@
 
     <!-- Snake Game -->
     <div id="snakegame-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('snakegame-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('snakegame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 240px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
@@ -1552,9 +1554,9 @@
 
     <!-- Flappy Arcade -->
     <div id="flappygame-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('flappygame-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('flappygame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 260px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
@@ -1573,9 +1575,9 @@
 
     <!-- Dino Jump -->
     <div id="dinogame-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
@@ -1598,9 +1600,9 @@
 
     <!-- Candy Match-3 -->
     <div id="candygame-container" class="game-container">
-        <div class="game-floating-nav">
+        <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('candygame-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('candygame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
@@ -1872,7 +1874,6 @@
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
 
-        // Piano Tiles State
         let pianoCanvas, pianoCtx, pianoRunning = false, pianoScore = 0, pianoAnimId;
         let pianoTiles = [];
         const pianoLanes = 4;
@@ -1881,8 +1882,9 @@
 
         let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
+        const candyTypes = ['🍬', '🍭', '🍫', '🍩', '🍪'];
 
-        let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBalls = [], frostBricks = [], frostDrops = [], frostScreenShake = 0;
+        let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBalls = [], frostBricks = [], frostScreenShake = 0;
 
         let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
         let pacman = { x: 1, y: 1, dx: 1, dy: 0 };
@@ -1890,7 +1892,7 @@
         const pacGridSize = 13;
 
         let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siWave = 1, siAnimId;
-        let siShip = { x: 130, y: 230, width: 28, height: 12 };
+        let siShip = { x: 136, y: 265, width: 28, height: 14 };
         let siLasers = [], siAliens = [], alienDir = 1;
 
         window.onload = function() {
@@ -1913,7 +1915,7 @@
             document.getElementById('dino-high').textContent = ScoreManager.getStats('dino').highScore;
             document.getElementById('pac-high').textContent = ScoreManager.getStats('pacman').highScore;
             document.getElementById('si-high').textContent = ScoreManager.getStats('spaceinvaders').highScore;
-            document.getElementById('frost-score').textContent = ScoreManager.getStats('brickbreaker').highScore;
+            document.getElementById('frost-score').textContent = String(ScoreManager.getStats('brickbreaker').highScore).padStart(6, '0');
             document.getElementById('piano-high').textContent = ScoreManager.getStats('pianotiles').highScore;
 
             const bestGuessData = localStorage.getItem('arcadehub_guess');
@@ -2505,15 +2507,28 @@
             if (pacRunning) pacAnimId = requestAnimationFrame(pacLoop);
         }
 
-        // SPACE INVADERS LOGIC
-        function initSpaceInvadersCanvas() { siCanvas = document.getElementById('si-canvas'); if (siCanvas) siCtx = siCanvas.getContext('2d'); }
+        // FULLY FIXED SPACE INVADERS LOGIC
+        function initSpaceInvadersCanvas() {
+            siCanvas = document.getElementById('si-canvas');
+            if (siCanvas) {
+                siCtx = siCanvas.getContext('2d');
+                siCanvas.onmousemove = (e) => {
+                    if (!siRunning) return;
+                    const rect = siCanvas.getBoundingClientRect();
+                    let clickX = (e.clientX - rect.left) * (siCanvas.width / rect.width);
+                    siShip.x = Math.max(10, Math.min(siCanvas.width - siShip.width - 10, clickX - siShip.width / 2));
+                };
+                siCanvas.onclick = () => fireSILaser();
+            }
+        }
+
         function startSpaceInvadersGame() {
             audio.playSFX('click');
             document.getElementById('si-gameover-overlay').style.display = 'none';
             initSpaceInvadersCanvas();
             if (!siCtx) return;
             siRunning = true; siScore = 0; siLives = 3; siWave = 1;
-            siShip.x = 130; siLasers = [];
+            siShip.x = 136; siLasers = []; alienDir = 1;
             buildSIAliens();
             document.getElementById('si-score').textContent = siScore;
             document.getElementById('si-lives').textContent = siLives;
@@ -2525,11 +2540,23 @@
 
         function buildSIAliens() {
             siAliens = [];
-            for (let r = 0; r < 3; r++) {
-                for (let c = 0; c < 6; c++) {
-                    siAliens.push({ x: 35 + c * 40, y: 30 + r * 28, width: 24, height: 16, alive: true });
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 7; c++) {
+                    siAliens.push({ x: 25 + c * 36, y: 30 + r * 26, width: 24, height: 16, alive: true });
                 }
             }
+        }
+
+        function moveSIShip(delta) {
+            if (!siRunning) return;
+            audio.playSFX('move');
+            siShip.x = Math.max(10, Math.min(siCanvas.width - siShip.width - 10, siShip.x + delta));
+        }
+
+        function fireSILaser() {
+            if (!siRunning) return;
+            audio.playSFX('click');
+            siLasers.push({ x: siShip.x + siShip.width / 2 - 2, y: siShip.y - 6, width: 4, height: 12 });
         }
 
         function siLoop() {
@@ -2537,7 +2564,7 @@
             siCtx.fillStyle = '#0b0f19';
             siCtx.fillRect(0, 0, siCanvas.width, siCanvas.height);
 
-            siLasers.forEach(l => { l.y -= 6; });
+            siLasers.forEach(l => { l.y -= 7; });
             siLasers = siLasers.filter(l => l.y > 0);
             siCtx.fillStyle = '#38bdf8';
             siLasers.forEach(l => { siCtx.fillRect(l.x, l.y, l.width, l.height); });
@@ -2545,18 +2572,21 @@
             let shiftDown = false;
             siAliens.forEach(a => {
                 if (!a.alive) return;
-                a.x += alienDir * 0.8;
+                a.x += alienDir * (0.8 + siWave * 0.2);
                 if (a.x <= 10 || a.x + a.width >= siCanvas.width - 10) shiftDown = true;
             });
             if (shiftDown) {
                 alienDir *= -1;
-                siAliens.forEach(a => { a.y += 10; if (a.y >= siShip.y - 10) endSIGame(); });
+                siAliens.forEach(a => { a.y += 12; if (a.y >= siShip.y - 12) endSIGame(); });
             }
 
             siAliens.forEach(a => {
                 if (!a.alive) return;
                 siCtx.fillStyle = '#ec4899';
                 siCtx.fillRect(a.x, a.y, a.width, a.height);
+                siCtx.fillStyle = '#ffffff';
+                siCtx.fillRect(a.x + 5, a.y + 4, 3, 3);
+                siCtx.fillRect(a.x + 16, a.y + 4, 3, 3);
             });
 
             siLasers.forEach(l => {
@@ -2580,6 +2610,7 @@
 
             siCtx.fillStyle = '#10b981';
             siCtx.fillRect(siShip.x, siShip.y, siShip.width, siShip.height);
+            siCtx.fillRect(siShip.x + siShip.width/2 - 3, siShip.y - 6, 6, 6);
 
             if (siRunning) siAnimId = requestAnimationFrame(siLoop);
         }
@@ -2700,7 +2731,7 @@
                 t.alpha -= 0.08;
                 if (t.alpha > 0) {
                     fruitCtx.strokeStyle = `rgba(56, 189, 248, ${t.alpha})`;
-                    fruitCtx.lineWidth = 4;
+                    frostCtx.lineWidth = 4;
                     fruitCtx.beginPath();
                     fruitCtx.arc(t.x, t.y, 6, 0, Math.PI * 2);
                     fruitCtx.stroke();
@@ -3037,6 +3068,7 @@
             }
         }
 
+        // FULL VERSION BRICK BREAKER LOGIC
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
             if (frostCanvas) {
@@ -3060,7 +3092,6 @@
             frostRunning = true;
             frostScore = 0; frostLives = 3; frostLvl = 1; frostScreenShake = 0;
             frostPaddle = { x: 140, y: 315, width: 80, height: 10 };
-            frostDrops = [];
             initFrostBalls();
             buildFrostBricks();
             updateFrostHUD();
@@ -3087,6 +3118,12 @@
             document.getElementById('frost-score').textContent = String(frostScore).padStart(6, '0');
             document.getElementById('frost-lvl').textContent = `LVL ${frostLvl}`;
             document.getElementById('frost-lives').textContent = frostLives;
+        }
+
+        function moveFrostPaddle(delta) {
+            if (!frostRunning || !frostPaddle) return;
+            audio.playSFX('move');
+            frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, frostPaddle.x + delta));
         }
 
         function frostLoop() {
