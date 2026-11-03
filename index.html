@@ -235,8 +235,6 @@
         #stickman-container, #stickman-container * { font-family: Nunito, 'Segoe UI', Roboto, sans-serif; }
         #stickman-container .sr-hidden { display: none !important; }
         #stickman-container .sr-screen { animation: sr-appear .3s ease; width: 100%; }
-        #stickman-container .sr-top-controls { display: flex; justify-content: flex-end; width: 100%; max-width: 700px; margin: 0 auto 6px auto; }
-        #stickman-container .sr-icon-btn { padding: 8px 14px; border-radius: 11px; background: rgba(139,92,246,0.2); color: var(--text-main); font-weight: 900; cursor: pointer; border: 1px solid var(--primary); font-size: 14px; }
 
         /* SR Menu */
         #stickman-container .sr-menu-screen { max-width: 600px; margin: auto; }
@@ -713,10 +711,6 @@
             <button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶ Fullscreen</button>
         </div>
 
-        <div class="sr-top-controls">
-            <button id="sr-soundToggle" class="sr-icon-btn">🔊</button>
-        </div>
-
         <!-- SR: Main Menu -->
         <section id="sr-menuScreen" class="sr-screen sr-menu-screen">
             <div class="sr-hero">
@@ -1014,12 +1008,6 @@
             document.getElementById('sr-pauseMenuBtn').addEventListener('click', sr_openMenu);
             document.getElementById('sr-resultMenuBtn').addEventListener('click', sr_openMenu);
             document.getElementById('sr-retryBtn').addEventListener('click', () => sr_startGame(sr_mode, sr_selectedLevel));
-            document.getElementById('sr-soundToggle').addEventListener('click', () => {
-                sr_soundEnabled = !sr_soundEnabled;
-                document.getElementById('sr-soundToggle').textContent = sr_soundEnabled ? '🔊' : '🔇';
-                if (sr_soundEnabled && sr_state === 'playing') { sr_initAudio(); sr_startMusic(); }
-                else sr_stopMusic();
-            });
             document.getElementById('sr-jumpBtn').addEventListener('pointerdown', e => { e.preventDefault(); sr_jump(); });
             document.getElementById('sr-slideBtn').addEventListener('pointerdown', e => { e.preventDefault(); sr_startSlide(); });
             ['pointerup','pointerleave','pointercancel'].forEach(type => {
