@@ -593,7 +593,7 @@
             margin-bottom: 10px;
             border: 1px solid var(--border);
             width: 100%;
-            max-width: 320px;
+            max-width: 300px;
             margin-left: auto;
             margin-right: auto;
             gap: 10px;
@@ -621,38 +621,6 @@
             display: block;
             margin: 0 auto 10px auto;
             max-width: 100%;
-        }
-
-        .dir-pad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            max-width: 160px;
-            width: 100%;
-        }
-
-        .dir-btn {
-            background: linear-gradient(135deg, #334155, #1e293b);
-            color: white;
-            border: 2px solid var(--border);
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: all 0.15s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .dir-btn:active {
-            background: var(--primary);
-            border-color: var(--primary);
-            transform: scale(0.95);
         }
 
         .robot-container {
@@ -873,32 +841,12 @@
 
     <div id="main-menu" class="view active">
         <div class="category-section">
-            <div class="category-title">Adventure & RPG</div>
-            <div class="game-grid">
-                <div class="game-card featured" onclick="openGame('bomber-container')">
-                    <span class="game-icon">💣</span>
-                    <span class="game-name">Retro Bomber Man (Play Now)</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="category-section">
-            <div class="category-title">Puzzle & Strategy</div>
-            <div class="game-grid">
-                <div class="game-card" onclick="openGame('tictactoe-container')">
-                    <span class="game-icon">❌</span>
-                    <span class="game-name">Tic-Tac-Toe</span>
-                </div>
-                <div class="game-card" onclick="openGame('guessgame-container')">
-                    <span class="game-icon">🔢</span>
-                    <span class="game-name">Number Guess</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="category-section">
             <div class="category-title">Action & Arcade</div>
             <div class="game-grid">
+                <div class="game-card featured" onclick="openGame('piano-container')">
+                    <span class="game-icon">🎹</span>
+                    <span class="game-name">Piano Tiles (Play Now)</span>
+                </div>
                 <div class="game-card" onclick="openGame('pacman-container')">
                     <span class="game-icon">🟡</span>
                     <span class="game-name">Pac-Man Arcade</span>
@@ -935,6 +883,20 @@
         </div>
 
         <div class="category-section">
+            <div class="category-title">Puzzle & Strategy</div>
+            <div class="game-grid">
+                <div class="game-card" onclick="openGame('tictactoe-container')">
+                    <span class="game-icon">❌</span>
+                    <span class="game-name">Tic-Tac-Toe</span>
+                </div>
+                <div class="game-card" onclick="openGame('guessgame-container')">
+                    <span class="game-icon">🔢</span>
+                    <span class="game-name">Number Guess</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
             <div class="category-title">Quick Reflexes</div>
             <div class="game-grid">
                 <div class="game-card" onclick="openGame('rpsgame-container')">
@@ -959,47 +921,25 @@
         </div>
     </div>
 
-    <!-- Retro Bomber Man -->
-    <div id="bomber-container" class="game-container">
-        <!-- 1. Top Section: Nav Buttons and Score Board -->
+    <!-- Piano Tiles Game Container -->
+    <div id="piano-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('bomber-container')">⛶ Fullscreen</button>
+            <button class="nav-btn" onclick="toggleFullscreen('piano-container')">⛶ Fullscreen</button>
         </div>
-
+        <h3 class="game-title-header">Piano Tiles 🎹</h3>
         <div class="score-board">
-            <div class="score-box">Score 🪙 <span id="bomb-score">0</span></div>
-            <div class="score-box">HP ❤️ <span id="bomb-hp">3</span></div>
-            <div class="score-box">Lvl 🏆 <span id="bomb-lvl">1</span></div>
+            <div class="score-box">Score 🎵 <span id="piano-score">0</span></div>
+            <div class="score-box">Best 🏆 <span id="piano-high">0</span></div>
         </div>
-
-        <!-- 2. Middle Section: Game Canvas -->
-        <div style="position: relative; display: inline-block; margin-bottom: 8px;">
-            <canvas id="bomb-canvas" class="arcade-canvas" width="280" height="280" style="touch-action: none;"></canvas>
-            <div id="bomb-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                <h2 id="bomb-end-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
-                <button class="action-btn" onclick="startBomberGame()">PLAY AGAIN</button>
+        <div style="position: relative; display: inline-block;">
+            <canvas id="piano-canvas" class="arcade-canvas" width="280" height="340" style="touch-action: none; cursor: pointer;"></canvas>
+            <div id="piano-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER 💀</h2>
+                <button class="action-btn" onclick="startPianoGame()">PLAY AGAIN</button>
             </div>
         </div>
-
-        <!-- 3. Bottom Controls Section: D-Pad on Left, Drop Bomb on Right -->
-        <div style="width: 100%; max-width: 320px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <div class="dir-pad">
-                <div></div>
-                <button class="dir-btn" onclick="moveBomberPlayer(0, -1)">⬆️</button>
-                <div></div>
-                <button class="dir-btn" onclick="moveBomberPlayer(-1, 0)">⬅️</button>
-                <button class="dir-btn" onclick="moveBomberPlayer(0, 1)">⬇️</button>
-                <button class="dir-btn" onclick="moveBomberPlayer(1, 0)">➡️</button>
-            </div>
-            <div style="flex: 1; display: flex; justify-content: flex-end; padding-left: 12px;">
-                <button class="action-btn" style="width: 100%; max-width: 130px; height: 95px; font-size: 0.95rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;" onclick="dropBomberBomb()">
-                    <span style="font-size: 1.4rem;">💣</span> Drop Bomb
-                </button>
-            </div>
-        </div>
-
-        <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Blast 📦 to find 🚪 or 🏆 and clear endless levels!</p>
+        <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Tap the black tiles as they fall! Don't miss any!</p>
     </div>
 
     <!-- Tic Tac Toe -->
@@ -1450,6 +1390,20 @@
                     this.audioCtx.resume();
                 }
             }
+            playTone(freq, duration = 0.1) {
+                if (this.isMuted) return;
+                this.initContext();
+                const now = this.audioCtx.currentTime;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(this.volume * 0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                osc.start(now); osc.stop(now + duration);
+            }
             playSFX(type) {
                 if (this.isMuted) return;
                 this.initContext();
@@ -1467,31 +1421,13 @@
                         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
                         osc.start(now); osc.stop(now + 0.04);
                         break;
-                    case 'move':
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(300, now);
-                        osc.frequency.exponentialRampToValueAtTime(500, now + 0.06);
-                        gain.gain.setValueAtTime(this.volume * 0.2, now);
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-                        osc.start(now); osc.stop(now + 0.06);
-                        break;
-                    case 'score':
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(587.33, now);
-                        osc.frequency.setValueAtTime(880, now + 0.08);
-                        gain.gain.setValueAtTime(this.volume * 0.3, now);
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-                        osc.start(now); osc.stop(now + 0.2);
-                        break;
                     case 'win':
                         osc.type = 'triangle';
                         osc.frequency.setValueAtTime(523.25, now);
                         osc.frequency.setValueAtTime(659.25, now + 0.1);
-                        osc.frequency.setValueAtTime(783.99, now + 0.2);
-                        osc.frequency.setValueAtTime(1046.50, now + 0.3);
-                        gain.gain.setValueAtTime(this.volume * 0.4, now);
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-                        osc.start(now); osc.stop(now + 0.5);
+                        gain.gain.setValueAtTime(this.volume * 0.3, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                        osc.start(now); osc.stop(now + 0.3);
                         break;
                     case 'gameover':
                         osc.type = 'sawtooth';
@@ -1562,6 +1498,140 @@
             }
         }
 
+        // PIANO TILES GAME LOGIC
+        let pianoCanvas, pianoCtx, pianoRunning = false, pianoScore = 0, pianoAnimId;
+        let pianoTiles = [];
+        const pianoLanes = 4;
+        let pianoSpeed = 3.5;
+        const pianoFrequencies = [261.63, 293.66, 329.63, 349.23]; // C4, D4, E4, F4
+
+        function initPianoCanvas() {
+            pianoCanvas = document.getElementById('piano-canvas');
+            if (pianoCanvas) {
+                pianoCtx = pianoCanvas.getContext('2d');
+                pianoCanvas.onmousedown = handlePianoTap;
+                pianoCanvas.ontouchstart = (e) => {
+                    e.preventDefault();
+                    const rect = pianoCanvas.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    handlePianoTap({ clientX: touch.clientX, clientY: touch.clientY });
+                };
+            }
+        }
+
+        function startPianoGame() {
+            audio.playSFX('click');
+            document.getElementById('piano-gameover-overlay').style.display = 'none';
+            initPianoCanvas();
+            if (!pianoCtx) return;
+            pianoRunning = true;
+            pianoScore = 0;
+            pianoSpeed = 3.5;
+            pianoTiles = [];
+            document.getElementById('piano-score').textContent = pianoScore;
+            document.getElementById('piano-high').textContent = ScoreManager.getStats('pianotiles').highScore;
+            
+            // Spawn initial tiles
+            for (let i = 0; i < 4; i++) {
+                spawnPianoTile(-i * 90);
+            }
+
+            cancelAnimationFrame(pianoAnimId);
+            pianoLoop();
+        }
+
+        function spawnPianoTile(yPos) {
+            let lane = Math.floor(Math.random() * pianoLanes);
+            pianoTiles.push({ lane: lane, y: yPos, height: 85, clicked: false });
+        }
+
+        function handlePianoTap(e) {
+            if (!pianoRunning) return;
+            const rect = pianoCanvas.getBoundingClientRect();
+            const clickX = (e.clientX - rect.left) * (pianoCanvas.width / rect.width);
+            const clickY = (e.clientY - rect.top) * (pianoCanvas.height / rect.height);
+
+            let laneWidth = pianoCanvas.width / pianoLanes;
+            let tappedLane = Math.floor(clickX / laneWidth);
+
+            let hit = false;
+            pianoTiles.forEach(t => {
+                if (!t.clicked && t.lane === tappedLane && clickY >= t.y && clickY <= t.y + t.height) {
+                    t.clicked = true;
+                    hit = true;
+                    pianoScore++;
+                    audio.playTone(pianoFrequencies[t.lane], 0.12);
+                    document.getElementById('piano-score').textContent = pianoScore;
+                    if (pianoScore % 10 === 0) pianoSpeed += 0.4;
+                }
+            });
+
+            if (!hit) {
+                // Tapped empty space or missed tile
+                endPianoGame();
+            }
+        }
+
+        function pianoLoop() {
+            if (!pianoRunning) return;
+
+            pianoCtx.fillStyle = '#0b0f19';
+            pianoCtx.fillRect(0, 0, pianoCanvas.width, pianoCanvas.height);
+
+            // Draw lane dividers
+            let laneWidth = pianoCanvas.width / pianoLanes;
+            pianoCtx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            pianoCtx.lineWidth = 1;
+            for (let i = 1; i < pianoLanes; i++) {
+                pianoCtx.beginPath();
+                pianoCtx.moveTo(i * laneWidth, 0);
+                pianoCtx.lineTo(i * laneWidth, pianoCanvas.height);
+                pianoCtx.stroke();
+            }
+
+            // Update & draw tiles
+            let lowestTileY = -999;
+            pianoTiles.forEach(t => {
+                t.y += pianoSpeed;
+                if (!t.clicked && t.y > lowestTileY) lowestTileY = t.y;
+
+                if (!t.clicked) {
+                    pianoCtx.fillStyle = '#1e293b';
+                    pianoCtx.fillRect(t.lane * laneWidth + 2, t.y, laneWidth - 4, t.height);
+                    pianoCtx.strokeStyle = 'var(--primary)';
+                    pianoCtx.strokeRect(t.lane * laneWidth + 2, t.y, laneWidth - 4, t.height);
+                }
+            });
+
+            // Check if any unclicked tile passed the bottom of the screen
+            pianoTiles.forEach(t => {
+                if (!t.clicked && t.y > pianoCanvas.height) {
+                    endPianoGame();
+                }
+            });
+
+            // Spawn new tiles at top when needed
+            let topTileY = Math.min(...pianoTiles.map(t => t.y));
+            if (topTileY > 0) {
+                spawnPianoTile(topTileY - 95);
+            }
+
+            // Cleanup off-screen tiles
+            pianoTiles = pianoTiles.filter(t => t.y < pianoCanvas.height + 50);
+
+            if (pianoRunning) {
+                pianoAnimId = requestAnimationFrame(pianoLoop);
+            }
+        }
+
+        function endPianoGame() {
+            pianoRunning = false;
+            audio.playSFX('gameover');
+            document.getElementById('piano-gameover-overlay').style.display = 'flex';
+            let stats = ScoreManager.saveScore('pianotiles', pianoScore);
+            document.getElementById('piano-high').textContent = stats.highScore;
+        }
+
         const winningConditions = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
         let tttBoard = ['', '', '', '', '', '', '', '', ''];
         let currentPlayer = 'X', isGameActive = true, selectedMode = 'pvp', selectedDiff = 'easy', gameMode = 'pvp', aiDifficulty = 'easy';
@@ -1574,11 +1644,6 @@
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
-
-        // Retro Bomber Man State
-        let bombCanvas, bombCtx, bombRunning = false, bombScore = 0, bombHp = 3, bombLevel = 1;
-        let bombMap = [], bombPlayer = { x: 1, y: 1 }, activeBomb = null, bombEnemies = [];
-        const bombGridSize = 10;
 
         let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
@@ -1594,28 +1659,8 @@
             { x: 12, y: 12, color: '#06b6d4', dir: 'RIGHT' },
             { x: 13, y: 12, color: '#f97316', dir: 'DOWN' }
         ];
-        let pacGrid = [];
-        const basePacMap = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1],
-            [1,3,1,1,2,1,1,1,1,1,2,1,1,3,1],
-            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-            [1,2,1,1,2,1,2,1,2,1,2,1,1,2,1],
-            [1,2,2,2,2,1,2,1,2,1,2,2,2,2,1],
-            [1,1,1,1,2,1,1,0,1,1,2,1,1,1,1],
-            [0,0,0,1,2,1,0,0,0,1,2,1,0,0,0],
-            [1,1,1,1,2,1,0,0,0,1,2,1,1,1,1],
-            [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1],
-            [1,2,1,1,2,1,1,1,1,1,2,1,1,2,1],
-            [1,3,2,1,2,2,2,0,2,2,2,1,2,3,1],
-            [1,1,2,1,2,1,2,1,2,1,2,1,2,1,1],
-            [1,2,2,2,2,1,2,1,2,1,2,2,2,2,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ];
 
         let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siWave = 1, siAnimId;
-        let siShip = { x: 130, y: 265, width: 28, height: 14 };
-        let siLasers = [], siAliens = [], siAlienBullets = [], siAlienDir = 1;
 
         window.onload = function() {
             generateQRCode();
@@ -1623,10 +1668,8 @@
             initFlappyCanvas();
             initDinoCanvas();
             initFrostCanvas();
-            initPacManCanvas();
-            initSpaceInvadersCanvas();
             initFruitCanvas();
-            initBomberCanvas();
+            initPianoCanvas();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -1635,9 +1678,8 @@
             document.getElementById('mole-high').textContent = ScoreManager.getStats('mole').highScore;
             document.getElementById('flappy-high').textContent = ScoreManager.getStats('flappy').highScore;
             document.getElementById('dino-high').textContent = ScoreManager.getStats('dino').highScore;
-            document.getElementById('pac-high').textContent = ScoreManager.getStats('pacman').highScore;
-            document.getElementById('si-high').textContent = ScoreManager.getStats('spaceinvaders').highScore;
             document.getElementById('frost-score').textContent = ScoreManager.getStats('brickbreaker').highScore;
+            document.getElementById('piano-high').textContent = ScoreManager.getStats('pianotiles').highScore;
 
             const bestGuessData = localStorage.getItem('arcadehub_guess');
             if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
@@ -1659,12 +1701,10 @@
             if (containerId === 'snakegame-container') startSnakeGame();
             if (containerId === 'flappygame-container') startFlappyGame();
             if (containerId === 'dinogame-container') startDinoGame();
-            if (containerId === 'pacman-container') startPacManGame();
-            if (containerId === 'spaceinvaders-container') startSpaceInvadersGame();
             if (containerId === 'fruitslice-container') startFruitGame();
             if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
             if (containerId === 'candygame-container') startCandyGame();
-            if (containerId === 'bomber-container') startBomberGame();
+            if (containerId === 'piano-container') startPianoGame();
         }
 
         function backToHub() {
@@ -1675,11 +1715,9 @@
             if (dinoInterval) clearInterval(dinoInterval);
             if (moleTimer) clearInterval(moleTimer);
             if (reactionTimeout) clearTimeout(reactionTimeout);
-            if (pacRunning) { pacRunning = false; cancelAnimationFrame(pacAnimId); }
-            if (siRunning) { siRunning = false; cancelAnimationFrame(siAnimId); }
             if (frostRunning) { frostRunning = false; cancelAnimationFrame(frostAnimId); }
             if (fruitRunning) { fruitRunning = false; cancelAnimationFrame(fruitAnimId); }
-            bombRunning = false;
+            pianoRunning = false;
 
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
@@ -1689,235 +1727,6 @@
             const targetUrl = window.location.href || "https://arcadehubgames-july12.vercel.app/";
             document.getElementById('current-url-text').textContent = targetUrl;
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
-        }
-
-        // RETRO BOMBER MAN LOGIC
-        function initBomberCanvas() {
-            bombCanvas = document.getElementById('bomb-canvas');
-            if (bombCanvas) bombCtx = bombCanvas.getContext('2d');
-        }
-
-        function startBomberGame() {
-            audio.playSFX('click');
-            document.getElementById('bomb-gameover-overlay').style.display = 'none';
-            initBomberCanvas();
-            if (!bombCtx) return;
-            bombRunning = true;
-            bombScore = 0;
-            bombHp = 3;
-            bombLevel = 1;
-            activeBomb = null;
-            generateBomberLevel();
-            updateBomberHUD();
-            drawBomber();
-        }
-
-        function generateBomberLevel() {
-            bombMap = [];
-            bombEnemies = [];
-            for (let r = 0; r < bombGridSize; r++) {
-                let row = [];
-                for (let c = 0; c < bombGridSize; c++) {
-                    if (r === 0 || r === bombGridSize - 1 || c === 0 || c === bombGridSize - 1) {
-                        row.push('W');
-                    } else if (r % 2 === 0 && c % 2 === 0) {
-                        row.push('W');
-                    } else {
-                        let rand = Math.random();
-                        if (rand < 0.35) row.push('B');
-                        else row.push('.');
-                    }
-                }
-                bombMap.push(row);
-            }
-            bombPlayer = { x: 1, y: 1 };
-            bombMap[1][1] = '.';
-            bombMap[1][2] = '.';
-            bombMap[2][1] = '.';
-
-            let placedExit = false;
-            for (let r = 1; r < bombGridSize - 1; r++) {
-                for (let c = 1; c < bombGridSize - 1; c++) {
-                    if (bombMap[r][c] === 'B' && !placedExit) {
-                        bombMap[r][c] = 'E';
-                        placedExit = true;
-                    }
-                }
-            }
-
-            bombEnemies.push({ x: bombGridSize - 2, y: bombGridSize - 2, dir: 'UP' });
-            if (bombLevel >= 2) bombEnemies.push({ x: bombGridSize - 2, y: 1, dir: 'LEFT' });
-        }
-
-        function updateBomberHUD() {
-            document.getElementById('bomb-score').textContent = bombScore;
-            document.getElementById('bomb-hp').textContent = bombHp;
-            document.getElementById('bomb-lvl').textContent = bombLevel;
-        }
-
-        function moveBomberPlayer(dx, dy) {
-            if (!bombRunning) return;
-            let newX = bombPlayer.x + dx;
-            let newY = bombPlayer.y + dy;
-
-            if (newX < 0 || newX >= bombGridSize || newY < 0 || newY >= bombGridSize) return;
-            let tile = bombMap[newY][newX];
-
-            if (tile === 'W' || tile === 'B') {
-                audio.playSFX('click');
-                return;
-            }
-
-            if (tile === 'E') {
-                audio.playSFX('win');
-                bombLevel++;
-                bombScore += 150;
-                generateBomberLevel();
-            } else {
-                audio.playSFX('move');
-                if (tile === 'C') {
-                    audio.playSFX('score');
-                    bombScore += 25;
-                    bombMap[newY][newX] = '.';
-                }
-                bombPlayer.x = newX;
-                bombPlayer.y = newY;
-            }
-
-            updateBomberEnemies();
-            checkBomberCollisions();
-            updateBomberHUD();
-            drawBomber();
-        }
-
-        function dropBomberBomb() {
-            if (!bombRunning || activeBomb) return;
-            audio.playSFX('click');
-            activeBomb = { x: bombPlayer.x, y: bombPlayer.y, timer: 3 };
-            drawBomber();
-
-            setTimeout(() => {
-                if (!bombRunning) return;
-                audio.playSFX('gameover');
-                let bx = activeBomb.x;
-                let by = activeBomb.y;
-                activeBomb = null;
-
-                let blastCells = [{x: bx, y: by}, {x: bx+1, y: by}, {x: bx-1, y: by}, {x: bx, y: by+1}, {x: bx, y: by-1}];
-                blastCells.forEach(cell => {
-                    if (cell.x >= 0 && cell.x < bombGridSize && cell.y >= 0 && cell.y < bombGridSize) {
-                        let t = bombMap[cell.y][cell.x];
-                        if (t === 'B') {
-                            bombMap[cell.y][cell.x] = 'C';
-                            bombScore += 10;
-                        }
-                        bombEnemies = bombEnemies.filter(e => {
-                            if (e.x === cell.x && e.y === cell.y) {
-                                bombScore += 50;
-                                return false;
-                            }
-                            return true;
-                        });
-                        if (bombPlayer.x === cell.x && bombPlayer.y === cell.y) {
-                            bombHp--;
-                            if (bombHp <= 0) endBomberGame(false);
-                        }
-                    }
-                });
-                updateBomberHUD();
-                drawBomber();
-            }, 1200);
-        }
-
-        function updateBomberEnemies() {
-            bombEnemies.forEach(e => {
-                let moves = [{dx:0, dy:-1}, {dx:0, dy:1}, {dx:-1, dy:0}, {dx:1, dy:0}];
-                let validMoves = moves.filter(m => {
-                    let nx = e.x + m.dx, ny = e.y + m.dy;
-                    return nx >= 0 && nx < bombGridSize && ny >= 0 && ny < bombGridSize && bombMap[ny][nx] !== 'W' && bombMap[ny][nx] !== 'B';
-                });
-                if (validMoves.length > 0) {
-                    let m = validMoves[Math.floor(Math.random() * validMoves.length)];
-                    e.x += m.dx;
-                    e.y += m.dy;
-                }
-            });
-        }
-
-        function checkBomberCollisions() {
-            bombEnemies.forEach(e => {
-                if (e.x === bombPlayer.x && e.y === bombPlayer.y) {
-                    audio.playSFX('gameover');
-                    bombHp--;
-                    if (bombHp <= 0) endBomberGame(false);
-                }
-            });
-        }
-
-        function drawBomber() {
-            if (!bombCtx) return;
-            let tileSize = bombCanvas.width / bombGridSize;
-            bombCtx.fillStyle = '#0b0f19';
-            bombCtx.fillRect(0, 0, bombCanvas.width, bombCanvas.height);
-
-            for (let r = 0; r < bombGridSize; r++) {
-                for (let c = 0; c < bombGridSize; c++) {
-                    let t = bombMap[r][c];
-                    let x = c * tileSize;
-                    let y = r * tileSize;
-
-                    if (t === 'W') {
-                        bombCtx.fillStyle = '#1e293b';
-                        bombCtx.fillRect(x, y, tileSize, tileSize);
-                        bombCtx.strokeStyle = '#334155';
-                        bombCtx.strokeRect(x, y, tileSize, tileSize);
-                    } else {
-                        bombCtx.fillStyle = '#111827';
-                        bombCtx.fillRect(x, y, tileSize, tileSize);
-
-                        bombCtx.font = `${Math.floor(tileSize * 0.65)}px sans-serif`;
-                        bombCtx.textAlign = 'center';
-                        bombCtx.textBaseline = 'middle';
-
-                        if (t === 'B') bombCtx.fillText('📦', x + tileSize/2, y + tileSize/2);
-                        if (t === 'C') bombCtx.fillText('🪙', x + tileSize/2, y + tileSize/2);
-                        if (t === 'E') bombCtx.fillText('🏆', x + tileSize/2, y + tileSize/2);
-                    }
-                }
-            }
-
-            if (activeBomb) {
-                let bx = activeBomb.x * tileSize;
-                let by = activeBomb.y * tileSize;
-                bombCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
-                bombCtx.textAlign = 'center';
-                bombCtx.textBaseline = 'middle';
-                bombCtx.fillText('💣', bx + tileSize/2, by + tileSize/2);
-            }
-
-            bombEnemies.forEach(e => {
-                let ex = e.x * tileSize;
-                let ey = e.y * tileSize;
-                bombCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
-                bombCtx.textAlign = 'center';
-                bombCtx.textBaseline = 'middle';
-                bombCtx.fillText('👾', ex + tileSize/2, ey + tileSize/2);
-            });
-
-            let px = bombPlayer.x * tileSize;
-            let py = bombPlayer.y * tileSize;
-            bombCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
-            bombCtx.textAlign = 'center';
-            bombCtx.textBaseline = 'middle';
-            bombCtx.fillText('🧑‍🚀', px + tileSize/2, py + tileSize/2);
-        }
-
-        function endBomberGame(isVictory) {
-            bombRunning = false;
-            audio.playSFX('gameover');
-            document.getElementById('bomb-end-title').textContent = isVictory ? 'VICTORY! 🎉' : 'GAME OVER 💀';
-            document.getElementById('bomb-gameover-overlay').style.display = 'flex';
-            ScoreManager.saveScore('bomber', bombScore);
         }
 
         function selectSetupMode(mode) {
@@ -1983,7 +1792,6 @@
                 audio.playSFX('win');
                 document.getElementById('ttt-status').textContent = gameMode === 'ai' && player === 'O' ? `AI Wins! 🤖` : `Player ${player} Wins! 🎉`;
                 isGameActive = false;
-                drawWinLine(winIdx);
                 return;
             }
 
@@ -1996,25 +1804,6 @@
 
             currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
             document.getElementById('ttt-status').textContent = gameMode === 'ai' && currentPlayer === 'O' ? `AI's Turn...` : `Player ${currentPlayer}'s Turn`;
-        }
-
-        function drawWinLine(index) {
-            const line = document.getElementById('win-line');
-            const cells = document.getElementsByClassName('ttt-cell');
-            const firstCell = cells[winningConditions[index][0]].getBoundingClientRect();
-            const lastCell = cells[winningConditions[index][2]].getBoundingClientRect();
-            const boardRect = document.getElementById('ttt-board').getBoundingClientRect();
-
-            const x1 = firstCell.left + firstCell.width / 2 - boardRect.left;
-            const y1 = firstCell.top + firstCell.height / 2 - boardRect.top;
-            const x2 = lastCell.left + lastCell.width / 2 - boardRect.left;
-            const y2 = lastCell.top + lastCell.height / 2 - boardRect.top;
-
-            const length = Math.hypot(x2 - x1, y2 - y1);
-            const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
-            line.style.width = `${length}px`;
-            line.style.transform = `translate(${x1}px, ${y1}px) rotate(${angle}deg)`;
-            line.style.display = 'block';
         }
 
         function aiMove() {
@@ -2033,7 +1822,6 @@
             currentPlayer = 'X';
             isGameActive = true;
             document.getElementById('ttt-status').textContent = `Player X's Turn`;
-            document.getElementById('win-line').style.display = 'none';
             Array.from(document.getElementsByClassName('ttt-cell')).forEach(cell => { cell.textContent = ''; cell.className = 'ttt-cell'; });
         }
 
@@ -2180,7 +1968,7 @@
 
             if (dinoSpawnCounter >= 120) {
                 dinoSpawnCounter = 0;
-                dinoObstacles.push({ x: 300, y: 128, width: 16, height: 32, canJump: false, vy: 0, jumpTimer: 0 });
+                dinoObstacles.push({ x: 300, y: 128, width: 16, height: 32 });
             }
 
             dinoObstacles.forEach(o => { o.x -= 4.2; });
@@ -2241,7 +2029,6 @@
                     const rect = fruitCanvas.getBoundingClientRect();
                     let cx = (clientX - rect.left) * (fruitCanvas.width / rect.width);
                     let cy = (clientY - rect.top) * (fruitCanvas.height / rect.height);
-                    sliceTrails.push({ x: cx, y: cy, alpha: 1.0 });
 
                     flyingFruits.forEach(f => {
                         if (!f.sliced && Math.hypot(f.x - cx, f.y - cy) < f.radius + 14) {
@@ -2664,12 +2451,6 @@
 
             if (frostRunning) frostAnimId = requestAnimationFrame(frostLoop);
         }
-
-        function initPacManCanvas() { pacCanvas = document.getElementById('pac-canvas'); if (pacCanvas) pacCtx = pacCanvas.getContext('2d'); }
-        function startPacManGame() { pacRunning = true; }
-
-        function initSpaceInvadersCanvas() { siCanvas = document.getElementById('si-canvas'); if (siCanvas) siCtx = siCanvas.getContext('2d'); }
-        function startSpaceInvadersGame() { siRunning = true; }
     </script>
 </body>
 </html>
