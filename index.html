@@ -1530,6 +1530,7 @@
                     <button class="action-btn" onclick="startDinoGame()">PLAY AGAIN</button>
                 </div>
             </div>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">The dinosaur is stationary! Watch the cacti jump over it!</p>
         </div>
     </div>
 
@@ -1806,7 +1807,6 @@
         let reactionState = 'waiting', reactionStart = 0, reactionTimeout = null, reactionTime = 0, bestReaction = null;
 
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
-        let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
 
         let pianoCanvas, pianoCtx, pianoRunning = false, pianoScore = 0, pianoAnimId;
@@ -1822,9 +1822,11 @@
         // Fully Upgraded Brick Breaker Variables
         let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBalls = [], frostBricks = [], frostDrops = [], frostScreenShake = 0;
 
+        // PAC-MAN ARCADE WITH GHOSTS VARIABLES
         let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
         let pacman = { x: 1, y: 1, dx: 1, dy: 0 };
         let pacDots = [];
+        let ghosts = [];
         const pacGridSize = 13;
 
         window.onload = function() {
@@ -2323,7 +2325,7 @@
             });
         }
 
-        // PAC-MAN ARCADE LOGIC
+        // PAC-MAN ARCADE WITH GHOSTS LOGIC
         function initPacManCanvas() {
             pacCanvas = document.getElementById('pac-canvas');
             if (pacCanvas) pacCtx = pacCanvas.getContext('2d');
@@ -2334,8 +2336,17 @@
             document.getElementById('pac-gameover-overlay').style.display = 'none';
             initPacManCanvas();
             if (!pacCtx) return;
-            pacRunning = true; pacScore = 0; pacLives = 3;
+            pacRunning = true; 
+            pacScore = 0; 
+            pacLives = 3;
             pacman = { x: 1, y: 1, dx: 1, dy: 0 };
+            
+            // Initialize Ghost Enemies
+            ghosts = [
+                { x: 11, y: 1, color: '#ef4444', dx: -1, dy: 0 }, // Red Ghost
+                { x: 11, y: 11, color: '#ec4899', dx: 0, dy: -1 } // Pink Ghost
+            ];
+
             pacDots = [];
             for (let r = 0; r < pacGridSize; r++) {
                 for (let c = 0; c < pacGridSize; c++) {
@@ -2363,7 +2374,9 @@
         function pacLoop() {
             if (!pacRunning) return;
             pacTick++;
+
             if (pacTick % 12 === 0) {
+                // Move Pac-Man
                 pacman.x += pacman.dx;
                 pacman.y += pacman.dy;
                 if (pacman.x < 0) pacman.x = pacGridSize - 1;
@@ -2371,6 +2384,23 @@
                 if (pacman.y < 0) pacman.y = pacGridSize - 1;
                 if (pacman.y >= pacGridSize) pacman.y = 0;
 
+                // Move Ghosts randomly on grid intersections
+                ghosts.forEach(g => {
+                    const directions = [{dx:0, dy:-1}, {dx:0, dy:1}, {dx:-1, dy:0}, {dx:1, dy:0}];
+                    if (Math.random() < 0.6) {
+                        let randomDir = directions[Math.floor(Math.random() * directions.length)];
+                        g.dx = randomDir.dx;
+                        g.dy = randomDir.dy;
+                    }
+                    g.x += g.dx;
+                    g.y += g.dy;
+                    if (g.x < 0) g.x = pacGridSize - 1;
+                    if (g.x >= pacGridSize) g.x = 0;
+                    if (g.y < 0) g.y = pacGridSize - 1;
+                    if (g.y >= pacGridSize) g.y = 0;
+                });
+
+                // Check Dot consumption
                 pacDots = pacDots.filter(d => {
                     if (d.x === pacman.x && d.y === pacman.y) {
                         audio.playSFX('score');
@@ -2380,6 +2410,24 @@
                     }
                     return true;
                 });
+
+                // Check Ghost Collision (Lose Life)
+                ghosts.forEach(g => {
+                    if (g.x === pacman.x && g.y === pacman.y) {
+                        audio.playSFX('gameover');
+                        pacLives--;
+                        document.getElementById('pac-lives').textContent = pacLives;
+                        // Reset positions
+                        pacman.x = 1; pacman.y = 1; pacman.dx = 1; pacman.dy = 0;
+                        if (pacLives <= 0) {
+                            pacRunning = false;
+                            document.getElementById('pac-gameover-overlay').style.display = 'flex';
+                            let stats = ScoreManager.saveScore('pacman', pacScore);
+                            document.getElementById('pac-high').textContent = stats.highScore;
+                        }
+                    }
+                });
+
                 if (pacDots.length === 0) {
                     audio.playSFX('win');
                     startPacManGame();
@@ -2387,10 +2435,12 @@
                 }
             }
 
+            // Render Arena
             pacCtx.fillStyle = '#0b0f19';
             pacCtx.fillRect(0, 0, pacCanvas.width, pacCanvas.height);
             let tileSize = pacCanvas.width / pacGridSize;
 
+            // Draw Dots
             pacCtx.fillStyle = '#fbbf24';
             pacDots.forEach(d => {
                 pacCtx.beginPath();
@@ -2398,9 +2448,38 @@
                 pacCtx.fill();
             });
 
+            // Draw Ghosts
+            ghosts.forEach(g => {
+                pacCtx.fillStyle = g.color;
+                pacCtx.beginPath();
+                let gx = g.x * tileSize + tileSize / 2;
+                let gy = g.y * tileSize + tileSize / 2;
+                pacCtx.arc(gx, gy - 2, tileSize / 2 - 2, Math.PI, 0, false);
+                pacCtx.lineTo(gx + tileSize / 2 - 2, gy + tileSize / 2);
+                pacCtx.lineTo(gx - tileSize / 2 + 2, gy + tileSize / 2);
+                pacCtx.fill();
+            });
+
+            // Draw Pac-Man with Animated Mouth
             pacCtx.fillStyle = '#eab308';
             pacCtx.beginPath();
-            pacCtx.arc(pacman.x * tileSize + tileSize/2, pacman.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2);
+            let x = pacman.x * tileSize + tileSize / 2;
+            let y = pacman.y * tileSize + tileSize / 2;
+            let radius = tileSize / 2 - 2;
+            
+            let startAngle = 0.2, endAngle = 1.8;
+            if (pacman.dx === 1) { startAngle = 0.2; endAngle = 1.8; }
+            else if (pacman.dx === -1) { startAngle = 1.2; endAngle = 0.8; }
+            else if (pacman.dy === 1) { startAngle = 0.7; endAngle = 0.3; }
+            else if (pacman.dy === -1) { startAngle = 1.7; endAngle = 1.3; }
+
+            let mouthOpen = Math.floor(pacTick / 4) % 2 === 0;
+            if (mouthOpen) {
+                pacCtx.arc(x, y, radius, startAngle * Math.PI, endAngle * Math.PI, false);
+                pacCtx.lineTo(x, y);
+            } else {
+                pacCtx.arc(x, y, radius, 0, Math.PI * 2);
+            }
             pacCtx.fill();
 
             if (pacRunning) pacAnimId = requestAnimationFrame(pacLoop);
@@ -2857,7 +2936,6 @@
             // Update & Render Drops (Power-ups & Bombs)
             frostDrops.forEach(d => {
                 d.y += 2.2;
-                // Draw drop badge
                 frostCtx.fillStyle = d.type === 'bomb' ? '#ef4444' : (d.type === 'multiball' ? '#10b981' : '#f59e0b');
                 frostCtx.beginPath();
                 frostCtx.arc(d.x, d.y, 10, 0, Math.PI * 2);
@@ -2869,7 +2947,6 @@
                 let label = d.type === 'multiball' ? '3x' : (d.type === 'longpaddle' ? '↔+' : (d.type === 'shortpaddle' ? '↔-' : '💣'));
                 frostCtx.fillText(label, d.x, d.y);
 
-                // Collision with paddle
                 if (d.y + 10 >= frostPaddle.y && d.y - 10 <= frostPaddle.y + frostPaddle.height &&
                     d.x >= frostPaddle.x && d.x <= frostPaddle.x + frostPaddle.width) {
                     d.collected = true;
@@ -2941,7 +3018,6 @@
                             frostScreenShake = 5;
                             audio.playSFX('score');
 
-                            // Chance to spawn power-up drop (30% chance)
                             if (b.status === 0 && Math.random() < 0.30) {
                                 const types = ['multiball', 'longpaddle', 'shortpaddle', 'bomb'];
                                 let chosenType = types[Math.floor(Math.random() * types.length)];
@@ -2963,7 +3039,6 @@
                 frostCtx.fill();
             });
 
-            // Filter out inactive balls
             frostBalls = frostBalls.filter(b => b.active);
 
             if (frostBalls.length === 0) {
@@ -2973,8 +3048,8 @@
                 if (frostLives <= 0) {
                     frostRunning = false;
                     document.getElementById('final-frost-score').textContent = `Final Score: ${frostScore}`;
-                    document.getElementById('frost-gameover-overlay').style.display = 'flex';
-                    ScoreManager.saveScore('brickbreaker', frostScore);
+                    document.getElementById('final-frost-score').style.display = 'flex';
+                    let stats = ScoreManager.saveScore('brickbreaker', frostScore);
                     frostCtx.restore();
                     return;
                 } else {
