@@ -343,15 +343,6 @@
             background: rgba(255, 255, 255, 0.25);
         }
 
-        .game-title-header {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            margin-top: 2px;
-            color: var(--text-main);
-            letter-spacing: 0.5px;
-        }
-
         .screen {
             display: none;
             width: 100%;
@@ -1183,11 +1174,11 @@
 
     <div id="main-menu" class="view active">
         <div class="category-section">
-            <div class="category-title">Adventure & RPG</div>
+            <div class="category-title">Action & Arcade</div>
             <div class="game-grid">
-                <div class="game-card featured" onclick="openGame('dungeon-container')">
-                    <span class="game-icon">🗡️</span>
-                    <span class="game-name">Retro Dungeon Adventure (Play Now)</span>
+                <div class="game-card featured" onclick="openGame('piano-container')">
+                    <span class="game-icon">🎹</span>
+                    <span class="game-name">Piano Tiles (Play Now)</span>
                 </div>
             </div>
         </div>
@@ -1269,35 +1260,25 @@
         </div>
     </div>
 
-    <!-- Retro Dungeon Adventure -->
-    <div id="dungeon-container" class="game-container">
+    <!-- Piano Tiles -->
+    <div id="piano-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('dungeon-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('piano-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Retro Dungeon Adventure 🗡️</h3>
-        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
-            <div class="score-board" style="margin-top: 2px; width: 100%;">
-                <div class="score-box">Gold 🪙 <span id="dung-gold">0</span></div>
-                <div class="score-box">HP ❤️ <span id="dung-hp">5</span></div>
-                <div class="score-box">Keys 🔑 <span id="dung-keys">0</span></div>
+        <div style="width: 100%; max-width: 280px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score 🎵 <span id="piano-score">0</span></div>
+                <div class="score-box">Best 🏆 <span id="piano-high">0</span></div>
             </div>
             <div style="position: relative; display: inline-block;">
-                <canvas id="dung-canvas" class="arcade-canvas" width="280" height="280" style="touch-action: none;"></canvas>
-                <div id="dung-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                    <h2 id="dung-end-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">YOU DIED</h2>
-                    <button class="action-btn" onclick="startDungeonGame()">PLAY AGAIN</button>
+                <canvas id="piano-canvas" class="arcade-canvas" width="280" height="340" style="touch-action: none; cursor: pointer;"></canvas>
+                <div id="piano-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER 💀</h2>
+                    <button class="action-btn" onclick="startPianoGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div class="dir-pad">
-                <div></div>
-                <button class="dir-btn" onclick="moveDungeonPlayer(0, -1)">⬆️</button>
-                <div></div>
-                <button class="dir-btn" onclick="moveDungeonPlayer(-1, 0)">⬅️</button>
-                <button class="dir-btn" onclick="moveDungeonPlayer(0, 1)">⬇️</button>
-                <button class="dir-btn" onclick="moveDungeonPlayer(1, 0)">➡️</button>
-            </div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Collect 🔑 to unlock 🚪. Defeat 👾 and reach 🏆!</p>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Tap the black tiles as they fall! Don't miss any!</p>
         </div>
     </div>
 
@@ -1307,7 +1288,6 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('tictactoe-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Tic-Tac-Toe</h3>
         <div id="ttt-setup-screen" class="screen active">
             <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.9rem;">Configure match settings</p>
             <div class="setup-group">
@@ -1361,7 +1341,6 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('pacman-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Pac-Man Arcade</h3>
         <div style="width: 100%; max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
                 <div class="score-box">Score <span id="pac-score">0</span></div>
@@ -1392,7 +1371,6 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('spaceinvaders-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Space Invaders</h3>
         <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
                 <div class="score-box">Score <span id="si-score">0</span></div>
@@ -1415,7 +1393,6 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('fruitslice-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Fruit Slasher 🍉</h3>
         <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
                 <div class="score-box">Score <span id="fruit-score">0</span></div>
@@ -1438,7 +1415,6 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('frostgame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Brick Breaker 🧱</h3>
         <div style="width: 100%; max-width: 360px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board">
                 <div class="score-box">Score <span id="frost-score">000000</span></div>
@@ -1462,23 +1438,24 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('rpsgame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">RPS PvP</h3>
-        <div class="score-board">
-            <div class="score-box">Player 1 <span id="rps-p1-score">0</span></div>
-            <div class="score-box">Player 2 <span id="rps-p2-score">0</span></div>
+        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board">
+                <div class="score-box">Player 1 <span id="rps-p1-score">0</span></div>
+                <div class="score-box">Player 2 <span id="rps-p2-score">0</span></div>
+            </div>
+            <div class="rps-display">
+                <span id="rps-p1-choice">❓</span>
+                <span style="font-size: 1rem; color: var(--text-muted);">VS</span>
+                <span id="rps-p2-choice">❓</span>
+            </div>
+            <p id="rps-status" style="margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">Player 1's Turn (Choose Secretly)</p>
+            <div class="rps-choices">
+                <button class="rps-btn" onclick="handleRPSInput('rock')">🪨</button>
+                <button class="rps-btn" onclick="handleRPSInput('paper')">📄</button>
+                <button class="rps-btn" onclick="handleRPSInput('scissors')">✂️</button>
+            </div>
+            <button class="control-btn" style="width: 100%; max-width: 320px; margin: 10px auto 0 auto; display: block;" onclick="resetRPS()">Reset Scores</button>
         </div>
-        <div class="rps-display">
-            <span id="rps-p1-choice">❓</span>
-            <span style="font-size: 1rem; color: var(--text-muted);">VS</span>
-            <span id="rps-p2-choice">❓</span>
-        </div>
-        <p id="rps-status" style="margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">Player 1's Turn (Choose Secretly)</p>
-        <div class="rps-choices">
-            <button class="rps-btn" onclick="handleRPSInput('rock')">🪨</button>
-            <button class="rps-btn" onclick="handleRPSInput('paper')">📄</button>
-            <button class="rps-btn" onclick="handleRPSInput('scissors')">✂️</button>
-        </div>
-        <button class="control-btn" style="width: 100%; max-width: 320px; margin: 10px auto 0 auto; display: block;" onclick="resetRPS()">Reset Scores</button>
     </div>
 
     <!-- Number Guess -->
@@ -1487,17 +1464,18 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('guessgame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Number Guessing</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">Guess a number between 1 and 100</p>
-        <div class="score-board" style="margin-top: 10px;">
-            <div class="score-box">Attempts <span id="guess-attempts">0</span></div>
-            <div class="score-box">Best <span id="guess-best">-</span></div>
-        </div>
-        <input type="number" id="guess-input" class="guess-input" placeholder="Enter 1-100" min="1" max="100">
-        <p id="guess-status" style="margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">Take a guess!</p>
-        <div style="display: flex; gap: 10px; max-width: 300px; margin: 0 auto; width: 100%;">
-            <button class="action-btn" style="flex: 1;" onclick="submitGuess()">Submit</button>
-            <button class="control-btn" style="flex: 1;" onclick="resetGuessGame()">Reset</button>
+        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Guess a number between 1 and 100</p>
+            <div class="score-board" style="margin-top: 10px;">
+                <div class="score-box">Attempts <span id="guess-attempts">0</span></div>
+                <div class="score-box">Best <span id="guess-best">-</span></div>
+            </div>
+            <input type="number" id="guess-input" class="guess-input" placeholder="Enter 1-100" min="1" max="100">
+            <p id="guess-status" style="margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">Take a guess!</p>
+            <div style="display: flex; gap: 10px; max-width: 300px; margin: 0 auto; width: 100%;">
+                <button class="action-btn" style="flex: 1;" onclick="submitGuess()">Submit</button>
+                <button class="control-btn" style="flex: 1;" onclick="resetGuessGame()">Reset</button>
+            </div>
         </div>
     </div>
 
@@ -1507,20 +1485,21 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('molegame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Whack-a-Mole</h3>
-        <div class="score-board" style="margin-top: 4px;">
-            <div class="score-box">Score <span id="mole-score">0</span></div>
-            <div class="score-box">High Score <span id="mole-high">0</span></div>
+        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score <span id="mole-score">0</span></div>
+                <div class="score-box">High Score <span id="mole-high">0</span></div>
+            </div>
+            <div class="mole-grid">
+                <div class="mole-hole" onclick="whackMole(0)"><span id="m0">🐹</span></div>
+                <div class="mole-hole" onclick="whackMole(1)"><span id="m1">🐹</span></div>
+                <div class="mole-hole" onclick="whackMole(2)"><span id="m2">🐹</span></div>
+                <div class="mole-hole" onclick="whackMole(3)"><span id="m3">🐹</span></div>
+                <div class="mole-hole" onclick="whackMole(4)"><span id="m4">🐹</span></div>
+                <div class="mole-hole" onclick="whackMole(5)"><span id="m5">🐹</span></div>
+            </div>
+            <button class="action-btn" style="width: 100%; max-width: 300px; margin: 0 auto; display: block;" id="mole-start-btn" onclick="startMoleGame()">Start Game</button>
         </div>
-        <div class="mole-grid">
-            <div class="mole-hole" onclick="whackMole(0)"><span id="m0">🐹</span></div>
-            <div class="mole-hole" onclick="whackMole(1)"><span id="m1">🐹</span></div>
-            <div class="mole-hole" onclick="whackMole(2)"><span id="m2">🐹</span></div>
-            <div class="mole-hole" onclick="whackMole(3)"><span id="m3">🐹</span></div>
-            <div class="mole-hole" onclick="whackMole(4)"><span id="m4">🐹</span></div>
-            <div class="mole-hole" onclick="whackMole(5)"><span id="m5">🐹</span></div>
-        </div>
-        <button class="action-btn" style="width: 100%; max-width: 300px; margin: 0 auto; display: block;" id="mole-start-btn" onclick="startMoleGame()">Start Game</button>
     </div>
 
     <!-- Reaction Timer -->
@@ -1529,16 +1508,17 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('reactiongame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Reaction Timer</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Test your reflexes!</p>
-        <div class="score-board">
-            <div class="score-box">Time <span id="reaction-time">0 ms</span></div>
-            <div class="score-box">Best <span id="reaction-best">-</span></div>
+        <div style="width: 100%; max-width: 340px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Test your reflexes!</p>
+            <div class="score-board" style="width: 100%;">
+                <div class="score-box">Time <span id="reaction-time">0 ms</span></div>
+                <div class="score-box">Best <span id="reaction-best">-</span></div>
+            </div>
+            <div class="reaction-box" id="reaction-box" onclick="handleReactionClick()">
+                <span id="reaction-text" style="font-size: 1rem; font-weight: bold;">Click to Start</span>
+            </div>
+            <button class="control-btn" style="width: 100%; max-width: 340px; margin: 0 auto; display: block;" onclick="resetReactionGame()">Reset</button>
         </div>
-        <div class="reaction-box" id="reaction-box" onclick="handleReactionClick()">
-            <span id="reaction-text" style="font-size: 1rem; font-weight: bold;">Click to Start</span>
-        </div>
-        <button class="control-btn" style="width: 100%; max-width: 340px; margin: 0 auto; display: block;" onclick="resetReactionGame()">Reset</button>
     </div>
 
     <!-- Snake Game -->
@@ -1547,25 +1527,26 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('snakegame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Snake Game 🐍</h3>
-        <div class="score-board" style="margin-top: 4px; max-width: 240px;">
-            <div class="score-box">Score <span id="snake-score">0</span></div>
-            <div class="score-box">High <span id="snake-high">0</span></div>
-        </div>
-        <div style="position: relative; display: inline-block;">
-            <canvas id="snake-canvas" class="arcade-canvas" width="240" height="240"></canvas>
-            <div id="snake-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
-                <button class="action-btn" onclick="startSnakeGame()">PLAY AGAIN</button>
+        <div style="width: 100%; max-width: 240px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score <span id="snake-score">0</span></div>
+                <div class="score-box">High <span id="snake-high">0</span></div>
             </div>
-        </div>
-        <div class="dir-pad">
-            <div></div>
-            <button class="dir-btn" onclick="changeSnakeDir('UP')">⬆️</button>
-            <div></div>
-            <button class="dir-btn" onclick="changeSnakeDir('LEFT')">⬅️</button>
-            <button class="dir-btn" onclick="changeSnakeDir('DOWN')">⬇️</button>
-            <button class="dir-btn" onclick="changeSnakeDir('RIGHT')">➡️</button>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="snake-canvas" class="arcade-canvas" width="240" height="240"></canvas>
+                <div id="snake-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                    <button class="action-btn" onclick="startSnakeGame()">PLAY AGAIN</button>
+                </div>
+            </div>
+            <div class="dir-pad">
+                <div></div>
+                <button class="dir-btn" onclick="changeSnakeDir('UP')">⬆️</button>
+                <div></div>
+                <button class="dir-btn" onclick="changeSnakeDir('LEFT')">⬅️</button>
+                <button class="dir-btn" onclick="changeSnakeDir('DOWN')">⬇️</button>
+                <button class="dir-btn" onclick="changeSnakeDir('RIGHT')">➡️</button>
+            </div>
         </div>
     </div>
 
@@ -1575,16 +1556,17 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('flappygame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Flappy Arcade</h3>
-        <div class="score-board" style="margin-top: 4px; max-width: 260px;">
-            <div class="score-box">Score <span id="flappy-score">0</span></div>
-            <div class="score-box">High <span id="flappy-high">0</span></div>
-        </div>
-        <div style="position: relative; display: inline-block;">
-            <canvas id="flappy-canvas" class="arcade-canvas" width="260" height="280" onclick="jumpFlappy()" style="touch-action: none;"></canvas>
-            <div id="flappy-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
-                <button class="action-btn" onclick="startFlappyGame()">PLAY AGAIN</button>
+        <div style="width: 100%; max-width: 260px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score <span id="flappy-score">0</span></div>
+                <div class="score-box">High <span id="flappy-high">0</span></div>
+            </div>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="flappy-canvas" class="arcade-canvas" width="260" height="280" onclick="jumpFlappy()" style="touch-action: none;"></canvas>
+                <div id="flappy-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                    <button class="action-btn" onclick="startFlappyGame()">PLAY AGAIN</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1595,37 +1577,39 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Dino Jump 🦖</h3>
-        <div class="score-board" style="margin-top: 4px; max-width: 300px;">
-            <div class="score-box">Score <span id="dino-score">0</span></div>
-            <div class="score-box">High <span id="dino-high">0</span></div>
-        </div>
-        <div style="position: relative; display: inline-block;">
-            <canvas id="dino-canvas" class="arcade-canvas" width="300" height="180" style="touch-action: none;"></canvas>
-            <div id="dino-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
-                <button class="action-btn" onclick="startDinoGame()">PLAY AGAIN</button>
+        <div style="width: 100%; max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score <span id="dino-score">0</span></div>
+                <div class="score-box">High <span id="dino-high">0</span></div>
             </div>
-        </div>
-        <div style="display: flex; gap: 10px; width: 100%; max-width: 300px; margin-top: 8px;">
-            <button class="action-btn" style="flex: 1;" onclick="triggerDinoAction('jump')">⬆️ Jump</button>
-            <button class="control-btn" style="flex: 1;" onclick="triggerDinoAction('duck')">⬇️ Duck</button>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="dino-canvas" class="arcade-canvas" width="300" height="180" style="touch-action: none;"></canvas>
+                <div id="dino-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                    <button class="action-btn" onclick="startDinoGame()">PLAY AGAIN</button>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; width: 100%; max-width: 300px; margin-top: 8px;">
+                <button class="action-btn" style="flex: 1;" onclick="triggerDinoAction('jump')">⬆️ Jump</button>
+                <button class="control-btn" style="flex: 1;" onclick="triggerDinoAction('duck')">⬇️ Duck</button>
+            </div>
         </div>
     </div>
 
-    <!-- Candy -->
+    <!-- Candy Match-3 -->
     <div id="candygame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('candygame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Candy Match-3</h3>
-        <div class="score-board" style="margin-top: 4px;">
-            <div class="score-box">Score <span id="candy-score">0</span></div>
-            <div class="score-box">Moves <span id="candy-moves">20</span></div>
+        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score <span id="candy-score">0</span></div>
+                <div class="score-box">Moves <span id="candy-moves">20</span></div>
+            </div>
+            <div class="candy-grid" id="candy-grid"></div>
+            <button class="action-btn" style="width: 100%; max-width: 320px; margin: 0 auto; display: block;" onclick="startCandyGame()">New Game</button>
         </div>
-        <div class="candy-grid" id="candy-grid"></div>
-        <button class="action-btn" style="width: 100%; max-width: 320px; margin: 0 auto; display: block;" onclick="startCandyGame()">New Game</button>
     </div>
 
     <div class="modal-overlay" id="settings-modal">
@@ -1749,6 +1733,20 @@
                     this.audioCtx.resume();
                 }
             }
+            playTone(freq, duration = 0.1) {
+                if (this.isMuted) return;
+                this.initContext();
+                const now = this.audioCtx.currentTime;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(this.volume * 0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                osc.start(now); osc.stop(now + duration);
+            }
             playSFX(type) {
                 if (this.isMuted) return;
                 this.initContext();
@@ -1866,7 +1864,7 @@
         let currentPlayer = 'X', isGameActive = true, selectedMode = 'pvp', selectedDiff = 'easy', gameMode = 'pvp', aiDifficulty = 'easy';
 
         let rpsP1Score = 0, rpsP2Score = 0, rpsP1Choice = null, rpsStage = 1;
-        let targetNumber = Math.floor(Math.random() * 100) + 1, guessAttempts = 0, bestGuess = null;
+        let targetNumber = Math.floor(Math.random() * 100) + 1, guessAttempts = 0;
         let moleActiveIdx = -1, moleScore = 0, moleTimer = null, isMolePlaying = false;
         let reactionState = 'waiting', reactionStart = 0, reactionTimeout = null, reactionTime = 0, bestReaction = null;
 
@@ -1874,47 +1872,26 @@
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
 
-        // Retro Dungeon Adventure State
-        let dungCanvas, dungCtx, dungRunning = false, dungGold = 0, dungHp = 5, dungKeys = 0, dungLevel = 1;
-        let dungMap = [], dungPlayer = { x: 1, y: 1 };
-        const dungGridSize = 10;
+        // Piano Tiles State
+        let pianoCanvas, pianoCtx, pianoRunning = false, pianoScore = 0, pianoAnimId;
+        let pianoTiles = [];
+        const pianoLanes = 4;
+        let pianoSpeed = 3.5;
+        const pianoFrequencies = [261.63, 293.66, 329.63, 349.23];
 
         let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
-        const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
 
         let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBalls = [], frostBricks = [], frostDrops = [], frostScreenShake = 0;
 
         let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
-        let pacman = { x: 1, y: 1, dir: 'RIGHT', nextDir: 'RIGHT' };
-        let ghosts = [
-            { x: 12, y: 11, color: '#ef4444', dir: 'UP' },
-            { x: 13, y: 11, color: '#ec4899', dir: 'LEFT' },
-            { x: 12, y: 12, color: '#06b6d4', dir: 'RIGHT' },
-            { x: 13, y: 12, color: '#f97316', dir: 'DOWN' }
-        ];
-        let pacGrid = [];
-        const basePacMap = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1],
-            [1,3,1,1,2,1,1,1,1,1,2,1,1,3,1],
-            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-            [1,2,1,1,2,1,2,1,2,1,2,1,1,2,1],
-            [1,2,2,2,2,1,2,1,2,1,2,2,2,2,1],
-            [1,1,1,1,2,1,1,0,1,1,2,1,1,1,1],
-            [0,0,0,1,2,1,0,0,0,1,2,1,0,0,0],
-            [1,1,1,1,2,1,0,0,0,1,2,1,1,1,1],
-            [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1],
-            [1,2,1,1,2,1,1,1,1,1,2,1,1,2,1],
-            [1,3,2,1,2,2,2,0,2,2,2,1,2,3,1],
-            [1,1,2,1,2,1,2,1,2,1,2,1,2,1,1],
-            [1,2,2,2,2,1,2,1,2,1,2,2,2,2,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ];
+        let pacman = { x: 1, y: 1, dx: 1, dy: 0 };
+        let pacDots = [];
+        const pacGridSize = 13;
 
         let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siWave = 1, siAnimId;
-        let siShip = { x: 130, y: 265, width: 28, height: 14 };
-        let siLasers = [], siAliens = [], siAlienBullets = [], siAlienDir = 1;
+        let siShip = { x: 130, y: 230, width: 28, height: 12 };
+        let siLasers = [], siAliens = [], alienDir = 1;
 
         window.onload = function() {
             generateQRCode();
@@ -1925,7 +1902,7 @@
             initPacManCanvas();
             initSpaceInvadersCanvas();
             initFruitCanvas();
-            initDungeonCanvas();
+            initPianoCanvas();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -1937,6 +1914,7 @@
             document.getElementById('pac-high').textContent = ScoreManager.getStats('pacman').highScore;
             document.getElementById('si-high').textContent = ScoreManager.getStats('spaceinvaders').highScore;
             document.getElementById('frost-score').textContent = ScoreManager.getStats('brickbreaker').highScore;
+            document.getElementById('piano-high').textContent = ScoreManager.getStats('pianotiles').highScore;
 
             const bestGuessData = localStorage.getItem('arcadehub_guess');
             if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
@@ -1963,7 +1941,7 @@
             if (containerId === 'fruitslice-container') startFruitGame();
             if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
             if (containerId === 'candygame-container') startCandyGame();
-            if (containerId === 'dungeon-container') startDungeonGame();
+            if (containerId === 'piano-container') startPianoGame();
         }
 
         function backToHub() {
@@ -1978,7 +1956,7 @@
             if (siRunning) { siRunning = false; cancelAnimationFrame(siAnimId); }
             if (frostRunning) { frostRunning = false; cancelAnimationFrame(frostAnimId); }
             if (fruitRunning) { fruitRunning = false; cancelAnimationFrame(fruitAnimId); }
-            dungRunning = false;
+            if (pianoRunning) { pianoRunning = false; cancelAnimationFrame(pianoAnimId); }
 
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
@@ -1990,168 +1968,95 @@
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
         }
 
-        // RETRO DUNGEON ADVENTURE LOGIC
-        function initDungeonCanvas() {
-            dungCanvas = document.getElementById('dung-canvas');
-            if (dungCanvas) dungCtx = dungCanvas.getContext('2d');
+        // PIANO TILES LOGIC
+        function initPianoCanvas() {
+            pianoCanvas = document.getElementById('piano-canvas');
+            if (pianoCanvas) {
+                pianoCtx = pianoCanvas.getContext('2d');
+                pianoCanvas.onmousedown = handlePianoTap;
+                pianoCanvas.ontouchstart = (e) => {
+                    e.preventDefault();
+                    const rect = pianoCanvas.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    handlePianoTap({ clientX: touch.clientX, clientY: touch.clientY });
+                };
+            }
         }
 
-        function startDungeonGame() {
+        function startPianoGame() {
             audio.playSFX('click');
-            document.getElementById('dung-gameover-overlay').style.display = 'none';
-            initDungeonCanvas();
-            if (!dungCtx) return;
-            dungRunning = true;
-            dungGold = 0;
-            dungHp = 5;
-            dungKeys = 0;
-            dungLevel = 1;
-            generateDungeonLevel();
-            updateDungeonHUD();
-            drawDungeon();
+            document.getElementById('piano-gameover-overlay').style.display = 'none';
+            initPianoCanvas();
+            if (!pianoCtx) return;
+            pianoRunning = true;
+            pianoScore = 0;
+            pianoSpeed = 3.5;
+            pianoTiles = [];
+            document.getElementById('piano-score').textContent = pianoScore;
+            document.getElementById('piano-high').textContent = ScoreManager.getStats('pianotiles').highScore;
+            for (let i = 0; i < 4; i++) { spawnPianoTile(-i * 90); }
+            cancelAnimationFrame(pianoAnimId);
+            pianoLoop();
         }
 
-        function generateDungeonLevel() {
-            dungMap = [];
-            for (let r = 0; r < dungGridSize; r++) {
-                let row = [];
-                for (let c = 0; c < dungGridSize; c++) {
-                    if (r === 0 || r === dungGridSize - 1 || c === 0 || c === dungGridSize - 1) {
-                        row.push('W');
-                    } else {
-                        let rand = Math.random();
-                        if (rand < 0.22) row.push('W');
-                        else if (rand < 0.32) row.push('C');
-                        else if (rand < 0.38) row.push('K');
-                        else if (rand < 0.43) row.push('H');
-                        else if (rand < 0.52) row.push('M');
-                        else row.push('.');
-                    }
+        function spawnPianoTile(yPos) {
+            let lane = Math.floor(Math.random() * pianoLanes);
+            pianoTiles.push({ lane: lane, y: yPos, height: 85, clicked: false });
+        }
+
+        function handlePianoTap(e) {
+            if (!pianoRunning) return;
+            const rect = pianoCanvas.getBoundingClientRect();
+            const clickX = (e.clientX - rect.left) * (pianoCanvas.width / rect.width);
+            const clickY = (e.clientY - rect.top) * (pianoCanvas.height / rect.height);
+            let laneWidth = pianoCanvas.width / pianoLanes;
+            let tappedLane = Math.floor(clickX / laneWidth);
+            let hit = false;
+            pianoTiles.forEach(t => {
+                if (!t.clicked && t.lane === tappedLane && clickY >= t.y && clickY <= t.y + t.height) {
+                    t.clicked = true;
+                    hit = true;
+                    pianoScore++;
+                    audio.playTone(pianoFrequencies[t.lane], 0.12);
+                    document.getElementById('piano-score').textContent = pianoScore;
+                    if (pianoScore % 10 === 0) pianoSpeed += 0.4;
                 }
-                dungMap.push(row);
-            }
-            dungPlayer = { x: 1, y: 1 };
-            dungMap[1][1] = '.';
-            dungMap[dungGridSize - 2][dungGridSize - 2] = 'E';
-            dungMap[dungGridSize - 2][dungGridSize - 3] = 'D';
-            dungMap[2][dungGridSize - 2] = 'K';
+            });
+            if (!hit) endPianoGame();
         }
 
-        function updateDungeonHUD() {
-            document.getElementById('dung-gold').textContent = dungGold;
-            document.getElementById('dung-hp').textContent = dungHp;
-            document.getElementById('dung-keys').textContent = dungKeys;
-        }
-
-        function moveDungeonPlayer(dx, dy) {
-            if (!dungRunning) return;
-            let newX = dungPlayer.x + dx;
-            let newY = dungPlayer.y + dy;
-
-            if (newX < 0 || newX >= dungGridSize || newY < 0 || newY >= dungGridSize) return;
-            let tile = dungMap[newY][newX];
-
-            if (tile === 'W') {
-                audio.playSFX('click');
-                return;
+        function pianoLoop() {
+            if (!pianoRunning) return;
+            pianoCtx.fillStyle = '#0b0f19';
+            pianoCtx.fillRect(0, 0, pianoCanvas.width, pianoCanvas.height);
+            let laneWidth = pianoCanvas.width / pianoLanes;
+            pianoCtx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            pianoCtx.lineWidth = 1;
+            for (let i = 1; i < pianoLanes; i++) {
+                pianoCtx.beginPath(); pianoCtx.moveTo(i * laneWidth, 0); pianoCtx.lineTo(i * laneWidth, pianoCanvas.height); pianoCtx.stroke();
             }
-
-            if (tile === 'D') {
-                if (dungKeys > 0) {
-                    audio.playSFX('win');
-                    dungKeys--;
-                    dungMap[newY][newX] = '.';
-                    dungPlayer.x = newX;
-                    dungPlayer.y = newY;
-                } else {
-                    audio.playSFX('gameover');
-                    return;
+            pianoTiles.forEach(t => {
+                t.y += pianoSpeed;
+                if (!t.clicked) {
+                    pianoCtx.fillStyle = '#1e293b';
+                    pianoCtx.fillRect(t.lane * laneWidth + 2, t.y, laneWidth - 4, t.height);
+                    pianoCtx.strokeStyle = 'var(--primary)';
+                    pianoCtx.strokeRect(t.lane * laneWidth + 2, t.y, laneWidth - 4, t.height);
                 }
-            } else if (tile === 'E') {
-                audio.playSFX('win');
-                dungLevel++;
-                dungGold += 100;
-                generateDungeonLevel();
-            } else {
-                audio.playSFX('move');
-                if (tile === 'C') {
-                    audio.playSFX('score');
-                    dungGold += 25;
-                    dungMap[newY][newX] = '.';
-                } else if (tile === 'K') {
-                    audio.playSFX('win');
-                    dungKeys++;
-                    dungMap[newY][newX] = '.';
-                } else if (tile === 'H') {
-                    audio.playSFX('score');
-                    dungHp = Math.min(10, dungHp + 2);
-                    dungMap[newY][newX] = '.';
-                } else if (tile === 'M') {
-                    audio.playSFX('gameover');
-                    dungHp--;
-                    dungMap[newY][newX] = '.';
-                    if (dungHp <= 0) {
-                        endDungeonGame(false);
-                        return;
-                    }
-                }
-                dungPlayer.x = newX;
-                dungPlayer.y = newY;
-            }
-
-            updateDungeonHUD();
-            drawDungeon();
+            });
+            pianoTiles.forEach(t => { if (!t.clicked && t.y > pianoCanvas.height) endPianoGame(); });
+            let topTileY = Math.min(...pianoTiles.map(t => t.y));
+            if (topTileY > 0) spawnPianoTile(topTileY - 95);
+            pianoTiles = pianoTiles.filter(t => t.y < pianoCanvas.height + 50);
+            if (pianoRunning) pianoAnimId = requestAnimationFrame(pianoLoop);
         }
 
-        function drawDungeon() {
-            if (!dungCtx) return;
-            let tileSize = dungCanvas.width / dungGridSize;
-            dungCtx.fillStyle = '#0b0f19';
-            dungCtx.fillRect(0, 0, dungCanvas.width, dungCanvas.height);
-
-            for (let r = 0; r < dungGridSize; r++) {
-                for (let c = 0; c < dungGridSize; c++) {
-                    let t = dungMap[r][c];
-                    let x = c * tileSize;
-                    let y = r * tileSize;
-
-                    if (t === 'W') {
-                        dungCtx.fillStyle = '#1e293b';
-                        dungCtx.fillRect(x, y, tileSize, tileSize);
-                        dungCtx.strokeStyle = '#334155';
-                        dungCtx.strokeRect(x, y, tileSize, tileSize);
-                    } else {
-                        dungCtx.fillStyle = '#111827';
-                        dungCtx.fillRect(x, y, tileSize, tileSize);
-
-                        dungCtx.font = `${Math.floor(tileSize * 0.65)}px sans-serif`;
-                        dungCtx.textAlign = 'center';
-                        dungCtx.textBaseline = 'middle';
-
-                        if (t === 'C') dungCtx.fillText('🪙', x + tileSize/2, y + tileSize/2);
-                        if (t === 'K') dungCtx.fillText('🔑', x + tileSize/2, y + tileSize/2);
-                        if (t === 'H') dungCtx.fillText('❤️', x + tileSize/2, y + tileSize/2);
-                        if (t === 'M') dungCtx.fillText('👾', x + tileSize/2, y + tileSize/2);
-                        if (t === 'D') dungCtx.fillText('🚪', x + tileSize/2, y + tileSize/2);
-                        if (t === 'E') dungCtx.fillText('🏆', x + tileSize/2, y + tileSize/2);
-                    }
-                }
-            }
-
-            let px = dungPlayer.x * tileSize;
-            let py = dungPlayer.y * tileSize;
-            dungCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
-            dungCtx.textAlign = 'center';
-            dungCtx.textBaseline = 'middle';
-            dungCtx.fillText('🧙‍♂️', px + tileSize/2, py + tileSize/2);
-        }
-
-        function endDungeonGame(isVictory) {
-            dungRunning = false;
+        function endPianoGame() {
+            pianoRunning = false;
             audio.playSFX('gameover');
-            document.getElementById('dung-end-title').textContent = isVictory ? 'VICTORY! 🎉' : 'YOU DIED 💀';
-            document.getElementById('dung-gameover-overlay').style.display = 'flex';
-            ScoreManager.saveScore('dungeon', dungGold);
+            document.getElementById('piano-gameover-overlay').style.display = 'flex';
+            let stats = ScoreManager.saveScore('pianotiles', pianoScore);
+            document.getElementById('piano-high').textContent = stats.highScore;
         }
 
         function selectSetupMode(mode) {
@@ -2521,6 +2426,172 @@
             });
         }
 
+        // PAC-MAN ARCADE LOGIC
+        function initPacManCanvas() { pacCanvas = document.getElementById('pac-canvas'); if (pacCanvas) pacCtx = pacCanvas.getContext('2d'); }
+        function startPacManGame() {
+            audio.playSFX('click');
+            document.getElementById('pac-gameover-overlay').style.display = 'none';
+            initPacManCanvas();
+            if (!pacCtx) return;
+            pacRunning = true; pacScore = 0; pacLives = 3;
+            pacman = { x: 1, y: 1, dx: 1, dy: 0 };
+            pacDots = [];
+            for (let r = 0; r < pacGridSize; r++) {
+                for (let c = 0; c < pacGridSize; c++) {
+                    if ((r > 0 && r < pacGridSize-1) && (c > 0 && c < pacGridSize-1)) {
+                        pacDots.push({ x: c, y: r });
+                    }
+                }
+            }
+            document.getElementById('pac-score').textContent = pacScore;
+            document.getElementById('pac-lives').textContent = pacLives;
+            document.getElementById('pac-high').textContent = ScoreManager.getStats('pacman').highScore;
+            cancelAnimationFrame(pacAnimId);
+            pacLoop();
+        }
+
+        function changePacDir(dir) {
+            audio.playSFX('move');
+            if (dir === 'UP') { pacman.dx = 0; pacman.dy = -1; }
+            if (dir === 'DOWN') { pacman.dx = 0; pacman.dy = 1; }
+            if (dir === 'LEFT') { pacman.dx = -1; pacman.dy = 0; }
+            if (dir === 'RIGHT') { pacman.dx = 1; pacman.dy = 0; }
+        }
+
+        let pacTick = 0;
+        function pacLoop() {
+            if (!pacRunning) return;
+            pacTick++;
+            if (pacTick % 12 === 0) {
+                pacman.x += pacman.dx;
+                pacman.y += pacman.dy;
+                if (pacman.x < 0) pacman.x = pacGridSize - 1;
+                if (pacman.x >= pacGridSize) pacman.x = 0;
+                if (pacman.y < 0) pacman.y = pacGridSize - 1;
+                if (pacman.y >= pacGridSize) pacman.y = 0;
+
+                pacDots = pacDots.filter(d => {
+                    if (d.x === pacman.x && d.y === pacman.y) {
+                        audio.playSFX('score');
+                        pacScore += 10;
+                        document.getElementById('pac-score').textContent = pacScore;
+                        return false;
+                    }
+                    return true;
+                });
+                if (pacDots.length === 0) {
+                    audio.playSFX('win');
+                    startPacManGame();
+                    return;
+                }
+            }
+
+            pacCtx.fillStyle = '#0b0f19';
+            pacCtx.fillRect(0, 0, pacCanvas.width, pacCanvas.height);
+            let tileSize = pacCanvas.width / pacGridSize;
+
+            pacCtx.fillStyle = '#fbbf24';
+            pacDots.forEach(d => {
+                pacCtx.beginPath();
+                pacCtx.arc(d.x * tileSize + tileSize/2, d.y * tileSize + tileSize/2, 3, 0, Math.PI * 2);
+                pacCtx.fill();
+            });
+
+            pacCtx.fillStyle = '#eab308';
+            pacCtx.beginPath();
+            pacCtx.arc(pacman.x * tileSize + tileSize/2, pacman.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2);
+            pacCtx.fill();
+
+            if (pacRunning) pacAnimId = requestAnimationFrame(pacLoop);
+        }
+
+        // SPACE INVADERS LOGIC
+        function initSpaceInvadersCanvas() { siCanvas = document.getElementById('si-canvas'); if (siCanvas) siCtx = siCanvas.getContext('2d'); }
+        function startSpaceInvadersGame() {
+            audio.playSFX('click');
+            document.getElementById('si-gameover-overlay').style.display = 'none';
+            initSpaceInvadersCanvas();
+            if (!siCtx) return;
+            siRunning = true; siScore = 0; siLives = 3; siWave = 1;
+            siShip.x = 130; siLasers = [];
+            buildSIAliens();
+            document.getElementById('si-score').textContent = siScore;
+            document.getElementById('si-lives').textContent = siLives;
+            document.getElementById('si-wave').textContent = siWave;
+            document.getElementById('si-high').textContent = ScoreManager.getStats('spaceinvaders').highScore;
+            cancelAnimationFrame(siAnimId);
+            siLoop();
+        }
+
+        function buildSIAliens() {
+            siAliens = [];
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 6; c++) {
+                    siAliens.push({ x: 35 + c * 40, y: 30 + r * 28, width: 24, height: 16, alive: true });
+                }
+            }
+        }
+
+        function siLoop() {
+            if (!siRunning) return;
+            siCtx.fillStyle = '#0b0f19';
+            siCtx.fillRect(0, 0, siCanvas.width, siCanvas.height);
+
+            siLasers.forEach(l => { l.y -= 6; });
+            siLasers = siLasers.filter(l => l.y > 0);
+            siCtx.fillStyle = '#38bdf8';
+            siLasers.forEach(l => { siCtx.fillRect(l.x, l.y, l.width, l.height); });
+
+            let shiftDown = false;
+            siAliens.forEach(a => {
+                if (!a.alive) return;
+                a.x += alienDir * 0.8;
+                if (a.x <= 10 || a.x + a.width >= siCanvas.width - 10) shiftDown = true;
+            });
+            if (shiftDown) {
+                alienDir *= -1;
+                siAliens.forEach(a => { a.y += 10; if (a.y >= siShip.y - 10) endSIGame(); });
+            }
+
+            siAliens.forEach(a => {
+                if (!a.alive) return;
+                siCtx.fillStyle = '#ec4899';
+                siCtx.fillRect(a.x, a.y, a.width, a.height);
+            });
+
+            siLasers.forEach(l => {
+                siAliens.forEach(a => {
+                    if (a.alive && l.x < a.x + a.width && l.x + l.width > a.x && l.y < a.y + a.height && l.y + l.height > a.y) {
+                        a.alive = false;
+                        l.y = -99;
+                        audio.playSFX('score');
+                        siScore += 25;
+                        document.getElementById('si-score').textContent = siScore;
+                    }
+                });
+            });
+
+            if (siAliens.every(a => !a.alive)) {
+                audio.playSFX('win');
+                siWave++;
+                document.getElementById('si-wave').textContent = siWave;
+                buildSIAliens();
+            }
+
+            siCtx.fillStyle = '#10b981';
+            siCtx.fillRect(siShip.x, siShip.y, siShip.width, siShip.height);
+
+            if (siRunning) siAnimId = requestAnimationFrame(siLoop);
+        }
+
+        function endSIGame() {
+            siRunning = false;
+            audio.playSFX('gameover');
+            document.getElementById('si-gameover-overlay').style.display = 'flex';
+            let stats = ScoreManager.saveScore('spaceinvaders', siScore);
+            document.getElementById('si-high').textContent = stats.highScore;
+        }
+
         // FRUIT SLASHER LOGIC
         function initFruitCanvas() {
             fruitCanvas = document.getElementById('fruit-canvas');
@@ -2644,7 +2715,7 @@
             fruitRunning = false;
             audio.playSFX('gameover');
             document.getElementById('fruit-gameover-overlay').style.display = 'flex';
-            let stats = ScoreManager.saveScore('fruitslasher', fruitScore);
+            ScoreManager.saveScore('fruitslasher', fruitScore);
         }
 
         function submitGuess() {
@@ -2899,9 +2970,6 @@
                 flappyCtx.fillStyle = '#10b981';
                 flappyCtx.fillRect(p.x, 0, 40, p.top);
                 flappyCtx.fillRect(p.x, p.bottom, 40, 280 - p.bottom);
-                flappyCtx.fillStyle = '#059669';
-                flappyCtx.fillRect(p.x - 3, p.top - 12, 46, 12);
-                flappyCtx.fillRect(p.x - 3, p.bottom, 46, 12);
             });
 
             flappyCtx.save();
@@ -2910,16 +2978,6 @@
             flappyCtx.fillStyle = '#facc15';
             flappyCtx.beginPath();
             flappyCtx.arc(0, 0, bird.radius, 0, Math.PI * 2);
-            flappyCtx.fill();
-            flappyCtx.fillStyle = '#000';
-            flappyCtx.beginPath();
-            flappyCtx.arc(4, -3, 2.5, 0, Math.PI * 2);
-            flappyCtx.fill();
-            flappyCtx.fillStyle = '#f97316';
-            flappyCtx.beginPath();
-            flappyCtx.moveTo(bird.radius - 2, -2);
-            flappyCtx.lineTo(bird.radius + 7, 1);
-            flappyCtx.lineTo(bird.radius - 2, 4);
             flappyCtx.fill();
             flappyCtx.restore();
         }
@@ -2969,48 +3027,14 @@
                     candyBoard[prevR][prevC] = candyBoard[r][c];
                     candyBoard[r][c] = temp;
 
-                    if (checkCandyMatches()) {
-                        audio.playSFX('score');
-                        candyMoves--; document.getElementById('candy-moves').textContent = candyMoves;
-                        cascadeCandies();
-                    } else {
-                        audio.playSFX('gameover');
-                        candyBoard[r][c] = candyBoard[prevR][prevC];
-                        candyBoard[prevR][prevC] = temp;
-                    }
+                    audio.playSFX('score');
+                    candyMoves--; document.getElementById('candy-moves').textContent = candyMoves;
+                    candyScore += 25;
+                    document.getElementById('candy-score').textContent = candyScore;
                 }
                 selectedCandy = null;
                 renderCandyBoard();
             }
-        }
-
-        function checkCandyMatches() {
-            for (let r = 0; r < 5; r++) {
-                for (let c = 0; c < 3; c++) {
-                    if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r][c+1] && candyBoard[r][c] === candyBoard[r][c+2]) return true;
-                }
-            }
-            for (let c = 0; c < 5; c++) {
-                for (let r = 0; r < 3; r++) {
-                    if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r+1][c] && candyBoard[r][c] === candyBoard[r+2][c]) return true;
-                }
-            }
-            return false;
-        }
-
-        function cascadeCandies() {
-            for (let r = 0; r < 5; r++) {
-                for (let c = 0; c < 3; c++) {
-                    if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r][c+1] && candyBoard[r][c] === candyBoard[r][c+2]) {
-                        candyScore += 30;
-                        candyBoard[r][c] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
-                        candyBoard[r][c+1] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
-                        candyBoard[r][c+2] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
-                    }
-                }
-            }
-            document.getElementById('candy-score').textContent = candyScore;
-            renderCandyBoard();
         }
 
         function initFrostCanvas() {
@@ -3106,47 +3130,6 @@
             frostCtx.fillStyle = '#38bdf8';
             frostCtx.fillRect(frostPaddle.x, frostPaddle.y, frostPaddle.width, frostPaddle.height);
 
-            frostDrops.forEach((d, idx) => {
-                d.y += 2.5;
-                if (d.type === '3x') frostCtx.fillStyle = '#facc15';
-                else if (d.type === 'long') frostCtx.fillStyle = '#10b981';
-                else if (d.type === 'short') frostCtx.fillStyle = '#f43f5e';
-                else if (d.type === 'bomb') frostCtx.fillStyle = '#ef4444';
-
-                frostCtx.beginPath();
-                frostCtx.arc(d.x, d.y, 8, 0, Math.PI * 2);
-                frostCtx.fill();
-                frostCtx.fillStyle = '#fff';
-                frostCtx.font = '10px sans-serif';
-                frostCtx.textAlign = 'center';
-                let label = d.type === '3x' ? '✨' : d.type === 'long' ? '➕' : d.type === 'short' ? '➖' : '💣';
-                frostCtx.fillText(label, d.x, d.y + 3);
-
-                if (d.y >= frostPaddle.y && d.y <= frostPaddle.y + frostPaddle.height && d.x >= frostPaddle.x && d.x <= frostPaddle.x + frostPaddle.width) {
-                    audio.playSFX('win');
-                    if (d.type === '3x') {
-                        let currentBalls = frostBalls.filter(b => b.active);
-                        if (currentBalls.length > 0) {
-                            let b = currentBalls[0];
-                            frostBalls.push({ x: b.x, y: b.y, vx: -b.vx || 2.5, vy: b.vy || -3, radius: 6, active: true });
-                            frostBalls.push({ x: b.x, y: b.y, vx: (b.vx || 2.5) * 0.5, vy: (b.vy || -3) * 1.1, radius: 6, active: true });
-                        }
-                    } else if (d.type === 'long') {
-                        frostPaddle.width = Math.min(130, frostPaddle.width + 25);
-                    } else if (d.type === 'short') {
-                        frostPaddle.width = Math.max(45, frostPaddle.width - 25);
-                    } else if (d.type === 'bomb') {
-                        frostLives--;
-                        frostScreenShake = 10;
-                        audio.playSFX('gameover');
-                        updateFrostHUD();
-                    }
-                    frostDrops.splice(idx, 1);
-                } else if (d.y > 340) {
-                    frostDrops.splice(idx, 1);
-                }
-            });
-
             let activeBallsCount = 0;
             frostBalls.forEach(ball => {
                 if (!ball.active) return;
@@ -3181,12 +3164,6 @@
                             frostScreenShake = 5;
                             audio.playSFX('score');
                             updateFrostHUD();
-
-                            if (b.status === 0 && Math.random() < 0.45) {
-                                const types = ['3x', 'long', 'short', 'bomb'];
-                                let chosenType = types[Math.floor(Math.random() * types.length)];
-                                frostDrops.push({ x: b.x + b.width / 2, y: b.y + b.height, type: chosenType });
-                            }
                         }
                     }
                 });
