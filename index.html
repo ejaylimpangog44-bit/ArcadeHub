@@ -981,7 +981,6 @@
             max-width: 100%;
         }
 
-        /* Upgraded larger, easier to tap D-Pad */
         .dir-pad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -1013,6 +1012,31 @@
             background: var(--primary);
             border-color: var(--primary);
             transform: scale(0.95);
+        }
+
+        /* Drag Touch Pad for Space Invaders */
+        .si-touch-pad {
+            width: 100%;
+            max-width: 300px;
+            height: 60px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            margin: 10px auto 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            user-select: none;
+            touch-action: none;
+            cursor: grab;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .si-touch-pad:active {
+            cursor: grabbing;
+            border-color: var(--primary);
         }
 
         .candy-grid {
@@ -1285,6 +1309,10 @@
                     <span class="game-icon">🟡</span>
                     <span class="game-name">Pac-Man Arcade</span>
                 </div>
+                <div class="game-card" onclick="openGame('spaceinvaders-container')">
+                    <span class="game-icon">👾</span>
+                    <span class="game-name">Space Invaders</span>
+                </div>
                 <div class="game-card" onclick="openGame('clawgame-container')">
                     <span class="game-icon">🦾</span>
                     <span class="game-name">Claw Machine</span>
@@ -1294,8 +1322,8 @@
                     <span class="game-name">Whack-a-Mole</span>
                 </div>
                 <div class="game-card" onclick="openGame('frostgame-container')">
-                    <span class="game-icon">❄️</span>
-                    <span class="game-name">Frost Breakout</span>
+                    <span class="game-icon">🧱</span>
+                    <span class="game-name">Brick Breaker</span>
                 </div>
                 <div class="game-card" onclick="openGame('snakegame-container')">
                     <span class="game-icon">🐍</span>
@@ -1425,6 +1453,32 @@
         </div>
     </div>
 
+    <!-- Space Invaders -->
+    <div id="spaceinvaders-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('spaceinvaders-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Space Invaders</h3>
+        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score <span id="si-score">0</span></div>
+                <div class="score-box">High <span id="si-high">0</span></div>
+                <div class="score-box">Lives <span id="si-lives">3</span></div>
+            </div>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="si-canvas" class="arcade-canvas" width="300" height="300" onclick="fireSILaser()"></canvas>
+                <div id="si-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">MISSION FAILED</h2>
+                    <button class="action-btn" onclick="startSpaceInvadersGame()">PLAY AGAIN</button>
+                </div>
+            </div>
+            <div class="si-touch-pad" id="si-touch-pad">
+                ↔️ Drag Here to Slide Ship & Tap Canvas to Shoot 🚀
+            </div>
+        </div>
+    </div>
+
     <!-- Claw Machine -->
     <div id="clawgame-container" class="game-container">
         <div class="game-floating-nav">
@@ -1450,26 +1504,30 @@
         <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
     </div>
 
-    <!-- Frost Breakout -->
+    <!-- Brick Breaker (Full Version) -->
     <div id="frostgame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('frostgame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Frost Breakout ❄️</h3>
+        <h3 class="game-title-header">Brick Breaker 🧱</h3>
         <div style="width: 100%; max-width: 360px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board">
                 <div class="score-box">Score <span id="frost-score">000000</span></div>
                 <div class="score-box" id="frost-lvl">LVL 1</div>
-                <div class="score-box">❄️ <span id="frost-lives">3</span></div>
+                <div class="score-box">❤️ <span id="frost-lives">3</span></div>
             </div>
             <div style="position: relative; display: inline-block;">
                 <canvas id="frost-canvas" class="arcade-canvas" width="360" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
                 <div id="frost-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                    <h2 style="color: #38bdf8; margin-bottom: 8px; font-size: 1.2rem;">FROST OVER</h2>
+                    <h2 style="color: #38bdf8; margin-bottom: 8px; font-size: 1.2rem;">GAME OVER</h2>
                     <p id="final-frost-score" style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">Final Score: 0</p>
                     <button class="action-btn" onclick="startFrostGame()">PLAY AGAIN</button>
                 </div>
+            </div>
+            <div style="display: flex; gap: 10px; width: 100%; max-width: 320px; margin-top: 8px;">
+                <button class="control-btn" style="flex: 1; padding: 12px;" onclick="moveBrickPaddle(-35)">⬅️ Left</button>
+                <button class="control-btn" style="flex: 1; padding: 12px;" onclick="moveBrickPaddle(35)">Right ➡️</button>
             </div>
         </div>
     </div>
@@ -1926,6 +1984,11 @@
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
 
+        // Space Invaders Variables
+        let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siAnimId;
+        let siShip = { x: 130, y: 265, width: 28, height: 14 };
+        let siLasers = [], siAliens = [], siAlienBullets = [], siAlienDir = 1;
+
         window.onload = function() {
             generateQRCode();
             initSnakeCanvas();
@@ -1933,6 +1996,7 @@
             initDinoCanvas();
             initFrostCanvas();
             initPacManCanvas();
+            initSpaceInvadersCanvas();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -1942,6 +2006,8 @@
             document.getElementById('flappy-high').textContent = ScoreManager.getStats('flappy').highScore;
             document.getElementById('dino-high').textContent = ScoreManager.getStats('dino').highScore;
             document.getElementById('pac-high').textContent = ScoreManager.getStats('pacman').highScore;
+            document.getElementById('si-high').textContent = ScoreManager.getStats('spaceinvaders').highScore;
+            document.getElementById('frost-score').textContent = ScoreManager.getStats('brickbreaker').highScore;
             
             const bestGuessData = localStorage.getItem('arcadehub_guess');
             if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
@@ -1964,6 +2030,7 @@
             if (containerId === 'flappygame-container') startFlappyGame();
             if (containerId === 'dinogame-container') startDinoGame();
             if (containerId === 'pacman-container') startPacManGame();
+            if (containerId === 'spaceinvaders-container') startSpaceInvadersGame();
             if (containerId === 'frostgame-container') {
                 initFrostCanvas();
                 startFrostGame();
@@ -1980,6 +2047,7 @@
             if (moleTimer) clearInterval(moleTimer);
             if (reactionTimeout) clearTimeout(reactionTimeout);
             if (pacRunning) { pacRunning = false; cancelAnimationFrame(pacAnimId); }
+            if (siRunning) { siRunning = false; cancelAnimationFrame(siAnimId); }
             if (frostRunning) { frostRunning = false; cancelAnimationFrame(frostAnimId); }
 
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
@@ -2848,6 +2916,159 @@
             if (e.key === 'ArrowRight') changePacDir('RIGHT');
         });
 
+        // Space Invaders Logic (Drag-Only Pad)
+        function initSpaceInvadersCanvas() {
+            siCanvas = document.getElementById('si-canvas');
+            if (siCanvas) {
+                siCtx = siCanvas.getContext('2d');
+                const touchPad = document.getElementById('si-touch-pad');
+                
+                let isDragging = false;
+                let startX = 0;
+
+                const handleDragMove = (clientX) => {
+                    if (!isDragging || !siRunning) return;
+                    let diffX = clientX - startX;
+                    startX = clientX;
+                    siShip.x = Math.max(10, Math.min(siCanvas.width - siShip.width - 10, siShip.x + diffX * 1.2));
+                };
+
+                touchPad.onmousedown = e => { isDragging = true; startX = e.clientX; };
+                window.onmousemove = e => { if (isDragging) handleDragMove(e.clientX); };
+                window.onmouseup = () => { isDragging = false; };
+
+                touchPad.ontouchstart = e => { isDragging = true; startX = e.touches[0].clientX; e.preventDefault(); };
+                window.ontouchmove = e => { if (isDragging) handleDragMove(e.touches[0].clientX); };
+                window.ontouchend = () => { isDragging = false; };
+            }
+        }
+
+        function startSpaceInvadersGame() {
+            audio.playSFX('click');
+            document.getElementById('si-gameover-overlay').style.display = 'none';
+            initSpaceInvadersCanvas();
+            if (!siCtx) return;
+            siRunning = true;
+            siScore = 0; siLives = 3;
+            siShip = { x: 130, y: 265, width: 28, height: 14 };
+            siLasers = [];
+            siAlienBullets = [];
+            siAlienDir = 1;
+            
+            siAliens = [];
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 7; c++) {
+                    siAliens.push({ x: 30 + c * 35, y: 30 + r * 25, width: 22, height: 16, alive: true });
+                }
+            }
+
+            document.getElementById('si-score').textContent = siScore;
+            document.getElementById('si-lives').textContent = siLives;
+            cancelAnimationFrame(siAnimId);
+            spaceInvadersLoop();
+        }
+
+        function fireSILaser() {
+            if (!siRunning) return;
+            audio.playSFX('click');
+            if (siLasers.length < 3) {
+                siLasers.push({ x: siShip.x + siShip.width / 2 - 2, y: siShip.y, width: 4, height: 10 });
+            }
+        }
+
+        let siTick = 0;
+        function spaceInvadersLoop() {
+            if (!siRunning) return;
+            siTick++;
+
+            siCtx.fillStyle = '#111827';
+            siCtx.fillRect(0, 0, siCanvas.width, siCanvas.height);
+
+            siLasers.forEach(l => l.y -= 6);
+            siLasers = siLasers.filter(l => l.y > 0);
+
+            siAlienBullets.forEach(b => b.y += 4);
+            siAlienBullets = siAlienBullets.filter(b => b.y < siCanvas.height);
+
+            if (siTick % 25 === 0) {
+                let hitEdge = false;
+                siAliens.forEach(a => {
+                    if (a.alive) {
+                        a.x += siAlienDir * 8;
+                        if (a.x <= 10 || a.x >= siCanvas.width - 30) hitEdge = true;
+                    }
+                });
+                if (hitEdge) {
+                    siAlienDir *= -1;
+                    siAliens.forEach(a => a.y += 10);
+                }
+
+                let aliveAliens = siAliens.filter(a => a.alive);
+                if (aliveAliens.length > 0 && Math.random() < 0.4) {
+                    let shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
+                    siAlienBullets.push({ x: shooter.x + shooter.width/2, y: shooter.y + shooter.height, width: 4, height: 8 });
+                }
+            }
+
+            siLasers.forEach((l, li) => {
+                siAliens.forEach(a => {
+                    if (a.alive && l.x < a.x + a.width && l.x + l.width > a.x && l.y < a.y + a.height && l.y + l.height > a.y) {
+                        a.alive = false;
+                        siLasers.splice(li, 1);
+                        siScore += 20;
+                        audio.playSFX('score');
+                        document.getElementById('si-score').textContent = siScore;
+                    }
+                });
+            });
+
+            siAlienBullets.forEach((b, bi) => {
+                if (b.x < siShip.x + siShip.width && b.x + b.width > siShip.x && b.y < siShip.y + siShip.height && b.y + b.height > siShip.y) {
+                    siAlienBullets.splice(bi, 1);
+                    siLives--;
+                    audio.playSFX('gameover');
+                    document.getElementById('si-lives').textContent = siLives;
+                    if (siLives <= 0) {
+                        siRunning = false;
+                        document.getElementById('si-gameover-overlay').style.display = 'flex';
+                        let stats = ScoreManager.saveScore('spaceinvaders', siScore);
+                        document.getElementById('si-high').textContent = stats.highScore;
+                        return;
+                    }
+                }
+            });
+
+            if (siAliens.every(a => !a.alive)) {
+                siRunning = false;
+                audio.playSFX('win');
+                document.getElementById('si-gameover-overlay').querySelector('h2').textContent = "VICTORY! 🎉";
+                document.getElementById('si-gameover-overlay').style.display = 'flex';
+                let stats = ScoreManager.saveScore('spaceinvaders', siScore);
+                document.getElementById('si-high').textContent = stats.highScore;
+                return;
+            }
+
+            siCtx.fillStyle = '#38bdf8';
+            siCtx.fillRect(siShip.x, siShip.y, siShip.width, siShip.height);
+            siCtx.fillRect(siShip.x + siShip.width/2 - 3, siShip.y - 4, 6, 4);
+
+            siCtx.fillStyle = '#ec4899';
+            siLasers.forEach(l => siCtx.fillRect(l.x, l.y, l.width, l.height));
+
+            siCtx.fillStyle = '#facc15';
+            siAlienBullets.forEach(b => siCtx.fillRect(b.x, b.y, b.width, b.height));
+
+            siAliens.forEach(a => {
+                if (a.alive) {
+                    siCtx.fillStyle = '#a855f7';
+                    siCtx.fillRect(a.x, a.y, a.width, a.height);
+                }
+            });
+
+            if (siRunning) siAnimId = requestAnimationFrame(spaceInvadersLoop);
+        }
+
+        // Full Brick Breaker Logic
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
             if (frostCanvas) {
@@ -2862,6 +3083,12 @@
             }
         }
 
+        function moveBrickPaddle(amount) {
+            if (!frostRunning || !frostPaddle) return;
+            audio.playSFX('move');
+            frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, frostPaddle.x + amount));
+        }
+
         function startFrostGame() {
             audio.playSFX('click');
             document.getElementById('frost-gameover-overlay').style.display = 'none';
@@ -2869,8 +3096,8 @@
             if (!frostCtx) return;
             frostRunning = true;
             frostScore = 0; frostLives = 3; frostLvl = 1; frostScreenShake = 0;
-            frostPaddle = { x: 145, y: 315, width: 70, height: 10 };
-            frostBall = { x: 180, y: 180, vx: 2.5, vy: -3, radius: 5 };
+            frostPaddle = { x: 145, y: 315, width: 80, height: 10 };
+            frostBall = { x: 180, y: 180, vx: 3, vy: -3.5, radius: 6 };
             buildFrostBricks();
             updateFrostHUD();
             cancelAnimationFrame(frostAnimId);
@@ -2879,10 +3106,11 @@
 
         function buildFrostBricks() {
             frostBricks = [];
-            const rows = 4, cols = 8, width = 36, height = 16, padding = 5, offsetTop = 35, offsetLeft = 13;
+            const rows = 5, cols = 8, width = 38, height = 16, padding = 4, offsetTop = 35, offsetLeft = 12;
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
-                    frostBricks.push({ x: offsetLeft + c * (width + padding), y: offsetTop + r * (height + padding), width: width, height: height, status: 1 });
+                    let hits = r < 2 ? 2 : 1;
+                    frostBricks.push({ x: offsetLeft + c * (width + padding), y: offsetTop + r * (height + padding), width: width, height: height, status: hits });
                 }
             }
         }
@@ -2906,15 +3134,15 @@
             frostCtx.fillStyle = '#080d1a';
             frostCtx.fillRect(0, 0, 360, 340);
 
-            frostCtx.strokeStyle = '#0284c7';
+            frostCtx.strokeStyle = '#8b5cf6';
             frostCtx.lineWidth = 3;
             frostCtx.strokeRect(4, 4, 352, 332);
 
             let activeBricks = 0;
             frostBricks.forEach(b => {
-                if (b.status === 1) {
+                if (b.status > 0) {
                     activeBricks++;
-                    frostCtx.fillStyle = '#38bdf8';
+                    frostCtx.fillStyle = b.status === 2 ? '#ec4899' : '#8b5cf6';
                     frostCtx.fillRect(b.x, b.y, b.width, b.height);
                 }
             });
@@ -2922,6 +3150,7 @@
             if (activeBricks === 0) {
                 frostLvl++;
                 buildFrostBricks();
+                frostBall.vx *= 1.1;
                 frostBall.vy *= 1.1;
             }
 
@@ -2949,12 +3178,12 @@
             }
 
             frostBricks.forEach(b => {
-                if (b.status === 1) {
+                if (b.status > 0) {
                     if (frostBall.x > b.x && frostBall.x < b.x + b.width && frostBall.y > b.y && frostBall.y < b.y + b.height) {
                         frostBall.vy *= -1;
-                        b.status = 0;
-                        frostScore += 10;
-                        frostScreenShake = 6;
+                        b.status--;
+                        frostScore += 15;
+                        frostScreenShake = 5;
                         audio.playSFX('score');
                         updateFrostHUD();
                     }
@@ -2969,10 +3198,11 @@
                     frostRunning = false;
                     document.getElementById('final-frost-score').textContent = `Final Score: ${frostScore}`;
                     document.getElementById('frost-gameover-overlay').style.display = 'flex';
+                    let stats = ScoreManager.saveScore('brickbreaker', frostScore);
                     frostCtx.restore();
                     return;
                 } else {
-                    frostBall.x = 180; frostBall.y = 180; frostBall.vy = -3;
+                    frostBall.x = 180; frostBall.y = 180; frostBall.vy = -3.5;
                 }
             }
 
