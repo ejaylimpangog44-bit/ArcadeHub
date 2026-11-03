@@ -1381,14 +1381,20 @@
             <button class="nav-btn" onclick="toggleFullscreen('pacman-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Pac-Man Arcade</h3>
-        <div style="width: 100%; max-width: 320px; margin: 0 auto;">
-            <div class="score-board" style="margin-top: 4px;">
+        <div style="width: 100%; max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
                 <div class="score-box">Score <span id="pac-score">0</span></div>
                 <div class="score-box">High <span id="pac-high">0</span></div>
                 <div class="score-box">Lives <span id="pac-lives">3</span></div>
             </div>
-            <canvas id="pac-canvas" class="arcade-canvas" width="300" height="300"></canvas>
-            <div class="dir-pad">
+            <div style="position: relative; display: inline-block;">
+                <canvas id="pac-canvas" class="arcade-canvas" width="300" height="300"></canvas>
+                <div id="pac-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                    <button class="action-btn" onclick="startPacManGame()">PLAY AGAIN</button>
+                </div>
+            </div>
+            <div class="dir-pad" style="margin-top: 8px;">
                 <div></div>
                 <button class="dir-btn" onclick="changePacDir('UP')">⬆️</button>
                 <div></div>
@@ -1396,7 +1402,6 @@
                 <button class="dir-btn" onclick="changePacDir('DOWN')">⬇️</button>
                 <button class="dir-btn" onclick="changePacDir('RIGHT')">➡️</button>
             </div>
-            <button class="action-btn" style="width: 100%; margin-top: 8px;" onclick="startPacManGame()">Start / Reset</button>
         </div>
     </div>
 
@@ -1438,11 +1443,13 @@
                 <div class="score-box" id="frost-lvl">LVL 1</div>
                 <div class="score-box">❄️ <span id="frost-lives">3</span></div>
             </div>
-            <canvas id="frost-canvas" class="arcade-canvas" width="360" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
-            <div id="frost-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                <h2 style="color: #38bdf8; margin-bottom: 8px; font-size: 1.2rem;">FROST OVER</h2>
-                <p id="final-frost-score" style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">Final Score: 0</p>
-                <button class="action-btn" onclick="startFrostGame()">RETRY BREAKOUT</button>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="frost-canvas" class="arcade-canvas" width="360" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
+                <div id="frost-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #38bdf8; margin-bottom: 8px; font-size: 1.2rem;">FROST OVER</h2>
+                    <p id="final-frost-score" style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">Final Score: 0</p>
+                    <button class="action-btn" onclick="startFrostGame()">PLAY AGAIN</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1543,13 +1550,18 @@
             <button class="nav-btn" onclick="toggleFullscreen('snakegame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Snake Game</h3>
-
-        <div class="score-board" style="margin-top: 4px;">
+        <div class="score-board" style="margin-top: 4px; max-width: 240px;">
             <div class="score-box">Score <span id="snake-score">0</span></div>
             <div class="score-box">High <span id="snake-high">0</span></div>
         </div>
-        <canvas id="snake-canvas" class="arcade-canvas" width="240" height="240"></canvas>
-        <div class="dir-pad">
+        <div style="position: relative; display: inline-block;">
+            <canvas id="snake-canvas" class="arcade-canvas" width="240" height="240"></canvas>
+            <div id="snake-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                <button class="action-btn" onclick="startSnakeGame()">PLAY AGAIN</button>
+            </div>
+        </div>
+        <div class="dir-pad" style="margin-top: 8px;">
             <div></div>
             <button class="dir-btn" onclick="changeSnakeDir('UP')">⬆️</button>
             <div></div>
@@ -1557,7 +1569,6 @@
             <button class="dir-btn" onclick="changeSnakeDir('DOWN')">⬇️</button>
             <button class="dir-btn" onclick="changeSnakeDir('RIGHT')">➡️</button>
         </div>
-        <button class="action-btn" style="width: 100%; max-width: 240px; margin: 0 auto; display: block;" onclick="startSnakeGame()">Start / Reset</button>
     </div>
 
     <!-- Flappy -->
@@ -1567,12 +1578,17 @@
             <button class="nav-btn" onclick="toggleFullscreen('flappygame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Flappy Arcade</h3>
-        <div class="score-board" style="margin-top: 4px;">
+        <div class="score-board" style="margin-top: 4px; max-width: 240px;">
             <div class="score-box">Score <span id="flappy-score">0</span></div>
             <div class="score-box">High <span id="flappy-high">0</span></div>
         </div>
-        <canvas id="flappy-canvas" class="arcade-canvas" width="240" height="240" onclick="jumpFlappy()"></canvas>
-        <button class="action-btn" style="width: 100%; max-width: 240px; margin: 0 auto; display: block;" onclick="startFlappyGame()">Tap/Click to Jump & Start</button>
+        <div style="position: relative; display: inline-block;">
+            <canvas id="flappy-canvas" class="arcade-canvas" width="240" height="240" onclick="jumpFlappy()"></canvas>
+            <div id="flappy-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                <button class="action-btn" onclick="startFlappyGame()">PLAY AGAIN</button>
+            </div>
+        </div>
     </div>
 
     <!-- Dino -->
@@ -1581,13 +1597,18 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Dino Jump (Obstacles Jump!)</h3>
-        <div class="score-board" style="margin-top: 4px;">
+        <h3 class="game-title-header">Dino Jump</h3>
+        <div class="score-board" style="margin-top: 4px; max-width: 240px;">
             <div class="score-box">Score <span id="dino-score">0</span></div>
             <div class="score-box">High <span id="dino-high">0</span></div>
         </div>
-        <canvas id="dino-canvas" class="arcade-canvas" width="240" height="180" onclick="triggerObstacleJump()"></canvas>
-        <button class="action-btn" style="width: 100%; max-width: 240px; margin: 0 auto; display: block;" onclick="triggerObstacleJump()">Make Obstacle Jump!</button>
+        <div style="position: relative; display: inline-block;" onclick="triggerObstacleJump()">
+            <canvas id="dino-canvas" class="arcade-canvas" width="240" height="180"></canvas>
+            <div id="dino-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                <button class="action-btn" onclick="startDinoGame()">PLAY AGAIN</button>
+            </div>
+        </div>
     </div>
 
     <!-- Candy -->
@@ -1859,7 +1880,7 @@
 
         // Pac-Man Variables
         let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
-        let pacman = { x: 1, y: 1, dir: 'RIGHT', nextDir: 'RIGHT', speed: 2 };
+        let pacman = { x: 1, y: 1, dir: 'RIGHT', nextDir: 'RIGHT' };
         let ghosts = [
             { x: 12, y: 11, color: '#ef4444', dir: 'UP' },
             { x: 13, y: 11, color: '#ec4899', dir: 'LEFT' },
@@ -1919,6 +1940,7 @@
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById(containerId).classList.add('active');
 
+            // Auto-start game upon opening
             if (containerId === 'snakegame-container') startSnakeGame();
             if (containerId === 'flappygame-container') startFlappyGame();
             if (containerId === 'dinogame-container') startDinoGame();
@@ -1927,7 +1949,7 @@
                 initFrostCanvas();
                 startFrostGame();
             }
-            if (containerId === 'candygame-container' && candyBoard.length === 0) startCandyGame();
+            if (containerId === 'candygame-container') startCandyGame();
         }
 
         function backToHub() {
@@ -2286,6 +2308,7 @@
 
         function startSnakeGame() {
             audio.playSFX('click');
+            document.getElementById('snake-gameover-overlay').style.display = 'none';
             initSnakeCanvas();
             if (!snakeCtx) return;
             if (snakeInterval) clearInterval(snakeInterval);
@@ -2326,6 +2349,7 @@
             if (head.x < 0 || head.x >= 24 || head.y < 0 || head.y >= 24 || snake.some(s => s.x === head.x && s.y === head.y)) {
                 audio.playSFX('gameover');
                 clearInterval(snakeInterval);
+                document.getElementById('snake-gameover-overlay').style.display = 'flex';
                 let stats = ScoreManager.saveScore('snake', snakeScore);
                 document.getElementById('snake-high').textContent = stats.highScore;
                 return;
@@ -2364,6 +2388,7 @@
 
         function startFlappyGame() {
             audio.playSFX('click');
+            document.getElementById('flappy-gameover-overlay').style.display = 'none';
             initFlappyCanvas();
             if (!flappyCtx) return;
             if (flappyInterval) clearInterval(flappyInterval);
@@ -2424,6 +2449,7 @@
             audio.playSFX('gameover');
             clearInterval(flappyInterval);
             isFlappyRunning = false;
+            document.getElementById('flappy-gameover-overlay').style.display = 'flex';
             let stats = ScoreManager.saveScore('flappy', flappyScore);
             document.getElementById('flappy-high').textContent = stats.highScore;
         }
@@ -2451,6 +2477,7 @@
 
         function startDinoGame() {
             audio.playSFX('click');
+            document.getElementById('dino-gameover-overlay').style.display = 'none';
             initDinoCanvas();
             if (!dinoCtx) return;
             if (dinoInterval) clearInterval(dinoInterval);
@@ -2511,6 +2538,7 @@
             audio.playSFX('gameover');
             clearInterval(dinoInterval);
             isDinoRunning = false;
+            document.getElementById('dino-gameover-overlay').style.display = 'flex';
             let finalScore = Math.floor(dinoScore / 5);
             let stats = ScoreManager.saveScore('dino', finalScore);
             document.getElementById('dino-high').textContent = stats.highScore;
@@ -2632,6 +2660,7 @@
 
         function startPacManGame() {
             audio.playSFX('click');
+            document.getElementById('pac-gameover-overlay').style.display = 'none';
             initPacManCanvas();
             if (!pacCtx) return;
             pacRunning = true;
@@ -2671,7 +2700,6 @@
             if (!pacRunning) return;
             pacTickCounter++;
             if (pacTickCounter % 10 === 0) {
-                // Try applying next direction if valid
                 let nextPos = getNextCoords(pacman.x, pacman.y, pacman.nextDir);
                 if (pacGrid[nextPos.y] && pacGrid[nextPos.y][nextPos.x] !== 1) {
                     pacman.dir = pacman.nextDir;
@@ -2694,7 +2722,6 @@
                     }
                 }
 
-                // Move ghosts
                 ghosts.forEach(g => {
                     const dirs = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
                     let validDirs = dirs.filter(d => {
@@ -2710,7 +2737,6 @@
                         g.y = gp.y;
                     }
 
-                    // Check collision
                     if (g.x === pacman.x && g.y === pacman.y) {
                         pacLives--;
                         audio.playSFX('gameover');
@@ -2718,9 +2744,9 @@
                         pacman.x = 1; pacman.y = 1;
                         if (pacLives <= 0) {
                             pacRunning = false;
+                            document.getElementById('pac-gameover-overlay').style.display = 'flex';
                             let stats = ScoreManager.saveScore('pacman', pacScore);
                             document.getElementById('pac-high').textContent = stats.highScore;
-                            alert(`Game Over! Final Score: ${pacScore}`);
                             return;
                         }
                     }
@@ -2756,13 +2782,11 @@
                 }
             }
 
-            // Draw Pac-Man
             pacCtx.fillStyle = '#facc15';
             pacCtx.beginPath();
             pacCtx.arc(pacman.x * cw + cw/2, pacman.y * ch + ch/2, cw/2 - 1, 0, Math.PI * 2);
             pacCtx.fill();
 
-            // Draw Ghosts
             ghosts.forEach(g => {
                 pacCtx.fillStyle = g.color;
                 pacCtx.beginPath();
@@ -2772,15 +2796,12 @@
             });
         }
 
-        // Keyboard directional listener
         window.addEventListener('keydown', e => {
             if (e.key === 'ArrowUp') changePacDir('UP');
             if (e.key === 'ArrowDown') changePacDir('DOWN');
             if (e.key === 'ArrowLeft') changePacDir('LEFT');
             if (e.key === 'ArrowRight') changePacDir('RIGHT');
         });
-
-        initFrostCanvas();
 
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
