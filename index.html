@@ -261,6 +261,18 @@
             display: block;
         }
 
+        .game-container:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
         .game-screen-header {
             display: flex;
             align-items: center;
@@ -270,18 +282,23 @@
             max-width: 500px;
         }
 
-        .back-btn {
+        .header-action-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .back-btn, .fullscreen-btn {
             background: rgba(255, 255, 255, 0.1);
             border: none;
             color: #fff;
-            padding: 8px 14px;
+            padding: 8px 12px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
         }
 
-        .back-btn:hover {
+        .back-btn:hover, .fullscreen-btn:hover {
             background: rgba(255, 255, 255, 0.2);
         }
 
@@ -926,7 +943,13 @@
             transform: scale(1.05);
         }
 
-        /* Space Shooter HUD styles */
+        /* Space Shooter HUD & Overlay styles */
+        .shooter-wrapper {
+            position: relative;
+            width: 280px;
+            margin: 0 auto;
+        }
+
         .shooter-hud {
             display: flex;
             justify-content: space-between;
@@ -952,6 +975,26 @@
         .shooter-heart {
             color: #ef4444;
             font-size: 14px;
+        }
+
+        #shooter-gameover-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(3px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            z-index: 20;
+        }
+
+        #shooter-gameover-overlay.active {
+            display: flex;
         }
 
         .robot-container {
@@ -1235,11 +1278,14 @@
         </div>
     </div>
 
+    <!-- Tic Tac Toe -->
     <div id="tictactoe-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">Tic-Tac-Toe</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('tictactoe-container')">⛶</button>
+            </div>
         </div>
 
         <div id="ttt-setup-screen" class="screen active">
@@ -1291,11 +1337,14 @@
         </div>
     </div>
 
+    <!-- Claw Machine -->
     <div id="clawgame-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">Claw Machine</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('clawgame-container')">⛶</button>
+            </div>
         </div>
 
         <div class="claw-cabinet">
@@ -1315,26 +1364,40 @@
         <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
     </div>
 
-    <!-- Space Shooter Container -->
+    <!-- Space Shooter Container with Overlay Restart Button -->
     <div id="dartgame-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">Space Shooter</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('dartgame-container')">⛶</button>
+            </div>
         </div>
-        <div class="shooter-hud">
-            <div class="shooter-hud-item">Score: <span id="shooter-score">0</span></div>
-            <div class="shooter-hud-item" id="shooter-round">Round 1</div>
-            <div class="shooter-hud-item shooter-lives-container" id="shooter-lives"></div>
+        <div class="shooter-wrapper">
+            <div class="shooter-hud">
+                <div class="shooter-hud-item">Score: <span id="shooter-score">0</span></div>
+                <div class="shooter-hud-item" id="shooter-round">Round 1</div>
+                <div class="shooter-hud-item shooter-lives-container" id="shooter-lives"></div>
+            </div>
+            <canvas id="shooter-canvas" class="arcade-canvas" width="280" height="360" style="touch-action: none; cursor: crosshair;"></canvas>
+            
+            <!-- Game Over Restart Overlay Button -->
+            <div id="shooter-gameover-overlay">
+                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.2rem;">MISSION FAILED</h2>
+                <p id="final-shooter-score" style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">Final Score: 0</p>
+                <button class="action-btn" onclick="startSpaceShooter()">RESTART MISSION</button>
+            </div>
         </div>
-        <canvas id="shooter-canvas" class="arcade-canvas" width="280" height="360" style="touch-action: none; cursor: crosshair;"></canvas>
     </div>
 
+    <!-- RPS -->
     <div id="rpsgame-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">RPS PvP</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('rpsgame-container')">⛶</button>
+            </div>
         </div>
 
         <div class="score-board">
@@ -1355,11 +1418,14 @@
         <button class="control-btn" style="width: 100%; margin-top: 5px;" onclick="resetRPS()">Reset Scores</button>
     </div>
 
+    <!-- Number Guess -->
     <div id="guessgame-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">Number Guessing</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('guessgame-container')">⛶</button>
+            </div>
         </div>
 
         <p style="font-size: 0.85rem; color: var(--text-muted);">Guess a number between 1 and 100</p>
@@ -1375,11 +1441,14 @@
         </div>
     </div>
 
+    <!-- Whack a Mole -->
     <div id="molegame-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">Whack-a-Mole</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('molegame-container')">⛶</button>
+            </div>
         </div>
 
         <div class="score-board" style="margin-top: 5px;">
@@ -1397,11 +1466,14 @@
         <button class="action-btn" style="width: 100%;" id="mole-start-btn" onclick="startMoleGame()">Start Game</button>
     </div>
 
+    <!-- Reaction Timer -->
     <div id="reactiongame-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">Reaction Timer</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('reactiongame-container')">⛶</button>
+            </div>
         </div>
 
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Test your reflexes!</p>
@@ -1415,11 +1487,14 @@
         <button class="control-btn" style="width: 100%;" onclick="resetReactionGame()">Reset</button>
     </div>
 
+    <!-- Snake -->
     <div id="snakegame-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">Snake Game</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('snakegame-container')">⛶</button>
+            </div>
         </div>
 
         <div class="score-board" style="margin-top: 5px;">
@@ -1438,11 +1513,14 @@
         <button class="action-btn" style="width: 100%;" onclick="startSnakeGame()">Start / Reset</button>
     </div>
 
+    <!-- Flappy -->
     <div id="flappygame-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">Flappy Arcade</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('flappygame-container')">⛶</button>
+            </div>
         </div>
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="flappy-score">0</span></div>
@@ -1452,11 +1530,14 @@
         <button class="action-btn" style="width: 100%;" onclick="startFlappyGame()">Tap/Click to Jump & Start</button>
     </div>
 
+    <!-- Dino -->
     <div id="dinogame-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">Dino Jump</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button>
+            </div>
         </div>
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="dino-score">0</span></div>
@@ -1466,11 +1547,14 @@
         <button class="action-btn" style="width: 100%;" onclick="jumpDino()">Jump / Start</button>
     </div>
 
+    <!-- Candy -->
     <div id="candygame-container" class="game-container">
         <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
+            <button class="back-btn" onclick="backToHub()">← Back</button>
             <h3 style="font-size: 15px;">Candy Match-3</h3>
-            <div style="width: 70px;"></div>
+            <div class="header-action-group">
+                <button class="fullscreen-btn" onclick="toggleFullscreen('candygame-container')">⛶</button>
+            </div>
         </div>
 
         <div class="score-board" style="margin-top: 5px;">
@@ -1715,6 +1799,20 @@
             document.getElementById('panel-share').classList.toggle('active', tabName === 'share');
         }
 
+        function toggleFullscreen(containerId) {
+            audio.playSFX('click');
+            const elem = document.getElementById(containerId);
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(err => console.log(err));
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
         const winningConditions = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8],
             [0, 3, 6], [1, 4, 7], [2, 5, 8],
@@ -1734,24 +1832,8 @@
 
         let rpsP1Score = 0;
         let rpsP2Score = 0;
-        let rpsP1Choice = null;
-        let rpsTurn = 1;
 
         let targetNumber = Math.floor(Math.random() * 100) + 1;
-        let guessAttemptsCount = 0;
-        let bestGuessScore = null;
-
-        let moleScore = 0;
-        let moleTimeLeft = 20;
-        let moleTimer = null;
-        let activeMoleTimer = null;
-        let currentActiveMole = null;
-        let isMolePlaying = false;
-
-        let reactionState = 'idle'; 
-        let reactionStartTime = 0;
-        let reactionTimeout = null;
-        let bestReactionTime = null;
 
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
@@ -1774,7 +1856,6 @@
         let shooterEnemyBullets = [];
         let shooterEnemies = [];
         let shooterPowerups = [];
-        let shooterParticles = [];
         let shooterStars = [];
         let shooterBoss = null;
         let isPointerDown = false;
@@ -1829,11 +1910,10 @@
 
         function backToHub() {
             audio.playSFX('click');
+            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
             if (snakeInterval) clearInterval(snakeInterval);
             if (flappyInterval) clearInterval(flappyInterval);
             if (dinoInterval) clearInterval(dinoInterval);
-            if (moleTimer) clearInterval(moleTimer);
-            if (activeMoleTimer) clearInterval(activeMoleTimer);
             if (shooterRunning) {
                 shooterRunning = false;
                 cancelAnimationFrame(shooterAnimId);
@@ -2366,6 +2446,7 @@
 
         function startSpaceShooter() {
             audio.playSFX('click');
+            document.getElementById('shooter-gameover-overlay').classList.remove('active');
             initShooterCanvas();
             if (!shooterCtx) return;
             shooterRunning = true;
@@ -2378,7 +2459,6 @@
             shooterEnemyBullets = [];
             shooterEnemies = [];
             shooterPowerups = [];
-            shooterParticles = [];
             shooterBoss = null;
             shooterPlayer = new ShooterPlayer();
             initShooterStars();
@@ -2411,7 +2491,6 @@
             shooterPlayer.update();
             shooterPlayer.draw();
 
-            // Spawning normal enemies if no boss is active
             if (!shooterBoss) {
                 const maxEn = shooterRound === 1 ? 3 : 5;
                 if (shooterEnemies.length < maxEn && Math.random() < 0.03) {
@@ -2424,7 +2503,6 @@
                 shooterBoss.draw();
             }
 
-            // Draw Pixelated Notifications/Announcements on Canvas
             if (announcementTimer > 0) {
                 announcementTimer--;
                 shooterCtx.save();
@@ -2437,13 +2515,11 @@
                 shooterCtx.restore();
             }
 
-            // Bullets update
             shooterBullets.forEach((b, idx) => {
                 b.update(); b.draw();
                 if (b.y < -10) shooterBullets.splice(idx, 1);
             });
 
-            // Enemy bullets update & Crash/Life Check
             shooterEnemyBullets.forEach((eb, idx) => {
                 eb.update(); eb.draw();
                 if (eb.x > shooterPlayer.x && eb.x < shooterPlayer.x + shooterPlayer.width && eb.y > shooterPlayer.y && eb.y < shooterPlayer.y + shooterPlayer.height) {
@@ -2461,7 +2537,6 @@
 
             if (!shooterRunning) return;
 
-            // Enemies update & Direct Ship Crash Check
             shooterEnemies.forEach((en, eIdx) => {
                 en.update(); en.draw();
                 if (en.x < shooterPlayer.x + shooterPlayer.width && en.x + en.width > shooterPlayer.x && en.y < shooterPlayer.y + shooterPlayer.height && en.y + en.height > shooterPlayer.y) {
@@ -2508,7 +2583,6 @@
 
             if (!shooterRunning) return;
 
-            // Boss collisions & direct crash check
             if (shooterBoss) {
                 if (shooterBoss.x < shooterPlayer.x + shooterPlayer.width && shooterBoss.x + shooterBoss.width > shooterPlayer.x && shooterBoss.y < shooterPlayer.y + shooterPlayer.height && shooterBoss.y + shooterBoss.height > shooterPlayer.y) {
                     shooterLives = 0;
@@ -2537,7 +2611,6 @@
 
             if (!shooterRunning) return;
 
-            // Powerups collection (Permanently active until death)
             shooterPowerups.forEach((p, pIdx) => {
                 p.update(); p.draw();
                 if (p.x < shooterPlayer.x + shooterPlayer.width && p.x + p.size > shooterPlayer.x && p.y < shooterPlayer.y + shooterPlayer.height && p.y + p.size > shooterPlayer.y) {
@@ -2560,7 +2633,8 @@
             shooterRunning = false;
             cancelAnimationFrame(shooterAnimId);
             audio.playSFX('gameover');
-            alert(`Mission Failed! Your ship crashed / ran out of lives.\nFinal Score: ${shooterScore}`);
+            document.getElementById('final-shooter-score').textContent = `Final Score: ${shooterScore}`;
+            document.getElementById('shooter-gameover-overlay').classList.add('active');
         }
 
         // Other Mini-game Implementations
