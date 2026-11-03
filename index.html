@@ -284,7 +284,6 @@
             font-weight: 600;
         }
 
-        /* FULL FLUSH SCREEN GAME CONTAINER (NO RIGID CARDS) */
         .game-container {
             position: relative;
             background-color: transparent;
@@ -1031,7 +1030,7 @@
         .shooter-wrapper {
             position: relative;
             width: 100%;
-            max-width: 320px;
+            max-width: 360px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
@@ -1473,7 +1472,7 @@
                 <div class="shooter-hud-item" id="shooter-round">Round 1</div>
                 <div class="shooter-hud-item shooter-lives-container" id="shooter-lives"></div>
             </div>
-            <canvas id="shooter-canvas" class="arcade-canvas" width="280" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
+            <canvas id="shooter-canvas" class="arcade-canvas" width="360" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
             
             <div id="shooter-gameover-overlay">
                 <h2 id="shooter-over-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.2rem;">MISSION FAILED</h2>
@@ -1496,7 +1495,7 @@
                 <div class="shooter-hud-item" id="frost-lvl">LVL 1</div>
                 <div class="shooter-hud-item">❄️ <span id="frost-lives">3</span></div>
             </div>
-            <canvas id="frost-canvas" class="arcade-canvas" width="280" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
+            <canvas id="frost-canvas" class="arcade-canvas" width="360" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
             <div id="frost-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
                 <h2 style="color: #38bdf8; margin-bottom: 8px; font-size: 1.2rem;">FROST OVER</h2>
                 <p id="final-frost-score" style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">Final Score: 0</p>
@@ -1915,7 +1914,7 @@
 
         let shooterCanvas, shooterCtx, shooterRunning = false, shooterScore = 0, shooterLives = 5, shooterRound = 1;
         let enemiesDefeatedInRound = 0, requiredEnemiesForRound = 10, shooterAnimId, shooterPlayer, shooterBullets = [], shooterEnemyBullets = [], shooterEnemies = [], shooterPowerups = [], shooterStars = [], shooterBoss = null;
-        let isPointerDown = false, pointerX = 140, pointerY = 300, announcementText = "", announcementTimer = 0;
+        let isPointerDown = false, pointerX = 180, pointerY = 300, announcementText = "", announcementTimer = 0;
 
         let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBall, frostBricks = [], frostScreenShake = 0;
 
@@ -2660,7 +2659,7 @@
         class ShooterPlayer {
             constructor() {
                 this.width = 30; this.height = 36;
-                this.x = 140 - this.width / 2; this.y = 270;
+                this.x = 180 - this.width / 2; this.y = 270;
                 this.weaponType = 'STANDARD';
                 this.lastShot = 0; this.shootDelay = 150;
             }
@@ -2669,7 +2668,7 @@
                     this.x += (pointerX - this.width / 2 - this.x) * 0.4;
                     this.y += (pointerY - this.height / 2 - this.y) * 0.4;
                 }
-                this.x = Math.max(0, Math.min(280 - this.width, this.x));
+                this.x = Math.max(0, Math.min(360 - this.width, this.x));
                 this.y = Math.max(0, Math.min(340 - this.height, this.y));
 
                 const now = Date.now();
@@ -2720,19 +2719,19 @@
 
         class ShooterEnemy {
             constructor(roundNum = 1) {
-                this.type = roundNum >= 2 && Math.random() > 0.4 ? 'ADVANCED' : 'BASIC';
+                this.type = roundNum >= 2 && Math.random() > 0.35 ? 'ADVANCED' : 'BASIC';
                 this.width = this.type === 'ADVANCED' ? 30 : 24;
                 this.height = this.type === 'ADVANCED' ? 30 : 24;
-                this.x = Math.random() * (280 - this.width);
+                this.x = Math.random() * (360 - this.width);
                 this.y = -this.height;
-                this.hp = this.type === 'ADVANCED' ? 3 : 1;
-                this.speed = (this.type === 'ADVANCED' ? 1.5 : 2) + (roundNum * 0.08);
+                this.hp = this.type === 'ADVANCED' ? Math.min(6, Math.floor(2 + (roundNum * 0.4))) : 1;
+                this.speed = (this.type === 'ADVANCED' ? 1.6 : 2.2) + (roundNum * 0.12);
                 this.lastShot = Date.now() + Math.random() * 1000;
-                this.shootInterval = Math.max(800, 2400 - (roundNum * 30));
+                this.shootInterval = Math.max(600, 2200 - (roundNum * 50));
             }
             update() {
                 this.y += this.speed;
-                if (this.type === 'ADVANCED') this.x += Math.sin(this.y * 0.05) * 1.5;
+                if (this.type === 'ADVANCED') this.x += Math.sin(this.y * 0.05) * 2;
                 const now = Date.now();
                 if (now - this.lastShot > this.shootInterval && this.y > 0 && this.y < 260) {
                     this.shoot();
@@ -2741,10 +2740,10 @@
             }
             shoot() {
                 if (this.type === 'BASIC') {
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y + this.height, 0, 3.2, '#ef4444'));
+                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y + this.height, 0, 3.5, '#ef4444'));
                 } else {
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + 4, this.y + this.height, -0.6, 3.6, '#f97316'));
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width - 8, this.y + this.height, 0.6, 3.6, '#f97316'));
+                    shooterEnemyBullets.push(new ShooterBullet(this.x + 4, this.y + this.height, -0.8, 3.8, '#f97316'));
+                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width - 8, this.y + this.height, 0.8, 3.8, '#f97316'));
                 }
             }
             draw() {
@@ -2762,12 +2761,12 @@
         class ShooterBoss {
             constructor(roundNum) {
                 this.width = 80; this.height = 55;
-                this.x = 280 / 2 - this.width / 2; this.y = -this.height;
-                const scalingFactor = (roundNum / 50);
-                this.maxHp = Math.floor(25 + (scalingFactor * 220));
+                this.x = 360 / 2 - this.width / 2; this.y = -this.height;
+                const scalingFactor = Math.pow(1.25, roundNum - 3);
+                this.maxHp = Math.floor(35 * scalingFactor);
                 this.hp = this.maxHp; 
                 this.targetY = 40;
-                this.vx = 1.5 + (roundNum * 0.05);
+                this.vx = 1.6 + (roundNum * 0.08);
                 this.lastAttackTime = Date.now();
                 this.spiralAngle = 0; this.phase = 1; this.roundNum = roundNum;
             }
@@ -2776,13 +2775,13 @@
                 this.phase = (this.hp / this.maxHp) <= 0.4 ? 2 : 1;
                 if (this.phase === 1) {
                     this.x += this.vx;
-                    if (this.x <= 15 || this.x + this.width >= 265) this.vx *= -1;
+                    if (this.x <= 15 || this.x + this.width >= 345) this.vx *= -1;
                 } else {
-                    this.x += Math.sin(Date.now() * 0.005) * 3.5;
-                    this.x = Math.max(10, Math.min(280 - this.width - 10, this.x));
+                    this.x += Math.sin(Date.now() * 0.005) * 4;
+                    this.x = Math.max(10, Math.min(360 - this.width - 10, this.x));
                 }
                 const now = Date.now();
-                const cd = this.phase === 2 ? 650 : 950;
+                const cd = this.phase === 2 ? 550 : 850;
                 if (now - this.lastAttackTime > cd) {
                     this.attack();
                     this.lastAttackTime = now;
@@ -2793,13 +2792,13 @@
                 const by = this.y + this.height;
                 if (this.phase === 1) {
                     for (let i = -1; i <= 1; i++) {
-                        shooterEnemyBullets.push(new ShooterBullet(cx - 2 + (i * 8), by, i * 0.6, 3.4, '#e11d48'));
+                        shooterEnemyBullets.push(new ShooterBullet(cx - 2 + (i * 8), by, i * 0.7, 3.8, '#e11d48'));
                     }
                 } else {
-                    this.spiralAngle += 0.35;
-                    for (let i = 0; i < 4; i++) {
-                        let angle = this.spiralAngle + (i * Math.PI / 2);
-                        shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(angle) * 2.6, Math.sin(angle) * 2.6, '#f43f5e'));
+                    this.spiralAngle += 0.4;
+                    for (let i = 0; i < 6; i++) {
+                        let angle = this.spiralAngle + (i * Math.PI / 3);
+                        shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(angle) * 3, Math.sin(angle) * 3, '#f43f5e'));
                     }
                 }
             }
@@ -2813,11 +2812,11 @@
                 shooterCtx.closePath();
                 shooterCtx.fill();
 
-                const bw = 140, bh = 6, bx = (280 - bw) / 2, by = 15;
+                const bw = 140, bh = 6, bx = (360 - bw) / 2, by = 15;
                 shooterCtx.fillStyle = 'rgba(15, 23, 42, 0.85)';
                 shooterCtx.fillRect(bx, by, bw, bh);
                 shooterCtx.fillStyle = this.phase === 2 ? '#f43f5e' : '#ef4444';
-                shooterCtx.fillRect(bx, by, bw * (this.hp / this.maxHp), bh);
+                shooterCtx.fillRect(bx, by, bw * Math.max(0, this.hp / this.maxHp), bh);
             }
         }
 
@@ -2859,7 +2858,7 @@
         function initShooterStars() {
             shooterStars = [];
             for (let i = 0; i < 40; i++) {
-                shooterStars.push({ x: Math.random() * 280, y: Math.random() * 340, size: Math.random() * 1.5 + 0.5, speed: Math.random() * 1 + 0.5 });
+                shooterStars.push({ x: Math.random() * 360, y: Math.random() * 340, size: Math.random() * 1.5 + 0.5, speed: Math.random() * 1 + 0.5 });
             }
         }
 
@@ -2890,11 +2889,11 @@
             if (!shooterRunning) return;
             if (!shooterCtx) { initShooterCanvas(); if (!shooterCtx) return; }
 
-            shooterCtx.clearRect(0, 0, 280, 340);
+            shooterCtx.clearRect(0, 0, 360, 340);
             shooterCtx.fillStyle = '#ffffff';
             shooterStars.forEach(s => {
                 s.y += s.speed;
-                if (s.y > 340) { s.y = 0; s.x = Math.random() * 280; }
+                if (s.y > 340) { s.y = 0; s.x = Math.random() * 360; }
                 shooterCtx.globalAlpha = s.speed / 2;
                 shooterCtx.fillRect(s.x, s.y, s.size, s.size);
             });
@@ -2903,7 +2902,7 @@
             shooterPlayer.update();
             shooterPlayer.draw();
 
-            if (!shooterBoss && shooterEnemies.length < 4 && Math.random() < 0.03) {
+            if (!shooterBoss && shooterEnemies.length < 5 && Math.random() < 0.04) {
                 shooterEnemies.push(new ShooterEnemy(shooterRound));
             }
 
@@ -2918,7 +2917,7 @@
                 shooterCtx.font = "bold 15px monospace";
                 shooterCtx.textAlign = "center";
                 shooterCtx.fillStyle = "#38bdf8";
-                shooterCtx.fillText(announcementText, 140, 170);
+                shooterCtx.fillText(announcementText, 180, 170);
                 shooterCtx.restore();
             }
 
@@ -2934,7 +2933,7 @@
                     shooterLives--;
                     audio.playSFX('gameover');
                     updateShooterHUD();
-                    if (shooterLives <= 0) { endSpaceShooter(false); return; }
+                    if (shooterLives <= 0) { endSpaceShooter(); return; }
                 }
                 if (eb.y > 350 || eb.y < -10) shooterEnemyBullets.splice(idx, 1);
             });
@@ -2948,7 +2947,7 @@
                     shooterLives--;
                     audio.playSFX('gameover');
                     updateShooterHUD();
-                    if (shooterLives <= 0) { endSpaceShooter(false); return; }
+                    if (shooterLives <= 0) { endSpaceShooter(); return; }
                 }
 
                 shooterBullets.forEach((b, bIdx) => {
@@ -2965,7 +2964,7 @@
                             if (enemiesDefeatedInRound >= requiredEnemiesForRound) {
                                 shooterRound++;
                                 enemiesDefeatedInRound = 0;
-                                requiredEnemiesForRound += 2;
+                                requiredEnemiesForRound += 4;
                                 
                                 if (shooterRound % 3 === 0) {
                                     announcementText = `WARNING: BOSS ROUND`;
@@ -2996,7 +2995,7 @@
                             shooterBoss = null;
                             shooterRound++;
                             enemiesDefeatedInRound = 0;
-                            requiredEnemiesForRound += 3;
+                            requiredEnemiesForRound += 5;
 
                             announcementText = `ROUND ${shooterRound}`;
                             announcementTimer = 90;
@@ -3041,7 +3040,7 @@
                 const updateFrostPointer = (clientX) => {
                     const rect = frostCanvas.getBoundingClientRect();
                     let canvasX = (clientX - rect.left) * (frostCanvas.width / rect.width);
-                    if (frostPaddle) frostPaddle.x = Math.max(0, Math.min(280 - frostPaddle.width, canvasX - frostPaddle.width / 2));
+                    if (frostPaddle) frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, canvasX - frostPaddle.width / 2));
                 };
                 frostCanvas.onmousemove = e => updateFrostPointer(e.clientX);
                 frostCanvas.ontouchmove = e => { e.preventDefault(); updateFrostPointer(e.touches[0].clientX); };
@@ -3055,8 +3054,8 @@
             if (!frostCtx) return;
             frostRunning = true;
             frostScore = 0; frostLives = 3; frostLvl = 1; frostScreenShake = 0;
-            frostPaddle = { x: 105, y: 315, width: 70, height: 10 };
-            frostBall = { x: 140, y: 180, vx: 2.5, vy: -3, radius: 5 };
+            frostPaddle = { x: 145, y: 315, width: 70, height: 10 };
+            frostBall = { x: 180, y: 180, vx: 2.5, vy: -3, radius: 5 };
             buildFrostBricks();
             updateFrostHUD();
             cancelAnimationFrame(frostAnimId);
@@ -3065,7 +3064,7 @@
 
         function buildFrostBricks() {
             frostBricks = [];
-            const rows = 4, cols = 6, width = 40, height = 16, padding = 5, offsetTop = 35, offsetLeft = 17;
+            const rows = 4, cols = 8, width = 36, height = 16, padding = 5, offsetTop = 35, offsetLeft = 13;
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
                     frostBricks.push({ x: offsetLeft + c * (width + padding), y: offsetTop + r * (height + padding), width: width, height: height, status: 1 });
@@ -3090,11 +3089,11 @@
             }
 
             frostCtx.fillStyle = '#080d1a';
-            frostCtx.fillRect(0, 0, 280, 340);
+            frostCtx.fillRect(0, 0, 360, 340);
 
             frostCtx.strokeStyle = '#0284c7';
             frostCtx.lineWidth = 3;
-            frostCtx.strokeRect(4, 4, 272, 332);
+            frostCtx.strokeRect(4, 4, 352, 332);
 
             let activeBricks = 0;
             frostBricks.forEach(b => {
@@ -3117,7 +3116,7 @@
             frostBall.x += frostBall.vx;
             frostBall.y += frostBall.vy;
 
-            if (frostBall.x - frostBall.radius < 8 || frostBall.x + frostBall.radius > 272) {
+            if (frostBall.x - frostBall.radius < 8 || frostBall.x + frostBall.radius > 352) {
                 frostBall.vx *= -1;
                 audio.playSFX('move');
             }
@@ -3158,7 +3157,7 @@
                     frostCtx.restore();
                     return;
                 } else {
-                    frostBall.x = 140; frostBall.y = 180; frostBall.vy = -3;
+                    frostBall.x = 180; frostBall.y = 180; frostBall.vy = -3;
                 }
             }
 
