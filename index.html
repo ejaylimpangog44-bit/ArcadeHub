@@ -2888,6 +2888,39 @@
             shooterLoop();
         }
 
+        function advanceShooterRound() {
+            shooterRound = Math.min(50, shooterRound + 1);
+            enemiesDefeatedInRound = 0;
+            requiredEnemiesForRound += 2;
+
+            if (shooterRound > 50) {
+                completeShooterGame();
+                return;
+            }
+
+            if (shooterRound % 3 === 0) {
+                announcementText = `WARNING: BOSS ROUND`;
+                announcementTimer = 120;
+                shooterBoss = new ShooterBoss(shooterRound);
+            } else {
+                announcementText = `ROUND ${shooterRound}`;
+                announcementTimer = 90;
+            }
+            updateShooterHUD();
+        }
+
+        function completeShooterGame() {
+            shooterRunning = false;
+            cancelAnimationFrame(shooterAnimId);
+            shooterBoss = null;
+            audio.playSFX('win');
+            const overlayTitle = document.getElementById('shooter-over-title');
+            overlayTitle.textContent = "VICTORY!";
+            overlayTitle.style.color = "#22c55e";
+            document.getElementById('final-shooter-score').textContent = `Final Score: ${shooterScore}`;
+            document.getElementById('shooter-gameover-overlay').classList.add('active');
+        }
+
         function shooterLoop() {
             if (!shooterRunning) return;
             if (!shooterCtx) { initShooterCanvas(); if (!shooterCtx) return; }
@@ -2964,19 +2997,11 @@
                             shooterScore += 100;
                             enemiesDefeatedInRound++;
                             
-                            if (enemiesDefeatedInRound >= requiredEnemiesForRound && shooterRound < 50 && !shooterBoss) {
-                                shooterRound++;
-                                enemiesDefeatedInRound = 0;
-                                requiredEnemiesForRound += 2;
-                                
-                                if (shooterRound % 3 === 0) {
-                                    announcementText = `WARNING: BOSS ROUND`;
-                                    announcementTimer = 120;
-                                    shooterBoss = new ShooterBoss(shooterRound);
-                                } else {
-                                    announcementText = `ROUND ${shooterRound}`;
-                                    announcementTimer = 90;
-                                }
+                            if (
+                                enemiesDefeatedInRound >= requiredEnemiesForRound &&
+                                !shooterBoss
+                            ) {
+                                advanceShooterRound();
                             }
                             updateShooterHUD();
                         }
@@ -2995,17 +3020,18 @@
                         if (shooterBoss.hp <= 0) {
                             audio.playSFX('win');
                             shooterScore += 2500;
-                            shooterBoss = null; // Cleanly clear boss reference so loop won't freeze
-                            shooterEnemies = []; // Clear remaining enemies immediately
-                            
-                            // Immediately advance round to Round 4+ and scale smoothly
-                            shooterRound = Math.min(50, shooterRound + 1);
-                            enemiesDefeatedInRound = 0;
-                            requiredEnemiesForRound += 2;
 
-                            announcementText = shooterRound > 50 ? `VICTORY!` : `ROUND ${shooterRound}`;
-                            announcementTimer = 90;
-                            updateShooterHUD();
+                            // Remove the defeated boss
+                            shooterBoss = null;
+
+                            // Clear remaining enemies
+                            shooterEnemies = [];
+
+                            // Clear enemy projectiles
+                            shooterEnemyBullets = [];
+
+                            // Automatically continue to the next round
+                            advanceShooterRound();
                         }
                     }
                 });
