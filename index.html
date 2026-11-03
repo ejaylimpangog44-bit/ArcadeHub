@@ -1202,7 +1202,7 @@
         </div>
     </div>
 
-    <!-- Piano Tiles -->
+    <!-- Piano Tiles (Upgraded with Real Songs) -->
     <div id="piano-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1213,14 +1213,19 @@
                 <div class="score-box">Score 🎵 <span id="piano-score">0</span></div>
                 <div class="score-box">Best 🏆 <span id="piano-high">0</span></div>
             </div>
+            <!-- Song Selector Bar -->
+            <div style="display: flex; gap: 6px; margin-bottom: 8px; width: 100%;">
+                <button class="opt-btn active" id="song-btn-ode" onclick="setPianoSong('odeToJoy', this)" style="font-size: 0.7rem; padding: 6px;">Ode to Joy</button>
+                <button class="opt-btn" id="song-btn-twinkle" onclick="setPianoSong('twinkle', this)" style="font-size: 0.7rem; padding: 6px;">Twinkle Star</button>
+            </div>
             <div style="position: relative; display: inline-block;">
-                <canvas id="piano-canvas" class="arcade-canvas" width="280" height="340" style="touch-action: none; cursor: pointer;"></canvas>
+                <canvas id="piano-canvas" class="arcade-canvas" width="280" height="310" style="touch-action: none; cursor: pointer;"></canvas>
                 <div id="piano-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
                     <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER 💀</h2>
                     <button class="action-btn" onclick="startPianoGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Tap the black tiles as they fall! Don't miss any!</p>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Tap falling tiles to perform the song!</p>
         </div>
     </div>
 
@@ -1328,7 +1333,7 @@
         </div>
     </div>
 
-    <!-- Brick Breaker (Fully Upgraded with Power-up Drops) -->
+    <!-- Brick Breaker -->
     <div id="frostgame-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1750,18 +1755,22 @@
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
 
+        // REAL MUSIC PIANO TILES DATABASE & VARIABLES
+        const pianoSongs = {
+            odeToJoy: [330, 330, 349, 392, 392, 349, 330, 294, 262, 262, 294, 330, 330, 294, 294],
+            twinkle: [262, 262, 392, 392, 440, 440, 392, 349, 349, 330, 330, 294, 294, 262]
+        };
+        let currentSongKey = 'odeToJoy';
+        let currentNoteIndex = 0;
         let pianoCanvas, pianoCtx, pianoRunning = false, pianoScore = 0, pianoAnimId;
         let pianoTiles = [];
         const pianoLanes = 4;
         let pianoSpeed = 3.5;
-        const pianoFrequencies = [261.63, 293.66, 329.63, 349.23];
 
-        let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
-
-        // Fully Upgraded Brick Breaker Variables
+        // Brick Breaker Variables
         let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBalls = [], frostBricks = [], frostDrops = [], frostScreenShake = 0;
 
-        // PAC-MAN ARCADE WITH GHOSTS VARIABLES
+        // Pac-Man Arcade Variables
         let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
         let pacman = { x: 1, y: 1, dx: 1, dy: 0 };
         let pacDots = [];
@@ -1836,7 +1845,7 @@
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
         }
 
-        // PIANO TILES LOGIC
+        // REAL MUSIC PIANO TILES LOGIC
         function initPianoCanvas() {
             pianoCanvas = document.getElementById('piano-canvas');
             if (pianoCanvas) {
@@ -1851,6 +1860,14 @@
             }
         }
 
+        function setPianoSong(key, btn) {
+            audio.playSFX('click');
+            currentSongKey = key;
+            document.querySelectorAll('#piano-container .opt-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            startPianoGame();
+        }
+
         function startPianoGame() {
             audio.playSFX('click');
             document.getElementById('piano-gameover-overlay').style.display = 'none';
@@ -1860,16 +1877,26 @@
             pianoScore = 0;
             pianoSpeed = 3.5;
             pianoTiles = [];
+            currentNoteIndex = 0;
             document.getElementById('piano-score').textContent = pianoScore;
             document.getElementById('piano-high').textContent = ScoreManager.getStats('pianotiles').highScore;
-            for (let i = 0; i < 4; i++) { spawnPianoTile(-i * 90); }
+            for (let i = 0; i < 4; i++) { spawnPianoTile(-i * 85); }
             cancelAnimationFrame(pianoAnimId);
             pianoLoop();
         }
 
         function spawnPianoTile(yPos) {
             let lane = Math.floor(Math.random() * pianoLanes);
-            pianoTiles.push({ lane: lane, y: yPos, height: 85, clicked: false });
+            let songNotes = pianoSongs[currentSongKey];
+            let noteFreq = songNotes[currentNoteIndex % songNotes.length];
+            pianoTiles.push({ 
+                lane: lane, 
+                y: yPos, 
+                height: 80, 
+                clicked: false, 
+                frequency: noteFreq 
+            });
+            currentNoteIndex++;
         }
 
         function handlePianoTap(e) {
@@ -1885,9 +1912,9 @@
                     t.clicked = true;
                     hit = true;
                     pianoScore++;
-                    audio.playTone(pianoFrequencies[t.lane], 0.12);
+                    audio.playTone(t.frequency, 0.18);
                     document.getElementById('piano-score').textContent = pianoScore;
-                    if (pianoScore % 10 === 0) pianoSpeed += 0.4;
+                    if (pianoScore % 10 === 0) pianoSpeed += 0.35;
                 }
             });
             if (!hit) endPianoGame();
@@ -1914,7 +1941,7 @@
             });
             pianoTiles.forEach(t => { if (!t.clicked && t.y > pianoCanvas.height) endPianoGame(); });
             let topTileY = Math.min(...pianoTiles.map(t => t.y));
-            if (topTileY > 0) spawnPianoTile(topTileY - 95);
+            if (topTileY > 0) spawnPianoTile(topTileY - 90);
             pianoTiles = pianoTiles.filter(t => t.y < pianoCanvas.height + 50);
             if (pianoRunning) pianoAnimId = requestAnimationFrame(pianoLoop);
         }
@@ -2147,12 +2174,10 @@
             });
         }
 
-        // DINOSAUR STATIONARY & OBSTACLES JUMPING LOGIC
+        // DINOSAUR LOGIC
         function initDinoCanvas() {
             dinoCanvas = document.getElementById('dino-canvas');
-            if (dinoCanvas) {
-                dinoCtx = dinoCanvas.getContext('2d');
-            }
+            if (dinoCanvas) dinoCtx = dinoCanvas.getContext('2d');
         }
 
         function startDinoGame() {
@@ -2208,7 +2233,6 @@
             });
 
             dinoObstacles = dinoObstacles.filter(o => o.x > -40);
-
             dinoScore++;
             document.getElementById('dino-score').textContent = dinoScore;
             isDinoNight = Math.floor(dinoScore / 500) % 2 === 1;
@@ -2279,10 +2303,9 @@
             pacLives = 3;
             pacman = { x: 1, y: 1, dx: 1, dy: 0 };
             
-            // Initialize Ghost Enemies
             ghosts = [
-                { x: 11, y: 1, color: '#ef4444', dx: -1, dy: 0 }, // Red Ghost
-                { x: 11, y: 11, color: '#ec4899', dx: 0, dy: -1 } // Pink Ghost
+                { x: 11, y: 1, color: '#ef4444', dx: -1, dy: 0 },
+                { x: 11, y: 11, color: '#ec4899', dx: 0, dy: -1 }
             ];
 
             pacDots = [];
@@ -2314,7 +2337,6 @@
             pacTick++;
 
             if (pacTick % 12 === 0) {
-                // Move Pac-Man
                 pacman.x += pacman.dx;
                 pacman.y += pacman.dy;
                 if (pacman.x < 0) pacman.x = pacGridSize - 1;
@@ -2322,7 +2344,6 @@
                 if (pacman.y < 0) pacman.y = pacGridSize - 1;
                 if (pacman.y >= pacGridSize) pacman.y = 0;
 
-                // Move Ghosts randomly on grid intersections
                 ghosts.forEach(g => {
                     const directions = [{dx:0, dy:-1}, {dx:0, dy:1}, {dx:-1, dy:0}, {dx:1, dy:0}];
                     if (Math.random() < 0.6) {
@@ -2338,7 +2359,6 @@
                     if (g.y >= pacGridSize) g.y = 0;
                 });
 
-                // Check Dot consumption
                 pacDots = pacDots.filter(d => {
                     if (d.x === pacman.x && d.y === pacman.y) {
                         audio.playSFX('score');
@@ -2349,13 +2369,11 @@
                     return true;
                 });
 
-                // Check Ghost Collision (Lose Life)
                 ghosts.forEach(g => {
                     if (g.x === pacman.x && g.y === pacman.y) {
                         audio.playSFX('gameover');
                         pacLives--;
                         document.getElementById('pac-lives').textContent = pacLives;
-                        // Reset positions
                         pacman.x = 1; pacman.y = 1; pacman.dx = 1; pacman.dy = 0;
                         if (pacLives <= 0) {
                             pacRunning = false;
@@ -2373,12 +2391,10 @@
                 }
             }
 
-            // Render Arena
             pacCtx.fillStyle = '#0b0f19';
             pacCtx.fillRect(0, 0, pacCanvas.width, pacCanvas.height);
             let tileSize = pacCanvas.width / pacGridSize;
 
-            // Draw Dots
             pacCtx.fillStyle = '#fbbf24';
             pacDots.forEach(d => {
                 pacCtx.beginPath();
@@ -2386,7 +2402,6 @@
                 pacCtx.fill();
             });
 
-            // Draw Ghosts
             ghosts.forEach(g => {
                 pacCtx.fillStyle = g.color;
                 pacCtx.beginPath();
@@ -2398,7 +2413,6 @@
                 pacCtx.fill();
             });
 
-            // Draw Pac-Man with Animated Mouth
             pacCtx.fillStyle = '#eab308';
             pacCtx.beginPath();
             let x = pacman.x * tileSize + tileSize / 2;
@@ -2424,6 +2438,7 @@
         }
 
         // FRUIT SLASHER LOGIC
+        let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
         function initFruitCanvas() {
             fruitCanvas = document.getElementById('fruit-canvas');
             if (fruitCanvas) {
@@ -2527,7 +2542,7 @@
             });
             flyingFruits = flyingFruits.filter(f => f.y < 340);
 
-            sliceTrails.forEach((t, i) => {
+            sliceTrails.forEach((t) => {
                 t.alpha -= 0.08;
                 if (t.alpha > 0) {
                     fruitCtx.strokeStyle = `rgba(56, 189, 248, ${t.alpha})`;
@@ -2719,7 +2734,7 @@
             document.getElementById('reaction-time').textContent = "0 ms";
         }
 
-        // FULLY UPGRADED BRICK BREAKER LOGIC (POWER-UPS & DROPS)
+        // BRICK BREAKER LOGIC
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
             if (frostCanvas) {
@@ -2812,11 +2827,9 @@
                 updateFrostHUD();
             }
 
-            // Paddle render
             frostCtx.fillStyle = '#38bdf8';
             frostCtx.fillRect(frostPaddle.x, frostPaddle.y, frostPaddle.width, frostPaddle.height);
 
-            // Update & Render Drops (Power-ups & Bombs)
             frostDrops.forEach(d => {
                 d.y += 2.2;
                 frostCtx.fillStyle = d.type === 'bomb' ? '#ef4444' : (d.type === 'multiball' ? '#10b981' : '#f59e0b');
@@ -2867,10 +2880,8 @@
             });
             frostDrops = frostDrops.filter(d => !d.collected && d.y < 340);
 
-            let activeBallsCount = 0;
             frostBalls.forEach(ball => {
                 if (!ball.active) return;
-                activeBallsCount++;
 
                 ball.x += ball.vx;
                 ball.y += ball.vy;
@@ -2931,8 +2942,8 @@
                 if (frostLives <= 0) {
                     frostRunning = false;
                     document.getElementById('final-frost-score').textContent = `Final Score: ${frostScore}`;
-                    document.getElementById('final-frost-score').style.display = 'flex';
-                    let stats = ScoreManager.saveScore('brickbreaker', frostScore);
+                    document.getElementById('frost-gameover-overlay').style.display = 'flex';
+                    ScoreManager.saveScore('brickbreaker', frostScore);
                     frostCtx.restore();
                     return;
                 } else {
