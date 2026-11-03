@@ -322,6 +322,14 @@
             margin-bottom: 20px;
         }
 
+        /* Fullscreen Snake scaling */
+        #snakegame-container:fullscreen canvas {
+            width: 70vw !important;
+            height: 70vw !important;
+            max-width: 400px !important;
+            max-height: 400px !important;
+        }
+
         .game-floating-nav {
             position: absolute;
             top: 4px;
@@ -1706,7 +1714,7 @@
         </div>
         <div class="body-dial"></div>
         <div class="body-bolt left-bolt"></div>
-        <div class="body-bolt right-bolt"></div>
+        <div class="robot-bolt right-bolt"></div>
       </div>
     </div>
 
@@ -1940,7 +1948,6 @@
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById(containerId).classList.add('active');
 
-            // Auto-start game upon opening
             if (containerId === 'snakegame-container') startSnakeGame();
             if (containerId === 'flappygame-container') startFlappyGame();
             if (containerId === 'dinogame-container') startDinoGame();
@@ -2655,7 +2662,29 @@
         // Pac-Man Logic
         function initPacManCanvas() {
             pacCanvas = document.getElementById('pac-canvas');
-            if (pacCanvas) pacCtx = pacCanvas.getContext('2d');
+            if (pacCanvas) {
+                pacCtx = pacCanvas.getContext('2d');
+                let touchStartX = 0, touchStartY = 0;
+                pacCanvas.addEventListener('touchstart', (e) => {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    e.preventDefault();
+                }, { passive: false });
+                pacCanvas.addEventListener('touchend', (e) => {
+                    if (!touchStartX || !touchStartY) return;
+                    let diffX = e.changedTouches[0].clientX - touchStartX;
+                    let diffY = e.changedTouches[0].clientY - touchStartY;
+                    if (Math.abs(diffX) > Math.abs(diffY)) {
+                        if (diffX > 30) changePacDir('RIGHT');
+                        else if (diffX < -30) changePacDir('LEFT');
+                    } else {
+                        if (diffY > 30) changePacDir('DOWN');
+                        else if (diffY < -30) changePacDir('UP');
+                    }
+                    touchStartX = 0; touchStartY = 0;
+                    e.preventDefault();
+                }, { passive: false });
+            }
         }
 
         function startPacManGame() {
