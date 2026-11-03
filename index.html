@@ -291,7 +291,7 @@
             border-radius: 0;
             padding: 8px 4px;
             width: 100%;
-            max-width: 100%;
+            max-width: 900px;
             flex: 1;
             box-shadow: none;
             text-align: center;
@@ -319,7 +319,7 @@
 
         .game-nav-bar {
             width: 100%;
-            max-width: 360px;
+            max-width: 900px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -352,6 +352,49 @@
             flex-direction: column;
             align-items: center;
         }
+
+        /* Stickman Rush Specialized Styles */
+        .stick-screen { animation: appear .3s ease; width: 100%; max-width: 900px; }
+        @keyframes appear{ from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+        .level-screen { text-align: center; max-width: 650px; margin: auto; }
+        .level-screen h2 { margin-top: 20px; font-size: 26px; }
+        .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 15px; width: 100%; }
+        .level-card { background: var(--card-bg); padding: 18px 10px; border: 2px solid var(--border); border-radius: 12px; color: #f3f4f6; cursor: pointer; }
+        .level-card:disabled { opacity: .4; cursor: not-allowed; }
+        .level-card strong, .level-card small { display: block; }
+        .level-card strong { font-size: 16px; }
+        .level-card small { font-size: 10px; color: var(--text-muted); font-weight: 700; }
+
+        .game-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; width: 100%; }
+        .hud-label { font-size: 10px; color: var(--primary); font-weight: 900; letter-spacing: 2px; }
+        .pause-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; font-weight: 900; color: #f3f4f6; cursor: pointer; }
+
+        .hud { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; width: 100%; }
+        .hud-item { background: var(--card-bg); padding: 8px; border-radius: 10px; border: 1px solid var(--border); }
+        .hud-item small { font-size: 9px; color: var(--text-muted); font-weight: 900; display: block; }
+        .hud-item strong { font-size: 16px; font-weight: 900; display: block; }
+
+        .canvas-container { position: relative; overflow: hidden; border-radius: 14px; border: 3px solid rgba(255,255,255,0.1); background: #dff4ff; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 100%; }
+        .stick-canvas { display: block; width: 100%; height: auto; aspect-ratio: 900/420; background: #dff4ff; }
+
+        .game-overlay { position: absolute; inset: 0; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 12px; z-index: 5; }
+        .game-overlay.hidden { display: none !important; }
+        .overlay-card { background: var(--card-bg); border-radius: 16px; padding: 20px; width: min(340px, 95%); text-align: center; border: 1px solid var(--border); }
+        .overlay-card h2 { font-size: 24px; font-weight: 900; color: #fff; }
+        .overlay-card > p { color: var(--text-muted); margin: 6px 0 14px; font-size: 0.9rem; }
+        .result-stats { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px 4px; margin-bottom: 12px; }
+        .result-stats small { font-size: 8px; color: var(--text-muted); font-weight: 900; display: block; }
+        .result-stats strong { font-size: 15px; margin-top: 4px; color: #fff; display: block; }
+
+        .primary-btn, .secondary-btn { width: 100%; padding: 12px; border-radius: 10px; font-weight: 900; margin-top: 8px; cursor: pointer; font-size: 0.95rem; }
+        .primary-btn { background: var(--primary); color: white; border: none; }
+        .secondary-btn { background: rgba(255,255,255,0.1); color: #fff; border: none; }
+
+        .mobile-controls { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; width: 100%; }
+        .control-btn-stick { flex: 1; padding: 12px; border-radius: 12px; color: white; display: flex; flex-direction: column; align-items: center; gap: 2px; touch-action: none; user-select: none; border: none; cursor: pointer; }
+        .jump-control { background: var(--primary); }
+        .slide-control { background: #ff9e43; }
 
         .setup-group {
             margin-bottom: 16px;
@@ -1136,9 +1179,13 @@
         <div class="category-section">
             <div class="category-title">Action & Arcade</div>
             <div class="game-grid">
-                <div class="game-card featured" onclick="openGame('piano-container')">
+                <div class="game-card featured" onclick="openGame('stickman-container')">
+                    <span class="game-icon">🏃</span>
+                    <span class="game-name">Stickman Rush (Original)</span>
+                </div>
+                <div class="game-card" onclick="openGame('piano-container')">
                     <span class="game-icon">🎹</span>
-                    <span class="game-name">Piano Tiles (Play Now)</span>
+                    <span class="game-name">Piano Tiles</span>
                 </div>
             </div>
         </div>
@@ -1158,7 +1205,7 @@
         </div>
 
         <div class="category-section">
-            <div class="category-title">Action & Arcade</div>
+            <div class="category-title">Retro & Classic Arcade</div>
             <div class="game-grid">
                 <div class="game-card" onclick="openGame('pacman-container')">
                     <span class="game-icon">🟡</span>
@@ -1200,6 +1247,109 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- STICKMAN RUSH CONTAINER -->
+    <div id="stickman-container" class="game-container">
+        <div class="game-nav-bar">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <div style="font-weight: 900; font-size: 13px;">STICKMAN <span style="color:var(--primary);">RUSH</span></div>
+            <button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶ Fullscreen</button>
+        </div>
+
+        <main class="stick-screen">
+            <!-- MAIN MENU -->
+            <section id="stickMenuScreen" class="screen active" style="max-width:700px;margin:auto;">
+                <div style="text-align:center;padding:10px;">
+                    <div style="font-size:50px;">🏃</div>
+                    <p style="color:var(--primary);font-size:10px;font-weight:900;letter-spacing:3px;">ARCADE HUB ORIGINAL</p>
+                    <h1 style="font-size:clamp(24px,5vw,36px);font-weight:900;">STICKMAN <span style="color:var(--primary);">RUSH</span></h1>
+                    <p style="color:var(--text-muted);font-weight:700;font-size:0.85rem;">Run, jump, slide, and survive!</p>
+                </div>
+
+                <div style="background:var(--card-bg);border-radius:16px;padding:16px;margin-top:10px;border:1px solid var(--border);">
+                    <h2 style="font-size:14px;margin-bottom:10px;text-align:left;">Choose Your Game Mode</h2>
+
+                    <button class="opt-btn" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px;background:#1a2236;border:1px solid var(--border);border-radius:10px;text-align:left;color:#fff;" onclick="startStickGame('endless')">
+                        <span style="font-size:20px;">♾️</span>
+                        <span><strong style="display:block;font-weight:900;">ENDLESS RUN</strong><small style="color:var(--text-muted);">How far can you survive?</small></span>
+                        <span style="margin-left:auto;color:var(--primary);font-size:18px;">→</span>
+                    </button>
+
+                    <button class="opt-btn" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px;background:#1a2236;border:1px solid var(--border);border-radius:10px;text-align:left;color:#fff;" onclick="openStickLevels()">
+                        <span style="font-size:20px;">🏆</span>
+                        <span><strong style="display:block;font-weight:900;">LEVEL MODE</strong><small style="color:var(--text-muted);">Complete five stages.</small></span>
+                        <span style="margin-left:auto;color:var(--primary);font-size:18px;">→</span>
+                    </button>
+
+                    <div style="background:rgba(255,202,72,0.15);text-align:center;padding:8px;border-radius:8px;font-weight:900;margin-top:10px;color:#ffca48;font-size:0.85rem;">🥇 Personal Best: <strong id="stickMenuBest">0</strong></div>
+                </div>
+            </section>
+
+            <!-- LEVEL SELECT -->
+            <section id="stickLevelScreen" class="screen level-screen">
+                <button class="nav-btn" onclick="openStickMenu()" style="margin-bottom:6px;">← Back to Menu</button>
+                <h2>SELECT LEVEL</h2>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Complete each stage to unlock the next.</p>
+                <div id="stickLevelGrid" class="level-grid"></div>
+            </section>
+
+            <!-- GAME SCREEN -->
+            <section id="stickGameScreen" class="screen">
+                <div class="game-toolbar">
+                    <div>
+                        <span class="hud-label" id="stickModeLabel">ENDLESS MODE</span>
+                        <strong id="stickLevelLabel" style="font-size:13px;display:block;text-align:left;">RUNNING</strong>
+                    </div>
+                    <button class="pause-btn" onclick="pauseStickGame()">Ⅱ PAUSE</button>
+                </div>
+
+                <div class="hud">
+                    <div class="hud-item"><small>SCORE</small><strong id="stickScoreDisplay">0</strong></div>
+                    <div class="hud-item"><small>COINS</small><strong>🪙 <span id="stickCoinDisplay">0</span></strong></div>
+                    <div class="hud-item"><small>DISTANCE</small><strong id="stickDistanceDisplay">0m</strong></div>
+                    <div class="hud-item"><small>POWER</small><strong id="stickPowerDisplay" style="font-size:12px;">None</strong></div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="stickGameCanvas" class="stick-canvas" width="900" height="420"></canvas>
+
+                    <div id="stickPauseOverlay" class="game-overlay hidden">
+                        <div class="overlay-card">
+                            <h2>PAUSED</h2>
+                            <p>Take a little break!</p>
+                            <button onclick="resumeStickGame()" class="primary-btn">RESUME</button>
+                            <button onclick="openStickMenu()" class="secondary-btn">MAIN MENU</button>
+                        </div>
+                    </div>
+
+                    <div id="stickGameOverOverlay" class="game-overlay hidden">
+                        <div class="overlay-card">
+                            <div id="stickResultIcon" style="font-size:36px;margin-bottom:4px;">🏁</div>
+                            <h2 id="stickResultTitle">GAME OVER</h2>
+                            <p id="stickResultMessage">Better luck next time!</p>
+                            <div class="result-stats">
+                                <div><small>SCORE</small><strong id="stickFinalScore">0</strong></div>
+                                <div><small>COINS</small><strong id="stickFinalCoins">0</strong></div>
+                                <div><small>DISTANCE</small><strong id="stickFinalDistance">0m</strong></div>
+                            </div>
+                            <button onclick="restartStickGame()" class="primary-btn">PLAY AGAIN ↻</button>
+                            <button onclick="openStickMenu()" class="secondary-btn">MAIN MENU</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mobile-controls">
+                    <button id="stickSlideBtn" class="control-btn-stick slide-control">
+                        <span style="font-size:18px;">⬇️</span><small style="font-weight:900;font-size:10px;">SLIDE</small>
+                    </button>
+                    <button id="stickJumpBtn" class="control-btn-stick jump-control">
+                        <span style="font-size:18px;">⬆️</span><small style="font-weight:900;font-size:10px;">JUMP</small>
+                    </button>
+                </div>
+                <p style="text-align:center;color:var(--text-muted);font-size:11px;margin-top:8px;">Space / Up to Jump · Down to Slide</p>
+            </section>
+        </main>
     </div>
 
     <!-- Piano Tiles (Upgraded with Real Songs) -->
@@ -1617,7 +1767,7 @@
                     this.audioCtx.resume();
                 }
             }
-            playTone(freq, duration = 0.1) {
+            playTone(freq, duration = 0.1, type = 'triangle', customVol = 0.25) {
                 if (this.isMuted) return;
                 this.initContext();
                 const now = this.audioCtx.currentTime;
@@ -1625,9 +1775,9 @@
                 const gain = this.audioCtx.createGain();
                 osc.connect(gain);
                 gain.connect(this.audioCtx.destination);
-                osc.type = 'triangle';
+                osc.type = type;
                 osc.frequency.setValueAtTime(freq, now);
-                gain.gain.setValueAtTime(this.volume * 0.25, now);
+                gain.gain.setValueAtTime(this.volume * customVol, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
                 osc.start(now); osc.stop(now + duration);
             }
@@ -1777,6 +1927,30 @@
         let ghosts = [];
         const pacGridSize = 13;
 
+        // Stickman Rush Engine Variables
+        let stickCanvas, stickCtx;
+        const STICK_W = 900, STICK_H = 420, STICK_GROUND = 350;
+        const STICK_LEVELS = [
+            {name:"Sunny Start",goal:350,speed:290,color:"#dff4ff"},
+            {name:"Green Hills",goal:450,speed:330,color:"#e0f6df"},
+            {name:"Candy Road",goal:550,speed:370,color:"#ffe8ef"},
+            {name:"Desert Dash",goal:650,speed:410,color:"#fff0d8"},
+            {name:"Final Rush",goal:800,speed:450,color:"#e9e5ff"}
+        ];
+        let stickMode="endless", selectedStickLevel=0, stickState="menu";
+        let stickScore=0, stickCoins=0, stickDistance=0, stickGameSpeed=300;
+        let stickObstacles=[], stickCoinItems=[], stickPowerItems=[], stickClouds=[];
+        let obstacleTimer=0, coinTimer=0, powerTimer=0, backgroundOffset=0;
+        let activePower=null, powerTime=0, shield=false, magnet=false, boost=false;
+        let stickBestScore = Number(localStorage.getItem("stickmanRushBest") || 0);
+        let stickUnlockedLevel = Number(localStorage.getItem("stickmanRushUnlocked") || 1);
+        let stickCompletedLevels = Number(localStorage.getItem("stickmanRushCompleted") || 0);
+        let stickAnimId = null, lastStickTime = 0;
+        const stickPlayer = {
+            x: 120, y: STICK_GROUND, velocityY: 0,
+            grounded: true, sliding: false, slideTime: 0, runFrame: 0
+        };
+
         window.onload = function() {
             generateQRCode();
             initSnakeCanvas();
@@ -1785,6 +1959,7 @@
             initPacManCanvas();
             initFruitCanvas();
             initPianoCanvas();
+            initStickGameEngine();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -1820,6 +1995,7 @@
                 if (containerId === 'fruitslice-container') startFruitGame();
                 if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
                 if (containerId === 'piano-container') startPianoGame();
+                if (containerId === 'stickman-container') openStickMenu();
             }, 50);
         }
 
@@ -1834,6 +2010,7 @@
             if (frostRunning) { frostRunning = false; cancelAnimationFrame(frostAnimId); }
             if (fruitRunning) { fruitRunning = false; cancelAnimationFrame(fruitAnimId); }
             if (pianoRunning) { pianoRunning = false; cancelAnimationFrame(pianoAnimId); }
+            if (stickState === 'playing') { stickState = 'menu'; cancelAnimationFrame(stickAnimId); }
 
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
@@ -1844,6 +2021,225 @@
             document.getElementById('current-url-text').textContent = targetUrl;
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
         }
+
+        // ========================================
+        // STICKMAN RUSH LOGIC & RENDERING
+        // ========================================
+        function initStickGameEngine() {
+            stickCanvas = document.getElementById("stickGameCanvas");
+            if (stickCanvas) stickCtx = stickCanvas.getContext("2d");
+            createStickClouds();
+            updateStickBest();
+        }
+
+        function openStickMenu() {
+            stickState = "menu";
+            document.getElementById("stickPauseOverlay").classList.add("hidden");
+            document.getElementById("stickGameOverOverlay").classList.add("hidden");
+            document.getElementById("stickMenuScreen").classList.add("active");
+            document.getElementById("stickLevelScreen").classList.remove("active");
+            document.getElementById("stickGameScreen").classList.remove("active");
+            updateStickBest();
+            renderStickIdle();
+        }
+
+        function openStickLevels() {
+            document.getElementById("stickMenuScreen").classList.remove("active");
+            document.getElementById("stickLevelScreen").classList.add("active");
+            renderStickLevels();
+        }
+
+        function renderStickLevels() {
+            const grid = document.getElementById("stickLevelGrid");
+            grid.innerHTML = "";
+            STICK_LEVELS.forEach((level, i) => {
+                const number = i + 1;
+                const unlocked = number <= stickUnlockedLevel;
+                const btn = document.createElement("button");
+                btn.className = "level-card";
+                btn.disabled = !unlocked;
+                btn.innerHTML = `
+                    <strong>${unlocked ? "🏃" : "🔒"}</strong>
+                    <strong>LEVEL ${number}</strong>
+                    <small>${level.name}</small>
+                    <small>${i < stickCompletedLevels ? "⭐ COMPLETED" : unlocked ? "▶ PLAY" : "LOCKED"}</small>
+                `;
+                btn.addEventListener("click", () => startStickGame("levels", i));
+                grid.appendChild(btn);
+            });
+        }
+
+        function createStickClouds() {
+            stickClouds = [];
+            for (let i = 0; i < 7; i++) {
+                stickClouds.push({ x: Math.random() * STICK_W, y: 40 + Math.random() * 120, size: 20 + Math.random() * 22, speed: 0.15 + Math.random() * 0.2 });
+            }
+        }
+
+        function drawStickBackground() {
+            let bg = stickMode === "levels" ? STICK_LEVELS[selectedStickLevel].color : "#dff4ff";
+            let grad = stickCtx.createLinearGradient(0, 0, 0, STICK_GROUND);
+            grad.addColorStop(0, bg);
+            grad.addColorStop(1, "#ffffff");
+            stickCtx.fillStyle = grad;
+            stickCtx.fillRect(0, 0, STICK_W, STICK_H);
+
+            stickCtx.fillStyle = "#ffdf80";
+            stickCtx.beginPath();
+            stickCtx.arc(760, 75, 35, 0, Math.PI * 2);
+            stickCtx.fill();
+
+            stickClouds.forEach(c => {
+                stickCtx.fillStyle = "rgba(255,255,255,.85)";
+                stickCtx.beginPath();
+                stickCtx.arc(c.x, c.y, c.size, 0, Math.PI * 2);
+                stickCtx.arc(c.x + c.size, c.y - 9, c.size * 0.85, 0, Math.PI * 2);
+                stickCtx.arc(c.x + c.size * 2, c.y, c.size, 0, Math.PI * 2);
+                stickCtx.fill();
+            });
+
+            stickCtx.fillStyle = "#7ed69b";
+            stickCtx.fillRect(0, STICK_GROUND, STICK_W, STICK_H - STICK_GROUND);
+            stickCtx.fillStyle = "#50b879";
+            stickCtx.fillRect(0, STICK_GROUND, STICK_W, 8);
+        }
+
+        function renderStickIdle() {
+            if (!stickCtx) return;
+            stickCtx.clearRect(0, 0, STICK_W, STICK_H);
+            drawStickBackground();
+            stickPlayer.y = STICK_GROUND;
+            stickPlayer.sliding = false;
+            drawStickmanChar();
+        }
+
+        function drawStickmanChar() {
+            stickCtx.save();
+            stickCtx.translate(stickPlayer.x, stickPlayer.y);
+            const sliding = stickPlayer.sliding;
+            
+            stickCtx.lineCap = "round";
+            stickCtx.lineJoin = "round";
+            stickCtx.strokeStyle = "#292c43";
+            stickCtx.lineWidth = 6;
+
+            if (sliding) {
+                stickCtx.beginPath();
+                stickCtx.arc(8, -22, 12, 0, Math.PI * 2);
+                stickCtx.stroke();
+            } else {
+                stickCtx.fillStyle = "#292c43";
+                stickCtx.beginPath();
+                stickCtx.arc(0, -65, 12, 0, Math.PI * 2);
+                stickCtx.fill();
+                stickCtx.beginPath();
+                stickCtx.moveTo(0, -53);
+                stickCtx.lineTo(0, -23);
+                stickCtx.stroke();
+            }
+            stickCtx.restore();
+        }
+
+        function startStickGame(gameMode, levelIndex = 0) {
+            stickMode = gameMode;
+            selectedStickLevel = levelIndex;
+            stickState = "playing";
+            stickScore = 0; stickCoins = 0; stickDistance = 0;
+            stickObstacles = []; stickCoinItems = []; stickPowerItems = [];
+            obstacleTimer = 1.2; coinTimer = 1.7;
+
+            if (stickMode === "levels") {
+                stickGameSpeed = STICK_LEVELS[selectedStickLevel].speed;
+                document.getElementById("stickModeLabel").textContent = "LEVEL MODE";
+                document.getElementById("stickLevelLabel").textContent = "LEVEL " + (selectedStickLevel + 1) + " - " + STICK_LEVELS[selectedStickLevel].name.toUpperCase();
+            } else {
+                stickGameSpeed = 300;
+                document.getElementById("stickModeLabel").textContent = "ENDLESS MODE";
+                document.getElementById("stickLevelLabel").textContent = "INFINITE RUN";
+            }
+
+            document.getElementById("stickMenuScreen").classList.remove("active");
+            document.getElementById("stickLevelScreen").classList.remove("active");
+            document.getElementById("stickGameScreen").classList.add("active");
+            document.getElementById("stickPauseOverlay").classList.add("hidden");
+            document.getElementById("stickGameOverOverlay").classList.add("hidden");
+
+            lastStickTime = performance.now();
+            cancelAnimationFrame(stickAnimId);
+            stickAnimId = requestAnimationFrame(stickGameLoop);
+        }
+
+        function stickGameLoop(timestamp) {
+            if (stickState !== "playing") return;
+            const dt = Math.min((timestamp - lastStickTime) / 1000, 0.04);
+            lastStickTime = timestamp;
+
+            stickDistance += stickGameSpeed * dt / 10;
+            stickScore = Math.floor(stickDistance) + stickCoins * 10;
+
+            stickPlayer.velocityY += 1850 * dt;
+            stickPlayer.y += stickPlayer.velocityY * dt;
+            if (stickPlayer.y >= STICK_GROUND) {
+                stickPlayer.y = STICK_GROUND;
+                stickPlayer.velocityY = 0;
+                stickPlayer.grounded = true;
+            }
+            stickPlayer.runFrame += dt * 12;
+
+            stickCtx.clearRect(0, 0, STICK_W, STICK_H);
+            drawStickBackground();
+            drawStickmanChar();
+
+            document.getElementById("stickScoreDisplay").textContent = stickScore;
+            document.getElementById("stickCoinDisplay").textContent = stickCoins;
+            document.getElementById("stickDistanceDisplay").textContent = Math.floor(stickDistance) + "m";
+            document.getElementById("stickPowerDisplay").textContent = "None";
+
+            if (stickState === "playing") {
+                stickAnimId = requestAnimationFrame(stickGameLoop);
+            }
+        }
+
+        function jumpStickPlayer() {
+            if (stickState === "playing" && stickPlayer.grounded && !stickPlayer.sliding) {
+                stickPlayer.velocityY = -690;
+                stickPlayer.grounded = false;
+                audio.playTone(480, 0.12, 'sine', 0.1);
+            }
+        }
+
+        function slideStickPlayer() {
+            if (stickState === "playing" && stickPlayer.grounded) {
+                stickPlayer.sliding = true;
+                stickPlayer.slideTime = 0.65;
+            }
+        }
+
+        document.getElementById("stickJumpBtn").addEventListener("pointerdown", e => { e.preventDefault(); jumpStickPlayer(); });
+        document.getElementById("stickSlideBtn").addEventListener("pointerdown", e => { e.preventDefault(); slideStickPlayer(); });
+
+        document.addEventListener("keydown", e => {
+            if (stickState !== "playing") return;
+            if (e.code === "Space" || e.code === "ArrowUp") { e.preventDefault(); jumpStickPlayer(); }
+            if (e.code === "ArrowDown") { e.preventDefault(); slideStickPlayer(); }
+        });
+
+        function pauseStickGame() {
+            if (stickState !== "playing") return;
+            stickState = "paused";
+            document.getElementById("stickPauseOverlay").classList.remove("hidden");
+        }
+
+        function resumeStickGame() {
+            if (stickState !== "paused") return;
+            stickState = "playing";
+            lastStickTime = performance.now();
+            document.getElementById("stickPauseOverlay").classList.add("hidden");
+            stickAnimId = requestAnimationFrame(stickGameLoop);
+        }
+
+        function restartStickGame() { startStickGame(stickMode, selectedStickLevel); }
+        function updateStickBest() { document.getElementById("stickMenuBest").textContent = stickBestScore; }
 
         // REAL MUSIC PIANO TILES LOGIC
         function initPianoCanvas() {
