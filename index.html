@@ -668,6 +668,61 @@
             font-size: 13px;
         }
 
+        .ttt-status {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .ttt-board-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto 15px auto;
+        }
+
+        .ttt-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .ttt-cell {
+            aspect-ratio: 1;
+            background-color: #111827;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ttt-cell:hover {
+            background-color: #1e293b;
+            border-color: var(--primary);
+        }
+
+        .ttt-cell.x { color: #38bdf8; }
+        .ttt-cell.o { color: #f43f5e; }
+
+        #win-line {
+            position: absolute;
+            background-color: #ffffff;
+            height: 6px;
+            border-radius: 3px;
+            top: 0;
+            left: 0;
+            transform-origin: 0 50%;
+            display: none;
+            z-index: 25;
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
         .action-btn {
             background-color: var(--primary);
             color: white;
@@ -728,30 +783,139 @@
             color: var(--text-main);
         }
 
+        .rps-choices {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            margin: 12px auto;
+            max-width: 320px;
+            width: 100%;
+        }
+
+        .rps-btn {
+            background: #111827;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.2s;
+        }
+
+        .rps-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .rps-display {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            font-size: 2.4rem;
+            margin: 10px auto;
+            max-width: 280px;
+            min-height: 60px;
+            width: 100%;
+        }
+
+        .guess-input {
+            width: 100%;
+            max-width: 300px;
+            background: #111827;
+            border: 2px solid var(--border);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 10px auto;
+            display: block;
+            outline: none;
+        }
+
+        .guess-input:focus {
+            border-color: var(--primary);
+        }
+
+        .mole-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 300px;
+            width: 100%;
+            margin: 0 auto 12px auto;
+        }
+
+        .mole-hole {
+            aspect-ratio: 1;
+            background-color: #111827;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .mole-hole.active span {
+            transform: translateY(0);
+        }
+
+        .mole-hole span {
+            transform: translateY(60px);
+            transition: transform 0.1s ease-in-out;
+        }
+
+        .reaction-box {
+            width: 100%;
+            max-width: 340px;
+            height: 140px;
+            background-color: #334155;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin: 0 auto 12px auto;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .reaction-box.waiting { background-color: #b91c1c; }
+        .reaction-box.ready { background-color: #15803d; }
+        .reaction-box.result { background-color: #1e293b; border: 2px solid var(--primary); }
+
         .arcade-canvas {
             background-color: #111827;
             border: 2px solid var(--border);
             border-radius: 10px;
             display: block;
-            margin: 0 auto;
+            margin: 0 auto 6px auto;
             max-width: 100%;
         }
 
         .dir-pad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            max-width: 150px;
+            gap: 8px;
+            max-width: 220px;
             width: 100%;
+            margin: 8px auto;
         }
 
         .dir-btn {
             background: linear-gradient(135deg, #334155, #1e293b);
             color: white;
             border: 2px solid var(--border);
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 1.1rem;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1.3rem;
             cursor: pointer;
             font-weight: bold;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -767,6 +931,38 @@
             background: var(--primary);
             border-color: var(--primary);
             transform: scale(0.95);
+        }
+
+        .candy-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            max-width: 320px;
+            width: 100%;
+            margin: 0 auto 12px auto;
+            background: #111827;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+        }
+
+        .candy-cell {
+            aspect-ratio: 1;
+            background-color: #1e293b;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+
+        .candy-cell.selected {
+            border-color: var(--accent);
+            background-color: #334155;
+            transform: scale(1.05);
         }
 
         .robot-container {
@@ -991,52 +1187,447 @@
             <div class="game-grid">
                 <div class="game-card featured" onclick="openGame('bomber-container')">
                     <span class="game-icon">💣</span>
-                    <span class="game-name">Landscape Bomber Man (Play Now)</span>
+                    <span class="game-name">Retro Bomber Man (Play Now)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">Puzzle & Strategy</div>
+            <div class="game-grid">
+                <div class="game-card" onclick="openGame('tictactoe-container')">
+                    <span class="game-icon">❌</span>
+                    <span class="game-name">Tic-Tac-Toe</span>
+                </div>
+                <div class="game-card" onclick="openGame('guessgame-container')">
+                    <span class="game-icon">🔢</span>
+                    <span class="game-name">Number Guess</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">Action & Arcade</div>
+            <div class="game-grid">
+                <div class="game-card" onclick="openGame('pacman-container')">
+                    <span class="game-icon">🟡</span>
+                    <span class="game-name">Pac-Man Arcade</span>
+                </div>
+                <div class="game-card" onclick="openGame('spaceinvaders-container')">
+                    <span class="game-icon">👾</span>
+                    <span class="game-name">Space Invaders</span>
+                </div>
+                <div class="game-card" onclick="openGame('fruitslice-container')">
+                    <span class="game-icon">🍉</span>
+                    <span class="game-name">Fruit Slasher</span>
+                </div>
+                <div class="game-card" onclick="openGame('molegame-container')">
+                    <span class="game-icon">🔨</span>
+                    <span class="game-name">Whack-a-Mole</span>
+                </div>
+                <div class="game-card" onclick="openGame('frostgame-container')">
+                    <span class="game-icon">🧱</span>
+                    <span class="game-name">Brick Breaker</span>
+                </div>
+                <div class="game-card" onclick="openGame('snakegame-container')">
+                    <span class="game-icon">🐍</span>
+                    <span class="game-name">Snake Game</span>
+                </div>
+                <div class="game-card" onclick="openGame('flappygame-container')">
+                    <span class="game-icon">🐦</span>
+                    <span class="game-name">Flappy Arcade</span>
+                </div>
+                <div class="game-card" onclick="openGame('dinogame-container')">
+                    <span class="game-icon">🦖</span>
+                    <span class="game-name">Dino Jump</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">Quick Reflexes</div>
+            <div class="game-grid">
+                <div class="game-card" onclick="openGame('rpsgame-container')">
+                    <span class="game-icon">✊</span>
+                    <span class="game-name">RPS PvP</span>
+                </div>
+                <div class="game-card" onclick="openGame('reactiongame-container')">
+                    <span class="game-icon">⚡</span>
+                    <span class="game-name">Reaction Timer</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">Match-3</div>
+            <div class="game-grid">
+                <div class="game-card" onclick="openGame('candygame-container')">
+                    <span class="game-icon">🍬</span>
+                    <span class="game-name">Candy Match-3</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- True Landscape Bomber Man Game Container (Joystick Left, Canvas Center, Bomb Right, No Title Above) -->
+    <!-- Retro Bomber Man -->
     <div id="bomber-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('bomber-container')">⛶</button>
         </div>
-        <div style="width: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
-            <div class="score-board" style="margin-top: 14px; width: 100%; max-width: 420px;">
+        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 14px; width: 100%;">
                 <div class="score-box">Score 🪙 <span id="bomb-score">0</span></div>
                 <div class="score-box">HP ❤️ <span id="bomb-hp">3</span></div>
                 <div class="score-box">Lvl 🏆 <span id="bomb-lvl">1</span></div>
             </div>
-
-            <!-- Landscape Game Layout -->
-            <div style="display: flex; align-items: center; justify-content: center; gap: 16px; width: 100%; margin-top: 6px;">
-                <!-- Left: Directional Pad / Joystick -->
-                <div class="dir-pad">
-                    <div></div>
-                    <button class="dir-btn" onclick="moveBomberPlayer(0, -1)">⬆️</button>
-                    <div></div>
-                    <button class="dir-btn" onclick="moveBomberPlayer(-1, 0)">⬅️</button>
-                    <button class="dir-btn" onclick="moveBomberPlayer(0, 1)">⬇️</button>
-                    <button class="dir-btn" onclick="moveBomberPlayer(1, 0)">➡️</button>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="bomb-canvas" class="arcade-canvas" width="280" height="280" style="touch-action: none;"></canvas>
+                <div id="bomb-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 id="bomb-end-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                    <button class="action-btn" onclick="startBomberGame()">PLAY AGAIN</button>
                 </div>
+            </div>
+            <div style="display: flex; gap: 8px; width: 100%; max-width: 260px; margin-top: 6px;">
+                <button class="action-btn" style="flex: 1; padding: 10px; font-size: 0.9rem;" onclick="dropBomberBomb()">💣 Drop Bomb</button>
+            </div>
+            <div class="dir-pad" style="margin-top: 4px;">
+                <div></div>
+                <button class="dir-btn" onclick="moveBomberPlayer(0, -1)">⬆️</button>
+                <div></div>
+                <button class="dir-btn" onclick="moveBomberPlayer(-1, 0)">⬅️</button>
+                <button class="dir-btn" onclick="moveBomberPlayer(0, 1)">⬇️</button>
+                <button class="dir-btn" onclick="moveBomberPlayer(1, 0)">➡️</button>
+            </div>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Blast 📦 to find 🚪 or 🏆 and clear endless levels!</p>
+        </div>
+    </div>
 
-                <!-- Center: Game Canvas -->
-                <div style="position: relative; display: inline-block;">
-                    <canvas id="bomb-canvas" class="arcade-canvas" width="240" height="240" style="touch-action: none;"></canvas>
-                    <div id="bomb-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                        <h2 id="bomb-end-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
-                        <button class="action-btn" onclick="startBomberGame()">PLAY AGAIN</button>
-                    </div>
+    <!-- Tic Tac Toe -->
+    <div id="tictactoe-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('tictactoe-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Tic-Tac-Toe</h3>
+        <div id="ttt-setup-screen" class="screen active">
+            <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.9rem;">Configure match settings</p>
+            <div class="setup-group">
+                <label class="setup-label">Game Mode</label>
+                <div class="setup-options-2">
+                    <button class="opt-btn active" id="setup-pvp" onclick="selectSetupMode('pvp')">2 Players</button>
+                    <button class="opt-btn" id="setup-ai" onclick="selectSetupMode('ai')">vs AI</button>
                 </div>
+            </div>
+            <div class="setup-group" id="setup-diff-group" style="display: none;">
+                <label class="setup-label">AI Difficulty</label>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <button class="opt-btn active" id="setup-easy" onclick="selectSetupDiff('easy')">Easy</button>
+                    <button class="opt-btn" id="setup-normal" onclick="selectSetupDiff('normal')">Normal</button>
+                    <button class="opt-btn" id="setup-hard" onclick="selectSetupDiff('hard')">Hard</button>
+                </div>
+            </div>
+            <button class="start-game-btn" onclick="startLoadingScreen()">Start Game 🚀</button>
+        </div>
+        <div id="ttt-loading-screen" class="screen">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loading-msg">Loading Arena...</div>
+            <p style="color: var(--text-muted);">Get ready to play!</p>
+        </div>
+        <div id="ttt-game-screen" class="screen">
+            <div class="ttt-status" id="ttt-status">Player X's Turn</div>
+            <div class="ttt-board-wrapper">
+                <div class="ttt-board" id="ttt-board">
+                    <div class="ttt-cell" onclick="handleCellClick(0)"></div>
+                    <div class="ttt-cell" onclick="handleCellClick(1)"></div>
+                    <div class="ttt-cell" onclick="handleCellClick(2)"></div>
+                    <div class="ttt-cell" onclick="handleCellClick(3)"></div>
+                    <div class="ttt-cell" onclick="handleCellClick(4)"></div>
+                    <div class="ttt-cell" onclick="handleCellClick(5)"></div>
+                    <div class="ttt-cell" onclick="handleCellClick(6)"></div>
+                    <div class="ttt-cell" onclick="handleCellClick(7)"></div>
+                    <div class="ttt-cell" onclick="handleCellClick(8)"></div>
+                </div>
+                <div id="win-line"></div>
+            </div>
+            <div style="display: flex; gap: 10px; width: 100%; max-width: 320px; margin: 0 auto;">
+                <button class="action-btn" style="flex: 1;" onclick="resetTTT()">Restart</button>
+                <button class="control-btn" style="flex: 1;" onclick="backToSetup()">⚙️ Settings</button>
+            </div>
+        </div>
+    </div>
 
-                <!-- Right: Drop Bomb Action Button -->
-                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 90px;">
-                    <button class="action-btn" style="padding: 22px 12px; font-size: 0.85rem; border-radius: 14px; width: 100%; box-shadow: 0 4px 15px var(--accent-glow);" onclick="dropBomberBomb()">💣<br>BOMB</button>
+    <!-- Pac-Man Arcade -->
+    <div id="pacman-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('pacman-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Pac-Man Arcade</h3>
+        <div style="width: 100%; max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score <span id="pac-score">0</span></div>
+                <div class="score-box">High <span id="pac-high">0</span></div>
+                <div class="score-box">Lives <span id="pac-lives">3</span></div>
+            </div>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="pac-canvas" class="arcade-canvas" width="300" height="300"></canvas>
+                <div id="pac-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                    <button class="action-btn" onclick="startPacManGame()">PLAY AGAIN</button>
+                </div>
+            </div>
+            <div class="dir-pad">
+                <div></div>
+                <button class="dir-btn" onclick="changePacDir('UP')">⬆️</button>
+                <div></div>
+                <button class="dir-btn" onclick="changePacDir('LEFT')">⬅️</button>
+                <button class="dir-btn" onclick="changePacDir('DOWN')">⬇️</button>
+                <button class="dir-btn" onclick="changePacDir('RIGHT')">➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Space Invaders -->
+    <div id="spaceinvaders-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('spaceinvaders-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Space Invaders</h3>
+        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score <span id="si-score">0</span></div>
+                <div class="score-box">Wave <span id="si-wave">1</span></div>
+                <div class="score-box">Lives <span id="si-lives">3</span></div>
+            </div>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="si-canvas" class="arcade-canvas" width="300" height="300" style="touch-action: none; cursor: crosshair;"></canvas>
+                <div id="si-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">MISSION FAILED</h2>
+                    <button class="action-btn" onclick="startSpaceInvadersGame()">PLAY AGAIN</button>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Fruit Slasher -->
+    <div id="fruitslice-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('fruitslice-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Fruit Slasher 🍉</h3>
+        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score <span id="fruit-score">0</span></div>
+                <div class="score-box">Lives ❤️ <span id="fruit-lives">3</span></div>
+            </div>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="fruit-canvas" class="arcade-canvas" width="300" height="300" style="touch-action: none; cursor: crosshair;"></canvas>
+                <div id="fruit-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                    <button class="action-btn" onclick="startFruitGame()">PLAY AGAIN</button>
+                </div>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Drag / Swipe across fruits to slice them. Avoid 💣!</p>
+        </div>
+    </div>
+
+    <!-- Brick Breaker -->
+    <div id="frostgame-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('frostgame-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Brick Breaker 🧱</h3>
+        <div style="width: 100%; max-width: 360px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board">
+                <div class="score-box">Score <span id="frost-score">000000</span></div>
+                <div class="score-box" id="frost-lvl">LVL 1</div>
+                <div class="score-box">❤️ <span id="frost-lives">3</span></div>
+            </div>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="frost-canvas" class="arcade-canvas" width="360" height="340" style="touch-action: none; cursor: crosshair;"></canvas>
+                <div id="frost-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #38bdf8; margin-bottom: 8px; font-size: 1.2rem;">GAME OVER</h2>
+                    <p id="final-frost-score" style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">Final Score: 0</p>
+                    <button class="action-btn" onclick="startFrostGame()">PLAY AGAIN</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RPS -->
+    <div id="rpsgame-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('rpsgame-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">RPS PvP</h3>
+        <div class="score-board">
+            <div class="score-box">Player 1 <span id="rps-p1-score">0</span></div>
+            <div class="score-box">Player 2 <span id="rps-p2-score">0</span></div>
+        </div>
+        <div class="rps-display">
+            <span id="rps-p1-choice">❓</span>
+            <span style="font-size: 1rem; color: var(--text-muted);">VS</span>
+            <span id="rps-p2-choice">❓</span>
+        </div>
+        <p id="rps-status" style="margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">Player 1's Turn (Choose Secretly)</p>
+        <div class="rps-choices">
+            <button class="rps-btn" onclick="handleRPSInput('rock')">🪨</button>
+            <button class="rps-btn" onclick="handleRPSInput('paper')">📄</button>
+            <button class="rps-btn" onclick="handleRPSInput('scissors')">✂️</button>
+        </div>
+        <button class="control-btn" style="width: 100%; max-width: 320px; margin: 10px auto 0 auto; display: block;" onclick="resetRPS()">Reset Scores</button>
+    </div>
+
+    <!-- Number Guess -->
+    <div id="guessgame-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('guessgame-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Number Guessing</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Guess a number between 1 and 100</p>
+        <div class="score-board" style="margin-top: 10px;">
+            <div class="score-box">Attempts <span id="guess-attempts">0</span></div>
+            <div class="score-box">Best <span id="guess-best">-</span></div>
+        </div>
+        <input type="number" id="guess-input" class="guess-input" placeholder="Enter 1-100" min="1" max="100">
+        <p id="guess-status" style="margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">Take a guess!</p>
+        <div style="display: flex; gap: 10px; max-width: 300px; margin: 0 auto; width: 100%;">
+            <button class="action-btn" style="flex: 1;" onclick="submitGuess()">Submit</button>
+            <button class="control-btn" style="flex: 1;" onclick="resetGuessGame()">Reset</button>
+        </div>
+    </div>
+
+    <!-- Whack a Mole -->
+    <div id="molegame-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('molegame-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Whack-a-Mole</h3>
+        <div class="score-board" style="margin-top: 4px;">
+            <div class="score-box">Score <span id="mole-score">0</span></div>
+            <div class="score-box">High Score <span id="mole-high">0</span></div>
+        </div>
+        <div class="mole-grid">
+            <div class="mole-hole" onclick="whackMole(0)"><span id="m0">🐹</span></div>
+            <div class="mole-hole" onclick="whackMole(1)"><span id="m1">🐹</span></div>
+            <div class="mole-hole" onclick="whackMole(2)"><span id="m2">🐹</span></div>
+            <div class="mole-hole" onclick="whackMole(3)"><span id="m3">🐹</span></div>
+            <div class="mole-hole" onclick="whackMole(4)"><span id="m4">🐹</span></div>
+            <div class="mole-hole" onclick="whackMole(5)"><span id="m5">🐹</span></div>
+        </div>
+        <button class="action-btn" style="width: 100%; max-width: 300px; margin: 0 auto; display: block;" id="mole-start-btn" onclick="startMoleGame()">Start Game</button>
+    </div>
+
+    <!-- Reaction Timer -->
+    <div id="reactiongame-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('reactiongame-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Reaction Timer</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Test your reflexes!</p>
+        <div class="score-board">
+            <div class="score-box">Time <span id="reaction-time">0 ms</span></div>
+            <div class="score-box">Best <span id="reaction-best">-</span></div>
+        </div>
+        <div class="reaction-box" id="reaction-box" onclick="handleReactionClick()">
+            <span id="reaction-text" style="font-size: 1rem; font-weight: bold;">Click to Start</span>
+        </div>
+        <button class="control-btn" style="width: 100%; max-width: 340px; margin: 0 auto; display: block;" onclick="resetReactionGame()">Reset</button>
+    </div>
+
+    <!-- Snake Game -->
+    <div id="snakegame-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('snakegame-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Snake Game 🐍</h3>
+        <div class="score-board" style="margin-top: 4px; max-width: 240px;">
+            <div class="score-box">Score <span id="snake-score">0</span></div>
+            <div class="score-box">High <span id="snake-high">0</span></div>
+        </div>
+        <div style="position: relative; display: inline-block;">
+            <canvas id="snake-canvas" class="arcade-canvas" width="240" height="240"></canvas>
+            <div id="snake-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                <button class="action-btn" onclick="startSnakeGame()">PLAY AGAIN</button>
+            </div>
+        </div>
+        <div class="dir-pad">
+            <div></div>
+            <button class="dir-btn" onclick="changeSnakeDir('UP')">⬆️</button>
+            <div></div>
+            <button class="dir-btn" onclick="changeSnakeDir('LEFT')">⬅️</button>
+            <button class="dir-btn" onclick="changeSnakeDir('DOWN')">⬇️</button>
+            <button class="dir-btn" onclick="changeSnakeDir('RIGHT')">➡️</button>
+        </div>
+    </div>
+
+    <!-- Flappy Arcade -->
+    <div id="flappygame-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('flappygame-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Flappy Arcade</h3>
+        <div class="score-board" style="margin-top: 4px; max-width: 260px;">
+            <div class="score-box">Score <span id="flappy-score">0</span></div>
+            <div class="score-box">High <span id="flappy-high">0</span></div>
+        </div>
+        <div style="position: relative; display: inline-block;">
+            <canvas id="flappy-canvas" class="arcade-canvas" width="260" height="280" onclick="jumpFlappy()" style="touch-action: none;"></canvas>
+            <div id="flappy-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                <button class="action-btn" onclick="startFlappyGame()">PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dino Jump -->
+    <div id="dinogame-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Dino Jump 🦖</h3>
+        <div class="score-board" style="margin-top: 4px; max-width: 300px;">
+            <div class="score-box">Score <span id="dino-score">0</span></div>
+            <div class="score-box">High <span id="dino-high">0</span></div>
+        </div>
+        <div style="position: relative; display: inline-block;">
+            <canvas id="dino-canvas" class="arcade-canvas" width="300" height="180" style="touch-action: none;"></canvas>
+            <div id="dino-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                <button class="action-btn" onclick="startDinoGame()">PLAY AGAIN</button>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; width: 100%; max-width: 300px; margin-top: 8px;">
+            <button class="action-btn" style="flex: 1;" onclick="triggerDinoAction('jump')">⬆️ Jump</button>
+            <button class="control-btn" style="flex: 1;" onclick="triggerDinoAction('duck')">⬇️ Duck</button>
+        </div>
+    </div>
+
+    <!-- Candy -->
+    <div id="candygame-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('candygame-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Candy Match-3</h3>
+        <div class="score-board" style="margin-top: 4px;">
+            <div class="score-box">Score <span id="candy-score">0</span></div>
+            <div class="score-box">Moves <span id="candy-moves">20</span></div>
+        </div>
+        <div class="candy-grid" id="candy-grid"></div>
+        <button class="action-btn" style="width: 100%; max-width: 320px; margin: 0 auto; display: block;" onclick="startCandyGame()">New Game</button>
     </div>
 
     <div class="modal-overlay" id="settings-modal">
@@ -1058,6 +1649,12 @@
                             <button class="setting-toggle active" id="audio-toggle-switch" onclick="toggleAudioSetting()">ENABLED</button>
                         </div>
                     </div>
+                    <div class="setting-row">
+                        <span class="setting-label">🎵 SFX Volume</span>
+                        <div class="setting-control">
+                            <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="settings-panel" id="panel-theme">
@@ -1071,11 +1668,12 @@
                             </div>
                         </div>
                     </div>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">Select your preferred UI neon accent theme.</p>
                 </div>
 
                 <div class="settings-panel" id="panel-share">
                     <div class="settings-qr-container">
-                        <p style="font-size: 0.8rem; color: var(--text-muted);">Scan to open Arcade Hub:</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">Scan to open Arcade Hub on your phone:</p>
                         <div class="qr-box">
                             <img id="qr-code-img" src="" alt="Game QR Code">
                         </div>
@@ -1116,6 +1714,28 @@
     </div>
 
     <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            });
+        }
+
+        const ScoreManager = {
+            getStats(gameKey) {
+                const data = localStorage.getItem(`arcadehub_${gameKey}`);
+                return data ? JSON.parse(data) : { highScore: 0, gamesPlayed: 0 };
+            },
+            saveScore(gameKey, score) {
+                const stats = this.getStats(gameKey);
+                stats.gamesPlayed += 1;
+                if (score > stats.highScore) {
+                    stats.highScore = score;
+                }
+                localStorage.setItem(`arcadehub_${gameKey}`, JSON.stringify(stats));
+                return stats;
+            }
+        };
+
         class ArcadeAudioManager {
             constructor() {
                 this.audioCtx = null;
@@ -1127,7 +1747,9 @@
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
                     this.audioCtx = new AudioContext();
                 }
-                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                if (this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
             }
             playSFX(type) {
                 if (this.isMuted) return;
@@ -1137,29 +1759,190 @@
                 const gain = this.audioCtx.createGain();
                 osc.connect(gain);
                 gain.connect(this.audioCtx.destination);
-                if (type === 'click') {
-                    osc.frequency.setValueAtTime(400, now);
-                    gain.gain.setValueAtTime(this.volume * 0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-                    osc.start(now); osc.stop(now + 0.04);
-                } else if (type === 'win') {
-                    osc.frequency.setValueAtTime(523.25, now);
-                    osc.frequency.setValueAtTime(783.99, now + 0.2);
-                    gain.gain.setValueAtTime(this.volume * 0.4, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-                    osc.start(now); osc.stop(now + 0.4);
-                } else if (type === 'gameover') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(250, now);
-                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.35);
-                    gain.gain.setValueAtTime(this.volume * 0.35, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-                    osc.start(now); osc.stop(now + 0.35);
+
+                switch (type) {
+                    case 'click':
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(400, now);
+                        gain.gain.setValueAtTime(this.volume * 0.15, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                        osc.start(now); osc.stop(now + 0.04);
+                        break;
+                    case 'move':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(300, now);
+                        osc.frequency.exponentialRampToValueAtTime(500, now + 0.06);
+                        gain.gain.setValueAtTime(this.volume * 0.2, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                        osc.start(now); osc.stop(now + 0.06);
+                        break;
+                    case 'score':
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(587.33, now);
+                        osc.frequency.setValueAtTime(880, now + 0.08);
+                        gain.gain.setValueAtTime(this.volume * 0.3, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                        osc.start(now); osc.stop(now + 0.2);
+                        break;
+                    case 'win':
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(523.25, now);
+                        osc.frequency.setValueAtTime(659.25, now + 0.1);
+                        osc.frequency.setValueAtTime(783.99, now + 0.2);
+                        osc.frequency.setValueAtTime(1046.50, now + 0.3);
+                        gain.gain.setValueAtTime(this.volume * 0.4, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                        osc.start(now); osc.stop(now + 0.5);
+                        break;
+                    case 'gameover':
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(250, now);
+                        osc.frequency.exponentialRampToValueAtTime(70, now + 0.35);
+                        gain.gain.setValueAtTime(this.volume * 0.35, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                        osc.start(now); osc.stop(now + 0.35);
+                        break;
                 }
             }
         }
 
         const audio = new ArcadeAudioManager();
+
+        function toggleAudioSetting() {
+            audio.isMuted = !audio.isMuted;
+            const btn = document.getElementById('audio-toggle-switch');
+            if (audio.isMuted) {
+                btn.textContent = "MUTED";
+                btn.classList.remove('active');
+            } else {
+                btn.textContent = "ENABLED";
+                btn.classList.add('active');
+                audio.playSFX('click');
+            }
+        }
+
+        function updateVolume(val) {
+            audio.volume = parseFloat(val);
+            audio.playSFX('click');
+        }
+
+        function setTheme(themeName) {
+            audio.playSFX('click');
+            document.documentElement.className = themeName;
+            localStorage.setItem("arcadehub_theme", themeName);
+        }
+
+        function openSettingsModal() {
+            audio.playSFX('click');
+            document.getElementById('settings-modal').classList.add('active');
+        }
+
+        function closeSettingsModal() {
+            audio.playSFX('click');
+            document.getElementById('settings-modal').classList.remove('active');
+        }
+
+        function switchSettingsTab(tabName) {
+            audio.playSFX('move');
+            document.getElementById('tab-audio').classList.toggle('active', tabName === 'audio');
+            document.getElementById('tab-theme').classList.toggle('active', tabName === 'theme');
+            document.getElementById('tab-share').classList.toggle('active', tabName === 'share');
+
+            document.getElementById('panel-audio').classList.toggle('active', tabName === 'audio');
+            document.getElementById('panel-theme').classList.toggle('active', tabName === 'theme');
+            document.getElementById('panel-share').classList.toggle('active', tabName === 'share');
+        }
+
+        function toggleFullscreen(containerId) {
+            audio.playSFX('click');
+            const elem = document.getElementById(containerId);
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) { elem.requestFullscreen().catch(() => {}); }
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+            }
+        }
+
+        const winningConditions = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        let tttBoard = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X', isGameActive = true, selectedMode = 'pvp', selectedDiff = 'easy', gameMode = 'pvp', aiDifficulty = 'easy';
+
+        let rpsP1Score = 0, rpsP2Score = 0, rpsP1Choice = null, rpsStage = 1;
+        let targetNumber = Math.floor(Math.random() * 100) + 1, guessAttempts = 0, bestGuess = null;
+        let moleActiveIdx = -1, moleScore = 0, moleTimer = null, isMolePlaying = false;
+        let reactionState = 'waiting', reactionStart = 0, reactionTimeout = null, reactionTime = 0, bestReaction = null;
+
+        let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
+        let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
+        let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
+
+        // Retro Bomber Man State
+        let bombCanvas, bombCtx, bombRunning = false, bombScore = 0, bombHp = 3, bombLevel = 1;
+        let bombMap = [], bombPlayer = { x: 1, y: 1 }, activeBomb = null, bombEnemies = [];
+        const bombGridSize = 10;
+
+        let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
+        let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
+        const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
+
+        let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBalls = [], frostBricks = [], frostDrops = [], frostScreenShake = 0;
+
+        let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
+        let pacman = { x: 1, y: 1, dir: 'RIGHT', nextDir: 'RIGHT' };
+        let ghosts = [
+            { x: 12, y: 11, color: '#ef4444', dir: 'UP' },
+            { x: 13, y: 11, color: '#ec4899', dir: 'LEFT' },
+            { x: 12, y: 12, color: '#06b6d4', dir: 'RIGHT' },
+            { x: 13, y: 12, color: '#f97316', dir: 'DOWN' }
+        ];
+        let pacGrid = [];
+        const basePacMap = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1],
+            [1,3,1,1,2,1,1,1,1,1,2,1,1,3,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,2,1,2,1,2,1,2,1,1,2,1],
+            [1,2,2,2,2,1,2,1,2,1,2,2,2,2,1],
+            [1,1,1,1,2,1,1,0,1,1,2,1,1,1,1],
+            [0,0,0,1,2,1,0,0,0,1,2,1,0,0,0],
+            [1,1,1,1,2,1,0,0,0,1,2,1,1,1,1],
+            [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1],
+            [1,2,1,1,2,1,1,1,1,1,2,1,1,2,1],
+            [1,3,2,1,2,2,2,0,2,2,2,1,2,3,1],
+            [1,1,2,1,2,1,2,1,2,1,2,1,2,1,1],
+            [1,2,2,2,2,1,2,1,2,1,2,2,2,2,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siWave = 1, siAnimId;
+        let siShip = { x: 130, y: 265, width: 28, height: 14 };
+        let siLasers = [], siAliens = [], siAlienBullets = [], siAlienDir = 1;
+
+        window.onload = function() {
+            generateQRCode();
+            initSnakeCanvas();
+            initFlappyCanvas();
+            initDinoCanvas();
+            initFrostCanvas();
+            initPacManCanvas();
+            initSpaceInvadersCanvas();
+            initFruitCanvas();
+            initBomberCanvas();
+
+            const savedTheme = localStorage.getItem("arcadehub_theme") || "";
+            if (savedTheme) document.documentElement.className = savedTheme;
+
+            document.getElementById('snake-high').textContent = ScoreManager.getStats('snake').highScore;
+            document.getElementById('mole-high').textContent = ScoreManager.getStats('mole').highScore;
+            document.getElementById('flappy-high').textContent = ScoreManager.getStats('flappy').highScore;
+            document.getElementById('dino-high').textContent = ScoreManager.getStats('dino').highScore;
+            document.getElementById('pac-high').textContent = ScoreManager.getStats('pacman').highScore;
+            document.getElementById('si-high').textContent = ScoreManager.getStats('spaceinvaders').highScore;
+            document.getElementById('frost-score').textContent = ScoreManager.getStats('brickbreaker').highScore;
+
+            const bestGuessData = localStorage.getItem('arcadehub_guess');
+            if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
+        };
 
         function enterHub() {
             audio.initContext();
@@ -1173,55 +1956,58 @@
             document.getElementById('main-menu').classList.remove('active');
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById(containerId).classList.add('active');
+
+            if (containerId === 'snakegame-container') startSnakeGame();
+            if (containerId === 'flappygame-container') startFlappyGame();
+            if (containerId === 'dinogame-container') startDinoGame();
+            if (containerId === 'pacman-container') startPacManGame();
+            if (containerId === 'spaceinvaders-container') startSpaceInvadersGame();
+            if (containerId === 'fruitslice-container') startFruitGame();
+            if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
+            if (containerId === 'candygame-container') startCandyGame();
             if (containerId === 'bomber-container') startBomberGame();
         }
 
         function backToHub() {
             audio.playSFX('click');
             if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+            if (snakeInterval) clearInterval(snakeInterval);
+            if (flappyInterval) clearInterval(flappyInterval);
+            if (dinoInterval) clearInterval(dinoInterval);
+            if (moleTimer) clearInterval(moleTimer);
+            if (reactionTimeout) clearTimeout(reactionTimeout);
+            if (pacRunning) { pacRunning = false; cancelAnimationFrame(pacAnimId); }
+            if (siRunning) { siRunning = false; cancelAnimationFrame(siAnimId); }
+            if (frostRunning) { frostRunning = false; cancelAnimationFrame(frostAnimId); }
+            if (fruitRunning) { fruitRunning = false; cancelAnimationFrame(fruitAnimId); }
             bombRunning = false;
+
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
         }
 
-        function openSettingsModal() { document.getElementById('settings-modal').classList.add('active'); }
-        function closeSettingsModal() { document.getElementById('settings-modal').classList.remove('active'); }
-        function switchSettingsTab(tab) {
-            document.getElementById('tab-audio').classList.toggle('active', tab === 'audio');
-            document.getElementById('tab-theme').classList.toggle('active', tab === 'theme');
-            document.getElementById('tab-share').classList.toggle('active', tab === 'share');
-            document.getElementById('panel-audio').classList.toggle('active', tab === 'audio');
-            document.getElementById('panel-theme').classList.toggle('active', tab === 'theme');
-            document.getElementById('panel-share').classList.toggle('active', tab === 'share');
-        }
-        function toggleAudioSetting() {
-            audio.isMuted = !audio.isMuted;
-            document.getElementById('audio-toggle-switch').textContent = audio.isMuted ? "MUTED" : "ENABLED";
-            document.getElementById('audio-toggle-switch').classList.toggle('active', !audio.isMuted);
-        }
-        function setTheme(theme) { document.documentElement.className = theme; }
-        function toggleFullscreen(id) {
-            const elem = document.getElementById(id);
-            if (!document.fullscreenElement) elem.requestFullscreen?.().catch(() => {});
-            else document.exitFullscreen?.();
+        function generateQRCode() {
+            const targetUrl = window.location.href || "https://arcadehubgames-july12.vercel.app/";
+            document.getElementById('current-url-text').textContent = targetUrl;
+            document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
         }
 
         // RETRO BOMBER MAN LOGIC
-        let bombCanvas, bombCtx, bombRunning = false, bombScore = 0, bombHp = 3, bombLevel = 1;
-        let bombMap = [], bombPlayer = { x: 1, y: 1 }, activeBomb = null, bombEnemies = [];
-        const bombGridSize = 10;
-
         function initBomberCanvas() {
             bombCanvas = document.getElementById('bomb-canvas');
             if (bombCanvas) bombCtx = bombCanvas.getContext('2d');
         }
 
         function startBomberGame() {
+            audio.playSFX('click');
             document.getElementById('bomb-gameover-overlay').style.display = 'none';
             initBomberCanvas();
             if (!bombCtx) return;
             bombRunning = true;
-            bombScore = 0; bombHp = 3; bombLevel = 1; activeBomb = null;
+            bombScore = 0;
+            bombHp = 3;
+            bombLevel = 1;
+            activeBomb = null;
             generateBomberLevel();
             updateBomberHUD();
             drawBomber();
@@ -1233,27 +2019,37 @@
             for (let r = 0; r < bombGridSize; r++) {
                 let row = [];
                 for (let c = 0; c < bombGridSize; c++) {
-                    if (r === 0 || r === bombGridSize - 1 || c === 0 || c === bombGridSize - 1 || (r % 2 === 0 && c % 2 === 0)) {
+                    if (r === 0 || r === bombGridSize - 1 || c === 0 || c === bombGridSize - 1) {
+                        row.push('W');
+                    } else if (r % 2 === 0 && c % 2 === 0) {
                         row.push('W');
                     } else {
-                        row.push(Math.random() < 0.35 ? 'B' : '.');
+                        let rand = Math.random();
+                        if (rand < 0.35) row.push('B'); // Destructible Brick
+                        else row.push('.');
                     }
                 }
                 bombMap.push(row);
             }
             bombPlayer = { x: 1, y: 1 };
-            bombMap[1][1] = '.'; bombMap[1][2] = '.'; bombMap[2][1] = '.';
-            
+            bombMap[1][1] = '.';
+            bombMap[1][2] = '.';
+            bombMap[2][1] = '.';
+
+            // Place Exit Trophy or Door under random brick
             let placedExit = false;
             for (let r = 1; r < bombGridSize - 1; r++) {
                 for (let c = 1; c < bombGridSize - 1; c++) {
                     if (bombMap[r][c] === 'B' && !placedExit) {
-                        bombMap[r][c] = 'E';
+                        bombMap[r][c] = 'E'; // Exit
                         placedExit = true;
                     }
                 }
             }
-            bombEnemies.push({ x: bombGridSize - 2, y: bombGridSize - 2 });
+
+            // Spawn Enemies
+            bombEnemies.push({ x: bombGridSize - 2, y: bombGridSize - 2, dir: 'UP' });
+            if (bombLevel >= 2) bombEnemies.push({ x: bombGridSize - 2, y: 1, dir: 'LEFT' });
         }
 
         function updateBomberHUD() {
@@ -1264,107 +2060,1256 @@
 
         function moveBomberPlayer(dx, dy) {
             if (!bombRunning) return;
-            let nx = bombPlayer.x + dx, ny = bombPlayer.y + dy;
-            if (nx < 0 || nx >= bombGridSize || ny < 0 || ny >= bombGridSize) return;
-            let tile = bombMap[ny][nx];
-            if (tile === 'W' || tile === 'B') return;
+            let newX = bombPlayer.x + dx;
+            let newY = bombPlayer.y + dy;
+
+            if (newX < 0 || newX >= bombGridSize || newY < 0 || newY >= bombGridSize) return;
+            let tile = bombMap[newY][newX];
+
+            if (tile === 'W' || tile === 'B') {
+                audio.playSFX('click');
+                return;
+            }
 
             if (tile === 'E') {
                 audio.playSFX('win');
-                bombLevel++; bombScore += 150;
+                bombLevel++;
+                bombScore += 150;
                 generateBomberLevel();
             } else {
-                if (tile === 'C') { bombScore += 25; bombMap[ny][nx] = '.'; }
-                bombPlayer.x = nx; bombPlayer.y = ny;
+                audio.playSFX('move');
+                if (tile === 'C') {
+                    audio.playSFX('score');
+                    bombScore += 25;
+                    bombMap[newY][newX] = '.';
+                }
+                bombPlayer.x = newX;
+                bombPlayer.y = newY;
             }
+
             updateBomberEnemies();
+            checkBomberCollisions();
             updateBomberHUD();
             drawBomber();
         }
 
         function dropBomberBomb() {
             if (!bombRunning || activeBomb) return;
-            activeBomb = { x: bombPlayer.x, y: bombPlayer.y };
+            audio.playSFX('click');
+            activeBomb = { x: bombPlayer.x, y: bombPlayer.y, timer: 3 };
             drawBomber();
 
             setTimeout(() => {
                 if (!bombRunning) return;
-                let bx = activeBomb.x, by = activeBomb.y;
+                audio.playSFX('gameover');
+                let bx = activeBomb.x;
+                let by = activeBomb.y;
                 activeBomb = null;
-                let blast = [{x:bx, y:by}, {x:bx+1, y:by}, {x:bx-1, y:by}, {x:bx, y:by+1}, {x:bx, y:by-1}];
-                blast.forEach(cell => {
+
+                // Blast radius (Center + 4 directions)
+                let blastCells = [{x: bx, y: by}, {x: bx+1, y: by}, {x: bx-1, y: by}, {x: bx, y: by+1}, {x: bx, y: by-1}];
+                blastCells.forEach(cell => {
                     if (cell.x >= 0 && cell.x < bombGridSize && cell.y >= 0 && cell.y < bombGridSize) {
-                        if (bombMap[cell.y][cell.x] === 'B') {
-                            bombMap[cell.y][cell.x] = 'C';
+                        let t = bombMap[cell.y][cell.x];
+                        if (t === 'B') {
+                            bombMap[cell.y][cell.x] = 'C'; // Coin after blast
                             bombScore += 10;
+                        } else if (t === 'E') {
+                            // Revealed exit stays accessible
                         }
-                        bombEnemies = bombEnemies.filter(e => !(e.x === cell.x && e.y === cell.y));
+                        // Kill enemies in blast
+                        bombEnemies = bombEnemies.filter(e => {
+                            if (e.x === cell.x && e.y === cell.y) {
+                                bombScore += 50;
+                                return false;
+                            }
+                            return true;
+                        });
+                        // Hurt player in blast
                         if (bombPlayer.x === cell.x && bombPlayer.y === cell.y) {
                             bombHp--;
-                            if (bombHp <= 0) endBomberGame();
+                            if (bombHp <= 0) endBomberGame(false);
                         }
                     }
                 });
                 updateBomberHUD();
                 drawBomber();
-            }, 1000);
+            }, 1200);
         }
 
         function updateBomberEnemies() {
             bombEnemies.forEach(e => {
-                let moves = [{dx:0,dy:-1},{dx:0,dy:1},{dx:-1,dy:0},{dx:1,dy:0}];
-                let valid = moves.filter(m => {
-                    let rx = e.x + m.dx, ry = e.y + m.dy;
-                    return rx >= 0 && rx < bombGridSize && ry >= 0 && ry < bombGridSize && bombMap[ry][rx] !== 'W' && bombMap[ry][rx] !== 'B';
+                let moves = [{dx:0, dy:-1}, {dx:0, dy:1}, {dx:-1, dy:0}, {dx:1, dy:0}];
+                let validMoves = moves.filter(m => {
+                    let nx = e.x + m.dx, ny = e.y + m.dy;
+                    return nx >= 0 && nx < bombGridSize && ny >= 0 && ny < bombGridSize && bombMap[ny][nx] !== 'W' && bombMap[ny][nx] !== 'B';
                 });
-                if (valid.length > 0) {
-                    let m = valid[Math.floor(Math.random() * valid.length)];
-                    e.x += m.dx; e.y += m.dy;
+                if (validMoves.length > 0) {
+                    let m = validMoves[Math.floor(Math.random() * validMoves.length)];
+                    e.x += m.dx;
+                    e.y += m.dy;
                 }
+            });
+        }
+
+        function checkBomberCollisions() {
+            bombEnemies.forEach(e => {
                 if (e.x === bombPlayer.x && e.y === bombPlayer.y) {
+                    audio.playSFX('gameover');
                     bombHp--;
-                    if (bombHp <= 0) endBomberGame();
+                    if (bombHp <= 0) endBomberGame(false);
                 }
             });
         }
 
         function drawBomber() {
             if (!bombCtx) return;
-            let sz = bombCanvas.width / bombGridSize;
+            let tileSize = bombCanvas.width / bombGridSize;
             bombCtx.fillStyle = '#0b0f19';
             bombCtx.fillRect(0, 0, bombCanvas.width, bombCanvas.height);
 
             for (let r = 0; r < bombGridSize; r++) {
                 for (let c = 0; c < bombGridSize; c++) {
-                    let t = bombMap[r][c], x = c * sz, y = r * sz;
+                    let t = bombMap[r][c];
+                    let x = c * tileSize;
+                    let y = r * tileSize;
+
                     if (t === 'W') {
                         bombCtx.fillStyle = '#1e293b';
-                        bombCtx.fillRect(x, y, sz, sz);
+                        bombCtx.fillRect(x, y, tileSize, tileSize);
+                        bombCtx.strokeStyle = '#334155';
+                        bombCtx.strokeRect(x, y, tileSize, tileSize);
                     } else {
-                        bombCtx.font = `${Math.floor(sz * 0.7)}px sans-serif`;
+                        bombCtx.fillStyle = '#111827';
+                        bombCtx.fillRect(x, y, tileSize, tileSize);
+
+                        bombCtx.font = `${Math.floor(tileSize * 0.65)}px sans-serif`;
                         bombCtx.textAlign = 'center';
                         bombCtx.textBaseline = 'middle';
-                        if (t === 'B') bombCtx.fillText('📦', x + sz/2, y + sz/2);
-                        if (t === 'C') bombCtx.fillText('🪙', x + sz/2, y + sz/2);
-                        if (t === 'E') bombCtx.fillText('🏆', x + sz/2, y + sz/2);
+
+                        if (t === 'B') bombCtx.fillText('📦', x + tileSize/2, y + tileSize/2);
+                        if (t === 'C') bombCtx.fillText('🪙', x + tileSize/2, y + tileSize/2);
+                        if (t === 'E') bombCtx.fillText('🏆', x + tileSize/2, y + tileSize/2);
                     }
                 }
             }
 
             if (activeBomb) {
-                bombCtx.fillText('💣', activeBomb.x * sz + sz/2, activeBomb.y * sz + sz/2);
+                let bx = activeBomb.x * tileSize;
+                let by = activeBomb.y * tileSize;
+                bombCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
+                bombCtx.textAlign = 'center';
+                bombCtx.textBaseline = 'middle';
+                bombCtx.fillText('💣', bx + tileSize/2, by + tileSize/2);
             }
+
             bombEnemies.forEach(e => {
-                bombCtx.fillText('👾', e.x * sz + sz/2, e.y * sz + sz/2);
+                let ex = e.x * tileSize;
+                let ey = e.y * tileSize;
+                bombCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
+                bombCtx.textAlign = 'center';
+                bombCtx.textBaseline = 'middle';
+                bombCtx.fillText('👾', ex + tileSize/2, ey + tileSize/2);
             });
-            bombCtx.fillText('🧑‍🚀', bombPlayer.x * sz + sz/2, bombPlayer.y * sz + sz/2);
+
+            let px = bombPlayer.x * tileSize;
+            let py = bombPlayer.y * tileSize;
+            bombCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
+            bombCtx.textAlign = 'center';
+            bombCtx.textBaseline = 'middle';
+            bombCtx.fillText('🧑‍🚀', px + tileSize/2, py + tileSize/2);
         }
 
-        function endBomberGame() {
+        function endBomberGame(isVictory) {
             bombRunning = false;
             audio.playSFX('gameover');
+            document.getElementById('bomb-end-title').textContent = isVictory ? 'VICTORY! 🎉' : 'GAME OVER 💀';
             document.getElementById('bomb-gameover-overlay').style.display = 'flex';
+            ScoreManager.saveScore('bomber', bombScore);
         }
+
+        function selectSetupMode(mode) {
+            audio.playSFX('move');
+            selectedMode = mode;
+            document.getElementById('setup-pvp').classList.toggle('active', mode === 'pvp');
+            document.getElementById('setup-ai').classList.toggle('active', mode === 'ai');
+            document.getElementById('setup-diff-group').style.display = mode === 'ai' ? 'block' : 'none';
+        }
+
+        function selectSetupDiff(diff) {
+            audio.playSFX('move');
+            selectedDiff = diff;
+            document.getElementById('setup-easy').classList.toggle('active', diff === 'easy');
+            document.getElementById('setup-normal').classList.toggle('active', diff === 'normal');
+            document.getElementById('setup-hard').classList.toggle('active', diff === 'hard');
+        }
+
+        function startLoadingScreen() {
+            audio.playSFX('click');
+            gameMode = selectedMode;
+            aiDifficulty = selectedDiff;
+            document.getElementById('ttt-setup-screen').classList.remove('active');
+            document.getElementById('ttt-loading-screen').classList.add('active');
+            setTimeout(() => {
+                document.getElementById('ttt-loading-screen').classList.remove('active');
+                document.getElementById('ttt-game-screen').classList.add('active');
+                resetTTT();
+            }, 1000);
+        }
+
+        function backToSetup() {
+            audio.playSFX('click');
+            document.getElementById('ttt-game-screen').classList.remove('active');
+            document.getElementById('ttt-setup-screen').classList.add('active');
+        }
+
+        function handleCellClick(index) {
+            if (tttBoard[index] !== '' || !isGameActive) return;
+            if (gameMode === 'ai' && currentPlayer === 'O') return;
+            audio.playSFX('move');
+            makeMove(index, currentPlayer);
+            if (isGameActive && gameMode === 'ai' && currentPlayer === 'O') {
+                setTimeout(aiMove, 400);
+            }
+        }
+
+        function makeMove(index, player) {
+            tttBoard[index] = player;
+            const cell = document.getElementsByClassName('ttt-cell')[index];
+            cell.textContent = player;
+            cell.classList.add(player.toLowerCase());
+
+            let winIdx = -1;
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                if (tttBoard[a] && tttBoard[a] === tttBoard[b] && tttBoard[a] === tttBoard[c]) {
+                    winIdx = i; break;
+                }
+            }
+
+            if (winIdx !== -1) {
+                audio.playSFX('win');
+                document.getElementById('ttt-status').textContent = gameMode === 'ai' && player === 'O' ? `AI Wins! 🤖` : `Player ${player} Wins! 🎉`;
+                isGameActive = false;
+                drawWinLine(winIdx);
+                return;
+            }
+
+            if (!tttBoard.includes('')) {
+                audio.playSFX('gameover');
+                document.getElementById('ttt-status').textContent = `It's a Draw! 🤝`;
+                isGameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            document.getElementById('ttt-status').textContent = gameMode === 'ai' && currentPlayer === 'O' ? `AI's Turn...` : `Player ${currentPlayer}'s Turn`;
+        }
+
+        function drawWinLine(index) {
+            const line = document.getElementById('win-line');
+            const cells = document.getElementsByClassName('ttt-cell');
+            const firstCell = cells[winningConditions[index][0]].getBoundingClientRect();
+            const lastCell = cells[winningConditions[index][2]].getBoundingClientRect();
+            const boardRect = document.getElementById('ttt-board').getBoundingClientRect();
+
+            const x1 = firstCell.left + firstCell.width / 2 - boardRect.left;
+            const y1 = firstCell.top + firstCell.height / 2 - boardRect.top;
+            const x2 = lastCell.left + lastCell.width / 2 - boardRect.left;
+            const y2 = lastCell.top + lastCell.height / 2 - boardRect.top;
+
+            const length = Math.hypot(x2 - x1, y2 - y1);
+            const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
+            line.style.width = `${length}px`;
+            line.style.transform = `translate(${x1}px, ${y1}px) rotate(${angle}deg)`;
+            line.style.display = 'block';
+        }
+
+        function aiMove() {
+            if (!isGameActive) return;
+            let emptyCells = [];
+            tttBoard.forEach((v, i) => { if (v === '') emptyCells.push(i); });
+            if (emptyCells.length === 0) return;
+            let moveIdx = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            audio.playSFX('move');
+            makeMove(moveIdx, 'O');
+        }
+
+        function resetTTT() {
+            audio.playSFX('click');
+            tttBoard = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            isGameActive = true;
+            document.getElementById('ttt-status').textContent = `Player X's Turn`;
+            document.getElementById('win-line').style.display = 'none';
+            Array.from(document.getElementsByClassName('ttt-cell')).forEach(cell => { cell.textContent = ''; cell.className = 'ttt-cell'; });
+        }
+
+        // REAL SNAKE GAME LOGIC
+        function initSnakeCanvas() {
+            snakeCanvas = document.getElementById('snake-canvas');
+            if (snakeCanvas) snakeCtx = snakeCanvas.getContext('2d');
+        }
+
+        function startSnakeGame() {
+            audio.playSFX('click');
+            document.getElementById('snake-gameover-overlay').style.display = 'none';
+            initSnakeCanvas();
+            if (!snakeCtx) return;
+            if (snakeInterval) clearInterval(snakeInterval);
+
+            snake = [
+                {x: 12, y: 12},
+                {x: 11, y: 12},
+                {x: 10, y: 12}
+            ];
+            snakeDir = 'RIGHT';
+            nextSnakeDir = 'RIGHT';
+            snakeScore = 0;
+            document.getElementById('snake-score').textContent = snakeScore;
+            spawnRealSnakeFood();
+
+            snakeInterval = setInterval(updateRealSnake, 130);
+        }
+
+        function spawnRealSnakeFood() {
+            snakeFood = {
+                x: Math.floor(Math.random() * 22) + 1,
+                y: Math.floor(Math.random() * 22) + 1
+            };
+        }
+
+        function changeSnakeDir(dir) {
+            audio.playSFX('move');
+            if (dir === 'UP' && snakeDir !== 'DOWN') nextSnakeDir = 'UP';
+            if (dir === 'DOWN' && snakeDir !== 'UP') nextSnakeDir = 'DOWN';
+            if (dir === 'LEFT' && snakeDir !== 'RIGHT') nextSnakeDir = 'LEFT';
+            if (dir === 'RIGHT' && snakeDir !== 'LEFT') nextSnakeDir = 'RIGHT';
+        }
+
+        function updateRealSnake() {
+            snakeDir = nextSnakeDir;
+            let head = {x: snake[0].x, y: snake[0].y};
+            if (snakeDir === 'UP') head.y--;
+            if (snakeDir === 'DOWN') head.y++;
+            if (snakeDir === 'LEFT') head.x--;
+            if (snakeDir === 'RIGHT') head.x++;
+
+            if (head.x < 0 || head.x >= 24 || head.y < 0 || head.y >= 24 || snake.some(s => s.x === head.x && s.y === head.y)) {
+                audio.playSFX('gameover');
+                clearInterval(snakeInterval);
+                document.getElementById('snake-gameover-overlay').style.display = 'flex';
+                let stats = ScoreManager.saveScore('snake', snakeScore);
+                document.getElementById('snake-high').textContent = stats.highScore;
+                return;
+            }
+
+            snake.unshift(head);
+            if (head.x === snakeFood.x && head.y === snakeFood.y) {
+                audio.playSFX('score');
+                snakeScore += 10;
+                document.getElementById('snake-score').textContent = snakeScore;
+                spawnRealSnakeFood();
+            } else {
+                snake.pop();
+            }
+
+            drawRealSnake();
+        }
+
+        function drawRealSnake() {
+            snakeCtx.fillStyle = '#0a0f1d';
+            snakeCtx.fillRect(0, 0, 240, 240);
+
+            snakeCtx.fillStyle = '#ec4899';
+            snakeCtx.beginPath();
+            snakeCtx.arc(snakeFood.x * 10 + 5, snakeFood.y * 10 + 5, 4.5, 0, Math.PI * 2);
+            snakeCtx.fill();
+
+            snake.forEach((part, idx) => {
+                snakeCtx.fillStyle = idx === 0 ? '#10b981' : '#059669';
+                let sz = idx === 0 ? 9 : 8;
+                let offset = idx === 0 ? 0.5 : 1;
+                snakeCtx.beginPath();
+                snakeCtx.roundRect(part.x * 10 + offset, part.y * 10 + offset, sz, sz, 3);
+                snakeCtx.fill();
+
+                if (idx === 0) {
+                    snakeCtx.fillStyle = '#ffffff';
+                    let ex = part.x * 10 + 5, ey = part.y * 10 + 5;
+                    if (snakeDir === 'RIGHT') { ex += 2; }
+                    else if (snakeDir === 'LEFT') { ex -= 2; }
+                    else if (snakeDir === 'UP') { ey -= 2; }
+                    else if (snakeDir === 'DOWN') { ey += 2; }
+                    snakeCtx.beginPath();
+                    snakeCtx.arc(ex, ey, 1.5, 0, Math.PI * 2);
+                    snakeCtx.fill();
+                }
+            });
+        }
+
+        // DINOSAUR JUMP LOGIC
+        function initDinoCanvas() {
+            dinoCanvas = document.getElementById('dino-canvas');
+            if (dinoCanvas) {
+                dinoCtx = dinoCanvas.getContext('2d');
+                dinoCanvas.addEventListener('click', () => triggerDinoAction('jump'));
+            }
+        }
+
+        function startDinoGame() {
+            audio.playSFX('click');
+            document.getElementById('dino-gameover-overlay').style.display = 'none';
+            initDinoCanvas();
+            if (!dinoCtx) return;
+            if (dinoInterval) clearInterval(dinoInterval);
+
+            dino = { x: 35, y: 130, width: 28, height: 32, vy: 0, gravity: 0.6, isJumping: false, isDucking: false };
+            dinoObstacles = [];
+            dinoScore = 0;
+            dinoFrame = 0;
+            dinoSpawnCounter = 0;
+            isDinoNight = false;
+            isDinoRunning = true;
+            document.getElementById('dino-score').textContent = dinoScore;
+
+            dinoInterval = setInterval(updateDino, 25);
+        }
+
+        function triggerDinoAction(action) {
+            if (!isDinoRunning) {
+                startDinoGame();
+                return;
+            }
+            if (action === 'jump' && !dino.isJumping) {
+                audio.playSFX('move');
+                dino.vy = -10.5;
+                dino.isJumping = true;
+                dino.isDucking = false;
+            } else if (action === 'duck') {
+                if (!dino.isJumping) {
+                    audio.playSFX('click');
+                    dino.isDucking = true;
+                    setTimeout(() => { dino.isDucking = false; }, 600);
+                }
+            }
+        }
+
+        function updateDino() {
+            dinoFrame++;
+            dinoSpawnCounter++;
+            dino.vy += dino.gravity;
+            dino.y += dino.vy;
+
+            if (dino.y > 130) {
+                dino.y = 130;
+                dino.vy = 0;
+                dino.isJumping = false;
+            }
+
+            if (dinoSpawnCounter >= 120) {
+                dinoSpawnCounter = 0;
+                let isJumpingObstacle = Math.random() < 0.45;
+                dinoObstacles.push({
+                    x: 300,
+                    y: 128,
+                    width: 16,
+                    height: 32,
+                    canJump: isJumpingObstacle,
+                    vy: 0,
+                    jumpTimer: 0
+                });
+            }
+
+            dinoObstacles.forEach(o => {
+                o.x -= 4.2;
+                if (o.canJump) {
+                    o.jumpTimer++;
+                    if (o.jumpTimer % 70 === 0) {
+                        o.vy = -7.5;
+                    }
+                    o.vy += 0.5;
+                    o.y += o.vy;
+                    if (o.y > 128) { o.y = 128; o.vy = 0; }
+                }
+            });
+            dinoObstacles = dinoObstacles.filter(o => o.x > -40);
+
+            dinoScore++;
+            document.getElementById('dino-score').textContent = dinoScore;
+            isDinoNight = Math.floor(dinoScore / 500) % 2 === 1;
+
+            let dH = dino.isDucking ? 18 : dino.height;
+            let dY = dino.isDucking ? dino.y + 14 : dino.y;
+
+            dinoObstacles.forEach(o => {
+                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dY < o.y + o.height && dY + dH > o.y) {
+                    endDinoGame();
+                }
+            });
+
+            drawDino();
+        }
+
+        function endDinoGame() {
+            audio.playSFX('gameover');
+            clearInterval(dinoInterval);
+            isDinoRunning = false;
+            document.getElementById('dino-gameover-overlay').style.display = 'flex';
+            let stats = ScoreManager.saveScore('dino', dinoScore);
+            document.getElementById('dino-high').textContent = stats.highScore;
+        }
+
+        function drawDino() {
+            dinoCtx.fillStyle = isDinoNight ? '#020617' : '#111827';
+            dinoCtx.fillRect(0, 0, 300, 180);
+
+            dinoCtx.strokeStyle = isDinoNight ? '#38bdf8' : '#64748b';
+            dinoCtx.lineWidth = 2;
+            dinoCtx.beginPath();
+            dinoCtx.moveTo(0, 162);
+            dinoCtx.lineTo(300, 162);
+            dinoCtx.stroke();
+
+            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
+            let dH = dino.isDucking ? 18 : dino.height;
+            let dY = dino.isDucking ? dino.y + 14 : dino.y;
+            let dW = dino.isDucking ? 34 : dino.width;
+            dinoCtx.fillRect(dino.x, dY + 8, dW, dH - 8);
+            dinoCtx.fillRect(dino.x + dW - 6, dY - 4, 14, 14);
+            dinoCtx.fillStyle = '#fff';
+            dinoCtx.fillRect(dino.x + dW + 2, dY, 3, 3);
+            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
+            if (!dino.isJumping && Math.floor(dinoFrame / 6) % 2 === 0) {
+                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 8);
+                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 5);
+            } else {
+                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 5);
+                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 8);
+            }
+
+            dinoObstacles.forEach(o => {
+                dinoCtx.fillStyle = o.canJump ? '#f43f5e' : '#22c55e';
+                dinoCtx.fillRect(o.x, o.y, o.width, o.height);
+                dinoCtx.fillRect(o.x - 4, o.y + 8, 4, 8);
+            });
+        }
+
+        // FRUIT SLASHER LOGIC
+        function initFruitCanvas() {
+            fruitCanvas = document.getElementById('fruit-canvas');
+            if (fruitCanvas) {
+                fruitCtx = fruitCanvas.getContext('2d');
+                let isDragging = false;
+
+                const registerSwipe = (clientX, clientY) => {
+                    if (!fruitRunning) return;
+                    const rect = fruitCanvas.getBoundingClientRect();
+                    let cx = (clientX - rect.left) * (fruitCanvas.width / rect.width);
+                    let cy = (clientY - rect.top) * (fruitCanvas.height / rect.height);
+
+                    sliceTrails.push({ x: cx, y: cy, alpha: 1.0 });
+
+                    flyingFruits.forEach(f => {
+                        if (!f.sliced && Math.hypot(f.x - cx, f.y - cy) < f.radius + 14) {
+                            f.sliced = true;
+                            if (f.isBomb) {
+                                audio.playSFX('gameover');
+                                fruitLives--;
+                                document.getElementById('fruit-lives').textContent = fruitLives;
+                                if (fruitLives <= 0) endFruitGame();
+                            } else {
+                                audio.playSFX('score');
+                                fruitScore += f.points;
+                                document.getElementById('fruit-score').textContent = fruitScore;
+                            }
+                        }
+                    });
+                };
+
+                fruitCanvas.onmousedown = e => { isDragging = true; registerSwipe(e.clientX, e.clientY); };
+                window.onmousemove = e => { if (isDragging) registerSwipe(e.clientX, e.clientY); };
+                window.onmouseup = () => { isDragging = false; };
+
+                fruitCanvas.ontouchstart = e => { isDragging = true; registerSwipe(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
+                window.ontouchmove = e => { if (isDragging) registerSwipe(e.touches[0].clientX, e.touches[0].clientY); };
+                window.ontouchend = () => { isDragging = false; };
+            }
+        }
+
+        function startFruitGame() {
+            audio.playSFX('click');
+            document.getElementById('fruit-gameover-overlay').style.display = 'none';
+            initFruitCanvas();
+            if (!fruitCtx) return;
+            fruitRunning = true;
+            fruitScore = 0; fruitLives = 3;
+            flyingFruits = [];
+            sliceTrails = [];
+            document.getElementById('fruit-score').textContent = fruitScore;
+            document.getElementById('fruit-lives').textContent = fruitLives;
+            cancelAnimationFrame(fruitAnimId);
+            fruitLoop();
+        }
+
+        let fruitTick = 0;
+        function fruitLoop() {
+            if (!fruitRunning) return;
+            fruitTick++;
+
+            if (fruitTick % 50 === 0) {
+                let isBomb = Math.random() < 0.2;
+                const types = [
+                    { emoji: '🍉', points: 20 },
+                    { emoji: '🍎', points: 10 },
+                    { emoji: '🍌', points: 15 },
+                    { emoji: '🍍', points: 25 },
+                    { emoji: '🍇', points: 15 }
+                ];
+                let chosen = isBomb ? { emoji: '💣', points: 0 } : types[Math.floor(Math.random() * types.length)];
+                
+                flyingFruits.push({
+                    x: 40 + Math.random() * 220,
+                    y: 310,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: -11 - Math.random() * 3,
+                    gravity: 0.35,
+                    radius: 18,
+                    emoji: chosen.emoji,
+                    points: chosen.points,
+                    isBomb: isBomb,
+                    sliced: false
+                });
+            }
+
+            fruitCtx.fillStyle = '#111827';
+            fruitCtx.fillRect(0, 0, fruitCanvas.width, fruitCanvas.height);
+
+            flyingFruits.forEach(f => {
+                f.x += f.vx;
+                f.vy += f.gravity;
+                f.y += f.vy;
+
+                if (!f.sliced) {
+                    fruitCtx.font = '26px sans-serif';
+                    fruitCtx.textAlign = 'center';
+                    fruitCtx.textBaseline = 'middle';
+                    fruitCtx.fillText(f.emoji, f.x, f.y);
+                }
+            });
+            flyingFruits = flyingFruits.filter(f => f.y < 340);
+
+            sliceTrails.forEach((t, i) => {
+                t.alpha -= 0.08;
+                if (t.alpha > 0) {
+                    fruitCtx.strokeStyle = `rgba(56, 189, 248, ${t.alpha})`;
+                    fruitCtx.lineWidth = 4;
+                    fruitCtx.beginPath();
+                    fruitCtx.arc(t.x, t.y, 6, 0, Math.PI * 2);
+                    fruitCtx.stroke();
+                }
+            });
+            sliceTrails = sliceTrails.filter(t => t.alpha > 0);
+
+            if (fruitRunning) fruitAnimId = requestAnimationFrame(fruitLoop);
+        }
+
+        function endFruitGame() {
+            fruitRunning = false;
+            audio.playSFX('gameover');
+            document.getElementById('fruit-gameover-overlay').style.display = 'flex';
+            let stats = ScoreManager.saveScore('fruitslasher', fruitScore);
+        }
+
+        function submitGuess() {
+            const val = parseInt(document.getElementById('guess-input').value);
+            const status = document.getElementById('guess-status');
+            if (isNaN(val) || val < 1 || val > 100) {
+                status.textContent = "Please enter 1-100!";
+                return;
+            }
+            audio.playSFX('click');
+            guessAttempts++;
+            document.getElementById('guess-attempts').textContent = guessAttempts;
+
+            if (val === targetNumber) {
+                audio.playSFX('win');
+                status.textContent = `🎉 Correct! Number was ${targetNumber}.`;
+                let best = localStorage.getItem('arcadehub_guess');
+                if (!best || guessAttempts < parseInt(best)) {
+                    localStorage.setItem('arcadehub_guess', guessAttempts);
+                    document.getElementById('guess-best').textContent = guessAttempts;
+                }
+            } else if (val < targetNumber) {
+                status.textContent = "📈 Too low! Go higher.";
+            } else {
+                status.textContent = "📉 Too high! Go lower.";
+            }
+        }
+
+        function resetGuessGame() {
+            audio.playSFX('click');
+            targetNumber = Math.floor(Math.random() * 100) + 1;
+            guessAttempts = 0;
+            document.getElementById('guess-attempts').textContent = '0';
+            document.getElementById('guess-input').value = '';
+            document.getElementById('guess-status').textContent = "Take a guess!";
+        }
+
+        function handleRPSInput(choice) {
+            audio.playSFX('click');
+            const status = document.getElementById('rps-status');
+            if (rpsStage === 1) {
+                rpsP1Choice = choice;
+                document.getElementById('rps-p1-choice').textContent = '🔒';
+                document.getElementById('rps-p2-choice').textContent = '❓';
+                status.textContent = "Player 2's Turn (Choose Secretly)";
+                rpsStage = 2;
+            } else {
+                let p2Choice = choice;
+                const emojis = { rock: '🪨', paper: '📄', scissors: '✂️' };
+                document.getElementById('rps-p1-choice').textContent = emojis[rpsP1Choice];
+                document.getElementById('rps-p2-choice').textContent = emojis[p2Choice];
+
+                if (rpsP1Choice === p2Choice) {
+                    audio.playSFX('move');
+                    status.textContent = "It's a Tie! 🤝";
+                } else if (
+                    (rpsP1Choice === 'rock' && p2Choice === 'scissors') ||
+                    (rpsP1Choice === 'paper' && p2Choice === 'rock') ||
+                    (rpsP1Choice === 'scissors' && p2Choice === 'paper')
+                ) {
+                    audio.playSFX('score');
+                    rpsP1Score++;
+                    document.getElementById('rps-p1-score').textContent = rpsP1Score;
+                    status.textContent = "Player 1 Wins Round! 🎉";
+                } else {
+                    audio.playSFX('score');
+                    rpsP2Score++;
+                    document.getElementById('rps-p2-score').textContent = rpsP2Score;
+                    status.textContent = "Player 2 Wins Round! 🎉";
+                }
+                rpsStage = 1;
+                setTimeout(() => {
+                    document.getElementById('rps-p1-choice').textContent = '❓';
+                    document.getElementById('rps-p2-choice').textContent = '❓';
+                    status.textContent = "Player 1's Turn (Choose Secretly)";
+                }, 2000);
+            }
+        }
+
+        function resetRPS() {
+            audio.playSFX('click');
+            rpsP1Score = 0; rpsP2Score = 0; rpsStage = 1;
+            document.getElementById('rps-p1-score').textContent = '0';
+            document.getElementById('rps-p2-score').textContent = '0';
+            document.getElementById('rps-p1-choice').textContent = '❓';
+            document.getElementById('rps-p2-choice').textContent = '❓';
+            document.getElementById('rps-status').textContent = "Player 1's Turn (Choose Secretly)";
+        }
+
+        function startMoleGame() {
+            audio.playSFX('click');
+            if (isMolePlaying) return;
+            isMolePlaying = true;
+            moleScore = 0;
+            document.getElementById('mole-score').textContent = '0';
+            document.getElementById('mole-start-btn').textContent = 'Playing...';
+
+            moleTimer = setInterval(() => {
+                document.querySelectorAll('.mole-hole').forEach(h => h.classList.remove('active'));
+                moleActiveIdx = Math.floor(Math.random() * 6);
+                document.querySelectorAll('.mole-hole')[moleActiveIdx].classList.add('active');
+            }, 700);
+
+            setTimeout(() => {
+                clearInterval(moleTimer);
+                document.querySelectorAll('.mole-hole').forEach(h => h.classList.remove('active'));
+                isMolePlaying = false;
+                document.getElementById('mole-start-btn').textContent = 'Start Game';
+                audio.playSFX('win');
+                let stats = ScoreManager.saveScore('mole', moleScore);
+                document.getElementById('mole-high').textContent = stats.highScore;
+            }, 15000);
+        }
+
+        function whackMole(idx) {
+            if (!isMolePlaying) return;
+            if (idx === moleActiveIdx) {
+                audio.playSFX('score');
+                moleScore += 10;
+                document.getElementById('mole-score').textContent = moleScore;
+                document.querySelectorAll('.mole-hole')[idx].classList.remove('active');
+                moleActiveIdx = -1;
+            }
+        }
+
+        function handleReactionClick() {
+            const box = document.getElementById('reaction-box');
+            const text = document.getElementById('reaction-text');
+
+            if (reactionState === 'waiting') {
+                audio.playSFX('click');
+                box.className = 'reaction-box waiting';
+                text.textContent = "Wait for Green...";
+                reactionState = 'armed';
+                let delay = 1500 + Math.random() * 2500;
+                reactionTimeout = setTimeout(() => {
+                    if (reactionState === 'armed') {
+                        box.className = 'reaction-box ready';
+                        text.textContent = "CLICK NOW! ⚡";
+                        reactionState = 'ready';
+                        reactionStart = Date.now();
+                    }
+                }, delay);
+            } else if (reactionState === 'armed') {
+                clearTimeout(reactionTimeout);
+                audio.playSFX('gameover');
+                box.className = 'reaction-box result';
+                text.textContent = "Too early! Retry.";
+                reactionState = 'waiting';
+            } else if (reactionState === 'ready') {
+                reactionTime = Date.now() - reactionStart;
+                audio.playSFX('win');
+                box.className = 'reaction-box result';
+                text.textContent = `${reactionTime} ms! Retry.`;
+                document.getElementById('reaction-time').textContent = `${reactionTime} ms`;
+                if (!bestReaction || reactionTime < bestReaction) {
+                    bestReaction = reactionTime;
+                    document.getElementById('reaction-best').textContent = `${bestReaction} ms`;
+                }
+                reactionState = 'waiting';
+            }
+        }
+
+        function resetReactionGame() {
+            audio.playSFX('click');
+            clearTimeout(reactionTimeout);
+            reactionState = 'waiting';
+            document.getElementById('reaction-box').className = 'reaction-box';
+            document.getElementById('reaction-text').textContent = "Click to Start";
+            document.getElementById('reaction-time').textContent = "0 ms";
+        }
+
+        function initFlappyCanvas() {
+            flappyCanvas = document.getElementById('flappy-canvas');
+            if (flappyCanvas) flappyCtx = flappyCanvas.getContext('2d');
+        }
+
+        function startFlappyGame() {
+            audio.playSFX('click');
+            document.getElementById('flappy-gameover-overlay').style.display = 'none';
+            initFlappyCanvas();
+            if (!flappyCtx) return;
+            if (flappyInterval) clearInterval(flappyInterval);
+
+            bird = {x: 60, y: 140, vy: 0, radius: 12, rotation: 0};
+            pipes = [];
+            flappyScore = 0;
+            isFlappyRunning = true;
+            document.getElementById('flappy-score').textContent = flappyScore;
+
+            flappyInterval = setInterval(updateFlappy, 25);
+        }
+
+        function jumpFlappy() {
+            if (!isFlappyRunning) {
+                startFlappyGame();
+                return;
+            }
+            audio.playSFX('move');
+            bird.vy = -6.5;
+        }
+
+        function updateFlappy() {
+            bird.vy += 0.38;
+            bird.y += bird.vy;
+            bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, bird.vy * 0.1));
+
+            if (pipes.length === 0 || pipes[pipes.length - 1].x < 160) {
+                let gapH = 85;
+                let topH = Math.floor(Math.random() * 110) + 40;
+                pipes.push({x: 260, top: topH, bottom: topH + gapH, passed: false});
+            }
+
+            pipes.forEach(p => { p.x -= 3.2; });
+            pipes = pipes.filter(p => p.x > -50);
+
+            pipes.forEach(p => {
+                if (!p.passed && p.x < bird.x) {
+                    p.passed = true;
+                    flappyScore++;
+                    audio.playSFX('score');
+                    document.getElementById('flappy-score').textContent = flappyScore;
+                }
+                if (bird.x + bird.radius - 2 > p.x && bird.x - bird.radius + 2 < p.x + 40) {
+                    if (bird.y - bird.radius + 2 < p.top || bird.y + bird.radius - 2 > p.bottom) {
+                        endFlappyGame();
+                    }
+                }
+            });
+
+            if (bird.y > 280 || bird.y < 0) {
+                endFlappyGame();
+            }
+
+            drawFlappy();
+        }
+
+        function endFlappyGame() {
+            audio.playSFX('gameover');
+            clearInterval(flappyInterval);
+            isFlappyRunning = false;
+            document.getElementById('flappy-gameover-overlay').style.display = 'flex';
+            let stats = ScoreManager.saveScore('flappy', flappyScore);
+            document.getElementById('flappy-high').textContent = stats.highScore;
+        }
+
+        function drawFlappy() {
+            flappyCtx.fillStyle = '#0f172a';
+            flappyCtx.fillRect(0, 0, 260, 280);
+
+            pipes.forEach(p => {
+                flappyCtx.fillStyle = '#10b981';
+                flappyCtx.fillRect(p.x, 0, 40, p.top);
+                flappyCtx.fillRect(p.x, p.bottom, 40, 280 - p.bottom);
+                flappyCtx.fillStyle = '#059669';
+                flappyCtx.fillRect(p.x - 3, p.top - 12, 46, 12);
+                flappyCtx.fillRect(p.x - 3, p.bottom, 46, 12);
+            });
+
+            flappyCtx.save();
+            flappyCtx.translate(bird.x, bird.y);
+            flappyCtx.rotate(bird.rotation);
+            flappyCtx.fillStyle = '#facc15';
+            flappyCtx.beginPath();
+            flappyCtx.arc(0, 0, bird.radius, 0, Math.PI * 2);
+            flappyCtx.fill();
+            flappyCtx.fillStyle = '#000';
+            flappyCtx.beginPath();
+            flappyCtx.arc(4, -3, 2.5, 0, Math.PI * 2);
+            flappyCtx.fill();
+            flappyCtx.fillStyle = '#f97316';
+            flappyCtx.beginPath();
+            flappyCtx.moveTo(bird.radius - 2, -2);
+            flappyCtx.lineTo(bird.radius + 7, 1);
+            flappyCtx.lineTo(bird.radius - 2, 4);
+            flappyCtx.fill();
+            flappyCtx.restore();
+        }
+
+        function startCandyGame() {
+            audio.playSFX('click');
+            candyScore = 0; candyMoves = 20; selectedCandy = null;
+            document.getElementById('candy-score').textContent = candyScore;
+            document.getElementById('candy-moves').textContent = candyMoves;
+
+            candyBoard = [];
+            for (let r = 0; r < 5; r++) {
+                let row = [];
+                for (let c = 0; c < 5; c++) row.push(candyTypes[Math.floor(Math.random() * candyTypes.length)]);
+                candyBoard.push(row);
+            }
+            renderCandyBoard();
+        }
+
+        function renderCandyBoard() {
+            const grid = document.getElementById('candy-grid');
+            grid.innerHTML = '';
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c < 5; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'candy-cell';
+                    cell.textContent = candyBoard[r][c];
+                    cell.onclick = () => handleCandyClick(r, c);
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function handleCandyClick(r, c) {
+            if (candyMoves <= 0) return;
+            if (!selectedCandy) {
+                audio.playSFX('move');
+                selectedCandy = {r, c};
+                document.getElementsByClassName('candy-cell')[r * 5 + c].classList.add('selected');
+            } else {
+                let prevR = selectedCandy.r, prevC = selectedCandy.c;
+                document.getElementsByClassName('candy-cell')[prevR * 5 + prevC].classList.remove('selected');
+
+                let isAdjacent = (Math.abs(prevR - r) === 1 && prevC === c) || (Math.abs(prevC - c) === 1 && prevR === c);
+                if (isAdjacent) {
+                    let temp = candyBoard[prevR][prevC];
+                    candyBoard[prevR][prevC] = candyBoard[r][c];
+                    candyBoard[r][c] = temp;
+
+                    if (checkCandyMatches()) {
+                        audio.playSFX('score');
+                        candyMoves--; document.getElementById('candy-moves').textContent = candyMoves;
+                        cascadeCandies();
+                    } else {
+                        audio.playSFX('gameover');
+                        candyBoard[r][c] = candyBoard[prevR][prevC];
+                        candyBoard[prevR][prevC] = temp;
+                    }
+                }
+                selectedCandy = null;
+                renderCandyBoard();
+            }
+        }
+
+        function checkCandyMatches() {
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c < 3; c++) {
+                    if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r][c+1] && candyBoard[r][c] === candyBoard[r][c+2]) return true;
+                }
+            }
+            for (let c = 0; c < 5; c++) {
+                for (let r = 0; r < 3; r++) {
+                    if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r+1][c] && candyBoard[r][c] === candyBoard[r+2][c]) return true;
+                }
+            }
+            return false;
+        }
+
+        function cascadeCandies() {
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c < 3; c++) {
+                    if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r][c+1] && candyBoard[r][c] === candyBoard[r][c+2]) {
+                        candyScore += 30;
+                        candyBoard[r][c] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
+                        candyBoard[r][c+1] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
+                        candyBoard[r][c+2] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
+                    }
+                }
+            }
+            document.getElementById('candy-score').textContent = candyScore;
+            renderCandyBoard();
+        }
+
+        function initFrostCanvas() {
+            frostCanvas = document.getElementById('frost-canvas');
+            if (frostCanvas) {
+                frostCtx = frostCanvas.getContext('2d');
+                const updateFrostPointer = (clientX) => {
+                    if (!frostRunning) return;
+                    const rect = frostCanvas.getBoundingClientRect();
+                    let canvasX = (clientX - rect.left) * (frostCanvas.width / rect.width);
+                    if (frostPaddle) frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, canvasX - frostPaddle.width / 2));
+                };
+                frostCanvas.onmousemove = e => updateFrostPointer(e.clientX);
+                frostCanvas.ontouchmove = e => { e.preventDefault(); updateFrostPointer(e.touches[0].clientX); };
+            }
+        }
+
+        function startFrostGame() {
+            audio.playSFX('click');
+            document.getElementById('frost-gameover-overlay').style.display = 'none';
+            initFrostCanvas();
+            if (!frostCtx) return;
+            frostRunning = true;
+            frostScore = 0; frostLives = 3; frostLvl = 1; frostScreenShake = 0;
+            frostPaddle = { x: 140, y: 315, width: 80, height: 10 };
+            frostDrops = [];
+            initFrostBalls();
+            buildFrostBricks();
+            updateFrostHUD();
+            cancelAnimationFrame(frostAnimId);
+            frostLoop();
+        }
+
+        function initFrostBalls() {
+            frostBalls = [{ x: 180, y: 180, vx: 3, vy: -3.5, radius: 6, active: true }];
+        }
+
+        function buildFrostBricks() {
+            frostBricks = [];
+            const rows = 5, cols = 8, width = 38, height = 16, padding = 4, offsetTop = 35, offsetLeft = 12;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    let hits = r < 2 ? 2 : 1;
+                    frostBricks.push({ x: offsetLeft + c * (width + padding), y: offsetTop + r * (height + padding), width: width, height: height, status: hits });
+                }
+            }
+        }
+
+        function updateFrostHUD() {
+            document.getElementById('frost-score').textContent = String(frostScore).padStart(6, '0');
+            document.getElementById('frost-lvl').textContent = `LVL ${frostLvl}`;
+            document.getElementById('frost-lives').textContent = frostLives;
+        }
+
+        function frostLoop() {
+            if (!frostRunning) return;
+            if (!frostCtx) { initFrostCanvas(); if (!frostCtx) return; }
+
+            frostCtx.save();
+            if (frostScreenShake > 0) {
+                frostScreenShake--;
+                frostCtx.translate((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6);
+            }
+
+            frostCtx.fillStyle = '#080d1a';
+            frostCtx.fillRect(0, 0, 360, 340);
+
+            frostCtx.strokeStyle = '#8b5cf6';
+            frostCtx.lineWidth = 3;
+            frostCtx.strokeRect(4, 4, 352, 332);
+
+            let activeBricks = 0;
+            frostBricks.forEach(b => {
+                if (b.status > 0) {
+                    activeBricks++;
+                    frostCtx.fillStyle = b.status === 2 ? '#ec4899' : '#8b5cf6';
+                    frostCtx.fillRect(b.x, b.y, b.width, b.height);
+                }
+            });
+
+            if (activeBricks === 0) {
+                frostLvl++;
+                audio.playSFX('win');
+                buildFrostBricks();
+                frostBalls.forEach(ball => {
+                    ball.vx *= 1.1;
+                    ball.vy *= 1.1;
+                    ball.x = 180; ball.y = 180;
+                });
+                updateFrostHUD();
+            }
+
+            frostCtx.fillStyle = '#38bdf8';
+            frostCtx.fillRect(frostPaddle.x, frostPaddle.y, frostPaddle.width, frostPaddle.height);
+
+            frostDrops.forEach((d, idx) => {
+                d.y += 2.5;
+                if (d.type === '3x') frostCtx.fillStyle = '#facc15';
+                else if (d.type === 'long') frostCtx.fillStyle = '#10b981';
+                else if (d.type === 'short') frostCtx.fillStyle = '#f43f5e';
+                else if (d.type === 'bomb') frostCtx.fillStyle = '#ef4444';
+
+                frostCtx.beginPath();
+                frostCtx.arc(d.x, d.y, 8, 0, Math.PI * 2);
+                frostCtx.fill();
+                frostCtx.fillStyle = '#fff';
+                frostCtx.font = '10px sans-serif';
+                frostCtx.textAlign = 'center';
+                let label = d.type === '3x' ? '✨' : d.type === 'long' ? '➕' : d.type === 'short' ? '➖' : '💣';
+                frostCtx.fillText(label, d.x, d.y + 3);
+
+                if (d.y >= frostPaddle.y && d.y <= frostPaddle.y + frostPaddle.height && d.x >= frostPaddle.x && d.x <= frostPaddle.x + frostPaddle.width) {
+                    audio.playSFX('win');
+                    if (d.type === '3x') {
+                        let currentBalls = frostBalls.filter(b => b.active);
+                        if (currentBalls.length > 0) {
+                            let b = currentBalls[0];
+                            frostBalls.push({ x: b.x, y: b.y, vx: -b.vx || 2.5, vy: b.vy || -3, radius: 6, active: true });
+                            frostBalls.push({ x: b.x, y: b.y, vx: (b.vx || 2.5) * 0.5, vy: (b.vy || -3) * 1.1, radius: 6, active: true });
+                        }
+                    } else if (d.type === 'long') {
+                        frostPaddle.width = Math.min(130, frostPaddle.width + 25);
+                    } else if (d.type === 'short') {
+                        frostPaddle.width = Math.max(45, frostPaddle.width - 25);
+                    } else if (d.type === 'bomb') {
+                        frostLives--;
+                        frostScreenShake = 10;
+                        audio.playSFX('gameover');
+                        updateFrostHUD();
+                    }
+                    frostDrops.splice(idx, 1);
+                } else if (d.y > 340) {
+                    frostDrops.splice(idx, 1);
+                }
+            });
+
+            let activeBallsCount = 0;
+            frostBalls.forEach(ball => {
+                if (!ball.active) return;
+                activeBallsCount++;
+
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+
+                if (ball.x - ball.radius < 8 || ball.x + ball.radius > 352) {
+                    ball.vx *= -1;
+                    audio.playSFX('move');
+                }
+                if (ball.y - ball.radius < 8) {
+                    ball.vy *= -1;
+                    audio.playSFX('move');
+                }
+
+                if (ball.y + ball.radius >= frostPaddle.y && ball.y - ball.radius <= frostPaddle.y + frostPaddle.height &&
+                    ball.x >= frostPaddle.x && ball.x <= frostPaddle.x + frostPaddle.width) {
+                    ball.vy *= -1;
+                    audio.playSFX('click');
+                    let hitPoint = ball.x - (frostPaddle.x + frostPaddle.width / 2);
+                    ball.vx = hitPoint * 0.12;
+                }
+
+                frostBricks.forEach(b => {
+                    if (b.status > 0) {
+                        if (ball.x > b.x && ball.x < b.x + b.width && ball.y > b.y && ball.y < b.y + b.height) {
+                            ball.vy *= -1;
+                            b.status--;
+                            frostScore += 15;
+                            frostScreenShake = 5;
+                            audio.playSFX('score');
+                            updateFrostHUD();
+
+                            if (b.status === 0 && Math.random() < 0.45) {
+                                const types = ['3x', 'long', 'short', 'bomb'];
+                                let chosenType = types[Math.floor(Math.random() * types.length)];
+                                frostDrops.push({ x: b.x + b.width / 2, y: b.y + b.height, type: chosenType });
+                            }
+                        }
+                    }
+                });
+
+                if (ball.y > 340) {
+                    ball.active = false;
+                }
+
+                frostCtx.fillStyle = '#ffffff';
+                frostCtx.beginPath();
+                frostCtx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                frostCtx.fill();
+            });
+
+            if (activeBallsCount === 0) {
+                frostLives--;
+                audio.playSFX('gameover');
+                updateFrostHUD();
+                if (frostLives <= 0) {
+                    frostRunning = false;
+                    document.getElementById('final-frost-score').textContent = `Final Score: ${frostScore}`;
+                    document.getElementById('frost-gameover-overlay').style.display = 'flex';
+                    let stats = ScoreManager.saveScore('brickbreaker', frostScore);
+                    frostCtx.restore();
+                    return;
+                } else {
+                    initFrostBalls();
+                }
+            }
+
+            frostCtx.restore();
+            frostAnimId = requestAnimationFrame(frostLoop);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+          const leftPupil = document.getElementById('left-pupil');
+          const rightPupil = document.getElementById('right-pupil');
+          const headElement = document.querySelector('.robot-head');
+          const robotContainer = document.getElementById('robot-companion');
+          if (!headElement || !leftPupil || !rightPupil || !robotContainer.classList.contains('visible')) return;
+
+          const headRect = headElement.getBoundingClientRect();
+          const angle = Math.atan2(e.clientY - (headRect.top + headRect.height / 2), e.clientX - (headRect.left + headRect.width / 2));
+          const moveX = Math.cos(angle) * 3;
+          const moveY = Math.sin(angle) * 3;
+
+          leftPupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
+          rightPupil.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        });
     </script>
 </body>
 </html>
