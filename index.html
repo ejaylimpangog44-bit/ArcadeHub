@@ -49,7 +49,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 16px;
             overflow-x: hidden;
             transition: background-color 0.3s ease;
         }
@@ -98,12 +98,12 @@
 
         header {
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            padding: 0 8px;
+            margin-bottom: 20px;
+            padding: 0 4px;
         }
 
         .logo-area {
@@ -161,7 +161,7 @@
 
         .view {
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             display: none;
         }
 
@@ -244,13 +244,15 @@
             font-weight: 600;
         }
 
+        /* Full wide game containers with absolute floating upper-left navigator */
         .game-container {
             position: relative;
             background-color: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 20px;
+            padding: 24px 16px 16px 16px;
             width: 100%;
+            max-width: 600px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             text-align: center;
             display: none;
@@ -270,45 +272,51 @@
             justify-content: center !important;
             align-items: center !important;
             background-color: var(--bg-color) !important;
-            padding: 10px !important;
+            padding: 20px !important;
             overflow: hidden !important;
         }
 
         .game-container:fullscreen canvas {
-            max-height: 80vh;
+            max-height: 82vh;
             width: auto !important;
             height: auto !important;
             object-fit: contain;
             flex: 1;
         }
 
-        .game-screen-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            width: 100%;
-            max-width: 500px;
-        }
-
-        .header-action-group {
+        /* Floating Upper-Left Navigator Bar */
+        .game-floating-nav {
+            position: absolute;
+            top: 12px;
+            left: 12px;
             display: flex;
             gap: 6px;
+            z-index: 30;
         }
 
-        .back-btn, .header-icon-btn {
+        .nav-btn {
             background: rgba(255, 255, 255, 0.1);
-            border: none;
+            border: 1px solid var(--border);
             color: #fff;
-            padding: 8px 10px;
+            padding: 6px 10px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
+            backdrop-filter: blur(4px);
+            transition: background 0.2s;
         }
 
-        .back-btn:hover, .header-icon-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .game-title-header {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
         }
 
         .screen {
@@ -630,7 +638,8 @@
         .ttt-board-wrapper {
             position: relative;
             width: 100%;
-            margin-bottom: 20px;
+            max-width: 340px;
+            margin: 0 auto 20px auto;
         }
 
         .ttt-board {
@@ -647,7 +656,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             font-weight: bold;
             cursor: pointer;
             transition: background 0.2s;
@@ -678,12 +687,13 @@
         .claw-cabinet {
             position: relative;
             width: 100%;
+            max-width: 400px;
             height: 220px;
             background-color: #0b0f19;
             border: 3px solid var(--border);
             border-radius: 12px;
             overflow: hidden;
-            margin-bottom: 15px;
+            margin: 0 auto 15px auto;
         }
 
         #claw {
@@ -734,7 +744,7 @@
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
@@ -749,7 +759,7 @@
             background-color: #334155;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 18px;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
@@ -780,6 +790,9 @@
             border-radius: 10px;
             margin-bottom: 15px;
             border: 1px solid var(--border);
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .score-box {
@@ -798,15 +811,16 @@
             display: flex;
             justify-content: space-around;
             gap: 10px;
-            margin: 15px 0;
+            margin: 15px auto;
+            max-width: 350px;
         }
 
         .rps-btn {
             background: #0b0f19;
             border: 2px solid var(--border);
             border-radius: 12px;
-            padding: 12px;
-            font-size: 1.8rem;
+            padding: 16px;
+            font-size: 2rem;
             cursor: pointer;
             flex: 1;
             transition: all 0.2s;
@@ -821,21 +835,24 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            font-size: 2.5rem;
-            margin: 15px 0;
-            min-height: 60px;
+            font-size: 2.8rem;
+            margin: 15px auto;
+            max-width: 300px;
+            min-height: 70px;
         }
 
         .guess-input {
             width: 100%;
+            max-width: 320px;
             background: #0b0f19;
             border: 2px solid var(--border);
             color: white;
-            padding: 12px;
+            padding: 14px;
             border-radius: 8px;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             text-align: center;
-            margin: 15px 0;
+            margin: 15px auto;
+            display: block;
             outline: none;
         }
 
@@ -846,8 +863,9 @@
         .mole-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 15px;
+            gap: 10px;
+            max-width: 360px;
+            margin: 0 auto 15px auto;
         }
 
         .mole-hole {
@@ -858,7 +876,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 2.2rem;
             cursor: pointer;
             position: relative;
             overflow: hidden;
@@ -870,13 +888,14 @@
         }
 
         .mole-hole span {
-            transform: translateY(60px);
+            transform: translateY(70px);
             transition: transform 0.1s ease-in-out;
         }
 
         .reaction-box {
             width: 100%;
-            height: 150px;
+            max-width: 400px;
+            height: 160px;
             background-color: #334155;
             border-radius: 12px;
             display: flex;
@@ -884,7 +903,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            margin-bottom: 15px;
+            margin: 0 auto 15px auto;
             transition: background 0.2s;
             user-select: none;
         }
@@ -899,13 +918,14 @@
             border-radius: 10px;
             display: block;
             margin: 0 auto 15px auto;
+            max-width: 100%;
         }
 
         .dir-pad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            max-width: 160px;
+            gap: 8px;
+            max-width: 180px;
             margin: 0 auto 15px auto;
         }
 
@@ -913,9 +933,9 @@
             background: #334155;
             color: white;
             border: none;
-            padding: 10px;
+            padding: 14px;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             cursor: pointer;
             font-weight: bold;
         }
@@ -925,10 +945,11 @@
         .candy-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            margin-bottom: 15px;
+            gap: 8px;
+            max-width: 360px;
+            margin: 0 auto 15px auto;
             background: #0b0f19;
-            padding: 10px;
+            padding: 12px;
             border-radius: 10px;
             border: 2px solid var(--border);
         }
@@ -941,7 +962,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             cursor: pointer;
             transition: transform 0.1s, background-color 0.1s;
         }
@@ -954,7 +975,8 @@
 
         .shooter-wrapper {
             position: relative;
-            width: 280px;
+            width: 100%;
+            max-width: 340px;
             margin: 0 auto;
         }
 
@@ -1292,14 +1314,11 @@
 
     <!-- Tic Tac Toe -->
     <div id="tictactoe-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Tic-Tac-Toe</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('tictactoe-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('tictactoe-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Tic-Tac-Toe</h3>
 
         <div id="ttt-setup-screen" class="screen active">
             <p style="margin-bottom: 15px; color: var(--text-muted);">Configure match settings</p>
@@ -1343,7 +1362,7 @@
                 </div>
                 <div id="win-line"></div>
             </div>
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 10px; max-width: 340px; margin: 0 auto;">
                 <button class="action-btn" style="flex: 1;" onclick="resetTTT()">Restart</button>
                 <button class="control-btn" style="flex: 1;" onclick="backToSetup()">⚙️ Settings</button>
             </div>
@@ -1352,14 +1371,11 @@
 
     <!-- Claw Machine -->
     <div id="clawgame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Claw Machine</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('clawgame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('clawgame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Claw Machine</h3>
 
         <div class="claw-cabinet">
             <div id="claw"></div>
@@ -1371,7 +1387,7 @@
         </div>
         <div class="claw-controls">
             <button class="control-btn" onclick="moveClaw(-40)">⬅️ Left</button>
-            <button class="action-btn" onclick="dropClaw()">⬇️ Drop</button>
+            <button class="action-btn" onclick="dropClaw()" style="padding: 10px 20px;">⬇️ Drop</button>
             <button class="control-btn" onclick="moveClaw(40)">Right ➡️</button>
         </div>
         <p id="claw-message">Position the claw and press Drop!</p>
@@ -1380,14 +1396,11 @@
 
     <!-- Space Shooter -->
     <div id="dartgame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Space Shooter</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('dartgame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('dartgame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Space Shooter</h3>
         <div class="shooter-wrapper">
             <div class="shooter-hud">
                 <div class="shooter-hud-item">Score: <span id="shooter-score">0</span></div>
@@ -1406,14 +1419,11 @@
 
     <!-- Frost Breakout -->
     <div id="frostgame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Frost Breakout ❄️</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('frostgame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('frostgame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Frost Breakout ❄️</h3>
         <div class="shooter-wrapper">
             <div class="shooter-hud">
                 <div class="shooter-hud-item">Score: <span id="frost-score">000000</span></div>
@@ -1431,14 +1441,11 @@
 
     <!-- RPS -->
     <div id="rpsgame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">RPS PvP</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('rpsgame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('rpsgame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">RPS PvP</h3>
 
         <div class="score-board">
             <div class="score-box">Player 1 <span id="rps-p1-score">0</span></div>
@@ -1455,19 +1462,16 @@
             <button class="rps-btn" onclick="handleRPSInput('paper')">📄</button>
             <button class="rps-btn" onclick="handleRPSInput('scissors')">✂️</button>
         </div>
-        <button class="control-btn" style="width: 100%; margin-top: 5px;" onclick="resetRPS()">Reset Scores</button>
+        <button class="control-btn" style="width: 100%; max-width: 350px; margin: 10px auto 0 auto; display: block;" onclick="resetRPS()">Reset Scores</button>
     </div>
 
     <!-- Number Guess -->
     <div id="guessgame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Number Guessing</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('guessgame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('guessgame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Number Guessing</h3>
 
         <p style="font-size: 0.85rem; color: var(--text-muted);">Guess a number between 1 and 100</p>
         <div class="score-board" style="margin-top: 12px;">
@@ -1476,7 +1480,7 @@
         </div>
         <input type="number" id="guess-input" class="guess-input" placeholder="Enter 1-100" min="1" max="100">
         <p id="guess-status" style="margin-bottom: 15px; font-weight: 600;">Take a guess!</p>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; max-width: 320px; margin: 0 auto;">
             <button class="action-btn" style="flex: 1;" onclick="submitGuess()">Submit</button>
             <button class="control-btn" style="flex: 1;" onclick="resetGuessGame()">Reset</button>
         </div>
@@ -1484,14 +1488,11 @@
 
     <!-- Whack a Mole -->
     <div id="molegame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Whack-a-Mole</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('molegame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('molegame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Whack-a-Mole</h3>
 
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="mole-score">0</span></div>
@@ -1505,19 +1506,16 @@
             <div class="mole-hole" onclick="whackMole(4)"><span id="m4">🐹</span></div>
             <div class="mole-hole" onclick="whackMole(5)"><span id="m5">🐹</span></div>
         </div>
-        <button class="action-btn" style="width: 100%;" id="mole-start-btn" onclick="startMoleGame()">Start Game</button>
+        <button class="action-btn" style="width: 100%; max-width: 360px; margin: 0 auto; display: block;" id="mole-start-btn" onclick="startMoleGame()">Start Game</button>
     </div>
 
     <!-- Reaction Timer -->
     <div id="reactiongame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Reaction Timer</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('reactiongame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('reactiongame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Reaction Timer</h3>
 
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Test your reflexes!</p>
         <div class="score-board">
@@ -1527,19 +1525,16 @@
         <div class="reaction-box" id="reaction-box" onclick="handleReactionClick()">
             <span id="reaction-text" style="font-size: 1.05rem; font-weight: bold;">Click to Start</span>
         </div>
-        <button class="control-btn" style="width: 100%;" onclick="resetReactionGame()">Reset</button>
+        <button class="control-btn" style="width: 100%; max-width: 400px; margin: 0 auto; display: block;" onclick="resetReactionGame()">Reset</button>
     </div>
 
     <!-- Snake -->
     <div id="snakegame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Snake Game</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('snakegame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('snakegame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Snake Game</h3>
 
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="snake-score">0</span></div>
@@ -1554,62 +1549,53 @@
             <button class="dir-btn" onclick="changeSnakeDir('DOWN')">⬇️</button>
             <button class="dir-btn" onclick="changeSnakeDir('RIGHT')">➡️</button>
         </div>
-        <button class="action-btn" style="width: 100%;" onclick="startSnakeGame()">Start / Reset</button>
+        <button class="action-btn" style="width: 100%; max-width: 260px; margin: 0 auto; display: block;" onclick="startSnakeGame()">Start / Reset</button>
     </div>
 
     <!-- Flappy -->
     <div id="flappygame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Flappy Arcade</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('flappygame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('flappygame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Flappy Arcade</h3>
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="flappy-score">0</span></div>
             <div class="score-box">High Score <span id="flappy-high">0</span></div>
         </div>
         <canvas id="flappy-canvas" class="arcade-canvas" width="260" height="260" onclick="jumpFlappy()"></canvas>
-        <button class="action-btn" style="width: 100%;" onclick="startFlappyGame()">Tap/Click to Jump & Start</button>
+        <button class="action-btn" style="width: 100%; max-width: 260px; margin: 0 auto; display: block;" onclick="startFlappyGame()">Tap/Click to Jump & Start</button>
     </div>
 
     <!-- Dino -->
     <div id="dinogame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Dino Jump</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Dino Jump</h3>
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="dino-score">0</span></div>
             <div class="score-box">High Score <span id="dino-high">0</span></div>
         </div>
         <canvas id="dino-canvas" class="arcade-canvas" width="260" height="200" onclick="jumpDino()"></canvas>
-        <button class="action-btn" style="width: 100%;" onclick="jumpDino()">Jump / Start</button>
+        <button class="action-btn" style="width: 100%; max-width: 260px; margin: 0 auto; display: block;" onclick="jumpDino()">Jump / Start</button>
     </div>
 
     <!-- Candy -->
     <div id="candygame-container" class="game-container">
-        <div class="game-screen-header">
-            <button class="back-btn" onclick="backToHub()">← Back</button>
-            <h3 style="font-size: 15px;">Candy Match-3</h3>
-            <div class="header-action-group">
-                <button class="header-icon-btn mute-quick-btn" onclick="toggleQuickMute()">🔊</button>
-                <button class="header-icon-btn" onclick="toggleFullscreen('candygame-container')">⛶</button>
-            </div>
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('candygame-container')">⛶</button>
         </div>
+        <h3 class="game-title-header">Candy Match-3</h3>
 
         <div class="score-board" style="margin-top: 5px;">
             <div class="score-box">Score <span id="candy-score">0</span></div>
             <div class="score-box">Moves <span id="candy-moves">20</span></div>
         </div>
         <div class="candy-grid" id="candy-grid"></div>
-        <button class="action-btn" style="width: 100%;" onclick="startCandyGame()">New Game</button>
+        <button class="action-btn" style="width: 100%; max-width: 360px; margin: 0 auto; display: block;" onclick="startCandyGame()">New Game</button>
     </div>
 
     <div class="modal-overlay" id="settings-modal">
@@ -1801,26 +1787,6 @@
                 btn.classList.add('active');
                 audio.playSFX('click');
             }
-            syncQuickMuteButtons();
-        }
-
-        function toggleQuickMute() {
-            audio.isMuted = !audio.isMuted;
-            const btn = document.getElementById('audio-toggle-switch');
-            if (audio.isMuted) {
-                btn.textContent = "MUTED";
-                btn.classList.remove('active');
-            } else {
-                btn.textContent = "ENABLED";
-                btn.classList.add('active');
-                audio.playSFX('click');
-            }
-            syncQuickMuteButtons();
-        }
-
-        function syncQuickMuteButtons() {
-            const icon = audio.isMuted ? '🔇' : '🔊';
-            document.querySelectorAll('.mute-quick-btn').forEach(b => { b.textContent = icon; });
         }
 
         function updateVolume(val) {
@@ -1903,7 +1869,6 @@
             initDinoCanvas();
             initShooterCanvas();
             initFrostCanvas();
-            syncQuickMuteButtons();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -2652,7 +2617,7 @@
             renderCandyBoard();
         }
 
-        // Space Shooter classes & loop
+        // Space Shooter classes & loop (Infinite Loop Fix)
         class ShooterPlayer {
             constructor() {
                 this.width = 30; this.height = 36;
@@ -2724,7 +2689,7 @@
                 this.hp = this.type === 'ADVANCED' ? 3 : 1;
                 this.speed = (this.type === 'ADVANCED' ? 1.5 : 2) + (roundNum * 0.15);
                 this.lastShot = Date.now() + Math.random() * 1000;
-                this.shootInterval = Math.max(1000, 2200 - (roundNum * 100));
+                this.shootInterval = Math.max(800, 2200 - (roundNum * 80));
             }
             update() {
                 this.y += this.speed;
@@ -2759,9 +2724,10 @@
             constructor(roundNum) {
                 this.width = 80; this.height = 55;
                 this.x = 280 / 2 - this.width / 2; this.y = -this.height;
-                this.maxHp = 100 + ((roundNum / 3 - 1) * 50);
+                // Scale boss HP infinitely with each boss round encountered
+                this.maxHp = 100 + (Math.floor(roundNum / 3) * 50);
                 this.hp = this.maxHp; this.targetY = 40;
-                this.vx = 2 + (roundNum * 0.2);
+                this.vx = 2 + (roundNum * 0.15);
                 this.lastAttackTime = Date.now();
                 this.spiralAngle = 0; this.phase = 1; this.roundNum = roundNum;
             }
@@ -2776,7 +2742,7 @@
                     this.x = Math.max(10, Math.min(280 - this.width - 10, this.x));
                 }
                 const now = Date.now();
-                const cd = this.phase === 2 ? 650 : 1000;
+                const cd = this.phase === 2 ? 600 : 900;
                 if (now - this.lastAttackTime > cd) {
                     this.attack();
                     this.lastAttackTime = now;
@@ -2897,6 +2863,7 @@
             shooterPlayer.update();
             shooterPlayer.draw();
 
+            // Spawn normal enemies if no boss is active
             if (!shooterBoss && shooterEnemies.length < 4 && Math.random() < 0.03) {
                 shooterEnemies.push(new ShooterEnemy(shooterRound));
             }
@@ -2955,15 +2922,20 @@
                             shooterEnemies.splice(eIdx, 1);
                             shooterScore += 100;
                             enemiesDefeatedInRound++;
+                            
+                            // Infinite Round Progression Loop
                             if (enemiesDefeatedInRound >= requiredEnemiesForRound) {
                                 shooterRound++;
                                 enemiesDefeatedInRound = 0;
+                                requiredEnemiesForRound += 4; // Scale up requirements for subsequent rounds
+                                
                                 if (shooterRound % 3 === 0) {
                                     announcementText = `WARNING: BOSS ROUND`;
                                     announcementTimer = 120;
                                     shooterBoss = new ShooterBoss(shooterRound);
                                 } else {
-                                    requiredEnemiesForRound += 4;
+                                    announcementText = `ROUND ${shooterRound}`;
+                                    announcementTimer = 90;
                                 }
                             }
                             updateShooterHUD();
@@ -2986,6 +2958,9 @@
                             shooterBoss = null;
                             shooterRound++;
                             enemiesDefeatedInRound = 0;
+                            requiredEnemiesForRound += 6;
+                            announcementText = `ROUND ${shooterRound}`;
+                            announcementTimer = 90;
                             updateShooterHUD();
                         }
                     }
