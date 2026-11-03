@@ -317,18 +317,6 @@
             overflow: auto !important;
         }
 
-        .game-container:fullscreen .game-title-header {
-            font-size: 1.6rem;
-            margin-bottom: 20px;
-        }
-
-        #snakegame-container:fullscreen canvas {
-            width: 70vw !important;
-            height: 70vw !important;
-            max-width: 400px !important;
-            max-height: 400px !important;
-        }
-
         .game-floating-nav {
             position: absolute;
             top: 4px;
@@ -735,62 +723,6 @@
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
         }
 
-        .claw-cabinet {
-            position: relative;
-            width: 100%;
-            max-width: 360px;
-            height: 200px;
-            background-color: #111827;
-            border: 3px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            margin: 0 auto 12px auto;
-        }
-
-        #claw {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 45px;
-            height: 35px;
-            background: linear-gradient(135deg, #cbd5e1, #94a3b8);
-            border-radius: 6px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            transition: left 0.15s ease-out, top 0.4s ease-in-out;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-
-        #claw::after {
-            content: '🦾';
-            font-size: 20px;
-            margin-bottom: -4px;
-        }
-
-        .prize-area {
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
-            height: 40px;
-            display: flex;
-            justify-content: space-around;
-            padding: 0 20px;
-        }
-
-        .prize-item {
-            font-size: 26px;
-            transition: transform 0.3s;
-        }
-
-        .claw-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
         .action-btn {
             background-color: var(--primary);
             color: white;
@@ -818,19 +750,6 @@
 
         .control-btn:hover {
             background-color: #475569;
-        }
-
-        #claw-message {
-            min-height: 24px;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            color: var(--text-muted);
-        }
-
-        .inventory {
-            margin-top: 6px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
         }
 
         .score-board {
@@ -1347,7 +1266,6 @@
             <button class="nav-btn" onclick="toggleFullscreen('tictactoe-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Tic-Tac-Toe</h3>
-
         <div id="ttt-setup-screen" class="screen active">
             <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.9rem;">Configure match settings</p>
             <div class="setup-group">
@@ -1367,13 +1285,11 @@
             </div>
             <button class="start-game-btn" onclick="startLoadingScreen()">Start Game 🚀</button>
         </div>
-
         <div id="ttt-loading-screen" class="screen">
             <div class="loading-spinner"></div>
             <div class="loading-text" id="loading-msg">Loading Arena...</div>
             <p style="color: var(--text-muted);">Get ready to play!</p>
         </div>
-
         <div id="ttt-game-screen" class="screen">
             <div class="ttt-status" id="ttt-status">Player X's Turn</div>
             <div class="ttt-board-wrapper">
@@ -1428,7 +1344,7 @@
         </div>
     </div>
 
-    <!-- Space Invaders -->
+    <!-- Space Invaders (Continuous Endless Waves) -->
     <div id="spaceinvaders-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1438,7 +1354,7 @@
         <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
                 <div class="score-box">Score <span id="si-score">0</span></div>
-                <div class="score-box">High <span id="si-high">0</span></div>
+                <div class="score-box">Wave <span id="si-wave">1</span></div>
                 <div class="score-box">Lives <span id="si-lives">3</span></div>
             </div>
             <div style="position: relative; display: inline-block;">
@@ -1451,32 +1367,42 @@
         </div>
     </div>
 
-    <!-- Claw Machine -->
+    <!-- Full Claw Machine -->
     <div id="clawgame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('clawgame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Claw Machine</h3>
-
-        <div class="claw-cabinet">
-            <div id="claw"></div>
-            <div class="prize-area">
-                <span class="prize-item" id="p0">🧸</span>
-                <span class="prize-item" id="p1">⭐</span>
-                <span class="prize-item" id="p2">🎁</span>
+        <div style="width: 100%; max-width: 340px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Prizes <span id="prize-count">0</span></div>
+                <div class="score-box">Credits <span id="claw-credits">5</span></div>
             </div>
+            <div style="position: relative; width: 100%; height: 210px; background-color: #111827; border: 3px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px;">
+                <div id="claw-crane" style="position: absolute; top: 15px; left: 150px; width: 44px; height: 35px; display: flex; flex-direction: column; align-items: center; transition: left 0.15s ease-out, top 0.5s ease-in-out; z-index: 10;">
+                    <div style="width: 6px; height: 15px; background: #94a3b8;"></div>
+                    <div style="font-size: 24px; margin-top: -6px;">🦾</div>
+                </div>
+                <div id="claw-prize-chute" style="position: absolute; bottom: 10px; right: 10px; width: 50px; height: 45px; border: 2px dashed var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">CHUTE</div>
+                <div id="claw-prizes-floor" style="position: absolute; bottom: 8px; left: 15px; width: 240px; height: 40px; display: flex; justify-content: space-around; align-items: flex-end;">
+                    <span style="font-size: 24px; transition: transform 0.4s;" id="cp-0">🧸</span>
+                    <span style="font-size: 24px; transition: transform 0.4s;" id="cp-1">⭐</span>
+                    <span style="font-size: 24px; transition: transform 0.4s;" id="cp-2">🎁</span>
+                    <span style="font-size: 24px; transition: transform 0.4s;" id="cp-3">👾</span>
+                    <span style="font-size: 24px; transition: transform 0.4s;" id="cp-4">💎</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 8px;">
+                <button class="control-btn" style="flex: 1;" onclick="moveRealClaw(-35)">⬅️ Left</button>
+                <button class="action-btn" style="flex: 1; background: var(--accent);" onclick="dropRealClaw()">⬇️ Drop</button>
+                <button class="control-btn" style="flex: 1;" onclick="moveRealClaw(35)">Right ➡️</button>
+            </div>
+            <p id="claw-message" style="font-size: 0.85rem; color: var(--text-muted); min-height: 22px;">Position crane over a prize & drop!</p>
         </div>
-        <div class="claw-controls">
-            <button class="control-btn" onclick="moveClaw(-40)">⬅️ Left</button>
-            <button class="action-btn" onclick="dropClaw()" style="padding: 10px 20px;">⬇️ Drop</button>
-            <button class="control-btn" onclick="moveClaw(40)">Right ➡️</button>
-        </div>
-        <p id="claw-message">Position the claw and press Drop!</p>
-        <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
     </div>
 
-    <!-- Brick Breaker (Updated with Continuous Levels & Powerup Drops) -->
+    <!-- Brick Breaker -->
     <div id="frostgame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1507,7 +1433,6 @@
             <button class="nav-btn" onclick="toggleFullscreen('rpsgame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">RPS PvP</h3>
-
         <div class="score-board">
             <div class="score-box">Player 1 <span id="rps-p1-score">0</span></div>
             <div class="score-box">Player 2 <span id="rps-p2-score">0</span></div>
@@ -1533,7 +1458,6 @@
             <button class="nav-btn" onclick="toggleFullscreen('guessgame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Number Guessing</h3>
-
         <p style="font-size: 0.85rem; color: var(--text-muted);">Guess a number between 1 and 100</p>
         <div class="score-board" style="margin-top: 10px;">
             <div class="score-box">Attempts <span id="guess-attempts">0</span></div>
@@ -1554,7 +1478,6 @@
             <button class="nav-btn" onclick="toggleFullscreen('molegame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Whack-a-Mole</h3>
-
         <div class="score-board" style="margin-top: 4px;">
             <div class="score-box">Score <span id="mole-score">0</span></div>
             <div class="score-box">High Score <span id="mole-high">0</span></div>
@@ -1577,7 +1500,6 @@
             <button class="nav-btn" onclick="toggleFullscreen('reactiongame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Reaction Timer</h3>
-
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Test your reflexes!</p>
         <div class="score-board">
             <div class="score-box">Time <span id="reaction-time">0 ms</span></div>
@@ -1617,19 +1539,19 @@
         </div>
     </div>
 
-    <!-- Flappy -->
+    <!-- Flappy Arcade (Enhanced Physics & Parallax) -->
     <div id="flappygame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('flappygame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Flappy Arcade</h3>
-        <div class="score-board" style="margin-top: 4px; max-width: 240px;">
+        <div class="score-board" style="margin-top: 4px; max-width: 260px;">
             <div class="score-box">Score <span id="flappy-score">0</span></div>
             <div class="score-box">High <span id="flappy-high">0</span></div>
         </div>
         <div style="position: relative; display: inline-block;">
-            <canvas id="flappy-canvas" class="arcade-canvas" width="240" height="240" onclick="jumpFlappy()"></canvas>
+            <canvas id="flappy-canvas" class="arcade-canvas" width="260" height="280" onclick="jumpFlappy()" style="touch-action: none;"></canvas>
             <div id="flappy-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
                 <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
                 <button class="action-btn" onclick="startFlappyGame()">PLAY AGAIN</button>
@@ -1637,23 +1559,27 @@
         </div>
     </div>
 
-    <!-- Dino -->
+    <!-- Real Dinosaur Jump Arcade -->
     <div id="dinogame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Dino Jump</h3>
-        <div class="score-board" style="margin-top: 4px; max-width: 240px;">
+        <h3 class="game-title-header">Dino Jump 🦖</h3>
+        <div class="score-board" style="margin-top: 4px; max-width: 300px;">
             <div class="score-box">Score <span id="dino-score">0</span></div>
             <div class="score-box">High <span id="dino-high">0</span></div>
         </div>
-        <div style="position: relative; display: inline-block;" onclick="triggerObstacleJump()">
-            <canvas id="dino-canvas" class="arcade-canvas" width="240" height="180"></canvas>
+        <div style="position: relative; display: inline-block;">
+            <canvas id="dino-canvas" class="arcade-canvas" width="300" height="180" style="touch-action: none;"></canvas>
             <div id="dino-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
                 <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
                 <button class="action-btn" onclick="startDinoGame()">PLAY AGAIN</button>
             </div>
+        </div>
+        <div style="display: flex; gap: 10px; width: 100%; max-width: 300px; margin-top: 8px;">
+            <button class="action-btn" style="flex: 1;" onclick="triggerDinoAction('jump')">⬆️ Jump</button>
+            <button class="control-btn" style="flex: 1;" onclick="triggerDinoAction('duck')">⬇️ Duck</button>
         </div>
     </div>
 
@@ -1664,7 +1590,6 @@
             <button class="nav-btn" onclick="toggleFullscreen('candygame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Candy Match-3</h3>
-
         <div class="score-board" style="margin-top: 4px;">
             <div class="score-box">Score <span id="candy-score">0</span></div>
             <div class="score-box">Moves <span id="candy-moves">20</span></div>
@@ -1909,22 +1834,28 @@
         const winningConditions = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
         let tttBoard = ['', '', '', '', '', '', '', '', ''];
         let currentPlayer = 'X', isGameActive = true, selectedMode = 'pvp', selectedDiff = 'easy', gameMode = 'pvp', aiDifficulty = 'easy';
-        let clawOffset = 0, isClawBusy = false, prizeCount = 0;
+        
+        // Claw Machine state
+        let realClawX = 140, realClawCredits = 5, realPrizeCount = 0, isRealClawBusy = false;
+
         let rpsP1Score = 0, rpsP2Score = 0, rpsP1Choice = null, rpsStage = 1;
         let targetNumber = Math.floor(Math.random() * 100) + 1, guessAttempts = 0, bestGuess = null;
         let moleActiveIdx = -1, moleScore = 0, moleTimer = null, isMolePlaying = false;
         let reactionState = 'waiting', reactionStart = 0, reactionTimeout = null, reactionTime = 0, bestReaction = null;
 
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
+        
+        // Flappy Arcade state
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
-        let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, obstacles = [], dinoScore = 0, isDinoRunning = false, dinoSpawnTimer = 0;
+        
+        // Dino state
+        let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false;
 
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
 
         let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBalls = [], frostBricks = [], frostDrops = [], frostScreenShake = 0;
 
-        // Pac-Man Variables
         let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
         let pacman = { x: 1, y: 1, dir: 'RIGHT', nextDir: 'RIGHT' };
         let ghosts = [
@@ -1952,8 +1883,8 @@
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
 
-        // Space Invaders Variables
-        let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siAnimId;
+        // Space Invaders state
+        let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siWave = 1, siAnimId;
         let siShip = { x: 130, y: 265, width: 28, height: 14 };
         let siLasers = [], siAliens = [], siAlienBullets = [], siAlienDir = 1;
 
@@ -1976,7 +1907,7 @@
             document.getElementById('pac-high').textContent = ScoreManager.getStats('pacman').highScore;
             document.getElementById('si-high').textContent = ScoreManager.getStats('spaceinvaders').highScore;
             document.getElementById('frost-score').textContent = ScoreManager.getStats('brickbreaker').highScore;
-            
+
             const bestGuessData = localStorage.getItem('arcadehub_guess');
             if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
         };
@@ -1999,10 +1930,7 @@
             if (containerId === 'dinogame-container') startDinoGame();
             if (containerId === 'pacman-container') startPacManGame();
             if (containerId === 'spaceinvaders-container') startSpaceInvadersGame();
-            if (containerId === 'frostgame-container') {
-                initFrostCanvas();
-                startFrostGame();
-            }
+            if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
             if (containerId === 'candygame-container') startCandyGame();
         }
 
@@ -2145,45 +2073,64 @@
             Array.from(document.getElementsByClassName('ttt-cell')).forEach(cell => { cell.textContent = ''; cell.className = 'ttt-cell'; });
         }
 
-        function moveClaw(amount) {
-            if (isClawBusy) return;
+        // FULL CLAW MACHINE LOGIC
+        function moveRealClaw(amt) {
+            if (isRealClawBusy) return;
             audio.playSFX('move');
-            clawOffset = Math.max(-90, Math.min(90, clawOffset + amount));
-            document.getElementById('claw').style.left = `calc(50% + ${clawOffset}px)`;
+            realClawX = Math.max(15, Math.min(295, realClawX + amt));
+            document.getElementById('claw-crane').style.left = `${realClawX}px`;
         }
 
-        function dropClaw() {
-            if (isClawBusy) return;
-            isClawBusy = true;
+        function dropRealClaw() {
+            if (isRealClawBusy) return;
+            if (realClawCredits <= 0) {
+                document.getElementById('claw-message').textContent = "Out of credits! Refresh to restart.";
+                return;
+            }
+            isRealClawBusy = true;
+            realClawCredits--;
+            document.getElementById('claw-credits').textContent = realClawCredits;
             audio.playSFX('click');
-            const claw = document.getElementById('claw');
+
+            const crane = document.getElementById('claw-crane');
             const msg = document.getElementById('claw-message');
-            msg.textContent = "Dropping claw...";
-            claw.style.top = '110px';
+            msg.textContent = "Lowering claw...";
+            crane.style.top = '130px';
 
             setTimeout(() => {
-                let caught = false, prizeIndex = -1;
-                if (Math.abs(clawOffset - (-60)) < 25) { prizeIndex = 0; caught = true; }
-                else if (Math.abs(clawOffset - 0) < 25) { prizeIndex = 1; caught = true; }
-                else if (Math.abs(clawOffset - 60) < 25) { prizeIndex = 2; caught = true; }
+                let caughtIndex = -1;
+                // Check proximity to prizes located at positions ~35, ~90, ~145, ~200, ~255
+                const prizeCoords = [35, 90, 145, 200, 255];
+                prizeCoords.forEach((px, idx) => {
+                    let pElem = document.getElementById(`cp-${idx}`);
+                    if (pElem && pElem.style.transform !== "translateY(-120px) scale(0)" && Math.abs(realClawX - px) < 25) {
+                        caughtIndex = idx;
+                    }
+                });
 
-                if (caught) document.getElementById(`p${prizeIndex}`).style.transform = "translateY(-80px) scale(0)";
-                claw.style.top = '10px';
+                if (caughtIndex !== -1) {
+                    msg.textContent = "Got a prize hooked! Hoisting...";
+                    document.getElementById(`cp-${caughtIndex}`).style.transform = "translateY(-110px)";
+                } else {
+                    msg.textContent = "Claw closed empty...";
+                }
+
+                crane.style.top = '15px';
 
                 setTimeout(() => {
-                    if (caught) {
-                        prizeCount++;
+                    if (caughtIndex !== -1) {
                         audio.playSFX('win');
-                        document.getElementById('prize-count').textContent = prizeCount;
-                        msg.textContent = "🎉 Success! You grabbed a prize!";
-                        setTimeout(() => { document.getElementById(`p${prizeIndex}`).style.transform = "none"; }, 1000);
+                        realPrizeCount++;
+                        document.getElementById('prize-count').textContent = realPrizeCount;
+                        document.getElementById(`cp-${caughtIndex}`).style.transform = "translateY(-120px) scale(0)";
+                        msg.textContent = "🎉 Prize secured into chute!";
                     } else {
                         audio.playSFX('gameover');
                         msg.textContent = "❌ Missed! Try again.";
                     }
-                    isClawBusy = false;
-                }, 400);
-            }, 400);
+                    isRealClawBusy = false;
+                }, 500);
+            }, 500);
         }
 
         function submitGuess() {
@@ -2436,6 +2383,7 @@
             });
         }
 
+        // FLAPPY ARCADE LOGIC
         function initFlappyCanvas() {
             flappyCanvas = document.getElementById('flappy-canvas');
             if (flappyCanvas) flappyCtx = flappyCanvas.getContext('2d');
@@ -2448,13 +2396,13 @@
             if (!flappyCtx) return;
             if (flappyInterval) clearInterval(flappyInterval);
 
-            bird = {x: 50, y: 120, vy: 0, radius: 10};
+            bird = {x: 60, y: 140, vy: 0, radius: 12, rotation: 0};
             pipes = [];
             flappyScore = 0;
             isFlappyRunning = true;
             document.getElementById('flappy-score').textContent = flappyScore;
 
-            flappyInterval = setInterval(updateFlappy, 30);
+            flappyInterval = setInterval(updateFlappy, 25);
         }
 
         function jumpFlappy() {
@@ -2463,21 +2411,22 @@
                 return;
             }
             audio.playSFX('move');
-            bird.vy = -6;
+            bird.vy = -6.5;
         }
 
         function updateFlappy() {
-            bird.vy += 0.4;
+            bird.vy += 0.38;
             bird.y += bird.vy;
+            bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, bird.vy * 0.1));
 
-            if (pipes.length === 0 || pipes[pipes.length - 1].x < 150) {
-                let gapH = 80;
-                let topH = Math.floor(Math.random() * 90) + 40;
-                pipes.push({x: 240, top: topH, bottom: topH + gapH, passed: false});
+            if (pipes.length === 0 || pipes[pipes.length - 1].x < 160) {
+                let gapH = 85;
+                let topH = Math.floor(Math.random() * 110) + 40;
+                pipes.push({x: 260, top: topH, bottom: topH + gapH, passed: false});
             }
 
-            pipes.forEach(p => { p.x -= 3; });
-            pipes = pipes.filter(p => p.x > -40);
+            pipes.forEach(p => { p.x -= 3.2; });
+            pipes = pipes.filter(p => p.x > -50);
 
             pipes.forEach(p => {
                 if (!p.passed && p.x < bird.x) {
@@ -2486,14 +2435,14 @@
                     audio.playSFX('score');
                     document.getElementById('flappy-score').textContent = flappyScore;
                 }
-                if (bird.x + bird.radius > p.x && bird.x - bird.radius < p.x + 35) {
-                    if (bird.y - bird.radius < p.top || bird.y + bird.radius > p.bottom) {
+                if (bird.x + bird.radius - 2 > p.x && bird.x - bird.radius + 2 < p.x + 40) {
+                    if (bird.y - bird.radius + 2 < p.top || bird.y + bird.radius - 2 > p.bottom) {
                         endFlappyGame();
                     }
                 }
             });
 
-            if (bird.y > 240 || bird.y < 0) {
+            if (bird.y > 280 || bird.y < 0) {
                 endFlappyGame();
             }
 
@@ -2510,24 +2459,50 @@
         }
 
         function drawFlappy() {
-            flappyCtx.fillStyle = '#111827';
-            flappyCtx.fillRect(0, 0, 240, 240);
+            flappyCtx.fillStyle = '#0f172a';
+            flappyCtx.fillRect(0, 0, 260, 280);
 
-            flappyCtx.fillStyle = '#10b981';
+            // Draw Pipes
             pipes.forEach(p => {
-                flappyCtx.fillRect(p.x, 0, 35, p.top);
-                flappyCtx.fillRect(p.x, p.bottom, 35, 240 - p.bottom);
+                flappyCtx.fillStyle = '#10b981';
+                flappyCtx.fillRect(p.x, 0, 40, p.top);
+                flappyCtx.fillRect(p.x, p.bottom, 40, 280 - p.bottom);
+                // Pipe caps
+                flappyCtx.fillStyle = '#059669';
+                flappyCtx.fillRect(p.x - 3, p.top - 12, 46, 12);
+                flappyCtx.fillRect(p.x - 3, p.bottom, 46, 12);
             });
 
+            // Draw Bird
+            flappyCtx.save();
+            flappyCtx.translate(bird.x, bird.y);
+            flappyCtx.rotate(bird.rotation);
             flappyCtx.fillStyle = '#facc15';
             flappyCtx.beginPath();
-            flappyCtx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+            flappyCtx.arc(0, 0, bird.radius, 0, Math.PI * 2);
             flappyCtx.fill();
+            // Eye
+            flappyCtx.fillStyle = '#000';
+            flappyCtx.beginPath();
+            flappyCtx.arc(4, -3, 2.5, 0, Math.PI * 2);
+            flappyCtx.fill();
+            // Beak
+            flappyCtx.fillStyle = '#f97316';
+            flappyCtx.beginPath();
+            flappyCtx.moveTo(bird.radius - 2, -2);
+            flappyCtx.lineTo(bird.radius + 7, 1);
+            flappyCtx.lineTo(bird.radius - 2, 4);
+            flappyCtx.fill();
+            flappyCtx.restore();
         }
 
+        // REAL DINOSAUR ARCADE LOGIC
         function initDinoCanvas() {
             dinoCanvas = document.getElementById('dino-canvas');
-            if (dinoCanvas) dinoCtx = dinoCanvas.getContext('2d');
+            if (dinoCanvas) {
+                dinoCtx = dinoCanvas.getContext('2d');
+                dinoCanvas.addEventListener('click', () => triggerDinoAction('jump'));
+            }
         }
 
         function startDinoGame() {
@@ -2537,54 +2512,73 @@
             if (!dinoCtx) return;
             if (dinoInterval) clearInterval(dinoInterval);
 
-            dino = {x: 30, y: 130, width: 20, height: 25};
-            obstacles = [];
+            dino = { x: 35, y: 130, width: 28, height: 32, vy: 0, gravity: 0.6, isJumping: false, isDucking: false };
+            dinoObstacles = [];
             dinoScore = 0;
-            dinoSpawnTimer = 0;
+            dinoFrame = 0;
+            isDinoNight = false;
             isDinoRunning = true;
             document.getElementById('dino-score').textContent = dinoScore;
 
-            dinoInterval = setInterval(updateDino, 30);
+            dinoInterval = setInterval(updateDino, 25);
         }
 
-        function triggerObstacleJump() {
+        function triggerDinoAction(action) {
             if (!isDinoRunning) {
                 startDinoGame();
                 return;
             }
-            audio.playSFX('move');
-            obstacles.forEach(o => {
-                if (!o.isJumping) {
-                    o.vy = -6.5;
-                    o.isJumping = true;
+            if (action === 'jump' && !dino.isJumping) {
+                audio.playSFX('move');
+                dino.vy = -10.5;
+                dino.isJumping = true;
+                dino.isDucking = false;
+            } else if (action === 'duck') {
+                if (!dino.isJumping) {
+                    audio.playSFX('click');
+                    dino.isDucking = true;
+                    setTimeout(() => { dino.isDucking = false; }, 600);
                 }
-            });
+            }
         }
 
         function updateDino() {
-            dinoSpawnTimer++;
-            if (obstacles.length === 0 && dinoSpawnTimer >= 90) {
-                dinoSpawnTimer = 0;
-                obstacles.push({x: 240, width: 15, height: 25, y: 130, vy: 0, isJumping: false});
+            dinoFrame++;
+            dino.vy += dino.gravity;
+            dino.y += dino.vy;
+
+            if (dino.y > 130) {
+                dino.y = 130;
+                dino.vy = 0;
+                dino.isJumping = false;
             }
 
-            obstacles.forEach(o => {
-                o.x -= 3;
-                o.vy += 0.4;
-                o.y += o.vy;
-                if (o.y > 130) {
-                    o.y = 130;
-                    o.vy = 0;
-                    o.isJumping = false;
-                }
-            });
-            obstacles = obstacles.filter(o => o.x > -30);
+            // Spawn obstacles (Cactus or Pterodactyl)
+            if (dinoObstacles.length === 0 || dinoObstacles[dinoObstacles.length - 1].x < 160) {
+                let isBird = Math.random() > 0.65 && dinoScore > 150;
+                let obsY = isBird ? (Math.random() > 0.5 ? 100 : 125) : 128;
+                dinoObstacles.push({
+                    x: 300,
+                    y: obsY,
+                    width: isBird ? 26 : 16,
+                    height: isBird ? 20 : 32,
+                    type: isBird ? 'bird' : 'cactus'
+                });
+            }
+
+            dinoObstacles.forEach(o => { o.x -= 4.5 + Math.floor(dinoScore / 200); });
+            dinoObstacles = dinoObstacles.filter(o => o.x > -40);
 
             dinoScore++;
-            document.getElementById('dino-score').textContent = Math.floor(dinoScore / 10);
+            document.getElementById('dino-score').textContent = dinoScore;
+            isDinoNight = Math.floor(dinoScore / 500) % 2 === 1;
 
-            obstacles.forEach(o => {
-                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dino.y < o.y + o.height && dino.y + dino.height > o.y) {
+            // Collision detection
+            let dH = dino.isDucking ? 18 : dino.height;
+            let dY = dino.isDucking ? dino.y + 14 : dino.y;
+
+            dinoObstacles.forEach(o => {
+                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dY < o.y + o.height && dY + dH > o.y) {
                     endDinoGame();
                 }
             });
@@ -2596,30 +2590,216 @@
             audio.playSFX('gameover');
             clearInterval(dinoInterval);
             isDinoRunning = false;
-            dinoSpawnTimer = 0;
             document.getElementById('dino-gameover-overlay').style.display = 'flex';
-            let finalScore = Math.floor(dinoScore / 10);
-            let stats = ScoreManager.saveScore('dino', finalScore);
+            let stats = ScoreManager.saveScore('dino', dinoScore);
             document.getElementById('dino-high').textContent = stats.highScore;
         }
 
         function drawDino() {
-            dinoCtx.fillStyle = '#111827';
-            dinoCtx.fillRect(0, 0, 240, 180);
+            dinoCtx.fillStyle = isDinoNight ? '#020617' : '#111827';
+            dinoCtx.fillRect(0, 0, 300, 180);
 
-            dinoCtx.strokeStyle = 'rgba(255,255,255,0.2)';
+            // Ground line
+            dinoCtx.strokeStyle = isDinoNight ? '#38bdf8' : '#64748b';
+            dinoCtx.lineWidth = 2;
             dinoCtx.beginPath();
-            dinoCtx.moveTo(0, 155);
-            dinoCtx.lineTo(240, 155);
+            dinoCtx.moveTo(0, 162);
+            dinoCtx.lineTo(300, 162);
             dinoCtx.stroke();
 
-            dinoCtx.fillStyle = '#a855f7';
-            dinoCtx.fillRect(dino.x, 130, dino.width, dino.height);
+            // Draw Real Dinosaur (T-Rex Pixel Style)
+            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
+            let dH = dino.isDucking ? 18 : dino.height;
+            let dY = dino.isDucking ? dino.y + 14 : dino.y;
+            let dW = dino.isDucking ? 34 : dino.width;
 
-            dinoCtx.fillStyle = '#ef4444';
-            obstacles.forEach(o => {
-                dinoCtx.fillRect(o.x, o.y, o.width, o.height);
+            // Body
+            dinoCtx.fillRect(dino.x, dY + 8, dW, dH - 8);
+            // Head & Jaw
+            dinoCtx.fillRect(dino.x + dW - 6, dY - 4, 14, 14);
+            // Eye
+            dinoCtx.fillStyle = '#fff';
+            dinoCtx.fillRect(dino.x + dW + 2, dY, 3, 3);
+            // Legs / Running animation
+            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
+            if (!dino.isJumping && Math.floor(dinoFrame / 6) % 2 === 0) {
+                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 8);
+                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 5);
+            } else {
+                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 5);
+                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 8);
+            }
+
+            // Draw Obstacles
+            dinoObstacles.forEach(o => {
+                if (o.type === 'bird') {
+                    dinoCtx.fillStyle = '#ec4899';
+                    dinoCtx.fillRect(o.x, o.y + (Math.floor(dinoFrame / 8) % 2 === 0 ? 0 : 6), o.width, o.height);
+                } else {
+                    dinoCtx.fillStyle = '#22c55e';
+                    dinoCtx.fillRect(o.x, o.y, o.width, o.height);
+                    dinoCtx.fillRect(o.x - 4, o.y + 8, 4, 8);
+                }
             });
+        }
+
+        // CONTINUOUS SPACE INVADERS LOGIC
+        function initSpaceInvadersCanvas() {
+            siCanvas = document.getElementById('si-canvas');
+            if (siCanvas) {
+                siCtx = siCanvas.getContext('2d');
+                let isDragging = false;
+                const updateShipPosition = (clientX) => {
+                    if (!siRunning) return;
+                    const rect = siCanvas.getBoundingClientRect();
+                    let canvasX = (clientX - rect.left) * (siCanvas.width / rect.width);
+                    siShip.x = Math.max(10, Math.min(siCanvas.width - siShip.width - 10, canvasX - siShip.width / 2));
+                };
+                siCanvas.onmousedown = e => { isDragging = true; updateShipPosition(e.clientX); };
+                window.onmousemove = e => { if (isDragging) updateShipPosition(e.clientX); };
+                window.onmouseup = () => { isDragging = false; };
+                siCanvas.ontouchstart = e => { isDragging = true; updateShipPosition(e.touches[0].clientX); e.preventDefault(); };
+                window.ontouchmove = e => { if (isDragging) updateShipPosition(e.touches[0].clientX); };
+                window.ontouchend = () => { isDragging = false; };
+            }
+        }
+
+        function startSpaceInvadersGame() {
+            audio.playSFX('click');
+            document.getElementById('si-gameover-overlay').style.display = 'none';
+            initSpaceInvadersCanvas();
+            if (!siCtx) return;
+            siRunning = true;
+            siScore = 0; siLives = 3; siWave = 1;
+            siShip = { x: 130, y: 265, width: 28, height: 14 };
+            siLasers = [];
+            siAlienBullets = [];
+            siAlienDir = 1;
+            spawnNewAlienWave();
+
+            document.getElementById('si-score').textContent = siScore;
+            document.getElementById('si-wave').textContent = siWave;
+            document.getElementById('si-lives').textContent = siLives;
+            cancelAnimationFrame(siAnimId);
+            spaceInvadersLoop();
+        }
+
+        function spawnNewAlienWave() {
+            siAliens = [];
+            let rows = Math.min(5, 3 + Math.floor(siWave / 2));
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < 7; c++) {
+                    siAliens.push({ x: 30 + c * 35, y: 25 + r * 22, width: 22, height: 15, alive: true });
+                }
+            }
+        }
+
+        let siTick = 0;
+        function spaceInvadersLoop() {
+            if (!siRunning) return;
+            siTick++;
+
+            if (siTick % 14 === 0) {
+                if (siLasers.length < 5) {
+                    siLasers.push({ x: siShip.x + siShip.width / 2 - 2, y: siShip.y, width: 4, height: 10 });
+                    audio.playSFX('click');
+                }
+            }
+
+            siCtx.fillStyle = '#111827';
+            siCtx.fillRect(0, 0, siCanvas.width, siCanvas.height);
+
+            siLasers.forEach(l => l.y -= 7);
+            siLasers = siLasers.filter(l => l.y > 0);
+
+            siAlienBullets.forEach(b => b.y += 3.5 + (siWave * 0.4));
+            siAlienBullets = siAlienBullets.filter(b => b.y < siCanvas.height);
+
+            let moveSpeedInterval = Math.max(10, 25 - (siWave * 2));
+            if (siTick % moveSpeedInterval === 0) {
+                let hitEdge = false;
+                siAliens.forEach(a => {
+                    if (a.alive) {
+                        a.x += siAlienDir * (7 + siWave);
+                        if (a.x <= 8 || a.x >= siCanvas.width - 30) hitEdge = true;
+                    }
+                });
+                if (hitEdge) {
+                    siAlienDir *= -1;
+                    siAliens.forEach(a => {
+                        a.y += 10;
+                        if (a.y >= siShip.y - 10) {
+                            endSpaceInvaders();
+                        }
+                    });
+                }
+
+                let aliveAliens = siAliens.filter(a => a.alive);
+                if (aliveAliens.length > 0 && Math.random() < 0.45) {
+                    let shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
+                    siAlienBullets.push({ x: shooter.x + shooter.width/2, y: shooter.y + shooter.height, width: 4, height: 8 });
+                }
+            }
+
+            siLasers.forEach((l, li) => {
+                siAliens.forEach(a => {
+                    if (a.alive && l.x < a.x + a.width && l.x + l.width > a.x && l.y < a.y + a.height && l.y + l.height > a.y) {
+                        a.alive = false;
+                        siLasers.splice(li, 1);
+                        siScore += 20 * siWave;
+                        audio.playSFX('score');
+                        document.getElementById('si-score').textContent = siScore;
+                    }
+                });
+            });
+
+            siAlienBullets.forEach((b, bi) => {
+                if (b.x < siShip.x + siShip.width && b.x + b.width > siShip.x && b.y < siShip.y + siShip.height && b.y + b.height > siShip.y) {
+                    siAlienBullets.splice(bi, 1);
+                    siLives--;
+                    audio.playSFX('gameover');
+                    document.getElementById('si-lives').textContent = siLives;
+                    if (siLives <= 0) {
+                        endSpaceInvaders();
+                        return;
+                    }
+                }
+            });
+
+            // Continuous Endless Wave Progression
+            if (siAliens.every(a => !a.alive)) {
+                siWave++;
+                audio.playSFX('win');
+                document.getElementById('si-wave').textContent = siWave;
+                spawnNewAlienWave();
+            }
+
+            siCtx.fillStyle = '#38bdf8';
+            siCtx.fillRect(siShip.x, siShip.y, siShip.width, siShip.height);
+            siCtx.fillRect(siShip.x + siShip.width/2 - 3, siShip.y - 4, 6, 4);
+
+            siCtx.fillStyle = '#ec4899';
+            siLasers.forEach(l => siCtx.fillRect(l.x, l.y, l.width, l.height));
+
+            siCtx.fillStyle = '#facc15';
+            siAlienBullets.forEach(b => siCtx.fillRect(b.x, b.y, b.width, b.height));
+
+            siAliens.forEach(a => {
+                if (a.alive) {
+                    siCtx.fillStyle = '#a855f7';
+                    siCtx.fillRect(a.x, a.y, a.width, a.height);
+                }
+            });
+
+            if (siRunning) siAnimId = requestAnimationFrame(spaceInvadersLoop);
+        }
+
+        function endSpaceInvaders() {
+            siRunning = false;
+            audio.playSFX('gameover');
+            document.getElementById('si-gameover-overlay').style.display = 'flex';
+            let stats = ScoreManager.saveScore('spaceinvaders', siScore);
+            document.getElementById('si-high').textContent = stats.highScore;
         }
 
         function startCandyGame() {
@@ -2711,329 +2891,7 @@
             renderCandyBoard();
         }
 
-        // Pac-Man Logic
-        function initPacManCanvas() {
-            pacCanvas = document.getElementById('pac-canvas');
-            if (pacCanvas) {
-                pacCtx = pacCanvas.getContext('2d');
-                let touchStartX = 0, touchStartY = 0;
-                pacCanvas.addEventListener('touchstart', (e) => {
-                    touchStartX = e.touches[0].clientX;
-                    touchStartY = e.touches[0].clientY;
-                    e.preventDefault();
-                }, { passive: false });
-                pacCanvas.addEventListener('touchend', (e) => {
-                    if (!touchStartX || !touchStartY) return;
-                    let diffX = e.changedTouches[0].clientX - touchStartX;
-                    let diffY = e.changedTouches[0].clientY - touchStartY;
-                    if (Math.abs(diffX) > Math.abs(diffY)) {
-                        if (diffX > 30) changePacDir('RIGHT');
-                        else if (diffX < -30) changePacDir('LEFT');
-                    } else {
-                        if (diffY > 30) changePacDir('DOWN');
-                        else if (diffY < -30) changePacDir('UP');
-                    }
-                    touchStartX = 0; touchStartY = 0;
-                    e.preventDefault();
-                }, { passive: false });
-            }
-        }
-
-        function startPacManGame() {
-            audio.playSFX('click');
-            document.getElementById('pac-gameover-overlay').style.display = 'none';
-            initPacManCanvas();
-            if (!pacCtx) return;
-            pacRunning = true;
-            pacScore = 0; pacLives = 3;
-            pacman = { x: 1, y: 1, dir: 'RIGHT', nextDir: 'RIGHT' };
-            ghosts = [
-                { x: 12, y: 11, color: '#ef4444', dir: 'UP' },
-                { x: 13, y: 11, color: '#ec4899', dir: 'LEFT' },
-                { x: 12, y: 12, color: '#06b6d4', dir: 'RIGHT' },
-                { x: 13, y: 12, color: '#f97316', dir: 'DOWN' }
-            ];
-            pacGrid = basePacMap.map(row => [...row]);
-            document.getElementById('pac-score').textContent = pacScore;
-            document.getElementById('pac-lives').textContent = pacLives;
-            cancelAnimationFrame(pacAnimId);
-            pacManLoop();
-        }
-
-        function changePacDir(dir) {
-            audio.playSFX('move');
-            pacman.nextDir = dir;
-        }
-
-        function getNextCoords(x, y, dir) {
-            let nx = x, ny = y;
-            if (dir === 'UP') ny--;
-            if (dir === 'DOWN') ny++;
-            if (dir === 'LEFT') nx--;
-            if (dir === 'RIGHT') nx++;
-            if (nx < 0) nx = pacGrid[0].length - 1;
-            if (nx >= pacGrid[0].length) nx = 0;
-            return {x: nx, y: ny};
-        }
-
-        let pacTickCounter = 0;
-        function pacManLoop() {
-            if (!pacRunning) return;
-            pacTickCounter++;
-            if (pacTickCounter % 10 === 0) {
-                let nextPos = getNextCoords(pacman.x, pacman.y, pacman.nextDir);
-                if (pacGrid[nextPos.y] && pacGrid[nextPos.y][nextPos.x] !== 1) {
-                    pacman.dir = pacman.nextDir;
-                }
-                let movePos = getNextCoords(pacman.x, pacman.y, pacman.dir);
-                if (pacGrid[movePos.y] && pacGrid[movePos.y][movePos.x] !== 1) {
-                    pacman.x = movePos.x;
-                    pacman.y = movePos.y;
-
-                    if (pacGrid[pacman.y][pacman.x] === 2) {
-                        pacGrid[pacman.y][pacman.x] = 0;
-                        pacScore += 10;
-                        audio.playSFX('score');
-                        document.getElementById('pac-score').textContent = pacScore;
-                    } else if (pacGrid[pacman.y][pacman.x] === 3) {
-                        pacGrid[pacman.y][pacman.x] = 0;
-                        pacScore += 50;
-                        audio.playSFX('win');
-                        document.getElementById('pac-score').textContent = pacScore;
-                    }
-                }
-
-                ghosts.forEach(g => {
-                    const dirs = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
-                    let validDirs = dirs.filter(d => {
-                        let cp = getNextCoords(g.x, g.y, d);
-                        return pacGrid[cp.y] && pacGrid[cp.y][cp.x] !== 1;
-                    });
-                    if (validDirs.length > 0 && (Math.random() < 0.6 || !validDirs.includes(g.dir))) {
-                        g.dir = validDirs[Math.floor(Math.random() * validDirs.length)];
-                    }
-                    let gp = getNextCoords(g.x, g.y, g.dir);
-                    if (pacGrid[gp.y] && pacGrid[gp.y][gp.x] !== 1) {
-                        g.x = gp.x;
-                        g.y = gp.y;
-                    }
-
-                    if (g.x === pacman.x && g.y === pacman.y) {
-                        pacLives--;
-                        audio.playSFX('gameover');
-                        document.getElementById('pac-lives').textContent = pacLives;
-                        pacman.x = 1; pacman.y = 1;
-                        if (pacLives <= 0) {
-                            pacRunning = false;
-                            document.getElementById('pac-gameover-overlay').style.display = 'flex';
-                            let stats = ScoreManager.saveScore('pacman', pacScore);
-                            document.getElementById('pac-high').textContent = stats.highScore;
-                            return;
-                        }
-                    }
-                });
-            }
-
-            drawPacMan();
-            if (pacRunning) pacAnimId = requestAnimationFrame(pacManLoop);
-        }
-
-        function drawPacMan() {
-            let cw = pacCanvas.width / pacGrid[0].length;
-            let ch = pacCanvas.height / pacGrid.length;
-            pacCtx.fillStyle = '#111827';
-            pacCtx.fillRect(0, 0, pacCanvas.width, pacCanvas.height);
-
-            for (let r = 0; r < pacGrid.length; r++) {
-                for (let c = 0; c < pacGrid[r].length; c++) {
-                    if (pacGrid[r][c] === 1) {
-                        pacCtx.fillStyle = '#3b82f6';
-                        pacCtx.fillRect(c * cw, r * ch, cw, ch);
-                    } else if (pacGrid[r][c] === 2) {
-                        pacCtx.fillStyle = '#facc15';
-                        pacCtx.beginPath();
-                        pacCtx.arc(c * cw + cw/2, r * ch + ch/2, 3, 0, Math.PI * 2);
-                        pacCtx.fill();
-                    } else if (pacGrid[r][c] === 3) {
-                        pacCtx.fillStyle = '#ec4899';
-                        pacCtx.beginPath();
-                        pacCtx.arc(c * cw + cw/2, r * ch + ch/2, 6, 0, Math.PI * 2);
-                        pacCtx.fill();
-                    }
-                }
-            }
-
-            pacCtx.fillStyle = '#facc15';
-            pacCtx.beginPath();
-            pacCtx.arc(pacman.x * cw + cw/2, pacman.y * ch + ch/2, cw/2 - 1, 0, Math.PI * 2);
-            pacCtx.fill();
-
-            ghosts.forEach(g => {
-                pacCtx.fillStyle = g.color;
-                pacCtx.beginPath();
-                pacCtx.arc(g.x * cw + cw/2, g.y * ch + ch/2, cw/2 - 1, Math.PI, 0, false);
-                pacCtx.fill();
-                pacCtx.fillRect(g.x * cw + 2, g.y * ch + ch/2, cw - 4, ch/2 - 1);
-            });
-        }
-
-        window.addEventListener('keydown', e => {
-            if (e.key === 'ArrowUp') changePacDir('UP');
-            if (e.key === 'ArrowDown') changePacDir('DOWN');
-            if (e.key === 'ArrowLeft') changePacDir('LEFT');
-            if (e.key === 'ArrowRight') changePacDir('RIGHT');
-        });
-
-        // Space Invaders Logic (Drag Anywhere to Move & Auto-Fire)
-        function initSpaceInvadersCanvas() {
-            siCanvas = document.getElementById('si-canvas');
-            if (siCanvas) {
-                siCtx = siCanvas.getContext('2d');
-                let isDragging = false;
-
-                const updateShipPosition = (clientX) => {
-                    if (!siRunning) return;
-                    const rect = siCanvas.getBoundingClientRect();
-                    let canvasX = (clientX - rect.left) * (siCanvas.width / rect.width);
-                    siShip.x = Math.max(10, Math.min(siCanvas.width - siShip.width - 10, canvasX - siShip.width / 2));
-                };
-
-                siCanvas.onmousedown = e => { isDragging = true; updateShipPosition(e.clientX); };
-                window.onmousemove = e => { if (isDragging) updateShipPosition(e.clientX); };
-                window.onmouseup = () => { isDragging = false; };
-
-                siCanvas.ontouchstart = e => { isDragging = true; updateShipPosition(e.touches[0].clientX); e.preventDefault(); };
-                window.ontouchmove = e => { if (isDragging) updateShipPosition(e.touches[0].clientX); };
-                window.ontouchend = () => { isDragging = false; };
-            }
-        }
-
-        function startSpaceInvadersGame() {
-            audio.playSFX('click');
-            document.getElementById('si-gameover-overlay').style.display = 'none';
-            initSpaceInvadersCanvas();
-            if (!siCtx) return;
-            siRunning = true;
-            siScore = 0; siLives = 3;
-            siShip = { x: 130, y: 265, width: 28, height: 14 };
-            siLasers = [];
-            siAlienBullets = [];
-            siAlienDir = 1;
-            
-            siAliens = [];
-            for (let r = 0; r < 4; r++) {
-                for (let c = 0; c < 7; c++) {
-                    siAliens.push({ x: 30 + c * 35, y: 30 + r * 25, width: 22, height: 16, alive: true });
-                }
-            }
-
-            document.getElementById('si-score').textContent = siScore;
-            document.getElementById('si-lives').textContent = siLives;
-            cancelAnimationFrame(siAnimId);
-            spaceInvadersLoop();
-        }
-
-        let siTick = 0;
-        function spaceInvadersLoop() {
-            if (!siRunning) return;
-            siTick++;
-
-            // Auto-fire laser continuously every 15 frames
-            if (siTick % 15 === 0) {
-                if (siLasers.length < 4) {
-                    siLasers.push({ x: siShip.x + siShip.width / 2 - 2, y: siShip.y, width: 4, height: 10 });
-                    audio.playSFX('click');
-                }
-            }
-
-            siCtx.fillStyle = '#111827';
-            siCtx.fillRect(0, 0, siCanvas.width, siCanvas.height);
-
-            siLasers.forEach(l => l.y -= 6);
-            siLasers = siLasers.filter(l => l.y > 0);
-
-            siAlienBullets.forEach(b => b.y += 4);
-            siAlienBullets = siAlienBullets.filter(b => b.y < siCanvas.height);
-
-            if (siTick % 25 === 0) {
-                let hitEdge = false;
-                siAliens.forEach(a => {
-                    if (a.alive) {
-                        a.x += siAlienDir * 8;
-                        if (a.x <= 10 || a.x >= siCanvas.width - 30) hitEdge = true;
-                    }
-                });
-                if (hitEdge) {
-                    siAlienDir *= -1;
-                    siAliens.forEach(a => a.y += 10);
-                }
-
-                let aliveAliens = siAliens.filter(a => a.alive);
-                if (aliveAliens.length > 0 && Math.random() < 0.4) {
-                    let shooter = aliveAliens[Math.floor(Math.random() * aliveAliens.length)];
-                    siAlienBullets.push({ x: shooter.x + shooter.width/2, y: shooter.y + shooter.height, width: 4, height: 8 });
-                }
-            }
-
-            siLasers.forEach((l, li) => {
-                siAliens.forEach(a => {
-                    if (a.alive && l.x < a.x + a.width && l.x + l.width > a.x && l.y < a.y + a.height && l.y + l.height > a.y) {
-                        a.alive = false;
-                        siLasers.splice(li, 1);
-                        siScore += 20;
-                        audio.playSFX('score');
-                        document.getElementById('si-score').textContent = siScore;
-                    }
-                });
-            });
-
-            siAlienBullets.forEach((b, bi) => {
-                if (b.x < siShip.x + siShip.width && b.x + b.width > siShip.x && b.y < siShip.y + siShip.height && b.y + b.height > siShip.y) {
-                    siAlienBullets.splice(bi, 1);
-                    siLives--;
-                    audio.playSFX('gameover');
-                    document.getElementById('si-lives').textContent = siLives;
-                    if (siLives <= 0) {
-                        siRunning = false;
-                        document.getElementById('si-gameover-overlay').style.display = 'flex';
-                        let stats = ScoreManager.saveScore('spaceinvaders', siScore);
-                        document.getElementById('si-high').textContent = stats.highScore;
-                        return;
-                    }
-                }
-            });
-
-            if (siAliens.every(a => !a.alive)) {
-                siRunning = false;
-                audio.playSFX('win');
-                document.getElementById('si-gameover-overlay').querySelector('h2').textContent = "VICTORY! 🎉";
-                document.getElementById('si-gameover-overlay').style.display = 'flex';
-                let stats = ScoreManager.saveScore('spaceinvaders', siScore);
-                document.getElementById('si-high').textContent = stats.highScore;
-                return;
-            }
-
-            siCtx.fillStyle = '#38bdf8';
-            siCtx.fillRect(siShip.x, siShip.y, siShip.width, siShip.height);
-            siCtx.fillRect(siShip.x + siShip.width/2 - 3, siShip.y - 4, 6, 4);
-
-            siCtx.fillStyle = '#ec4899';
-            siLasers.forEach(l => siCtx.fillRect(l.x, l.y, l.width, l.height));
-
-            siCtx.fillStyle = '#facc15';
-            siAlienBullets.forEach(b => siCtx.fillRect(b.x, b.y, b.width, b.height));
-
-            siAliens.forEach(a => {
-                if (a.alive) {
-                    siCtx.fillStyle = '#a855f7';
-                    siCtx.fillRect(a.x, a.y, a.width, a.height);
-                }
-            });
-
-            if (siRunning) siAnimId = requestAnimationFrame(spaceInvadersLoop);
-        }
-
-        // Full Brick Breaker Logic (Continuous Progression, Drops, Powerups, 3x Ball, Bomb, Paddle resize)
+        // Brick Breaker Logic
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
             if (frostCanvas) {
@@ -3112,12 +2970,10 @@
                 }
             });
 
-            // Level Complete / Continuous Progression
             if (activeBricks === 0) {
                 frostLvl++;
                 audio.playSFX('win');
                 buildFrostBricks();
-                // Speed up balls slightly for higher difficulty & reset positions
                 frostBalls.forEach(ball => {
                     ball.vx *= 1.1;
                     ball.vy *= 1.1;
@@ -3126,14 +2982,11 @@
                 updateFrostHUD();
             }
 
-            // Update & Draw Paddle
             frostCtx.fillStyle = '#38bdf8';
             frostCtx.fillRect(frostPaddle.x, frostPaddle.y, frostPaddle.width, frostPaddle.height);
 
-            // Update Drops
             frostDrops.forEach((d, idx) => {
                 d.y += 2.5;
-                // Draw drop capsule based on type
                 if (d.type === '3x') frostCtx.fillStyle = '#facc15';
                 else if (d.type === 'long') frostCtx.fillStyle = '#10b981';
                 else if (d.type === 'short') frostCtx.fillStyle = '#f43f5e';
@@ -3148,11 +3001,9 @@
                 let label = d.type === '3x' ? '✨' : d.type === 'long' ? '➕' : d.type === 'short' ? '➖' : '💣';
                 frostCtx.fillText(label, d.x, d.y + 3);
 
-                // Check collision with paddle
                 if (d.y >= frostPaddle.y && d.y <= frostPaddle.y + frostPaddle.height && d.x >= frostPaddle.x && d.x <= frostPaddle.x + frostPaddle.width) {
                     audio.playSFX('win');
                     if (d.type === '3x') {
-                        // Multiplies current active ball into 3 balls
                         let currentBalls = frostBalls.filter(b => b.active);
                         if (currentBalls.length > 0) {
                             let b = currentBalls[0];
@@ -3175,7 +3026,6 @@
                 }
             });
 
-            // Update Balls
             let activeBallsCount = 0;
             frostBalls.forEach(ball => {
                 if (!ball.active) return;
@@ -3211,7 +3061,6 @@
                             audio.playSFX('score');
                             updateFrostHUD();
 
-                            // Spawn powerup/drop chance (40% chance when brick is hit/destroyed)
                             if (b.status === 0 && Math.random() < 0.45) {
                                 const types = ['3x', 'long', 'short', 'bomb'];
                                 let chosenType = types[Math.floor(Math.random() * types.length)];
@@ -3231,7 +3080,6 @@
                 frostCtx.fill();
             });
 
-            // If all balls are lost, lose a life or trigger Game Over
             if (activeBallsCount === 0) {
                 frostLives--;
                 audio.playSFX('gameover');
