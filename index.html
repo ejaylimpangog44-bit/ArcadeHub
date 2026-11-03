@@ -1357,7 +1357,7 @@
         </div>
     </div>
 
-    <!-- Space Invaders (Auto-firing lasers) -->
+    <!-- Space Invaders -->
     <div id="spaceinvaders-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1583,10 +1583,7 @@
                     <button class="action-btn" onclick="startDinoGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px; width: 100%; max-width: 300px; margin-top: 8px;">
-                <button class="action-btn" style="flex: 1;" onclick="triggerDinoAction('jump')">⬆️ Jump</button>
-                <button class="control-btn" style="flex: 1;" onclick="triggerDinoAction('duck')">⬇️ Duck</button>
-            </div>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">The dinosaur is stationary! Watch the cacti jump over it!</p>
         </div>
     </div>
 
@@ -1927,15 +1924,17 @@
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById(containerId).classList.add('active');
 
-            if (containerId === 'snakegame-container') startSnakeGame();
-            if (containerId === 'flappygame-container') startFlappyGame();
-            if (containerId === 'dinogame-container') startDinoGame();
-            if (containerId === 'pacman-container') startPacManGame();
-            if (containerId === 'spaceinvaders-container') startSpaceInvadersGame();
-            if (containerId === 'fruitslice-container') startFruitGame();
-            if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
-            if (containerId === 'candygame-container') startCandyGame();
-            if (containerId === 'piano-container') startPianoGame();
+            setTimeout(() => {
+                if (containerId === 'snakegame-container') startSnakeGame();
+                if (containerId === 'flappygame-container') startFlappyGame();
+                if (containerId === 'dinogame-container') startDinoGame();
+                if (containerId === 'pacman-container') startPacManGame();
+                if (containerId === 'spaceinvaders-container') startSpaceInvadersGame();
+                if (containerId === 'fruitslice-container') startFruitGame();
+                if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
+                if (containerId === 'candygame-container') startCandyGame();
+                if (containerId === 'piano-container') startPianoGame();
+            }, 50);
         }
 
         function backToHub() {
@@ -2273,12 +2272,11 @@
             });
         }
 
-        // DINOSAUR JUMP LOGIC
+        // DINOSAUR STATIONARY & OBSTACLES JUMPING LOGIC
         function initDinoCanvas() {
             dinoCanvas = document.getElementById('dino-canvas');
             if (dinoCanvas) {
                 dinoCtx = dinoCanvas.getContext('2d');
-                dinoCanvas.addEventListener('click', () => triggerDinoAction('jump'));
             }
         }
 
@@ -2289,7 +2287,8 @@
             if (!dinoCtx) return;
             if (dinoInterval) clearInterval(dinoInterval);
 
-            dino = { x: 35, y: 130, width: 28, height: 32, vy: 0, gravity: 0.6, isJumping: false, isDucking: false };
+            // Stationary Dino anchored securely on the ground platform
+            dino = { x: 45, y: 130, width: 28, height: 32 };
             dinoObstacles = [];
             dinoScore = 0;
             dinoFrame = 0;
@@ -2301,74 +2300,50 @@
             dinoInterval = setInterval(updateDino, 25);
         }
 
-        function triggerDinoAction(action) {
-            if (!isDinoRunning) {
-                startDinoGame();
-                return;
-            }
-            if (action === 'jump' && !dino.isJumping) {
-                audio.playSFX('move');
-                dino.vy = -10.5;
-                dino.isJumping = true;
-                dino.isDucking = false;
-            } else if (action === 'duck') {
-                if (!dino.isJumping) {
-                    audio.playSFX('click');
-                    dino.isDucking = true;
-                    setTimeout(() => { dino.isDucking = false; }, 600);
-                }
-            }
-        }
-
         function updateDino() {
             dinoFrame++;
             dinoSpawnCounter++;
-            dino.vy += dino.gravity;
-            dino.y += dino.vy;
 
-            if (dino.y > 130) {
-                dino.y = 130;
-                dino.vy = 0;
-                dino.isJumping = false;
-            }
-
-            if (dinoSpawnCounter >= 120) {
+            if (dinoSpawnCounter >= 110) {
                 dinoSpawnCounter = 0;
-                let isJumpingObstacle = Math.random() < 0.45;
                 dinoObstacles.push({
                     x: 300,
-                    y: 128,
+                    y: 130, // ground level
                     width: 16,
                     height: 32,
-                    canJump: isJumpingObstacle,
                     vy: 0,
-                    jumpTimer: 0
+                    hasJumped: false
                 });
             }
 
             dinoObstacles.forEach(o => {
                 o.x -= 4.2;
-                if (o.canJump) {
-                    o.jumpTimer++;
-                    if (o.jumpTimer % 70 === 0) {
-                        o.vy = -7.5;
-                    }
-                    o.vy += 0.5;
-                    o.y += o.vy;
-                    if (o.y > 128) { o.y = 128; o.vy = 0; }
+
+                // Make the cactus automatically jump when it gets close to the stationary dinosaur
+                let distanceToDino = o.x - dino.x;
+                if (distanceToDino > 0 && distanceToDino < 75 && o.y >= 130 && !o.hasJumped) {
+                    o.vy = -8.5; // Upward jump velocity for obstacle
+                    o.hasJumped = true;
+                }
+
+                // Apply gravity and movement to the jumping obstacle
+                o.vy += 0.45;
+                o.y += o.vy;
+                if (o.y > 130) {
+                    o.y = 130;
+                    o.vy = 0;
                 }
             });
+
             dinoObstacles = dinoObstacles.filter(o => o.x > -40);
 
             dinoScore++;
             document.getElementById('dino-score').textContent = dinoScore;
             isDinoNight = Math.floor(dinoScore / 500) % 2 === 1;
 
-            let dH = dino.isDucking ? 18 : dino.height;
-            let dY = dino.isDucking ? dino.y + 14 : dino.y;
-
+            // Collision detection with the stationary dinosaur
             dinoObstacles.forEach(o => {
-                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dY < o.y + o.height && dY + dH > o.y) {
+                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dino.y < o.y + o.height && dino.y + dino.height > o.y) {
                     endDinoGame();
                 }
             });
@@ -2396,32 +2371,35 @@
             dinoCtx.lineTo(300, 162);
             dinoCtx.stroke();
 
+            // Draw Stationary Dino
             dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
-            let dH = dino.isDucking ? 18 : dino.height;
-            let dY = dino.isDucking ? dino.y + 14 : dino.y;
-            let dW = dino.isDucking ? 34 : dino.width;
-            dinoCtx.fillRect(dino.x, dY + 8, dW, dH - 8);
-            dinoCtx.fillRect(dino.x + dW - 6, dY - 4, 14, 14);
+            dinoCtx.fillRect(dino.x, dino.y + 8, dino.width, dino.height - 8);
+            dinoCtx.fillRect(dino.x + dino.width - 6, dino.y - 4, 14, 14);
             dinoCtx.fillStyle = '#fff';
-            dinoCtx.fillRect(dino.x + dW + 2, dY, 3, 3);
+            dinoCtx.fillRect(dino.x + dino.width + 2, dino.y, 3, 3);
             dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
-            if (!dino.isJumping && Math.floor(dinoFrame / 6) % 2 === 0) {
-                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 8);
-                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 5);
+            if (Math.floor(dinoFrame / 6) % 2 === 0) {
+                dinoCtx.fillRect(dino.x + 4, dino.y + dino.height, 4, 8);
+                dinoCtx.fillRect(dino.x + dino.width - 8, dino.y + dino.height, 4, 5);
             } else {
-                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 5);
-                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 8);
+                dinoCtx.fillRect(dino.x + 4, dino.y + dino.height, 4, 5);
+                dinoCtx.fillRect(dino.x + dino.width - 8, dino.y + dino.height, 4, 8);
             }
 
+            // Draw Jumping Obstacles (Cacti)
             dinoObstacles.forEach(o => {
-                dinoCtx.fillStyle = o.canJump ? '#f43f5e' : '#22c55e';
+                dinoCtx.fillStyle = '#22c55e';
                 dinoCtx.fillRect(o.x, o.y, o.width, o.height);
                 dinoCtx.fillRect(o.x - 4, o.y + 8, 4, 8);
             });
         }
 
         // PAC-MAN ARCADE LOGIC
-        function initPacManCanvas() { pacCanvas = document.getElementById('pac-canvas'); if (pacCanvas) pacCtx = pacCanvas.getContext('2d'); }
+        function initPacManCanvas() {
+            pacCanvas = document.getElementById('pac-canvas');
+            if (pacCanvas) pacCtx = pacCanvas.getContext('2d');
+        }
+
         function startPacManGame() {
             audio.playSFX('click');
             document.getElementById('pac-gameover-overlay').style.display = 'none';
@@ -2501,7 +2479,7 @@
 
         // SPACE INVADERS (DRAG TO MOVE + AUTO FIRE LASERS)
         function initSpaceInvadersCanvas() {
-            siCanvas = document.getElementById('spaceinvaders-container').querySelector('#si-canvas');
+            siCanvas = document.getElementById('si-canvas');
             if (siCanvas) {
                 siCtx = siCanvas.getContext('2d');
                 
@@ -2548,7 +2526,6 @@
             siCtx.fillStyle = '#0b0f19';
             siCtx.fillRect(0, 0, siCanvas.width, siCanvas.height);
 
-            // Auto-fire lasers every 22 frames
             siFireCooldown++;
             if (siFireCooldown >= 22) {
                 siFireCooldown = 0;
