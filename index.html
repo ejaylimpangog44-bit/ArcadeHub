@@ -317,7 +317,6 @@
             overflow: auto !important;
         }
 
-        /* Clean non-overlapping navigation bar for games */
         .game-nav-bar {
             width: 100%;
             max-width: 360px;
@@ -1358,7 +1357,7 @@
         </div>
     </div>
 
-    <!-- Space Invaders -->
+    <!-- Space Invaders (Auto-firing lasers) -->
     <div id="spaceinvaders-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1377,11 +1376,7 @@
                     <button class="action-btn" onclick="startSpaceInvadersGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px; width: 100%; max-width: 300px; margin-top: 8px;">
-                <button class="action-btn" style="flex: 1;" onclick="moveSIShip(-15)">◀️ Left</button>
-                <button class="control-btn" style="flex: 1; background: var(--accent);" onclick="fireSILaser()">🚀 FIRE</button>
-                <button class="action-btn" style="flex: 1;" onclick="moveSIShip(15)">Right ▶️</button>
-            </div>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">Drag to move ship • Lasers fire automatically</p>
         </div>
     </div>
 
@@ -1427,10 +1422,7 @@
                     <button class="action-btn" onclick="startFrostGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px; width: 100%; max-width: 360px; margin-top: 8px;">
-                <button class="action-btn" style="flex: 1;" onclick="moveFrostPaddle(-25)">◀️ Move Left</button>
-                <button class="action-btn" style="flex: 1;" onclick="moveFrostPaddle(25)">Move Right ▶️</button>
-            </div>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">Drag your finger directly on the game screen to control the paddle</p>
         </div>
     </div>
 
@@ -1891,7 +1883,7 @@
         let pacDots = [];
         const pacGridSize = 13;
 
-        let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siWave = 1, siAnimId;
+        let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siWave = 1, siAnimId, siFireCooldown = 0;
         let siShip = { x: 136, y: 265, width: 28, height: 14 };
         let siLasers = [], siAliens = [], alienDir = 1;
 
@@ -2507,18 +2499,22 @@
             if (pacRunning) pacAnimId = requestAnimationFrame(pacLoop);
         }
 
-        // FULLY FIXED SPACE INVADERS LOGIC
+        // SPACE INVADERS (DRAG TO MOVE + AUTO FIRE LASERS)
         function initSpaceInvadersCanvas() {
-            siCanvas = document.getElementById('si-canvas');
+            siCanvas = document.getElementById('spaceinvaders-container').querySelector('#si-canvas');
             if (siCanvas) {
                 siCtx = siCanvas.getContext('2d');
-                siCanvas.onmousemove = (e) => {
+                
+                const updateSIPosition = (clientX) => {
                     if (!siRunning) return;
                     const rect = siCanvas.getBoundingClientRect();
-                    let clickX = (e.clientX - rect.left) * (siCanvas.width / rect.width);
+                    let clickX = (clientX - rect.left) * (siCanvas.width / rect.width);
                     siShip.x = Math.max(10, Math.min(siCanvas.width - siShip.width - 10, clickX - siShip.width / 2));
                 };
-                siCanvas.onclick = () => fireSILaser();
+
+                siCanvas.onmousemove = (e) => updateSIPosition(e.clientX);
+                siCanvas.ontouchstart = (e) => { e.preventDefault(); updateSIPosition(e.touches[0].clientX); };
+                siCanvas.ontouchmove = (e) => { e.preventDefault(); updateSIPosition(e.touches[0].clientX); };
             }
         }
 
@@ -2527,7 +2523,7 @@
             document.getElementById('si-gameover-overlay').style.display = 'none';
             initSpaceInvadersCanvas();
             if (!siCtx) return;
-            siRunning = true; siScore = 0; siLives = 3; siWave = 1;
+            siRunning = true; siScore = 0; siLives = 3; siWave = 1; siFireCooldown = 0;
             siShip.x = 136; siLasers = []; alienDir = 1;
             buildSIAliens();
             document.getElementById('si-score').textContent = siScore;
@@ -2547,22 +2543,18 @@
             }
         }
 
-        function moveSIShip(delta) {
-            if (!siRunning) return;
-            audio.playSFX('move');
-            siShip.x = Math.max(10, Math.min(siCanvas.width - siShip.width - 10, siShip.x + delta));
-        }
-
-        function fireSILaser() {
-            if (!siRunning) return;
-            audio.playSFX('click');
-            siLasers.push({ x: siShip.x + siShip.width / 2 - 2, y: siShip.y - 6, width: 4, height: 12 });
-        }
-
         function siLoop() {
             if (!siRunning) return;
             siCtx.fillStyle = '#0b0f19';
             siCtx.fillRect(0, 0, siCanvas.width, siCanvas.height);
+
+            // Auto-fire lasers every 22 frames
+            siFireCooldown++;
+            if (siFireCooldown >= 22) {
+                siFireCooldown = 0;
+                audio.playTone(600, 0.05);
+                siLasers.push({ x: siShip.x + siShip.width / 2 - 2, y: siShip.y - 6, width: 4, height: 12 });
+            }
 
             siLasers.forEach(l => { l.y -= 7; });
             siLasers = siLasers.filter(l => l.y > 0);
@@ -3068,7 +3060,7 @@
             }
         }
 
-        // FULL VERSION BRICK BREAKER LOGIC
+        // FULL VERSION BRICK BREAKER LOGIC (DRAG & TOUCH)
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
             if (frostCanvas) {
@@ -3081,6 +3073,7 @@
                 };
                 frostCanvas.onmousemove = e => updateFrostPointer(e.clientX);
                 frostCanvas.ontouchmove = e => { e.preventDefault(); updateFrostPointer(e.touches[0].clientX); };
+                frostCanvas.ontouchstart = e => { e.preventDefault(); updateFrostPointer(e.touches[0].clientX); };
             }
         }
 
@@ -3118,12 +3111,6 @@
             document.getElementById('frost-score').textContent = String(frostScore).padStart(6, '0');
             document.getElementById('frost-lvl').textContent = `LVL ${frostLvl}`;
             document.getElementById('frost-lives').textContent = frostLives;
-        }
-
-        function moveFrostPaddle(delta) {
-            if (!frostRunning || !frostPaddle) return;
-            audio.playSFX('move');
-            frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, frostPaddle.x + delta));
         }
 
         function frostLoop() {
