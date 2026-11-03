@@ -46,8 +46,3 @@ Smooth Animations & Game States: Features polished visual feedback including cus
 
 ⭐ FEATURED GAME
  🍬🍭 Candy Match-3: Swap adjacent colorful candies on a grid to line up 3 or more matching items and score big before moves run out!
-
-🚀 Getting Started & Deployment
- * Clone or Download the repository.
- * Open index.html directly in any web browser.
- * Deploy instantly by uploading to GitHub Pages or connecting the repository to Vercel.
