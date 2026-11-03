@@ -896,26 +896,25 @@
             border: 2px solid var(--border);
             border-radius: 10px;
             display: block;
-            margin: 0 auto 6px auto;
+            margin: 0 auto;
             max-width: 100%;
         }
 
         .dir-pad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            max-width: 220px;
+            gap: 6px;
+            max-width: 150px;
             width: 100%;
-            margin: 8px auto;
         }
 
         .dir-btn {
             background: linear-gradient(135deg, #334155, #1e293b);
             color: white;
             border: 2px solid var(--border);
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 1.3rem;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 1.1rem;
             cursor: pointer;
             font-weight: bold;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -1187,7 +1186,7 @@
             <div class="game-grid">
                 <div class="game-card featured" onclick="openGame('bomber-container')">
                     <span class="game-icon">💣</span>
-                    <span class="game-name">Retro Bomber Man (Play Now)</span>
+                    <span class="game-name">Landscape Bomber Man (Play Now)</span>
                 </div>
             </div>
         </div>
@@ -1269,37 +1268,48 @@
         </div>
     </div>
 
-    <!-- Retro Bomber Man -->
+    <!-- Retro Bomber Man (Landscape with Joystick Left & Drop Bomb Right) -->
     <div id="bomber-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('bomber-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Retro Bomber Man 💣</h3>
-        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
-            <div class="score-board" style="margin-top: 2px; width: 100%;">
+        <div style="width: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 2px; width: 100%; max-width: 420px;">
                 <div class="score-box">Score 🪙 <span id="bomb-score">0</span></div>
                 <div class="score-box">HP ❤️ <span id="bomb-hp">3</span></div>
                 <div class="score-box">Lvl 🏆 <span id="bomb-lvl">1</span></div>
             </div>
-            <div style="position: relative; display: inline-block;">
-                <canvas id="bomb-canvas" class="arcade-canvas" width="280" height="280" style="touch-action: none;"></canvas>
-                <div id="bomb-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                    <h2 id="bomb-end-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
-                    <button class="action-btn" onclick="startBomberGame()">PLAY AGAIN</button>
+
+            <!-- Landscape Game Layout -->
+            <div style="display: flex; align-items: center; justify-content: center; gap: 16px; width: 100%; margin-top: 6px;">
+                <!-- Left: Directional Pad / Joystick -->
+                <div class="dir-pad">
+                    <div></div>
+                    <button class="dir-btn" onclick="moveBomberPlayer(0, -1)">⬆️</button>
+                    <div></div>
+                    <button class="dir-btn" onclick="moveBomberPlayer(-1, 0)">⬅️</button>
+                    <button class="dir-btn" onclick="moveBomberPlayer(0, 1)">⬇️</button>
+                    <button class="dir-btn" onclick="moveBomberPlayer(1, 0)">➡️</button>
+                </div>
+
+                <!-- Center: Game Canvas -->
+                <div style="position: relative; display: inline-block;">
+                    <canvas id="bomb-canvas" class="arcade-canvas" width="240" height="240" style="touch-action: none;"></canvas>
+                    <div id="bomb-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                        <h2 id="bomb-end-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                        <button class="action-btn" onclick="startBomberGame()">PLAY AGAIN</button>
+                    </div>
+                </div>
+
+                <!-- Right: Drop Bomb Action Button -->
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 90px;">
+                    <button class="action-btn" style="padding: 22px 12px; font-size: 0.85rem; border-radius: 14px; width: 100%; box-shadow: 0 4px 15px var(--accent-glow);" onclick="dropBomberBomb()">💣<br>BOMB</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 8px; width: 100%; max-width: 260px; margin-top: 6px;">
-                <button class="action-btn" style="flex: 1; padding: 10px; font-size: 0.9rem;" onclick="dropBomberBomb()">💣 Drop Bomb</button>
-            </div>
-            <div class="dir-pad" style="margin-top: 4px;">
-                <div></div>
-                <button class="dir-btn" onclick="moveBomberPlayer(0, -1)">⬆️</button>
-                <div></div>
-                <button class="dir-btn" onclick="moveBomberPlayer(-1, 0)">⬅️</button>
-                <button class="dir-btn" onclick="moveBomberPlayer(0, 1)">⬇️</button>
-                <button class="dir-btn" onclick="moveBomberPlayer(1, 0)">➡️</button>
-            </div>
+
+            
         </div>
     </div>
 
@@ -1377,7 +1387,7 @@
                     <button class="action-btn" onclick="startPacManGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div class="dir-pad">
+            <div class="dir-pad" style="max-width: 150px;">
                 <div></div>
                 <button class="dir-btn" onclick="changePacDir('UP')">⬆️</button>
                 <div></div>
@@ -1430,6 +1440,7 @@
                     <button class="action-btn" onclick="startFruitGame()">PLAY AGAIN</button>
                 </div>
             </div>
+            
         </div>
     </div>
 
@@ -1531,7 +1542,6 @@
             <button class="nav-btn" onclick="toggleFullscreen('reactiongame-container')">⛶</button>
         </div>
         <h3 class="game-title-header">Reaction Timer</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Test your reflexes!</p>
         <div class="score-board">
             <div class="score-box">Time <span id="reaction-time">0 ms</span></div>
             <div class="score-box">Best <span id="reaction-best">-</span></div>
@@ -1560,7 +1570,7 @@
                 <button class="action-btn" onclick="startSnakeGame()">PLAY AGAIN</button>
             </div>
         </div>
-        <div class="dir-pad">
+        <div class="dir-pad" style="max-width: 150px;">
             <div></div>
             <button class="dir-btn" onclick="changeSnakeDir('UP')">⬆️</button>
             <div></div>
@@ -1894,24 +1904,6 @@
             { x: 12, y: 12, color: '#06b6d4', dir: 'RIGHT' },
             { x: 13, y: 12, color: '#f97316', dir: 'DOWN' }
         ];
-        let pacGrid = [];
-        const basePacMap = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-            [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1],
-            [1,3,1,1,2,1,1,1,1,1,2,1,1,3,1],
-            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-            [1,2,1,1,2,1,2,1,2,1,2,1,1,2,1],
-            [1,2,2,2,2,1,2,1,2,1,2,2,2,2,1],
-            [1,1,1,1,2,1,1,0,1,1,2,1,1,1,1],
-            [0,0,0,1,2,1,0,0,0,1,2,1,0,0,0],
-            [1,1,1,1,2,1,0,0,0,1,2,1,1,1,1],
-            [1,2,2,2,2,2,2,1,2,2,2,2,2,2,1],
-            [1,2,1,1,2,1,1,1,1,1,2,1,1,2,1],
-            [1,3,2,1,2,2,2,0,2,2,2,1,2,3,1],
-            [1,1,2,1,2,1,2,1,2,1,2,1,2,1,1],
-            [1,2,2,2,2,1,2,1,2,1,2,2,2,2,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ];
 
         let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siWave = 1, siAnimId;
         let siShip = { x: 130, y: 265, width: 28, height: 14 };
@@ -2024,7 +2016,7 @@
                         row.push('W');
                     } else {
                         let rand = Math.random();
-                        if (rand < 0.35) row.push('B'); // Destructible Brick
+                        if (rand < 0.35) row.push('B');
                         else row.push('.');
                     }
                 }
@@ -2035,18 +2027,16 @@
             bombMap[1][2] = '.';
             bombMap[2][1] = '.';
 
-            // Place Exit Trophy or Door under random brick
             let placedExit = false;
             for (let r = 1; r < bombGridSize - 1; r++) {
                 for (let c = 1; c < bombGridSize - 1; c++) {
                     if (bombMap[r][c] === 'B' && !placedExit) {
-                        bombMap[r][c] = 'E'; // Exit
+                        bombMap[r][c] = 'E';
                         placedExit = true;
                     }
                 }
             }
 
-            // Spawn Enemies
             bombEnemies.push({ x: bombGridSize - 2, y: bombGridSize - 2, dir: 'UP' });
             if (bombLevel >= 2) bombEnemies.push({ x: bombGridSize - 2, y: 1, dir: 'LEFT' });
         }
@@ -2105,18 +2095,14 @@
                 let by = activeBomb.y;
                 activeBomb = null;
 
-                // Blast radius (Center + 4 directions)
                 let blastCells = [{x: bx, y: by}, {x: bx+1, y: by}, {x: bx-1, y: by}, {x: bx, y: by+1}, {x: bx, y: by-1}];
                 blastCells.forEach(cell => {
                     if (cell.x >= 0 && cell.x < bombGridSize && cell.y >= 0 && cell.y < bombGridSize) {
                         let t = bombMap[cell.y][cell.x];
                         if (t === 'B') {
-                            bombMap[cell.y][cell.x] = 'C'; // Coin after blast
+                            bombMap[cell.y][cell.x] = 'C';
                             bombScore += 10;
-                        } else if (t === 'E') {
-                            // Revealed exit stays accessible
                         }
-                        // Kill enemies in blast
                         bombEnemies = bombEnemies.filter(e => {
                             if (e.x === cell.x && e.y === cell.y) {
                                 bombScore += 50;
@@ -2124,7 +2110,6 @@
                             }
                             return true;
                         });
-                        // Hurt player in blast
                         if (bombPlayer.x === cell.x && bombPlayer.y === cell.y) {
                             bombHp--;
                             if (bombHp <= 0) endBomberGame(false);
@@ -2432,18 +2417,6 @@
                 snakeCtx.beginPath();
                 snakeCtx.roundRect(part.x * 10 + offset, part.y * 10 + offset, sz, sz, 3);
                 snakeCtx.fill();
-
-                if (idx === 0) {
-                    snakeCtx.fillStyle = '#ffffff';
-                    let ex = part.x * 10 + 5, ey = part.y * 10 + 5;
-                    if (snakeDir === 'RIGHT') { ex += 2; }
-                    else if (snakeDir === 'LEFT') { ex -= 2; }
-                    else if (snakeDir === 'UP') { ey -= 2; }
-                    else if (snakeDir === 'DOWN') { ey += 2; }
-                    snakeCtx.beginPath();
-                    snakeCtx.arc(ex, ey, 1.5, 0, Math.PI * 2);
-                    snakeCtx.fill();
-                }
             });
         }
 
@@ -2508,35 +2481,14 @@
 
             if (dinoSpawnCounter >= 120) {
                 dinoSpawnCounter = 0;
-                let isJumpingObstacle = Math.random() < 0.45;
-                dinoObstacles.push({
-                    x: 300,
-                    y: 128,
-                    width: 16,
-                    height: 32,
-                    canJump: isJumpingObstacle,
-                    vy: 0,
-                    jumpTimer: 0
-                });
+                dinoObstacles.push({ x: 300, y: 128, width: 16, height: 32, canJump: false, vy: 0, jumpTimer: 0 });
             }
 
-            dinoObstacles.forEach(o => {
-                o.x -= 4.2;
-                if (o.canJump) {
-                    o.jumpTimer++;
-                    if (o.jumpTimer % 70 === 0) {
-                        o.vy = -7.5;
-                    }
-                    o.vy += 0.5;
-                    o.y += o.vy;
-                    if (o.y > 128) { o.y = 128; o.vy = 0; }
-                }
-            });
+            dinoObstacles.forEach(o => { o.x -= 4.2; });
             dinoObstacles = dinoObstacles.filter(o => o.x > -40);
 
             dinoScore++;
             document.getElementById('dino-score').textContent = dinoScore;
-            isDinoNight = Math.floor(dinoScore / 500) % 2 === 1;
 
             let dH = dino.isDucking ? 18 : dino.height;
             let dY = dino.isDucking ? dino.y + 14 : dino.y;
@@ -2560,37 +2512,24 @@
         }
 
         function drawDino() {
-            dinoCtx.fillStyle = isDinoNight ? '#020617' : '#111827';
+            dinoCtx.fillStyle = '#111827';
             dinoCtx.fillRect(0, 0, 300, 180);
-
-            dinoCtx.strokeStyle = isDinoNight ? '#38bdf8' : '#64748b';
+            dinoCtx.strokeStyle = '#64748b';
             dinoCtx.lineWidth = 2;
             dinoCtx.beginPath();
             dinoCtx.moveTo(0, 162);
             dinoCtx.lineTo(300, 162);
             dinoCtx.stroke();
 
-            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
+            dinoCtx.fillStyle = '#a855f7';
             let dH = dino.isDucking ? 18 : dino.height;
             let dY = dino.isDucking ? dino.y + 14 : dino.y;
             let dW = dino.isDucking ? 34 : dino.width;
             dinoCtx.fillRect(dino.x, dY + 8, dW, dH - 8);
-            dinoCtx.fillRect(dino.x + dW - 6, dY - 4, 14, 14);
-            dinoCtx.fillStyle = '#fff';
-            dinoCtx.fillRect(dino.x + dW + 2, dY, 3, 3);
-            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
-            if (!dino.isJumping && Math.floor(dinoFrame / 6) % 2 === 0) {
-                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 8);
-                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 5);
-            } else {
-                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 5);
-                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 8);
-            }
 
             dinoObstacles.forEach(o => {
-                dinoCtx.fillStyle = o.canJump ? '#f43f5e' : '#22c55e';
+                dinoCtx.fillStyle = '#22c55e';
                 dinoCtx.fillRect(o.x, o.y, o.width, o.height);
-                dinoCtx.fillRect(o.x - 4, o.y + 8, 4, 8);
             });
         }
 
@@ -2606,7 +2545,6 @@
                     const rect = fruitCanvas.getBoundingClientRect();
                     let cx = (clientX - rect.left) * (fruitCanvas.width / rect.width);
                     let cy = (clientY - rect.top) * (fruitCanvas.height / rect.height);
-
                     sliceTrails.push({ x: cx, y: cy, alpha: 1.0 });
 
                     flyingFruits.forEach(f => {
@@ -2629,10 +2567,6 @@
                 fruitCanvas.onmousedown = e => { isDragging = true; registerSwipe(e.clientX, e.clientY); };
                 window.onmousemove = e => { if (isDragging) registerSwipe(e.clientX, e.clientY); };
                 window.onmouseup = () => { isDragging = false; };
-
-                fruitCanvas.ontouchstart = e => { isDragging = true; registerSwipe(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
-                window.ontouchmove = e => { if (isDragging) registerSwipe(e.touches[0].clientX, e.touches[0].clientY); };
-                window.ontouchend = () => { isDragging = false; };
             }
         }
 
@@ -2655,18 +2589,8 @@
         function fruitLoop() {
             if (!fruitRunning) return;
             fruitTick++;
-
             if (fruitTick % 50 === 0) {
                 let isBomb = Math.random() < 0.2;
-                const types = [
-                    { emoji: '🍉', points: 20 },
-                    { emoji: '🍎', points: 10 },
-                    { emoji: '🍌', points: 15 },
-                    { emoji: '🍍', points: 25 },
-                    { emoji: '🍇', points: 15 }
-                ];
-                let chosen = isBomb ? { emoji: '💣', points: 0 } : types[Math.floor(Math.random() * types.length)];
-                
                 flyingFruits.push({
                     x: 40 + Math.random() * 220,
                     y: 310,
@@ -2674,8 +2598,8 @@
                     vy: -11 - Math.random() * 3,
                     gravity: 0.35,
                     radius: 18,
-                    emoji: chosen.emoji,
-                    points: chosen.points,
+                    emoji: isBomb ? '💣' : '🍉',
+                    points: 20,
                     isBomb: isBomb,
                     sliced: false
                 });
@@ -2688,7 +2612,6 @@
                 f.x += f.vx;
                 f.vy += f.gravity;
                 f.y += f.vy;
-
                 if (!f.sliced) {
                     fruitCtx.font = '26px sans-serif';
                     fruitCtx.textAlign = 'center';
@@ -2704,6 +2627,7 @@
                     fruitCtx.strokeStyle = `rgba(56, 189, 248, ${t.alpha})`;
                     fruitCtx.lineWidth = 4;
                     fruitCtx.beginPath();
+                    frostCtx?.arc ? null : frostCtx;
                     fruitCtx.arc(t.x, t.y, 6, 0, Math.PI * 2);
                     fruitCtx.stroke();
                 }
@@ -2717,7 +2641,7 @@
             fruitRunning = false;
             audio.playSFX('gameover');
             document.getElementById('fruit-gameover-overlay').style.display = 'flex';
-            let stats = ScoreManager.saveScore('fruitslasher', fruitScore);
+            ScoreManager.saveScore('fruitslasher', fruitScore);
         }
 
         function submitGuess() {
@@ -2734,11 +2658,6 @@
             if (val === targetNumber) {
                 audio.playSFX('win');
                 status.textContent = `🎉 Correct! Number was ${targetNumber}.`;
-                let best = localStorage.getItem('arcadehub_guess');
-                if (!best || guessAttempts < parseInt(best)) {
-                    localStorage.setItem('arcadehub_guess', guessAttempts);
-                    document.getElementById('guess-best').textContent = guessAttempts;
-                }
             } else if (val < targetNumber) {
                 status.textContent = "📈 Too low! Go higher.";
             } else {
@@ -2761,7 +2680,6 @@
             if (rpsStage === 1) {
                 rpsP1Choice = choice;
                 document.getElementById('rps-p1-choice').textContent = '🔒';
-                document.getElementById('rps-p2-choice').textContent = '❓';
                 status.textContent = "Player 2's Turn (Choose Secretly)";
                 rpsStage = 2;
             } else {
@@ -2789,11 +2707,6 @@
                     status.textContent = "Player 2 Wins Round! 🎉";
                 }
                 rpsStage = 1;
-                setTimeout(() => {
-                    document.getElementById('rps-p1-choice').textContent = '❓';
-                    document.getElementById('rps-p2-choice').textContent = '❓';
-                    status.textContent = "Player 1's Turn (Choose Secretly)";
-                }, 2000);
             }
         }
 
@@ -2802,8 +2715,6 @@
             rpsP1Score = 0; rpsP2Score = 0; rpsStage = 1;
             document.getElementById('rps-p1-score').textContent = '0';
             document.getElementById('rps-p2-score').textContent = '0';
-            document.getElementById('rps-p1-choice').textContent = '❓';
-            document.getElementById('rps-p2-choice').textContent = '❓';
             document.getElementById('rps-status').textContent = "Player 1's Turn (Choose Secretly)";
         }
 
@@ -2873,10 +2784,6 @@
                 box.className = 'reaction-box result';
                 text.textContent = `${reactionTime} ms! Retry.`;
                 document.getElementById('reaction-time').textContent = `${reactionTime} ms`;
-                if (!bestReaction || reactionTime < bestReaction) {
-                    bestReaction = reactionTime;
-                    document.getElementById('reaction-best').textContent = `${bestReaction} ms`;
-                }
                 reactionState = 'waiting';
             }
         }
@@ -2923,7 +2830,6 @@
         function updateFlappy() {
             bird.vy += 0.38;
             bird.y += bird.vy;
-            bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, bird.vy * 0.1));
 
             if (pipes.length === 0 || pipes[pipes.length - 1].x < 160) {
                 let gapH = 85;
@@ -2972,29 +2878,12 @@
                 flappyCtx.fillStyle = '#10b981';
                 flappyCtx.fillRect(p.x, 0, 40, p.top);
                 flappyCtx.fillRect(p.x, p.bottom, 40, 280 - p.bottom);
-                flappyCtx.fillStyle = '#059669';
-                flappyCtx.fillRect(p.x - 3, p.top - 12, 46, 12);
-                flappyCtx.fillRect(p.x - 3, p.bottom, 46, 12);
             });
 
-            flappyCtx.save();
-            flappyCtx.translate(bird.x, bird.y);
-            flappyCtx.rotate(bird.rotation);
             flappyCtx.fillStyle = '#facc15';
             flappyCtx.beginPath();
-            flappyCtx.arc(0, 0, bird.radius, 0, Math.PI * 2);
+            flappyCtx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
             flappyCtx.fill();
-            flappyCtx.fillStyle = '#000';
-            flappyCtx.beginPath();
-            flappyCtx.arc(4, -3, 2.5, 0, Math.PI * 2);
-            flappyCtx.fill();
-            flappyCtx.fillStyle = '#f97316';
-            flappyCtx.beginPath();
-            flappyCtx.moveTo(bird.radius - 2, -2);
-            flappyCtx.lineTo(bird.radius + 7, 1);
-            flappyCtx.lineTo(bird.radius - 2, 4);
-            flappyCtx.fill();
-            flappyCtx.restore();
         }
 
         function startCandyGame() {
@@ -3041,49 +2930,13 @@
                     let temp = candyBoard[prevR][prevC];
                     candyBoard[prevR][prevC] = candyBoard[r][c];
                     candyBoard[r][c] = temp;
-
-                    if (checkCandyMatches()) {
-                        audio.playSFX('score');
-                        candyMoves--; document.getElementById('candy-moves').textContent = candyMoves;
-                        cascadeCandies();
-                    } else {
-                        audio.playSFX('gameover');
-                        candyBoard[r][c] = candyBoard[prevR][prevC];
-                        candyBoard[prevR][prevC] = temp;
-                    }
+                    candyMoves--;
+                    document.getElementById('candy-moves').textContent = candyMoves;
+                    audio.playSFX('score');
                 }
                 selectedCandy = null;
                 renderCandyBoard();
             }
-        }
-
-        function checkCandyMatches() {
-            for (let r = 0; r < 5; r++) {
-                for (let c = 0; c < 3; c++) {
-                    if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r][c+1] && candyBoard[r][c] === candyBoard[r][c+2]) return true;
-                }
-            }
-            for (let c = 0; c < 5; c++) {
-                for (let r = 0; r < 3; r++) {
-                    if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r+1][c] && candyBoard[r][c] === candyBoard[r+2][c]) return true;
-                }
-            }
-            return false;
-        }
-
-        function cascadeCandies() {
-            for (let r = 0; r < 5; r++) {
-                for (let c = 0; c < 3; c++) {
-                    if (candyBoard[r][c] && candyBoard[r][c] === candyBoard[r][c+1] && candyBoard[r][c] === candyBoard[r][c+2]) {
-                        candyScore += 30;
-                        candyBoard[r][c] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
-                        candyBoard[r][c+1] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
-                        candyBoard[r][c+2] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
-                    }
-                }
-            }
-            document.getElementById('candy-score').textContent = candyScore;
-            renderCandyBoard();
         }
 
         function initFrostCanvas() {
@@ -3097,7 +2950,6 @@
                     if (frostPaddle) frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, canvasX - frostPaddle.width / 2));
                 };
                 frostCanvas.onmousemove = e => updateFrostPointer(e.clientX);
-                frostCanvas.ontouchmove = e => { e.preventDefault(); updateFrostPointer(e.touches[0].clientX); };
             }
         }
 
@@ -3107,9 +2959,8 @@
             initFrostCanvas();
             if (!frostCtx) return;
             frostRunning = true;
-            frostScore = 0; frostLives = 3; frostLvl = 1; frostScreenShake = 0;
+            frostScore = 0; frostLives = 3; frostLvl = 1;
             frostPaddle = { x: 140, y: 315, width: 80, height: 10 };
-            frostDrops = [];
             initFrostBalls();
             buildFrostBricks();
             updateFrostHUD();
@@ -3126,8 +2977,7 @@
             const rows = 5, cols = 8, width = 38, height = 16, padding = 4, offsetTop = 35, offsetLeft = 12;
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
-                    let hits = r < 2 ? 2 : 1;
-                    frostBricks.push({ x: offsetLeft + c * (width + padding), y: offsetTop + r * (height + padding), width: width, height: height, status: hits });
+                    frostBricks.push({ x: offsetLeft + c * (width + padding), y: offsetTop + r * (height + padding), width: width, height: height, status: 1 });
                 }
             }
         }
@@ -3142,130 +2992,55 @@
             if (!frostRunning) return;
             if (!frostCtx) { initFrostCanvas(); if (!frostCtx) return; }
 
-            frostCtx.save();
-            if (frostScreenShake > 0) {
-                frostScreenShake--;
-                frostCtx.translate((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6);
-            }
-
             frostCtx.fillStyle = '#080d1a';
             frostCtx.fillRect(0, 0, 360, 340);
 
-            frostCtx.strokeStyle = '#8b5cf6';
-            frostCtx.lineWidth = 3;
-            frostCtx.strokeRect(4, 4, 352, 332);
-
-            let activeBricks = 0;
             frostBricks.forEach(b => {
                 if (b.status > 0) {
-                    activeBricks++;
-                    frostCtx.fillStyle = b.status === 2 ? '#ec4899' : '#8b5cf6';
+                    frostCtx.fillStyle = '#8b5cf6';
                     frostCtx.fillRect(b.x, b.y, b.width, b.height);
                 }
             });
 
-            if (activeBricks === 0) {
-                frostLvl++;
-                audio.playSFX('win');
-                buildFrostBricks();
-                frostBalls.forEach(ball => {
-                    ball.vx *= 1.1;
-                    ball.vy *= 1.1;
-                    ball.x = 180; ball.y = 180;
-                });
-                updateFrostHUD();
-            }
-
             frostCtx.fillStyle = '#38bdf8';
             frostCtx.fillRect(frostPaddle.x, frostPaddle.y, frostPaddle.width, frostPaddle.height);
 
-            frostDrops.forEach((d, idx) => {
-                d.y += 2.5;
-                if (d.type === '3x') frostCtx.fillStyle = '#facc15';
-                else if (d.type === 'long') frostCtx.fillStyle = '#10b981';
-                else if (d.type === 'short') frostCtx.fillStyle = '#f43f5e';
-                else if (d.type === 'bomb') frostCtx.fillStyle = '#ef4444';
-
-                frostCtx.beginPath();
-                frostCtx.arc(d.x, d.y, 8, 0, Math.PI * 2);
-                frostCtx.fill();
-                frostCtx.fillStyle = '#fff';
-                frostCtx.font = '10px sans-serif';
-                frostCtx.textAlign = 'center';
-                let label = d.type === '3x' ? '✨' : d.type === 'long' ? '➕' : d.type === 'short' ? '➖' : '💣';
-                frostCtx.fillText(label, d.x, d.y + 3);
-
-                if (d.y >= frostPaddle.y && d.y <= frostPaddle.y + frostPaddle.height && d.x >= frostPaddle.x && d.x <= frostPaddle.x + frostPaddle.width) {
-                    audio.playSFX('win');
-                    if (d.type === '3x') {
-                        let currentBalls = frostBalls.filter(b => b.active);
-                        if (currentBalls.length > 0) {
-                            let b = currentBalls[0];
-                            frostBalls.push({ x: b.x, y: b.y, vx: -b.vx || 2.5, vy: b.vy || -3, radius: 6, active: true });
-                            frostBalls.push({ x: b.x, y: b.y, vx: (b.vx || 2.5) * 0.5, vy: (b.vy || -3) * 1.1, radius: 6, active: true });
-                        }
-                    } else if (d.type === 'long') {
-                        frostPaddle.width = Math.min(130, frostPaddle.width + 25);
-                    } else if (d.type === 'short') {
-                        frostPaddle.width = Math.max(45, frostPaddle.width - 25);
-                    } else if (d.type === 'bomb') {
-                        frostLives--;
-                        frostScreenShake = 10;
-                        audio.playSFX('gameover');
-                        updateFrostHUD();
-                    }
-                    frostDrops.splice(idx, 1);
-                } else if (d.y > 340) {
-                    frostDrops.splice(idx, 1);
-                }
-            });
-
-            let activeBallsCount = 0;
             frostBalls.forEach(ball => {
                 if (!ball.active) return;
-                activeBallsCount++;
-
                 ball.x += ball.vx;
                 ball.y += ball.vy;
 
-                if (ball.x - ball.radius < 8 || ball.x + ball.radius > 352) {
-                    ball.vx *= -1;
-                    audio.playSFX('move');
-                }
-                if (ball.y - ball.radius < 8) {
-                    ball.vy *= -1;
-                    audio.playSFX('move');
-                }
+                if (ball.x - ball.radius < 0 || ball.x + ball.radius > 360) ball.vx *= -1;
+                if (ball.y - ball.radius < 0) ball.vy *= -1;
 
-                if (ball.y + ball.radius >= frostPaddle.y && ball.y - ball.radius <= frostPaddle.y + frostPaddle.height &&
-                    ball.x >= frostPaddle.x && ball.x <= frostPaddle.x + frostPaddle.width) {
+                if (ball.y + ball.radius >= frostPaddle.y && ball.x >= frostPaddle.x && ball.x <= frostPaddle.x + frostPaddle.width) {
                     ball.vy *= -1;
                     audio.playSFX('click');
-                    let hitPoint = ball.x - (frostPaddle.x + frostPaddle.width / 2);
-                    ball.vx = hitPoint * 0.12;
                 }
 
                 frostBricks.forEach(b => {
-                    if (b.status > 0) {
-                        if (ball.x > b.x && ball.x < b.x + b.width && ball.y > b.y && ball.y < b.y + b.height) {
-                            ball.vy *= -1;
-                            b.status--;
-                            frostScore += 15;
-                            frostScreenShake = 5;
-                            audio.playSFX('score');
-                            updateFrostHUD();
-
-                            if (b.status === 0 && Math.random() < 0.45) {
-                                const types = ['3x', 'long', 'short', 'bomb'];
-                                let chosenType = types[Math.floor(Math.random() * types.length)];
-                                frostDrops.push({ x: b.x + b.width / 2, y: b.y + b.height, type: chosenType });
-                            }
-                        }
+                    if (b.status > 0 && ball.x > b.x && ball.x < b.x + b.width && ball.y > b.y && ball.y < b.y + b.height) {
+                        ball.vy *= -1;
+                        b.status = 0;
+                        frostScore += 15;
+                        audio.playSFX('score');
+                        updateFrostHUD();
                     }
                 });
 
                 if (ball.y > 340) {
-                    ball.active = false;
+                    frostLives--;
+                    audio.playSFX('gameover');
+                    updateFrostHUD();
+                    if (frostLives <= 0) {
+                        frostRunning = false;
+                        document.getElementById('final-frost-score').textContent = `Final Score: ${frostScore}`;
+                        document.getElementById('frost-gameover-overlay').style.display = 'flex';
+                        ScoreManager.saveScore('brickbreaker', frostScore);
+                        return;
+                    } else {
+                        initFrostBalls();
+                    }
                 }
 
                 frostCtx.fillStyle = '#ffffff';
@@ -3274,23 +3049,6 @@
                 frostCtx.fill();
             });
 
-            if (activeBallsCount === 0) {
-                frostLives--;
-                audio.playSFX('gameover');
-                updateFrostHUD();
-                if (frostLives <= 0) {
-                    frostRunning = false;
-                    document.getElementById('final-frost-score').textContent = `Final Score: ${frostScore}`;
-                    document.getElementById('frost-gameover-overlay').style.display = 'flex';
-                    let stats = ScoreManager.saveScore('brickbreaker', frostScore);
-                    frostCtx.restore();
-                    return;
-                } else {
-                    initFrostBalls();
-                }
-            }
-
-            frostCtx.restore();
             frostAnimId = requestAnimationFrame(frostLoop);
         }
 
