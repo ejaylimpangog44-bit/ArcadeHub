@@ -1185,9 +1185,9 @@
         <div class="category-section">
             <div class="category-title">Adventure & RPG</div>
             <div class="game-grid">
-                <div class="game-card featured" onclick="openGame('dungeon-container')">
-                    <span class="game-icon">🗡️</span>
-                    <span class="game-name">Retro Dungeon Adventure (Play Now)</span>
+                <div class="game-card featured" onclick="openGame('bomber-container')">
+                    <span class="game-icon">💣</span>
+                    <span class="game-name">Retro Bomber Man (Play Now)</span>
                 </div>
             </div>
         </div>
@@ -1269,35 +1269,37 @@
         </div>
     </div>
 
-    <!-- Retro Dungeon Adventure -->
-    <div id="dungeon-container" class="game-container">
+    <!-- Retro Bomber Man -->
+    <div id="bomber-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('dungeon-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('bomber-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Retro Dungeon Adventure 🗡️</h3>
+        <h3 class="game-title-header">Retro Bomber Man 💣</h3>
         <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 2px; width: 100%;">
-                <div class="score-box">Gold 🪙 <span id="dung-gold">0</span></div>
-                <div class="score-box">HP ❤️ <span id="dung-hp">5</span></div>
-                <div class="score-box">Keys 🔑 <span id="dung-keys">0</span></div>
+                <div class="score-box">Score 🪙 <span id="bomb-score">0</span></div>
+                <div class="score-box">HP ❤️ <span id="bomb-hp">3</span></div>
+                <div class="score-box">Lvl 🏆 <span id="bomb-lvl">1</span></div>
             </div>
             <div style="position: relative; display: inline-block;">
-                <canvas id="dung-canvas" class="arcade-canvas" width="280" height="280" style="touch-action: none;"></canvas>
-                <div id="dung-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                    <h2 id="dung-end-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">YOU DIED</h2>
-                    <button class="action-btn" onclick="startDungeonGame()">PLAY AGAIN</button>
+                <canvas id="bomb-canvas" class="arcade-canvas" width="280" height="280" style="touch-action: none;"></canvas>
+                <div id="bomb-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 id="bomb-end-title" style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                    <button class="action-btn" onclick="startBomberGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div class="dir-pad">
-                <div></div>
-                <button class="dir-btn" onclick="moveDungeonPlayer(0, -1)">⬆️</button>
-                <div></div>
-                <button class="dir-btn" onclick="moveDungeonPlayer(-1, 0)">⬅️</button>
-                <button class="dir-btn" onclick="moveDungeonPlayer(0, 1)">⬇️</button>
-                <button class="dir-btn" onclick="moveDungeonPlayer(1, 0)">➡️</button>
+            <div style="display: flex; gap: 8px; width: 100%; max-width: 260px; margin-top: 6px;">
+                <button class="action-btn" style="flex: 1; padding: 10px; font-size: 0.9rem;" onclick="dropBomberBomb()">💣 Drop Bomb</button>
             </div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Collect 🔑 to unlock 🚪. Defeat 👾 and reach 🏆!</p>
+            <div class="dir-pad" style="margin-top: 4px;">
+                <div></div>
+                <button class="dir-btn" onclick="moveBomberPlayer(0, -1)">⬆️</button>
+                <div></div>
+                <button class="dir-btn" onclick="moveBomberPlayer(-1, 0)">⬅️</button>
+                <button class="dir-btn" onclick="moveBomberPlayer(0, 1)">⬇️</button>
+                <button class="dir-btn" onclick="moveBomberPlayer(1, 0)">➡️</button>
+            </div>
         </div>
     </div>
 
@@ -1428,7 +1430,6 @@
                     <button class="action-btn" onclick="startFruitGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Drag / Swipe across fruits to slice them. Avoid 💣!</p>
         </div>
     </div>
 
@@ -1874,10 +1875,10 @@
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
 
-        // Retro Dungeon Adventure State
-        let dungCanvas, dungCtx, dungRunning = false, dungGold = 0, dungHp = 5, dungKeys = 0, dungLevel = 1;
-        let dungMap = [], dungPlayer = { x: 1, y: 1 };
-        const dungGridSize = 10;
+        // Retro Bomber Man State
+        let bombCanvas, bombCtx, bombRunning = false, bombScore = 0, bombHp = 3, bombLevel = 1;
+        let bombMap = [], bombPlayer = { x: 1, y: 1 }, activeBomb = null, bombEnemies = [];
+        const bombGridSize = 10;
 
         let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
@@ -1925,7 +1926,7 @@
             initPacManCanvas();
             initSpaceInvadersCanvas();
             initFruitCanvas();
-            initDungeonCanvas();
+            initBomberCanvas();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -1963,7 +1964,7 @@
             if (containerId === 'fruitslice-container') startFruitGame();
             if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
             if (containerId === 'candygame-container') startCandyGame();
-            if (containerId === 'dungeon-container') startDungeonGame();
+            if (containerId === 'bomber-container') startBomberGame();
         }
 
         function backToHub() {
@@ -1978,7 +1979,7 @@
             if (siRunning) { siRunning = false; cancelAnimationFrame(siAnimId); }
             if (frostRunning) { frostRunning = false; cancelAnimationFrame(frostAnimId); }
             if (fruitRunning) { fruitRunning = false; cancelAnimationFrame(fruitAnimId); }
-            dungRunning = false;
+            bombRunning = false;
 
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
@@ -1990,168 +1991,240 @@
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
         }
 
-        // RETRO DUNGEON ADVENTURE LOGIC
-        function initDungeonCanvas() {
-            dungCanvas = document.getElementById('dung-canvas');
-            if (dungCanvas) dungCtx = dungCanvas.getContext('2d');
+        // RETRO BOMBER MAN LOGIC
+        function initBomberCanvas() {
+            bombCanvas = document.getElementById('bomb-canvas');
+            if (bombCanvas) bombCtx = bombCanvas.getContext('2d');
         }
 
-        function startDungeonGame() {
+        function startBomberGame() {
             audio.playSFX('click');
-            document.getElementById('dung-gameover-overlay').style.display = 'none';
-            initDungeonCanvas();
-            if (!dungCtx) return;
-            dungRunning = true;
-            dungGold = 0;
-            dungHp = 5;
-            dungKeys = 0;
-            dungLevel = 1;
-            generateDungeonLevel();
-            updateDungeonHUD();
-            drawDungeon();
+            document.getElementById('bomb-gameover-overlay').style.display = 'none';
+            initBomberCanvas();
+            if (!bombCtx) return;
+            bombRunning = true;
+            bombScore = 0;
+            bombHp = 3;
+            bombLevel = 1;
+            activeBomb = null;
+            generateBomberLevel();
+            updateBomberHUD();
+            drawBomber();
         }
 
-        function generateDungeonLevel() {
-            dungMap = [];
-            for (let r = 0; r < dungGridSize; r++) {
+        function generateBomberLevel() {
+            bombMap = [];
+            bombEnemies = [];
+            for (let r = 0; r < bombGridSize; r++) {
                 let row = [];
-                for (let c = 0; c < dungGridSize; c++) {
-                    if (r === 0 || r === dungGridSize - 1 || c === 0 || c === dungGridSize - 1) {
+                for (let c = 0; c < bombGridSize; c++) {
+                    if (r === 0 || r === bombGridSize - 1 || c === 0 || c === bombGridSize - 1) {
+                        row.push('W');
+                    } else if (r % 2 === 0 && c % 2 === 0) {
                         row.push('W');
                     } else {
                         let rand = Math.random();
-                        if (rand < 0.22) row.push('W');
-                        else if (rand < 0.32) row.push('C');
-                        else if (rand < 0.38) row.push('K');
-                        else if (rand < 0.43) row.push('H');
-                        else if (rand < 0.52) row.push('M');
+                        if (rand < 0.35) row.push('B'); // Destructible Brick
                         else row.push('.');
                     }
                 }
-                dungMap.push(row);
+                bombMap.push(row);
             }
-            dungPlayer = { x: 1, y: 1 };
-            dungMap[1][1] = '.';
-            dungMap[dungGridSize - 2][dungGridSize - 2] = 'E';
-            dungMap[dungGridSize - 2][dungGridSize - 3] = 'D';
-            dungMap[2][dungGridSize - 2] = 'K';
+            bombPlayer = { x: 1, y: 1 };
+            bombMap[1][1] = '.';
+            bombMap[1][2] = '.';
+            bombMap[2][1] = '.';
+
+            // Place Exit Trophy or Door under random brick
+            let placedExit = false;
+            for (let r = 1; r < bombGridSize - 1; r++) {
+                for (let c = 1; c < bombGridSize - 1; c++) {
+                    if (bombMap[r][c] === 'B' && !placedExit) {
+                        bombMap[r][c] = 'E'; // Exit
+                        placedExit = true;
+                    }
+                }
+            }
+
+            // Spawn Enemies
+            bombEnemies.push({ x: bombGridSize - 2, y: bombGridSize - 2, dir: 'UP' });
+            if (bombLevel >= 2) bombEnemies.push({ x: bombGridSize - 2, y: 1, dir: 'LEFT' });
         }
 
-        function updateDungeonHUD() {
-            document.getElementById('dung-gold').textContent = dungGold;
-            document.getElementById('dung-hp').textContent = dungHp;
-            document.getElementById('dung-keys').textContent = dungKeys;
+        function updateBomberHUD() {
+            document.getElementById('bomb-score').textContent = bombScore;
+            document.getElementById('bomb-hp').textContent = bombHp;
+            document.getElementById('bomb-lvl').textContent = bombLevel;
         }
 
-        function moveDungeonPlayer(dx, dy) {
-            if (!dungRunning) return;
-            let newX = dungPlayer.x + dx;
-            let newY = dungPlayer.y + dy;
+        function moveBomberPlayer(dx, dy) {
+            if (!bombRunning) return;
+            let newX = bombPlayer.x + dx;
+            let newY = bombPlayer.y + dy;
 
-            if (newX < 0 || newX >= dungGridSize || newY < 0 || newY >= dungGridSize) return;
-            let tile = dungMap[newY][newX];
+            if (newX < 0 || newX >= bombGridSize || newY < 0 || newY >= bombGridSize) return;
+            let tile = bombMap[newY][newX];
 
-            if (tile === 'W') {
+            if (tile === 'W' || tile === 'B') {
                 audio.playSFX('click');
                 return;
             }
 
-            if (tile === 'D') {
-                if (dungKeys > 0) {
-                    audio.playSFX('win');
-                    dungKeys--;
-                    dungMap[newY][newX] = '.';
-                    dungPlayer.x = newX;
-                    dungPlayer.y = newY;
-                } else {
-                    audio.playSFX('gameover');
-                    return;
-                }
-            } else if (tile === 'E') {
+            if (tile === 'E') {
                 audio.playSFX('win');
-                dungLevel++;
-                dungGold += 100;
-                generateDungeonLevel();
+                bombLevel++;
+                bombScore += 150;
+                generateBomberLevel();
             } else {
                 audio.playSFX('move');
                 if (tile === 'C') {
                     audio.playSFX('score');
-                    dungGold += 25;
-                    dungMap[newY][newX] = '.';
-                } else if (tile === 'K') {
-                    audio.playSFX('win');
-                    dungKeys++;
-                    dungMap[newY][newX] = '.';
-                } else if (tile === 'H') {
-                    audio.playSFX('score');
-                    dungHp = Math.min(10, dungHp + 2);
-                    dungMap[newY][newX] = '.';
-                } else if (tile === 'M') {
-                    audio.playSFX('gameover');
-                    dungHp--;
-                    dungMap[newY][newX] = '.';
-                    if (dungHp <= 0) {
-                        endDungeonGame(false);
-                        return;
-                    }
+                    bombScore += 25;
+                    bombMap[newY][newX] = '.';
                 }
-                dungPlayer.x = newX;
-                dungPlayer.y = newY;
+                bombPlayer.x = newX;
+                bombPlayer.y = newY;
             }
 
-            updateDungeonHUD();
-            drawDungeon();
+            updateBomberEnemies();
+            checkBomberCollisions();
+            updateBomberHUD();
+            drawBomber();
         }
 
-        function drawDungeon() {
-            if (!dungCtx) return;
-            let tileSize = dungCanvas.width / dungGridSize;
-            dungCtx.fillStyle = '#0b0f19';
-            dungCtx.fillRect(0, 0, dungCanvas.width, dungCanvas.height);
+        function dropBomberBomb() {
+            if (!bombRunning || activeBomb) return;
+            audio.playSFX('click');
+            activeBomb = { x: bombPlayer.x, y: bombPlayer.y, timer: 3 };
+            drawBomber();
 
-            for (let r = 0; r < dungGridSize; r++) {
-                for (let c = 0; c < dungGridSize; c++) {
-                    let t = dungMap[r][c];
+            setTimeout(() => {
+                if (!bombRunning) return;
+                audio.playSFX('gameover');
+                let bx = activeBomb.x;
+                let by = activeBomb.y;
+                activeBomb = null;
+
+                // Blast radius (Center + 4 directions)
+                let blastCells = [{x: bx, y: by}, {x: bx+1, y: by}, {x: bx-1, y: by}, {x: bx, y: by+1}, {x: bx, y: by-1}];
+                blastCells.forEach(cell => {
+                    if (cell.x >= 0 && cell.x < bombGridSize && cell.y >= 0 && cell.y < bombGridSize) {
+                        let t = bombMap[cell.y][cell.x];
+                        if (t === 'B') {
+                            bombMap[cell.y][cell.x] = 'C'; // Coin after blast
+                            bombScore += 10;
+                        } else if (t === 'E') {
+                            // Revealed exit stays accessible
+                        }
+                        // Kill enemies in blast
+                        bombEnemies = bombEnemies.filter(e => {
+                            if (e.x === cell.x && e.y === cell.y) {
+                                bombScore += 50;
+                                return false;
+                            }
+                            return true;
+                        });
+                        // Hurt player in blast
+                        if (bombPlayer.x === cell.x && bombPlayer.y === cell.y) {
+                            bombHp--;
+                            if (bombHp <= 0) endBomberGame(false);
+                        }
+                    }
+                });
+                updateBomberHUD();
+                drawBomber();
+            }, 1200);
+        }
+
+        function updateBomberEnemies() {
+            bombEnemies.forEach(e => {
+                let moves = [{dx:0, dy:-1}, {dx:0, dy:1}, {dx:-1, dy:0}, {dx:1, dy:0}];
+                let validMoves = moves.filter(m => {
+                    let nx = e.x + m.dx, ny = e.y + m.dy;
+                    return nx >= 0 && nx < bombGridSize && ny >= 0 && ny < bombGridSize && bombMap[ny][nx] !== 'W' && bombMap[ny][nx] !== 'B';
+                });
+                if (validMoves.length > 0) {
+                    let m = validMoves[Math.floor(Math.random() * validMoves.length)];
+                    e.x += m.dx;
+                    e.y += m.dy;
+                }
+            });
+        }
+
+        function checkBomberCollisions() {
+            bombEnemies.forEach(e => {
+                if (e.x === bombPlayer.x && e.y === bombPlayer.y) {
+                    audio.playSFX('gameover');
+                    bombHp--;
+                    if (bombHp <= 0) endBomberGame(false);
+                }
+            });
+        }
+
+        function drawBomber() {
+            if (!bombCtx) return;
+            let tileSize = bombCanvas.width / bombGridSize;
+            bombCtx.fillStyle = '#0b0f19';
+            bombCtx.fillRect(0, 0, bombCanvas.width, bombCanvas.height);
+
+            for (let r = 0; r < bombGridSize; r++) {
+                for (let c = 0; c < bombGridSize; c++) {
+                    let t = bombMap[r][c];
                     let x = c * tileSize;
                     let y = r * tileSize;
 
                     if (t === 'W') {
-                        dungCtx.fillStyle = '#1e293b';
-                        dungCtx.fillRect(x, y, tileSize, tileSize);
-                        dungCtx.strokeStyle = '#334155';
-                        dungCtx.strokeRect(x, y, tileSize, tileSize);
+                        bombCtx.fillStyle = '#1e293b';
+                        bombCtx.fillRect(x, y, tileSize, tileSize);
+                        bombCtx.strokeStyle = '#334155';
+                        bombCtx.strokeRect(x, y, tileSize, tileSize);
                     } else {
-                        dungCtx.fillStyle = '#111827';
-                        dungCtx.fillRect(x, y, tileSize, tileSize);
+                        bombCtx.fillStyle = '#111827';
+                        bombCtx.fillRect(x, y, tileSize, tileSize);
 
-                        dungCtx.font = `${Math.floor(tileSize * 0.65)}px sans-serif`;
-                        dungCtx.textAlign = 'center';
-                        dungCtx.textBaseline = 'middle';
+                        bombCtx.font = `${Math.floor(tileSize * 0.65)}px sans-serif`;
+                        bombCtx.textAlign = 'center';
+                        bombCtx.textBaseline = 'middle';
 
-                        if (t === 'C') dungCtx.fillText('🪙', x + tileSize/2, y + tileSize/2);
-                        if (t === 'K') dungCtx.fillText('🔑', x + tileSize/2, y + tileSize/2);
-                        if (t === 'H') dungCtx.fillText('❤️', x + tileSize/2, y + tileSize/2);
-                        if (t === 'M') dungCtx.fillText('👾', x + tileSize/2, y + tileSize/2);
-                        if (t === 'D') dungCtx.fillText('🚪', x + tileSize/2, y + tileSize/2);
-                        if (t === 'E') dungCtx.fillText('🏆', x + tileSize/2, y + tileSize/2);
+                        if (t === 'B') bombCtx.fillText('📦', x + tileSize/2, y + tileSize/2);
+                        if (t === 'C') bombCtx.fillText('🪙', x + tileSize/2, y + tileSize/2);
+                        if (t === 'E') bombCtx.fillText('🏆', x + tileSize/2, y + tileSize/2);
                     }
                 }
             }
 
-            let px = dungPlayer.x * tileSize;
-            let py = dungPlayer.y * tileSize;
-            dungCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
-            dungCtx.textAlign = 'center';
-            dungCtx.textBaseline = 'middle';
-            dungCtx.fillText('🧙‍♂️', px + tileSize/2, py + tileSize/2);
+            if (activeBomb) {
+                let bx = activeBomb.x * tileSize;
+                let by = activeBomb.y * tileSize;
+                bombCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
+                bombCtx.textAlign = 'center';
+                bombCtx.textBaseline = 'middle';
+                bombCtx.fillText('💣', bx + tileSize/2, by + tileSize/2);
+            }
+
+            bombEnemies.forEach(e => {
+                let ex = e.x * tileSize;
+                let ey = e.y * tileSize;
+                bombCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
+                bombCtx.textAlign = 'center';
+                bombCtx.textBaseline = 'middle';
+                bombCtx.fillText('👾', ex + tileSize/2, ey + tileSize/2);
+            });
+
+            let px = bombPlayer.x * tileSize;
+            let py = bombPlayer.y * tileSize;
+            bombCtx.font = `${Math.floor(tileSize * 0.7)}px sans-serif`;
+            bombCtx.textAlign = 'center';
+            bombCtx.textBaseline = 'middle';
+            bombCtx.fillText('🧑‍🚀', px + tileSize/2, py + tileSize/2);
         }
 
-        function endDungeonGame(isVictory) {
-            dungRunning = false;
+        function endBomberGame(isVictory) {
+            bombRunning = false;
             audio.playSFX('gameover');
-            document.getElementById('dung-end-title').textContent = isVictory ? 'VICTORY! 🎉' : 'YOU DIED 💀';
-            document.getElementById('dung-gameover-overlay').style.display = 'flex';
-            ScoreManager.saveScore('dungeon', dungGold);
+            document.getElementById('bomb-end-title').textContent = isVictory ? 'VICTORY! 🎉' : 'GAME OVER 💀';
+            document.getElementById('bomb-gameover-overlay').style.display = 'flex';
+            ScoreManager.saveScore('bomber', bombScore);
         }
 
         function selectSetupMode(mode) {
