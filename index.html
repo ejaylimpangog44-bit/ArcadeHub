@@ -1207,9 +1207,13 @@
                     <span class="game-icon">👾</span>
                     <span class="game-name">Space Invaders</span>
                 </div>
-                <div class="game-card" onclick="openGame('clawgame-container')">
-                    <span class="game-icon">🦾</span>
-                    <span class="game-name">Claw Machine</span>
+                <div class="game-card" onclick="openGame('verticalhopper-container')">
+                    <span class="game-icon">🚀</span>
+                    <span class="game-name">Endless Hopper</span>
+                </div>
+                <div class="game-card" onclick="openGame('fruitslice-container')">
+                    <span class="game-icon">🍉</span>
+                    <span class="game-name">Fruit Slasher</span>
                 </div>
                 <div class="game-card" onclick="openGame('molegame-container')">
                     <span class="game-icon">🔨</span>
@@ -1344,7 +1348,7 @@
         </div>
     </div>
 
-    <!-- Space Invaders (Continuous Endless Waves) -->
+    <!-- Space Invaders -->
     <div id="spaceinvaders-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1367,38 +1371,49 @@
         </div>
     </div>
 
-    <!-- Full Claw Machine -->
-    <div id="clawgame-container" class="game-container">
+    <!-- Endless Hopper (Swipe Controls) -->
+    <div id="verticalhopper-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('clawgame-container')">⛶</button>
+            <button class="nav-btn" onclick="toggleFullscreen('verticalhopper-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Claw Machine</h3>
-        <div style="width: 100%; max-width: 340px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+        <h3 class="game-title-header">Endless Hopper 🚀</h3>
+        <div style="width: 100%; max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 4px; width: 100%;">
-                <div class="score-box">Prizes <span id="prize-count">0</span></div>
-                <div class="score-box">Credits <span id="claw-credits">5</span></div>
+                <div class="score-box">Height <span id="hopper-score">0</span>m</div>
+                <div class="score-box">High <span id="hopper-high">0</span>m</div>
             </div>
-            <div style="position: relative; width: 100%; height: 210px; background-color: #111827; border: 3px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px;">
-                <div id="claw-crane" style="position: absolute; top: 15px; left: 150px; width: 44px; height: 35px; display: flex; flex-direction: column; align-items: center; transition: left 0.15s ease-out, top 0.5s ease-in-out; z-index: 10;">
-                    <div style="width: 6px; height: 15px; background: #94a3b8;"></div>
-                    <div style="font-size: 24px; margin-top: -6px;">🦾</div>
-                </div>
-                <div id="claw-prize-chute" style="position: absolute; bottom: 10px; right: 10px; width: 50px; height: 45px; border: 2px dashed var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted);">CHUTE</div>
-                <div id="claw-prizes-floor" style="position: absolute; bottom: 8px; left: 15px; width: 240px; height: 40px; display: flex; justify-content: space-around; align-items: flex-end;">
-                    <span style="font-size: 24px; transition: transform 0.4s;" id="cp-0">🧸</span>
-                    <span style="font-size: 24px; transition: transform 0.4s;" id="cp-1">⭐</span>
-                    <span style="font-size: 24px; transition: transform 0.4s;" id="cp-2">🎁</span>
-                    <span style="font-size: 24px; transition: transform 0.4s;" id="cp-3">👾</span>
-                    <span style="font-size: 24px; transition: transform 0.4s;" id="cp-4">💎</span>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="hopper-canvas" class="arcade-canvas" width="280" height="340" style="touch-action: none; cursor: grab;"></canvas>
+                <div id="hopper-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">FELL DOWN!</h2>
+                    <button class="action-btn" onclick="startHopperGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 8px;">
-                <button class="control-btn" style="flex: 1;" onclick="moveRealClaw(-35)">⬅️ Left</button>
-                <button class="action-btn" style="flex: 1; background: var(--accent);" onclick="dropRealClaw()">⬇️ Drop</button>
-                <button class="control-btn" style="flex: 1;" onclick="moveRealClaw(35)">Right ➡️</button>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Swipe Left/Right to steer • Swipe Up to boost • Swipe Down to drop</p>
+        </div>
+    </div>
+
+    <!-- Fruit Slasher -->
+    <div id="fruitslice-container" class="game-container">
+        <div class="game-floating-nav">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('fruitslice-container')">⛶</button>
+        </div>
+        <h3 class="game-title-header">Fruit Slasher 🍉</h3>
+        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+            <div class="score-board" style="margin-top: 4px; width: 100%;">
+                <div class="score-box">Score <span id="fruit-score">0</span></div>
+                <div class="score-box">Lives ❤️ <span id="fruit-lives">3</span></div>
             </div>
-            <p id="claw-message" style="font-size: 0.85rem; color: var(--text-muted); min-height: 22px;">Position crane over a prize & drop!</p>
+            <div style="position: relative; display: inline-block;">
+                <canvas id="fruit-canvas" class="arcade-canvas" width="300" height="300" style="touch-action: none; cursor: crosshair;"></canvas>
+                <div id="fruit-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">GAME OVER</h2>
+                    <button class="action-btn" onclick="startFruitGame()">PLAY AGAIN</button>
+                </div>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Drag / Swipe across fruits to slice them. Avoid 💣!</p>
         </div>
     </div>
 
@@ -1511,13 +1526,13 @@
         <button class="control-btn" style="width: 100%; max-width: 340px; margin: 0 auto; display: block;" onclick="resetReactionGame()">Reset</button>
     </div>
 
-    <!-- Snake -->
+    <!-- Snake Game (Real Animated Snake) -->
     <div id="snakegame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('snakegame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Snake Game</h3>
+        <h3 class="game-title-header">Snake Game 🐍</h3>
         <div class="score-board" style="margin-top: 4px; max-width: 240px;">
             <div class="score-box">Score <span id="snake-score">0</span></div>
             <div class="score-box">High <span id="snake-high">0</span></div>
@@ -1539,7 +1554,7 @@
         </div>
     </div>
 
-    <!-- Flappy Arcade (Enhanced Physics & Parallax) -->
+    <!-- Flappy Arcade -->
     <div id="flappygame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1559,7 +1574,7 @@
         </div>
     </div>
 
-    <!-- Real Dinosaur Jump Arcade -->
+    <!-- Dino Jump (Obstacles Jump & 3s Spawn Timer) -->
     <div id="dinogame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1834,22 +1849,25 @@
         const winningConditions = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
         let tttBoard = ['', '', '', '', '', '', '', '', ''];
         let currentPlayer = 'X', isGameActive = true, selectedMode = 'pvp', selectedDiff = 'easy', gameMode = 'pvp', aiDifficulty = 'easy';
-        
-        // Claw Machine state
-        let realClawX = 140, realClawCredits = 5, realPrizeCount = 0, isRealClawBusy = false;
 
         let rpsP1Score = 0, rpsP2Score = 0, rpsP1Choice = null, rpsStage = 1;
         let targetNumber = Math.floor(Math.random() * 100) + 1, guessAttempts = 0, bestGuess = null;
         let moleActiveIdx = -1, moleScore = 0, moleTimer = null, isMolePlaying = false;
         let reactionState = 'waiting', reactionStart = 0, reactionTimeout = null, reactionTime = 0, bestReaction = null;
 
+        // Snake Game State (Real Snake)
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
         
-        // Flappy Arcade state
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
         
-        // Dino state
-        let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false;
+        // Dino Jump State (Jumping Obstacles & 3s Spawn Timer)
+        let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
+
+        // Endless Hopper State (Swipe Controls)
+        let hopperCanvas, hopperCtx, hopperRunning = false, hopperAnimId, hopperJumper, hopperPlatforms = [], hopperScore = 0, hopperCameraY = 0;
+
+        // Fruit Slasher State
+        let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
 
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
@@ -1883,7 +1901,6 @@
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
 
-        // Space Invaders state
         let siCanvas, siCtx, siRunning = false, siScore = 0, siLives = 3, siWave = 1, siAnimId;
         let siShip = { x: 130, y: 265, width: 28, height: 14 };
         let siLasers = [], siAliens = [], siAlienBullets = [], siAlienDir = 1;
@@ -1896,6 +1913,8 @@
             initFrostCanvas();
             initPacManCanvas();
             initSpaceInvadersCanvas();
+            initHopperCanvas();
+            initFruitCanvas();
 
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
@@ -1907,6 +1926,7 @@
             document.getElementById('pac-high').textContent = ScoreManager.getStats('pacman').highScore;
             document.getElementById('si-high').textContent = ScoreManager.getStats('spaceinvaders').highScore;
             document.getElementById('frost-score').textContent = ScoreManager.getStats('brickbreaker').highScore;
+            document.getElementById('hopper-high').textContent = ScoreManager.getStats('verticalhopper').highScore;
 
             const bestGuessData = localStorage.getItem('arcadehub_guess');
             if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
@@ -1930,6 +1950,8 @@
             if (containerId === 'dinogame-container') startDinoGame();
             if (containerId === 'pacman-container') startPacManGame();
             if (containerId === 'spaceinvaders-container') startSpaceInvadersGame();
+            if (containerId === 'verticalhopper-container') startHopperGame();
+            if (containerId === 'fruitslice-container') startFruitGame();
             if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
             if (containerId === 'candygame-container') startCandyGame();
         }
@@ -1945,6 +1967,8 @@
             if (pacRunning) { pacRunning = false; cancelAnimationFrame(pacAnimId); }
             if (siRunning) { siRunning = false; cancelAnimationFrame(siAnimId); }
             if (frostRunning) { frostRunning = false; cancelAnimationFrame(frostAnimId); }
+            if (hopperRunning) { hopperRunning = false; cancelAnimationFrame(hopperAnimId); }
+            if (fruitRunning) { fruitRunning = false; cancelAnimationFrame(fruitAnimId); }
 
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
@@ -2073,64 +2097,517 @@
             Array.from(document.getElementsByClassName('ttt-cell')).forEach(cell => { cell.textContent = ''; cell.className = 'ttt-cell'; });
         }
 
-        // FULL CLAW MACHINE LOGIC
-        function moveRealClaw(amt) {
-            if (isRealClawBusy) return;
-            audio.playSFX('move');
-            realClawX = Math.max(15, Math.min(295, realClawX + amt));
-            document.getElementById('claw-crane').style.left = `${realClawX}px`;
+        // ENDLESS HOPPER LOGIC (SWIPE UP/DOWN/LEFT/RIGHT CONTROLS)
+        function initHopperCanvas() {
+            hopperCanvas = document.getElementById('hopper-canvas');
+            if (hopperCanvas) {
+                hopperCtx = hopperCanvas.getContext('2d');
+                let startX = 0, startY = 0;
+
+                hopperCanvas.addEventListener('touchstart', e => {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    e.preventDefault();
+                }, { passive: false });
+
+                hopperCanvas.addEventListener('touchend', e => {
+                    if (!hopperRunning) return;
+                    let diffX = e.changedTouches[0].clientX - startX;
+                    let diffY = e.changedTouches[0].clientY - startY;
+
+                    if (Math.abs(diffX) > Math.abs(diffY)) {
+                        if (diffX > 30) hopperJumper.x = Math.min(hopperCanvas.width - 25, hopperJumper.x + 35);
+                        else if (diffX < -30) hopperJumper.x = Math.max(5, hopperJumper.x - 35);
+                    } else {
+                        if (diffY < -30) hopperJumper.vy = -13; // Swipe Up Super Boost
+                        else if (diffY > 30) hopperJumper.vy += 8; // Swipe Down Fast Drop
+                    }
+                    e.preventDefault();
+                }, { passive: false });
+
+                // Mouse Drag & Swipe simulation fallback
+                let mDown = false, mX = 0, mY = 0;
+                hopperCanvas.onmousedown = e => { mDown = true; mX = e.clientX; mY = e.clientY; };
+                window.onmousemove = e => {
+                    if (!mDown || !hopperRunning) return;
+                    let dx = e.clientX - mX;
+                    if (Math.abs(dx) > 15) {
+                        hopperJumper.x = Math.max(5, Math.min(hopperCanvas.width - 25, hopperJumper.x + (dx > 0 ? 15 : -15)));
+                        mX = e.clientX;
+                    }
+                };
+                window.onmouseup = e => {
+                    if (!mDown || !hopperRunning) return;
+                    let dy = e.clientY - mY;
+                    if (dy < -20) hopperJumper.vy = -13;
+                    else if (dy > 20) hopperJumper.vy += 8;
+                    mDown = false;
+                };
+            }
         }
 
-        function dropRealClaw() {
-            if (isRealClawBusy) return;
-            if (realClawCredits <= 0) {
-                document.getElementById('claw-message').textContent = "Out of credits! Refresh to restart.";
-                return;
-            }
-            isRealClawBusy = true;
-            realClawCredits--;
-            document.getElementById('claw-credits').textContent = realClawCredits;
+        function startHopperGame() {
             audio.playSFX('click');
+            document.getElementById('hopper-gameover-overlay').style.display = 'none';
+            initHopperCanvas();
+            if (!hopperCtx) return;
+            hopperRunning = true;
+            hopperScore = 0; hopperCameraY = 0;
+            hopperJumper = { x: 125, y: 240, width: 24, height: 24, vx: 0, vy: -9, gravity: 0.38 };
+            
+            hopperPlatforms = [];
+            hopperPlatforms.push({ x: 110, y: 300, width: 60, height: 12 });
+            for (let i = 0; i < 8; i++) {
+                hopperPlatforms.push({
+                    x: Math.random() * (hopperCanvas.width - 65),
+                    y: 250 - (i * 42),
+                    width: 55,
+                    height: 12
+                });
+            }
 
-            const crane = document.getElementById('claw-crane');
-            const msg = document.getElementById('claw-message');
-            msg.textContent = "Lowering claw...";
-            crane.style.top = '130px';
+            document.getElementById('hopper-score').textContent = hopperScore;
+            cancelAnimationFrame(hopperAnimId);
+            hopperLoop();
+        }
 
-            setTimeout(() => {
-                let caughtIndex = -1;
-                // Check proximity to prizes located at positions ~35, ~90, ~145, ~200, ~255
-                const prizeCoords = [35, 90, 145, 200, 255];
-                prizeCoords.forEach((px, idx) => {
-                    let pElem = document.getElementById(`cp-${idx}`);
-                    if (pElem && pElem.style.transform !== "translateY(-120px) scale(0)" && Math.abs(realClawX - px) < 25) {
-                        caughtIndex = idx;
+        function hopperLoop() {
+            if (!hopperRunning) return;
+
+            hopperJumper.vy += hopperJumper.gravity;
+            hopperJumper.y += hopperJumper.vy;
+
+            if (hopperJumper.y < hopperCameraY + 140) {
+                let diff = (hopperCameraY + 140) - hopperJumper.y;
+                hopperCameraY -= diff;
+                hopperScore += Math.floor(diff);
+                document.getElementById('hopper-score').textContent = hopperScore;
+            }
+
+            if (hopperJumper.vy > 0) {
+                hopperPlatforms.forEach(p => {
+                    if (hopperJumper.x + hopperJumper.width > p.x && hopperJumper.x < p.x + p.width &&
+                        hopperJumper.y + hopperJumper.height >= p.y && hopperJumper.y + hopperJumper.height <= p.y + 16) {
+                        hopperJumper.vy = -9.2;
+                        audio.playSFX('score');
                     }
                 });
+            }
 
-                if (caughtIndex !== -1) {
-                    msg.textContent = "Got a prize hooked! Hoisting...";
-                    document.getElementById(`cp-${caughtIndex}`).style.transform = "translateY(-110px)";
-                } else {
-                    msg.textContent = "Claw closed empty...";
+            hopperPlatforms.forEach(p => {
+                if (p.y > hopperCameraY + hopperCanvas.height) {
+                    p.y = hopperCameraY - Math.random() * 30;
+                    p.x = Math.random() * (hopperCanvas.width - 60);
                 }
+            });
 
-                crane.style.top = '15px';
+            if (hopperJumper.y > hopperCameraY + hopperCanvas.height) {
+                hopperRunning = false;
+                audio.playSFX('gameover');
+                document.getElementById('hopper-gameover-overlay').style.display = 'flex';
+                let stats = ScoreManager.saveScore('verticalhopper', hopperScore);
+                document.getElementById('hopper-high').textContent = stats.highScore;
+                return;
+            }
 
-                setTimeout(() => {
-                    if (caughtIndex !== -1) {
-                        audio.playSFX('win');
-                        realPrizeCount++;
-                        document.getElementById('prize-count').textContent = realPrizeCount;
-                        document.getElementById(`cp-${caughtIndex}`).style.transform = "translateY(-120px) scale(0)";
-                        msg.textContent = "🎉 Prize secured into chute!";
-                    } else {
-                        audio.playSFX('gameover');
-                        msg.textContent = "❌ Missed! Try again.";
+            hopperCtx.fillStyle = '#0b0f19';
+            hopperCtx.fillRect(0, 0, hopperCanvas.width, hopperCanvas.height);
+
+            hopperCtx.save();
+            hopperCtx.translate(0, -hopperCameraY);
+
+            hopperCtx.fillStyle = '#10b981';
+            hopperPlatforms.forEach(p => hopperCtx.fillRect(p.x, p.y, p.width, p.height));
+
+            hopperCtx.fillStyle = '#38bdf8';
+            hopperCtx.fillRect(hopperJumper.x, hopperJumper.y, hopperJumper.width, hopperJumper.height);
+
+            hopperCtx.restore();
+
+            if (hopperRunning) hopperAnimId = requestAnimationFrame(hopperLoop);
+        }
+
+        // REAL SNAKE GAME LOGIC
+        function initSnakeCanvas() {
+            snakeCanvas = document.getElementById('snake-canvas');
+            if (snakeCanvas) snakeCtx = snakeCanvas.getContext('2d');
+        }
+
+        function startSnakeGame() {
+            audio.playSFX('click');
+            document.getElementById('snake-gameover-overlay').style.display = 'none';
+            initSnakeCanvas();
+            if (!snakeCtx) return;
+            if (snakeInterval) clearInterval(snakeInterval);
+
+            snake = [
+                {x: 12, y: 12},
+                {x: 11, y: 12},
+                {x: 10, y: 12}
+            ];
+            snakeDir = 'RIGHT';
+            nextSnakeDir = 'RIGHT';
+            snakeScore = 0;
+            document.getElementById('snake-score').textContent = snakeScore;
+            spawnRealSnakeFood();
+
+            snakeInterval = setInterval(updateRealSnake, 130);
+        }
+
+        function spawnRealSnakeFood() {
+            snakeFood = {
+                x: Math.floor(Math.random() * 22) + 1,
+                y: Math.floor(Math.random() * 22) + 1
+            };
+        }
+
+        function changeSnakeDir(dir) {
+            audio.playSFX('move');
+            if (dir === 'UP' && snakeDir !== 'DOWN') nextSnakeDir = 'UP';
+            if (dir === 'DOWN' && snakeDir !== 'UP') nextSnakeDir = 'DOWN';
+            if (dir === 'LEFT' && snakeDir !== 'RIGHT') nextSnakeDir = 'LEFT';
+            if (dir === 'RIGHT' && snakeDir !== 'LEFT') nextSnakeDir = 'RIGHT';
+        }
+
+        function updateRealSnake() {
+            snakeDir = nextSnakeDir;
+            let head = {x: snake[0].x, y: snake[0].y};
+            if (snakeDir === 'UP') head.y--;
+            if (snakeDir === 'DOWN') head.y++;
+            if (snakeDir === 'LEFT') head.x--;
+            if (snakeDir === 'RIGHT') head.x++;
+
+            if (head.x < 0 || head.x >= 24 || head.y < 0 || head.y >= 24 || snake.some(s => s.x === head.x && s.y === head.y)) {
+                audio.playSFX('gameover');
+                clearInterval(snakeInterval);
+                document.getElementById('snake-gameover-overlay').style.display = 'flex';
+                let stats = ScoreManager.saveScore('snake', snakeScore);
+                document.getElementById('snake-high').textContent = stats.highScore;
+                return;
+            }
+
+            snake.unshift(head);
+            if (head.x === snakeFood.x && head.y === snakeFood.y) {
+                audio.playSFX('score');
+                snakeScore += 10;
+                document.getElementById('snake-score').textContent = snakeScore;
+                spawnRealSnakeFood();
+            } else {
+                snake.pop();
+            }
+
+            drawRealSnake();
+        }
+
+        function drawRealSnake() {
+            snakeCtx.fillStyle = '#0a0f1d';
+            snakeCtx.fillRect(0, 0, 240, 240);
+
+            // Draw Food (Mouse / Rat / Apple)
+            snakeCtx.fillStyle = '#ec4899';
+            snakeCtx.beginPath();
+            snakeCtx.arc(snakeFood.x * 10 + 5, snakeFood.y * 10 + 5, 4.5, 0, Math.PI * 2);
+            snakeCtx.fill();
+
+            // Draw Real Snake Body Segments
+            snake.forEach((part, idx) => {
+                snakeCtx.fillStyle = idx === 0 ? '#10b981' : '#059669';
+                let sz = idx === 0 ? 9 : 8;
+                let offset = idx === 0 ? 0.5 : 1;
+                snakeCtx.beginPath();
+                snakeCtx.roundRect(part.x * 10 + offset, part.y * 10 + offset, sz, sz, 3);
+                snakeCtx.fill();
+
+                // Draw Head Details (Eyes)
+                if (idx === 0) {
+                    snakeCtx.fillStyle = '#ffffff';
+                    let ex = part.x * 10 + 5, ey = part.y * 10 + 5;
+                    if (snakeDir === 'RIGHT') { ex += 2; }
+                    else if (snakeDir === 'LEFT') { ex -= 2; }
+                    else if (snakeDir === 'UP') { ey -= 2; }
+                    else if (snakeDir === 'DOWN') { ey += 2; }
+                    snakeCtx.beginPath();
+                    snakeCtx.arc(ex, ey, 1.5, 0, Math.PI * 2);
+                    snakeCtx.fill();
+                }
+            });
+        }
+
+        // DINOSAUR JUMP LOGIC (JUMPING OBSTACLES & 3s SPAWN TIMER)
+        function initDinoCanvas() {
+            dinoCanvas = document.getElementById('dino-canvas');
+            if (dinoCanvas) {
+                dinoCtx = dinoCanvas.getContext('2d');
+                dinoCanvas.addEventListener('click', () => triggerDinoAction('jump'));
+            }
+        }
+
+        function startDinoGame() {
+            audio.playSFX('click');
+            document.getElementById('dino-gameover-overlay').style.display = 'none';
+            initDinoCanvas();
+            if (!dinoCtx) return;
+            if (dinoInterval) clearInterval(dinoInterval);
+
+            dino = { x: 35, y: 130, width: 28, height: 32, vy: 0, gravity: 0.6, isJumping: false, isDucking: false };
+            dinoObstacles = [];
+            dinoScore = 0;
+            dinoFrame = 0;
+            dinoSpawnCounter = 0;
+            isDinoNight = false;
+            isDinoRunning = true;
+            document.getElementById('dino-score').textContent = dinoScore;
+
+            dinoInterval = setInterval(updateDino, 25);
+        }
+
+        function triggerDinoAction(action) {
+            if (!isDinoRunning) {
+                startDinoGame();
+                return;
+            }
+            if (action === 'jump' && !dino.isJumping) {
+                audio.playSFX('move');
+                dino.vy = -10.5;
+                dino.isJumping = true;
+                dino.isDucking = false;
+            } else if (action === 'duck') {
+                if (!dino.isJumping) {
+                    audio.playSFX('click');
+                    dino.isDucking = true;
+                    setTimeout(() => { dino.isDucking = false; }, 600);
+                }
+            }
+        }
+
+        function updateDino() {
+            dinoFrame++;
+            dinoSpawnCounter++;
+            dino.vy += dino.gravity;
+            dino.y += dino.vy;
+
+            if (dino.y > 130) {
+                dino.y = 130;
+                dino.vy = 0;
+                dino.isJumping = false;
+            }
+
+            // Spawn obstacles precisely every 3 seconds (120 ticks at 25ms interval) with twist (obstacle jumps)
+            if (dinoSpawnCounter >= 120) {
+                dinoSpawnCounter = 0;
+                let isJumpingObstacle = Math.random() < 0.45; // Twist: obstacle can jump!
+                dinoObstacles.push({
+                    x: 300,
+                    y: 128,
+                    width: 16,
+                    height: 32,
+                    canJump: isJumpingObstacle,
+                    vy: 0,
+                    jumpTimer: 0
+                });
+            }
+
+            dinoObstacles.forEach(o => {
+                o.x -= 4.2;
+                // Twist behavior: Obstacle periodically jumps over the ground!
+                if (o.canJump) {
+                    o.jumpTimer++;
+                    if (o.jumpTimer % 70 === 0) {
+                        o.vy = -7.5;
                     }
-                    isRealClawBusy = false;
-                }, 500);
-            }, 500);
+                    o.vy += 0.5;
+                    o.y += o.vy;
+                    if (o.y > 128) { o.y = 128; o.vy = 0; }
+                }
+            });
+            dinoObstacles = dinoObstacles.filter(o => o.x > -40);
+
+            dinoScore++;
+            document.getElementById('dino-score').textContent = dinoScore;
+            isDinoNight = Math.floor(dinoScore / 500) % 2 === 1;
+
+            let dH = dino.isDucking ? 18 : dino.height;
+            let dY = dino.isDucking ? dino.y + 14 : dino.y;
+
+            dinoObstacles.forEach(o => {
+                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dY < o.y + o.height && dY + dH > o.y) {
+                    endDinoGame();
+                }
+            });
+
+            drawDino();
+        }
+
+        function endDinoGame() {
+            audio.playSFX('gameover');
+            clearInterval(dinoInterval);
+            isDinoRunning = false;
+            document.getElementById('dino-gameover-overlay').style.display = 'flex';
+            let stats = ScoreManager.saveScore('dino', dinoScore);
+            document.getElementById('dino-high').textContent = stats.highScore;
+        }
+
+        function drawDino() {
+            dinoCtx.fillStyle = isDinoNight ? '#020617' : '#111827';
+            dinoCtx.fillRect(0, 0, 300, 180);
+
+            dinoCtx.strokeStyle = isDinoNight ? '#38bdf8' : '#64748b';
+            dinoCtx.lineWidth = 2;
+            dinoCtx.beginPath();
+            dinoCtx.moveTo(0, 162);
+            dinoCtx.lineTo(300, 162);
+            dinoCtx.stroke();
+
+            // Draw Dino
+            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
+            let dH = dino.isDucking ? 18 : dino.height;
+            let dY = dino.isDucking ? dino.y + 14 : dino.y;
+            let dW = dino.isDucking ? 34 : dino.width;
+            dinoCtx.fillRect(dino.x, dY + 8, dW, dH - 8);
+            dinoCtx.fillRect(dino.x + dW - 6, dY - 4, 14, 14);
+            dinoCtx.fillStyle = '#fff';
+            dinoCtx.fillRect(dino.x + dW + 2, dY, 3, 3);
+            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
+            if (!dino.isJumping && Math.floor(dinoFrame / 6) % 2 === 0) {
+                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 8);
+                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 5);
+            } else {
+                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 5);
+                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 8);
+            }
+
+            // Draw Obstacles (with glowing cap for jumping obstacles)
+            dinoObstacles.forEach(o => {
+                dinoCtx.fillStyle = o.canJump ? '#f43f5e' : '#22c55e';
+                dinoCtx.fillRect(o.x, o.y, o.width, o.height);
+                dinoCtx.fillRect(o.x - 4, o.y + 8, 4, 8);
+            });
+        }
+
+        // FRUIT SLASHER LOGIC
+        function initFruitCanvas() {
+            fruitCanvas = document.getElementById('fruit-canvas');
+            if (fruitCanvas) {
+                fruitCtx = fruitCanvas.getContext('2d');
+                let isDragging = false;
+
+                const registerSwipe = (clientX, clientY) => {
+                    if (!fruitRunning) return;
+                    const rect = fruitCanvas.getBoundingClientRect();
+                    let cx = (clientX - rect.left) * (fruitCanvas.width / rect.width);
+                    let cy = (clientY - rect.top) * (fruitCanvas.height / rect.height);
+
+                    sliceTrails.push({ x: cx, y: cy, alpha: 1.0 });
+
+                    flyingFruits.forEach(f => {
+                        if (!f.sliced && Math.hypot(f.x - cx, f.y - cy) < f.radius + 14) {
+                            f.sliced = true;
+                            if (f.isBomb) {
+                                audio.playSFX('gameover');
+                                fruitLives--;
+                                document.getElementById('fruit-lives').textContent = fruitLives;
+                                if (fruitLives <= 0) endFruitGame();
+                            } else {
+                                audio.playSFX('score');
+                                fruitScore += f.points;
+                                document.getElementById('fruit-score').textContent = fruitScore;
+                            }
+                        }
+                    });
+                };
+
+                fruitCanvas.onmousedown = e => { isDragging = true; registerSwipe(e.clientX, e.clientY); };
+                window.onmousemove = e => { if (isDragging) registerSwipe(e.clientX, e.clientY); };
+                window.onmouseup = () => { isDragging = false; };
+
+                fruitCanvas.ontouchstart = e => { isDragging = true; registerSwipe(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
+                window.ontouchmove = e => { if (isDragging) registerSwipe(e.touches[0].clientX, e.touches[0].clientY); };
+                window.ontouchend = () => { isDragging = false; };
+            }
+        }
+
+        function startFruitGame() {
+            audio.playSFX('click');
+            document.getElementById('fruit-gameover-overlay').style.display = 'none';
+            initFruitCanvas();
+            if (!fruitCtx) return;
+            fruitRunning = true;
+            fruitScore = 0; fruitLives = 3;
+            flyingFruits = [];
+            sliceTrails = [];
+            document.getElementById('fruit-score').textContent = fruitScore;
+            document.getElementById('fruit-lives').textContent = fruitLives;
+            cancelAnimationFrame(fruitAnimId);
+            fruitLoop();
+        }
+
+        let fruitTick = 0;
+        function fruitLoop() {
+            if (!fruitRunning) return;
+            fruitTick++;
+
+            if (fruitTick % 50 === 0) {
+                let isBomb = Math.random() < 0.2;
+                const types = [
+                    { emoji: '🍉', points: 20 },
+                    { emoji: '🍎', points: 10 },
+                    { emoji: '🍌', points: 15 },
+                    { emoji: '🍍', points: 25 },
+                    { emoji: '🍇', points: 15 }
+                ];
+                let chosen = isBomb ? { emoji: '💣', points: 0 } : types[Math.floor(Math.random() * types.length)];
+                
+                flyingFruits.push({
+                    x: 40 + Math.random() * 220,
+                    y: 310,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: -11 - Math.random() * 3,
+                    gravity: 0.35,
+                    radius: 18,
+                    emoji: chosen.emoji,
+                    points: chosen.points,
+                    isBomb: isBomb,
+                    sliced: false
+                });
+            }
+
+            fruitCtx.fillStyle = '#111827';
+            fruitCtx.fillRect(0, 0, fruitCanvas.width, fruitCanvas.height);
+
+            flyingFruits.forEach(f => {
+                f.x += f.vx;
+                f.vy += f.gravity;
+                f.y += f.vy;
+
+                if (!f.sliced) {
+                    fruitCtx.font = '26px sans-serif';
+                    fruitCtx.textAlign = 'center';
+                    fruitCtx.textBaseline = 'middle';
+                    fruitCtx.fillText(f.emoji, f.x, f.y);
+                }
+            });
+            flyingFruits = flyingFruits.filter(f => f.y < 340);
+
+            sliceTrails.forEach((t, i) => {
+                t.alpha -= 0.08;
+                if (t.alpha > 0) {
+                    fruitCtx.strokeStyle = `rgba(56, 189, 248, ${t.alpha})`;
+                    fruitCtx.lineWidth = 4;
+                    fruitCtx.beginPath();
+                    fruitCtx.arc(t.x, t.y, 6, 0, Math.PI * 2);
+                    fruitCtx.stroke();
+                }
+            });
+            sliceTrails = sliceTrails.filter(t => t.alpha > 0);
+
+            if (fruitRunning) fruitAnimId = requestAnimationFrame(fruitLoop);
+        }
+
+        function endFruitGame() {
+            fruitRunning = false;
+            audio.playSFX('gameover');
+            document.getElementById('fruit-gameover-overlay').style.display = 'flex';
+            let stats = ScoreManager.saveScore('fruitslasher', fruitScore);
         }
 
         function submitGuess() {
@@ -2303,87 +2780,6 @@
             document.getElementById('reaction-time').textContent = "0 ms";
         }
 
-        function initSnakeCanvas() {
-            snakeCanvas = document.getElementById('snake-canvas');
-            if (snakeCanvas) snakeCtx = snakeCanvas.getContext('2d');
-        }
-
-        function startSnakeGame() {
-            audio.playSFX('click');
-            document.getElementById('snake-gameover-overlay').style.display = 'none';
-            initSnakeCanvas();
-            if (!snakeCtx) return;
-            if (snakeInterval) clearInterval(snakeInterval);
-
-            snake = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}];
-            snakeDir = 'RIGHT';
-            nextSnakeDir = 'RIGHT';
-            snakeScore = 0;
-            document.getElementById('snake-score').textContent = snakeScore;
-            spawnSnakeFood();
-
-            snakeInterval = setInterval(updateSnake, 120);
-        }
-
-        function spawnSnakeFood() {
-            snakeFood = {
-                x: Math.floor(Math.random() * 24),
-                y: Math.floor(Math.random() * 24)
-            };
-        }
-
-        function changeSnakeDir(dir) {
-            audio.playSFX('move');
-            if (dir === 'UP' && snakeDir !== 'DOWN') nextSnakeDir = 'UP';
-            if (dir === 'DOWN' && snakeDir !== 'UP') nextSnakeDir = 'DOWN';
-            if (dir === 'LEFT' && snakeDir !== 'RIGHT') nextSnakeDir = 'LEFT';
-            if (dir === 'RIGHT' && snakeDir !== 'LEFT') nextSnakeDir = 'RIGHT';
-        }
-
-        function updateSnake() {
-            snakeDir = nextSnakeDir;
-            let head = {x: snake[0].x, y: snake[0].y};
-            if (snakeDir === 'UP') head.y--;
-            if (snakeDir === 'DOWN') head.y++;
-            if (snakeDir === 'LEFT') head.x--;
-            if (snakeDir === 'RIGHT') head.x++;
-
-            if (head.x < 0 || head.x >= 24 || head.y < 0 || head.y >= 24 || snake.some(s => s.x === head.x && s.y === head.y)) {
-                audio.playSFX('gameover');
-                clearInterval(snakeInterval);
-                document.getElementById('snake-gameover-overlay').style.display = 'flex';
-                let stats = ScoreManager.saveScore('snake', snakeScore);
-                document.getElementById('snake-high').textContent = stats.highScore;
-                return;
-            }
-
-            snake.unshift(head);
-            if (head.x === snakeFood.x && head.y === snakeFood.y) {
-                audio.playSFX('score');
-                snakeScore += 10;
-                document.getElementById('snake-score').textContent = snakeScore;
-                spawnSnakeFood();
-            } else {
-                snake.pop();
-            }
-
-            drawSnake();
-        }
-
-        function drawSnake() {
-            snakeCtx.fillStyle = '#111827';
-            snakeCtx.fillRect(0, 0, 240, 240);
-
-            snakeCtx.fillStyle = '#ec4899';
-            snakeCtx.fillRect(snakeFood.x * 10, snakeFood.y * 10, 9, 9);
-
-            snakeCtx.fillStyle = '#38bdf8';
-            snake.forEach(part => {
-                snakeCtx.fillRect(part.x * 10, part.y * 10, 9, 9);
-            });
-        }
-
-        // FLAPPY ARCADE LOGIC
         function initFlappyCanvas() {
             flappyCanvas = document.getElementById('flappy-canvas');
             if (flappyCanvas) flappyCtx = flappyCanvas.getContext('2d');
@@ -2462,18 +2858,15 @@
             flappyCtx.fillStyle = '#0f172a';
             flappyCtx.fillRect(0, 0, 260, 280);
 
-            // Draw Pipes
             pipes.forEach(p => {
                 flappyCtx.fillStyle = '#10b981';
                 flappyCtx.fillRect(p.x, 0, 40, p.top);
                 flappyCtx.fillRect(p.x, p.bottom, 40, 280 - p.bottom);
-                // Pipe caps
                 flappyCtx.fillStyle = '#059669';
                 flappyCtx.fillRect(p.x - 3, p.top - 12, 46, 12);
                 flappyCtx.fillRect(p.x - 3, p.bottom, 46, 12);
             });
 
-            // Draw Bird
             flappyCtx.save();
             flappyCtx.translate(bird.x, bird.y);
             flappyCtx.rotate(bird.rotation);
@@ -2481,12 +2874,10 @@
             flappyCtx.beginPath();
             flappyCtx.arc(0, 0, bird.radius, 0, Math.PI * 2);
             flappyCtx.fill();
-            // Eye
             flappyCtx.fillStyle = '#000';
             flappyCtx.beginPath();
             flappyCtx.arc(4, -3, 2.5, 0, Math.PI * 2);
             flappyCtx.fill();
-            // Beak
             flappyCtx.fillStyle = '#f97316';
             flappyCtx.beginPath();
             flappyCtx.moveTo(bird.radius - 2, -2);
@@ -2496,154 +2887,6 @@
             flappyCtx.restore();
         }
 
-        // REAL DINOSAUR ARCADE LOGIC
-        function initDinoCanvas() {
-            dinoCanvas = document.getElementById('dino-canvas');
-            if (dinoCanvas) {
-                dinoCtx = dinoCanvas.getContext('2d');
-                dinoCanvas.addEventListener('click', () => triggerDinoAction('jump'));
-            }
-        }
-
-        function startDinoGame() {
-            audio.playSFX('click');
-            document.getElementById('dino-gameover-overlay').style.display = 'none';
-            initDinoCanvas();
-            if (!dinoCtx) return;
-            if (dinoInterval) clearInterval(dinoInterval);
-
-            dino = { x: 35, y: 130, width: 28, height: 32, vy: 0, gravity: 0.6, isJumping: false, isDucking: false };
-            dinoObstacles = [];
-            dinoScore = 0;
-            dinoFrame = 0;
-            isDinoNight = false;
-            isDinoRunning = true;
-            document.getElementById('dino-score').textContent = dinoScore;
-
-            dinoInterval = setInterval(updateDino, 25);
-        }
-
-        function triggerDinoAction(action) {
-            if (!isDinoRunning) {
-                startDinoGame();
-                return;
-            }
-            if (action === 'jump' && !dino.isJumping) {
-                audio.playSFX('move');
-                dino.vy = -10.5;
-                dino.isJumping = true;
-                dino.isDucking = false;
-            } else if (action === 'duck') {
-                if (!dino.isJumping) {
-                    audio.playSFX('click');
-                    dino.isDucking = true;
-                    setTimeout(() => { dino.isDucking = false; }, 600);
-                }
-            }
-        }
-
-        function updateDino() {
-            dinoFrame++;
-            dino.vy += dino.gravity;
-            dino.y += dino.vy;
-
-            if (dino.y > 130) {
-                dino.y = 130;
-                dino.vy = 0;
-                dino.isJumping = false;
-            }
-
-            // Spawn obstacles (Cactus or Pterodactyl)
-            if (dinoObstacles.length === 0 || dinoObstacles[dinoObstacles.length - 1].x < 160) {
-                let isBird = Math.random() > 0.65 && dinoScore > 150;
-                let obsY = isBird ? (Math.random() > 0.5 ? 100 : 125) : 128;
-                dinoObstacles.push({
-                    x: 300,
-                    y: obsY,
-                    width: isBird ? 26 : 16,
-                    height: isBird ? 20 : 32,
-                    type: isBird ? 'bird' : 'cactus'
-                });
-            }
-
-            dinoObstacles.forEach(o => { o.x -= 4.5 + Math.floor(dinoScore / 200); });
-            dinoObstacles = dinoObstacles.filter(o => o.x > -40);
-
-            dinoScore++;
-            document.getElementById('dino-score').textContent = dinoScore;
-            isDinoNight = Math.floor(dinoScore / 500) % 2 === 1;
-
-            // Collision detection
-            let dH = dino.isDucking ? 18 : dino.height;
-            let dY = dino.isDucking ? dino.y + 14 : dino.y;
-
-            dinoObstacles.forEach(o => {
-                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dY < o.y + o.height && dY + dH > o.y) {
-                    endDinoGame();
-                }
-            });
-
-            drawDino();
-        }
-
-        function endDinoGame() {
-            audio.playSFX('gameover');
-            clearInterval(dinoInterval);
-            isDinoRunning = false;
-            document.getElementById('dino-gameover-overlay').style.display = 'flex';
-            let stats = ScoreManager.saveScore('dino', dinoScore);
-            document.getElementById('dino-high').textContent = stats.highScore;
-        }
-
-        function drawDino() {
-            dinoCtx.fillStyle = isDinoNight ? '#020617' : '#111827';
-            dinoCtx.fillRect(0, 0, 300, 180);
-
-            // Ground line
-            dinoCtx.strokeStyle = isDinoNight ? '#38bdf8' : '#64748b';
-            dinoCtx.lineWidth = 2;
-            dinoCtx.beginPath();
-            dinoCtx.moveTo(0, 162);
-            dinoCtx.lineTo(300, 162);
-            dinoCtx.stroke();
-
-            // Draw Real Dinosaur (T-Rex Pixel Style)
-            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
-            let dH = dino.isDucking ? 18 : dino.height;
-            let dY = dino.isDucking ? dino.y + 14 : dino.y;
-            let dW = dino.isDucking ? 34 : dino.width;
-
-            // Body
-            dinoCtx.fillRect(dino.x, dY + 8, dW, dH - 8);
-            // Head & Jaw
-            dinoCtx.fillRect(dino.x + dW - 6, dY - 4, 14, 14);
-            // Eye
-            dinoCtx.fillStyle = '#fff';
-            dinoCtx.fillRect(dino.x + dW + 2, dY, 3, 3);
-            // Legs / Running animation
-            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7';
-            if (!dino.isJumping && Math.floor(dinoFrame / 6) % 2 === 0) {
-                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 8);
-                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 5);
-            } else {
-                dinoCtx.fillRect(dino.x + 4, dY + dH, 4, 5);
-                dinoCtx.fillRect(dino.x + dW - 8, dY + dH, 4, 8);
-            }
-
-            // Draw Obstacles
-            dinoObstacles.forEach(o => {
-                if (o.type === 'bird') {
-                    dinoCtx.fillStyle = '#ec4899';
-                    dinoCtx.fillRect(o.x, o.y + (Math.floor(dinoFrame / 8) % 2 === 0 ? 0 : 6), o.width, o.height);
-                } else {
-                    dinoCtx.fillStyle = '#22c55e';
-                    dinoCtx.fillRect(o.x, o.y, o.width, o.height);
-                    dinoCtx.fillRect(o.x - 4, o.y + 8, 4, 8);
-                }
-            });
-        }
-
-        // CONTINUOUS SPACE INVADERS LOGIC
         function initSpaceInvadersCanvas() {
             siCanvas = document.getElementById('si-canvas');
             if (siCanvas) {
@@ -2766,7 +3009,6 @@
                 }
             });
 
-            // Continuous Endless Wave Progression
             if (siAliens.every(a => !a.alive)) {
                 siWave++;
                 audio.playSFX('win');
@@ -2891,7 +3133,6 @@
             renderCandyBoard();
         }
 
-        // Brick Breaker Logic
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
             if (frostCanvas) {
