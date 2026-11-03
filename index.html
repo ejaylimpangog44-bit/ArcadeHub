@@ -1209,7 +1209,7 @@
                 </div>
                 <div class="game-card" onclick="openGame('zombieshooter-container')">
                     <span class="game-icon">🧟</span>
-                    <span class="game-name">Zombie Shooter</span>
+                    <span class="game-name">3D Zombie Shooter</span>
                 </div>
                 <div class="game-card" onclick="openGame('fruitslice-container')">
                     <span class="game-icon">🍉</span>
@@ -1371,27 +1371,27 @@
         </div>
     </div>
 
-    <!-- Zombie Shooter Arcade -->
+    <!-- 3D Zombie Shooter Arcade -->
     <div id="zombieshooter-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('zombieshooter-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Zombie Shooter 🧟</h3>
-        <div style="width: 100%; max-width: 320px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+        <h3 class="game-title-header">3D Zombie Shooter 🧟</h3>
+        <div style="width: 100%; max-width: 340px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
             <div class="score-board" style="margin-top: 2px; width: 100%;">
                 <div class="score-box">Score <span id="zs-score">0</span></div>
                 <div class="score-box">Lives ❤️ <span id="zs-lives">5</span></div>
                 <div class="score-box">High <span id="zs-high">0</span></div>
             </div>
             <div style="position: relative; display: inline-block;">
-                <canvas id="zs-canvas" class="arcade-canvas" width="300" height="300" style="touch-action: none; cursor: crosshair;"></canvas>
+                <canvas id="zs-canvas" class="arcade-canvas" width="320" height="260" style="touch-action: none; cursor: crosshair;"></canvas>
                 <div id="zs-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
                     <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">YOU WERE OVERRUN!</h2>
                     <button class="action-btn" onclick="startZombieGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">👉 Drag anywhere on the canvas to move your player!</p>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">👉 Drag anywhere to aim/move & auto-shoot real zombies!</p>
         </div>
     </div>
 
@@ -1860,9 +1860,10 @@
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
 
-        // Zombie Shooter Game State (Free-form Drag & Auto-fire & Zombie Chasing AI)
-        let zsCanvas, zsCtx, zsRunning = false, zsAnimId, zsPlayerX = 150, zsPlayerY = 240, zsScore = 0, zsLives = 5, zsTick = 0;
-        let zsBullets = [], zsZombies = [], zsPowerUps = [];
+        // 3D First-Person Zombie Shooter Game State
+        let zsCanvas, zsCtx, zsRunning = false, zsAnimId, zsCamX = 0, zsCamY = 0, zsCamAngle = 0;
+        let zsScore = 0, zsLives = 5, zsTick = 0;
+        let zsBullets = [], zs3DZombies = [], zs3DPowerUps = [];
         let zsPowerType = 'normal', zsPowerTimer = 0;
 
         let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
@@ -2094,29 +2095,35 @@
             Array.from(document.getElementsByClassName('ttt-cell')).forEach(cell => { cell.textContent = ''; cell.className = 'ttt-cell'; });
         }
 
-        // ZOMBIE SHOOTER ARCADE LOGIC (Drag anywhere, Chasing AI, Auto-shoot, Powerups)
+        // 3D FIRST-PERSON REALISTIC ZOMBIE SHOOTER LOGIC
         function initZombieShooterCanvas() {
             zsCanvas = document.getElementById('zs-canvas');
             if (zsCanvas) {
                 zsCtx = zsCanvas.getContext('2d');
                 let isDragging = false;
 
-                const updatePlayerPos = (clientX, clientY) => {
+                const handleAimMove = (clientX, clientY) => {
                     if (!zsRunning) return;
                     const rect = zsCanvas.getBoundingClientRect();
                     let cx = (clientX - rect.left) * (zsCanvas.width / rect.width);
-                    let cy = (clientY - rect.top) * (zsCanvas.height / rect.height);
-                    zsPlayerX = Math.max(15, Math.min(zsCanvas.width - 15, cx));
-                    zsPlayerY = Math.max(15, Math.min(zsCanvas.height - 15, cy));
+                    // Map horizontal drag to camera view angle & strafe position
+                    let normX = (cx / zsCanvas.width) - 0.5;
+                    zsCamAngle = normX * 1.2;
+                    zsCamX = normX * 40;
                 };
 
-                zsCanvas.onmousedown = e => { isDragging = true; updatePlayerPos(e.clientX, e.clientY); };
-                window.onmousemove = e => { if (isDragging) updatePlayerPos(e.clientX, e.clientY); };
+                zsCanvas.onmousedown = e => { isDragging = true; handleAimMove(e.clientX, e.clientY); };
+                window.onmousemove = e => { if (isDragging) handleAimMove(e.clientX, e.clientY); };
                 window.onmouseup = () => { isDragging = false; };
 
-                zsCanvas.ontouchstart = e => { isDragging = true; updatePlayerPos(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
-                window.ontouchmove = e => { if (isDragging) updatePlayerPos(e.touches[0].clientX, e.touches[0].clientY); };
+                zsCanvas.ontouchstart = e => { isDragging = true; handleAimMove(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
+                window.ontouchmove = e => { if (isDragging) handleAimMove(e.touches[0].clientX, e.touches[0].clientY); };
                 window.ontouchend = () => { isDragging = false; };
+
+                zsCanvas.onclick = () => {
+                    // Manual shoot trigger
+                    if (zsRunning) fire3DBullet();
+                };
             }
         }
 
@@ -2129,21 +2136,35 @@
             zsScore = 0;
             zsLives = 5;
             zsTick = 0;
-            zsPlayerX = 150;
-            zsPlayerY = 240;
+            zsCamX = 0;
+            zsCamY = 0;
+            zsCamAngle = 0;
             zsBullets = [];
-            zsZombies = [];
-            zsPowerUps = [];
+            zs3DZombies = [];
+            zs3DPowerUps = [];
             zsPowerType = 'normal';
             zsPowerTimer = 0;
 
             document.getElementById('zs-score').textContent = zsScore;
             document.getElementById('zs-lives').textContent = zsLives;
             cancelAnimationFrame(zsAnimId);
-            zombieGameLoop();
+            zombie3DGameLoop();
         }
 
-        function zombieGameLoop() {
+        function fire3DBullet() {
+            audio.playSFX('move');
+            if (zsPowerType === 'triple') {
+                zsBullets.push({ x: 0, y: 0, z: 0.1, angleOffset: -0.15 });
+                zsBullets.push({ x: 0, y: 0, z: 0.1, angleOffset: 0 });
+                zsBullets.push({ x: 0, y: 0, z: 0.1, angleOffset: 0.15 });
+            } else if (zsPowerType === 'laser') {
+                zsBullets.push({ x: 0, y: 0, z: 0.1, angleOffset: 0, isLaser: true });
+            } else {
+                zsBullets.push({ x: 0, y: 0, z: 0.1, angleOffset: 0 });
+            }
+        }
+
+        function zombie3DGameLoop() {
             if (!zsRunning) return;
             zsTick++;
 
@@ -2152,41 +2173,30 @@
                 if (zsPowerTimer <= 0) zsPowerType = 'normal';
             }
 
-            // Progressive Spawning: spawn gets faster as score increases
-            let spawnInterval = Math.max(25, 65 - Math.floor(zsScore / 80));
+            // Progressive Real Zombie Spawning
+            let spawnInterval = Math.max(30, 75 - Math.floor(zsScore / 70));
             if (zsTick % spawnInterval === 0) {
-                let zombieTypeRoll = Math.random();
-                let type = 'normal';
+                let typeRoll = Math.random();
+                let type = 'shambler';
                 let hp = 1;
-                let speed = 0.8 + Math.min(2.0, zsScore / 350);
-                let color = '#22c55e';
-                let radius = 13;
+                let speed = 0.04 + Math.min(0.08, zsScore / 400);
+                let color = '#4ade80';
 
-                // Spawn randomly from edges (top, left, or right)
-                let edge = Math.random();
-                let sx, sy;
-                if (edge < 0.4) { sx = Math.random() * zsCanvas.width; sy = -15; }
-                else if (edge < 0.7) { sx = -15; sy = Math.random() * zsCanvas.height; }
-                else { sx = zsCanvas.width + 15; sy = Math.random() * zsCanvas.height; }
-
-                if (zsScore > 150 && zombieTypeRoll < 0.3) {
-                    type = 'tank';
+                if (zsScore > 120 && typeRoll < 0.3) {
+                    type = 'brute';
                     hp = 3;
-                    speed *= 0.65;
-                    color = '#eab308';
-                    radius = 18;
-                } else if (zsScore > 300 && zombieTypeRoll > 0.8) {
-                    type = 'fast';
+                    speed *= 0.7;
+                    color = '#facc15';
+                } else if (zsScore > 250 && typeRoll > 0.75) {
+                    type = 'crawler';
                     hp = 1;
-                    speed *= 1.5;
-                    color = '#ef4444';
-                    radius = 10;
+                    speed *= 1.4;
+                    color = '#f87171';
                 }
 
-                zsZombies.push({
-                    x: sx,
-                    y: sy,
-                    radius: radius,
+                zs3DZombies.push({
+                    x: (Math.random() - 0.5) * 120,
+                    z: 180 + Math.random() * 40, // Distance away in 3D space
                     hp: hp,
                     maxHp: hp,
                     speed: speed,
@@ -2196,40 +2206,23 @@
             }
 
             // Automatic Firing
-            let fireInterval = zsPowerType === 'rapid' ? 6 : 18;
-            if (zsTick % fireInterval === 0) {
-                audio.playSFX('move');
-                if (zsPowerType === 'triple') {
-                    zsBullets.push({ x: zsPlayerX, y: zsPlayerY, vx: -3, vy: -7 });
-                    zsBullets.push({ x: zsPlayerX, y: zsPlayerY, vx: 0, vy: -8 });
-                    zsBullets.push({ x: zsPlayerX, y: zsPlayerY, vx: 3, vy: -7 });
-                } else if (zsPowerType === 'laser') {
-                    zsBullets.push({ x: zsPlayerX, y: zsPlayerY, vx: 0, vy: -12, isLaser: true });
-                } else {
-                    zsBullets.push({ x: zsPlayerX, y: zsPlayerY, vx: 0, vy: -7 });
-                }
+            let autoFireInterval = zsPowerType === 'rapid' ? 8 : 22;
+            if (zsTick % autoFireInterval === 0) {
+                fire3DBullet();
             }
 
-            // Update Bullets
+            // Update Bullets in 3D
             zsBullets.forEach(b => {
-                b.x += b.vx;
-                b.y += b.vy;
+                b.z -= 4.5;
             });
-            zsBullets = zsBullets.filter(b => b.y > -10 && b.y < 310 && b.x > -10 && b.x < 310);
+            zsBullets = zsBullets.filter(b => b.z > 2);
 
-            // Update Zombies: Chasing AI toward player coordinates
-            zsZombies.forEach(z => {
-                let dx = zsPlayerX - z.x;
-                let dy = zsPlayerY - z.y;
-                let dist = Math.hypot(dx, dy);
-                if (dist > 1) {
-                    z.x += (dx / dist) * z.speed;
-                    z.y += (dy / dist) * z.speed;
-                }
-
-                // Check collision with player
-                if (Math.hypot(z.x - zsPlayerX, z.y - zsPlayerY) < z.radius + 12) {
-                    z.collided = true;
+            // Update 3D Zombies (Walking/Crawling towards the player camera)
+            zs3DZombies.forEach(z => {
+                z.z -= z.speed;
+                // If zombie reaches the camera screen
+                if (z.z <= 4) {
+                    z.reached = true;
                     zsLives--;
                     audio.playSFX('gameover');
                     document.getElementById('zs-lives').textContent = zsLives;
@@ -2238,41 +2231,47 @@
                     }
                 }
             });
-            zsZombies = zsZombies.filter(z => !z.collided && z.hp > 0);
+            zs3DZombies = zs3DZombies.filter(z => !z.reached && z.hp > 0);
 
-            // Update Power-ups
-            zsPowerUps.forEach(p => {
-                // Pickup check
-                if (Math.hypot(p.x - zsPlayerX, p.y - zsPlayerY) < 24) {
+            // Update 3D Power-Up Drops
+            zs3DPowerUps.forEach(p => {
+                p.z -= 0.2;
+                // Pickup check if close to player camera
+                if (p.z <= 6 && Math.abs(p.x) < 25) {
                     audio.playSFX('win');
                     if (p.type === 'nuke') {
-                        zsZombies = []; // Wipe all zombies on screen
-                        zsScore += 60;
+                        zs3DZombies = []; // Wipe all zombies on screen
+                        zsScore += 80;
                     } else {
                         zsPowerType = p.type;
-                        zsPowerTimer = 400;
+                        zsPowerTimer = 450;
                     }
                     p.collected = true;
                 }
             });
-            zsPowerUps = zsPowerUps.filter(p => !p.collected);
+            zs3DPowerUps = zs3DPowerUps.filter(p => !p.collected && p.z > 2);
 
-            // Bullet-Zombie Collision
+            // Collision Detection for Bullets hitting 3D Zombies
             zsBullets.forEach(b => {
-                zsZombies.forEach(z => {
-                    if (!b.hit && Math.hypot(b.x - z.x, b.y - z.y) < z.radius + 6) {
-                        b.hit = true;
-                        z.hp--;
-                        if (z.hp <= 0) {
-                            audio.playSFX('score');
-                            zsScore += z.maxHp * 15;
-                            document.getElementById('zs-score').textContent = zsScore;
+                zs3DZombies.forEach(z => {
+                    if (!b.hit && z.z > 5 && z.z < 120) {
+                        // Project 3D position to screen coordinates for hit test
+                        let screenX = zsCanvas.width / 2 + (z.x - zsCamX) * (180 / z.z);
+                        let bulletScreenX = zsCanvas.width / 2 + (b.angleOffset * 250);
+                        if (Math.abs(screenX - bulletScreenX) < (35 / (z.z * 0.05))) {
+                            b.hit = true;
+                            z.hp--;
+                            if (z.hp <= 0) {
+                                audio.playSFX('score');
+                                zsScore += z.maxHp * 20;
+                                document.getElementById('zs-score').textContent = zsScore;
 
-                            // Power-up Drop Chance (25%)
-                            if (Math.random() < 0.25) {
-                                const pTypes = ['triple', 'rapid', 'laser', 'nuke'];
-                                let chosen = pTypes[Math.floor(Math.random() * pTypes.length)];
-                                zsPowerUps.push({ x: z.x, y: z.y, type: chosen });
+                                // Real Item Power-up Drop (30%)
+                                if (Math.random() < 0.3) {
+                                    const pTypes = ['triple', 'rapid', 'laser', 'nuke'];
+                                    let chosen = pTypes[Math.floor(Math.random() * pTypes.length)];
+                                    zs3DPowerUps.push({ x: z.x, z: z.z, type: chosen });
+                                }
                             }
                         }
                     }
@@ -2280,66 +2279,113 @@
             });
             zsBullets = zsBullets.filter(b => !b.hit);
 
-            // Render Game Frame
-            zsCtx.fillStyle = '#0b0f19';
+            // Render 3D First-Person Scene
+            zsCtx.fillStyle = '#05070d';
             zsCtx.fillRect(0, 0, zsCanvas.width, zsCanvas.height);
 
-            // Draw Power-ups
-            zsPowerUps.forEach(p => {
-                zsCtx.fillStyle = '#facc15';
-                zsCtx.beginPath();
-                zsCtx.arc(p.x, p.y, 11, 0, Math.PI * 2);
-                zsCtx.fill();
-                zsCtx.fillStyle = '#000';
-                zsCtx.font = '10px sans-serif';
-                zsCtx.textAlign = 'center';
-                let icon = p.type === 'triple' ? '3x' : p.type === 'rapid' ? '⚡' : p.type === 'laser' ? '🎯' : '💣';
-                zsCtx.fillText(icon, p.x, p.y + 3);
-            });
+            // Draw 3D Ground and Dark Horizon Sky
+            let horizonY = zsCanvas.height / 2 + 10;
+            let skyGrad = zsCtx.createLinearGradient(0, 0, 0, horizonY);
+            skyGrad.addColorStop(0, '#020617');
+            skyGrad.addColorStop(1, '#1e1b4b');
+            zsCtx.fillStyle = skyGrad;
+            zsCtx.fillRect(0, 0, zsCanvas.width, horizonY);
 
-            // Draw Bullets
-            zsBullets.forEach(b => {
-                zsCtx.fillStyle = b.isLaser ? '#38bdf8' : '#facc15';
-                zsCtx.fillRect(b.x - 2, b.y - 4, b.isLaser ? 4 : 4, b.isLaser ? 12 : 8);
-            });
+            let groundGrad = zsCtx.createLinearGradient(0, horizonY, 0, zsCanvas.height);
+            groundGrad.addColorStop(0, '#111827');
+            groundGrad.addColorStop(1, '#022c22');
+            zsCtx.fillStyle = groundGrad;
+            zsCtx.fillRect(0, horizonY, zsCanvas.width, zsCanvas.height - horizonY);
 
-            // Draw Chasing Zombies
-            zsZombies.forEach(z => {
-                zsCtx.fillStyle = z.color;
-                zsCtx.beginPath();
-                zsCtx.arc(z.x, z.y, z.radius, 0, Math.PI * 2);
-                zsCtx.fill();
-                // Zombie face details
-                zsCtx.fillStyle = '#000';
-                zsCtx.fillRect(z.x - 3, z.y - 3, 2, 2);
-                zsCtx.fillRect(z.x + 1, z.y - 3, 2, 2);
+            // Sort 3D entities by depth (painter's algorithm)
+            let renderEntities = [];
+            zs3DZombies.forEach(z => renderEntities.push({ type: 'zombie', entity: z, z: z.z }));
+            zs3DPowerUps.forEach(p => renderEntities.push({ type: 'powerup', entity: p, z: p.z }));
+            renderEntities.sort((a, b) => b.z - a.z);
 
-                // Health bar for tank zombies
-                if (z.maxHp > 1) {
-                    zsCtx.fillStyle = 'rgba(0,0,0,0.5)';
-                    zsCtx.fillRect(z.x - 14, z.y - z.radius - 8, 28, 4);
-                    zsCtx.fillStyle = '#22c55e';
-                    zsCtx.fillRect(z.x - 14, z.y - z.radius - 8, 28 * (z.hp / z.maxHp), 4);
+            // Render Sorted 3D Entities
+            renderEntities.forEach(item => {
+                if (item.type === 'zombie') {
+                    let z = item.entity;
+                    let scale = 180 / z.z;
+                    let screenX = zsCanvas.width / 2 + (z.x - zsCamX) * scale;
+                    let screenY = horizonY + (10 * scale);
+                    let width = 45 * scale;
+                    let height = 75 * scale;
+
+                    if (z.z > 2 && z.z < 180) {
+                        // Realistic 3D Shaded Zombie Body
+                        zsCtx.fillStyle = z.color;
+                        zsCtx.beginPath();
+                        zsCtx.ellipse(screenX, screenY - height / 2, width / 2, height / 2.2, 0, 0, Math.PI * 2);
+                        zsCtx.fill();
+
+                        // Zombie Head
+                        zsCtx.fillStyle = '#166534';
+                        zsCtx.beginPath();
+                        zsCtx.arc(screenX, screenY - height + (10 * scale), width / 3, 0, Math.PI * 2);
+                        zsCtx.fill();
+
+                        // Glowing Red Eyes
+                        zsCtx.fillStyle = '#ef4444';
+                        zsCtx.fillRect(screenX - (4 * scale), screenY - height + (6 * scale), 3 * scale, 3 * scale);
+                        zsCtx.fillRect(screenX + (2 * scale), screenY - height + (6 * scale), 3 * scale, 3 * scale);
+
+                        // Health bar for brute zombies
+                        if (z.maxHp > 1) {
+                            zsCtx.fillStyle = 'rgba(0,0,0,0.6)';
+                            zsCtx.fillRect(screenX - 20, screenY - height - 12, 40, 5);
+                            zsCtx.fillStyle = '#22c55e';
+                            zsCtx.fillRect(screenX - 20, screenY - height - 12, 40 * (z.hp / z.maxHp), 5);
+                        }
+                    }
+                } else if (item.type === 'powerup') {
+                    let p = item.entity;
+                    let scale = 180 / p.z;
+                    let screenX = zsCanvas.width / 2 + (p.x - zsCamX) * scale;
+                    let screenY = horizonY + (30 * scale);
+
+                    if (p.z > 2 && p.z < 150) {
+                        zsCtx.fillStyle = '#facc15';
+                        zsCtx.beginPath();
+                        zsCtx.arc(screenX, screenY, 14 * scale, 0, Math.PI * 2);
+                        zsCtx.fill();
+                        zsCtx.fillStyle = '#000';
+                        zsCtx.font = `${Math.max(9, Math.floor(11 * scale))}px sans-serif`;
+                        zsCtx.textAlign = 'center';
+                        let label = p.type === 'triple' ? '🎒' : p.type === 'rapid' ? '⚡' : p.type === 'laser' ? '🎯' : '💣';
+                        zsCtx.fillText(label, screenX, screenY + (4 * scale));
+                    }
                 }
             });
 
-            // Draw Player Turret
-            zsCtx.fillStyle = '#8b5cf6';
+            // Draw First-Person 3D Crosshair / Aiming Reticle & Weapon Barrel
+            zsCtx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+            zsCtx.lineWidth = 2;
+            let cx = zsCanvas.width / 2;
+            let cy = zsCanvas.height / 2;
             zsCtx.beginPath();
-            zsCtx.arc(zsPlayerX, zsPlayerY, 14, 0, Math.PI * 2);
-            zsCtx.fill();
-            zsCtx.fillStyle = '#ffffff';
-            zsCtx.fillRect(zsPlayerX - 3, zsPlayerY - 8, 6, 14);
+            zsCtx.arc(cx, cy, 12, 0, Math.PI * 2);
+            zsCtx.stroke();
+            zsCtx.fillStyle = '#ef4444';
+            zsCtx.fillRect(cx - 2, cy - 2, 4, 4);
 
-            // Active Powerup indicator
+            // First-person weapon barrel at bottom center
+            zsCtx.fillStyle = '#334155';
+            zsCtx.fillRect(cx - 18, zsCanvas.height - 45, 36, 45);
+            zsCtx.fillStyle = '#1e293b';
+            zsCtx.fillRect(cx - 8, zsCanvas.height - 70, 16, 30);
+
+            // Active Powerup real gear label indicator
             if (zsPowerType !== 'normal') {
                 zsCtx.fillStyle = '#38bdf8';
                 zsCtx.font = '11px sans-serif';
                 zsCtx.textAlign = 'left';
-                zsCtx.fillText(`POWER: ${zsPowerType.toUpperCase()}`, 10, 18);
+                let gearName = zsPowerType === 'triple' ? 'TACTICAL AMMO VEST (3X)' : zsPowerType === 'rapid' ? 'HIGH-CAPACITY BATTERY' : zsPowerType === 'laser' ? 'LASER SIGHT SCOPE' : 'FRAG GRENADE';
+                zsCtx.fillText(`GEAR: ${gearName}`, 10, 18);
             }
 
-            if (zsRunning) zsAnimId = requestAnimationFrame(zombieGameLoop);
+            if (zsRunning) zsAnimId = requestAnimationFrame(zombie3DGameLoop);
         }
 
         function endZombieGame() {
