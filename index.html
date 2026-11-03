@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Arcade Hub</title>
     <link rel="manifest" href="manifest.json">
     <!-- Nunito font for Stickman Rush -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* ===================== HUB CORE STYLES ===================== */
+        /* ===================== HUB CORE & VIEWPORT STYLES ===================== */
         :root {
             --bg-color: #0b0f19;
             --card-bg: #111827;
@@ -41,10 +41,11 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
             background-color: var(--bg-color);
             color: var(--text-main);
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -108,7 +109,8 @@
         .game-card.featured .game-icon { font-size: 28px; margin-right: 10px; }
         .game-card.featured .game-name { font-size: 15px; font-weight: 600; }
 
-        .game-container { position: relative; background-color: transparent; border: none; border-radius: 0; padding: 4px; width: 100%; max-width: 100%; flex: 1; box-shadow: none; text-align: center; display: none; flex-direction: column; justify-content: flex-start; align-items: center; }
+        /* Full-width Responsive Game Containers */
+        .game-container { position: relative; background-color: transparent; border: none; border-radius: 0; padding: 4px; width: 100vw; max-width: 100%; flex: 1; box-shadow: none; text-align: center; display: none; flex-direction: column; justify-content: flex-start; align-items: center; }
         .game-container.active { display: flex; }
         .game-container:fullscreen { width: 100vw !important; height: 100vh !important; max-width: none !important; border-radius: 0 !important; justify-content: center !important; align-items: center !important; background-color: var(--bg-color) !important; padding: 10px !important; overflow: auto !important; }
 
@@ -240,7 +242,7 @@
         #stickman-container .sr-hud-label { font-size: 9px; color: var(--primary); font-weight: 900; letter-spacing: 2px; }
         #stickman-container .sr-pause-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; font-weight: 900; color: #f3f4f6; cursor: pointer; font-size: 11px; }
         #stickman-container .sr-pause-btn:hover { background: rgba(255,255,255,0.2); }
-        
+
         #stickman-container .sr-hud { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 6px; width: 100%; }
         #stickman-container .sr-hud-item { background: rgba(17,24,39,0.8); padding: 6px 4px; border-radius: 9px; border: 1px solid var(--border); text-align: center; }
         #stickman-container .sr-hud-item small { display: block; font-size: 8px; color: #9ca3af; font-weight: 900; letter-spacing: 1px; }
