@@ -322,7 +322,6 @@
             margin-bottom: 20px;
         }
 
-        /* Fullscreen Snake scaling */
         #snakegame-container:fullscreen canvas {
             width: 70vw !important;
             height: 70vw !important;
@@ -1879,7 +1878,7 @@
 
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
-        let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, obstacles = [], dinoScore = 0, isDinoRunning = false;
+        let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, obstacles = [], dinoScore = 0, isDinoRunning = false, dinoSpawnTimer = 0;
 
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
@@ -2492,6 +2491,7 @@
             dino = {x: 30, y: 130, width: 20, height: 25};
             obstacles = [];
             dinoScore = 0;
+            dinoSpawnTimer = 0;
             isDinoRunning = true;
             document.getElementById('dino-score').textContent = dinoScore;
 
@@ -2506,20 +2506,22 @@
             audio.playSFX('move');
             obstacles.forEach(o => {
                 if (!o.isJumping) {
-                    o.vy = -7.5;
+                    o.vy = -6.5;
                     o.isJumping = true;
                 }
             });
         }
 
         function updateDino() {
-            if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < 140) {
+            dinoSpawnTimer++;
+            if (obstacles.length === 0 && dinoSpawnTimer >= 1350) {
+                dinoSpawnTimer = 0;
                 obstacles.push({x: 240, width: 15, height: 25, y: 130, vy: 0, isJumping: false});
             }
 
             obstacles.forEach(o => {
-                o.x -= 4;
-                o.vy += 0.5;
+                o.x -= 3;
+                o.vy += 0.4;
                 o.y += o.vy;
                 if (o.y > 130) {
                     o.y = 130;
@@ -2530,10 +2532,10 @@
             obstacles = obstacles.filter(o => o.x > -30);
 
             dinoScore++;
-            document.getElementById('dino-score').textContent = Math.floor(dinoScore / 5);
+            document.getElementById('dino-score').textContent = Math.floor(dinoScore / 10);
 
             obstacles.forEach(o => {
-                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && o.y === 130 && !o.isJumping) {
+                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dino.y < o.y + o.height && dino.y + dino.height > o.y) {
                     endDinoGame();
                 }
             });
@@ -2545,8 +2547,9 @@
             audio.playSFX('gameover');
             clearInterval(dinoInterval);
             isDinoRunning = false;
+            dinoSpawnTimer = 0;
             document.getElementById('dino-gameover-overlay').style.display = 'flex';
-            let finalScore = Math.floor(dinoScore / 5);
+            let finalScore = Math.floor(dinoScore / 10);
             let stats = ScoreManager.saveScore('dino', finalScore);
             document.getElementById('dino-high').textContent = stats.highScore;
         }
@@ -2562,7 +2565,7 @@
             dinoCtx.stroke();
 
             dinoCtx.fillStyle = '#a855f7';
-            dinoCtx.fillRect(dino.x, dino.y, dino.width, dino.height);
+            dinoCtx.fillRect(dino.x, 130, dino.width, dino.height);
 
             dinoCtx.fillStyle = '#ef4444';
             obstacles.forEach(o => {
