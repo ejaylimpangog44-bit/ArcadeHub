@@ -1385,17 +1385,13 @@
                 <div class="score-box">High <span id="zs-high">0</span></div>
             </div>
             <div style="position: relative; display: inline-block;">
-                <canvas id="zs-canvas" class="arcade-canvas" width="300" height="260" style="touch-action: none; cursor: crosshair;"></canvas>
+                <canvas id="zs-canvas" class="arcade-canvas" width="300" height="300" style="touch-action: none; cursor: crosshair;"></canvas>
                 <div id="zs-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
                     <h2 style="color: #ef4444; margin-bottom: 8px; font-size: 1.1rem;">YOU WERE OVERRUN!</h2>
                     <button class="action-btn" onclick="startZombieGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 8px; width: 100%; max-width: 300px; margin-top: 6px;">
-                <button class="dir-btn" style="flex: 1;" onclick="moveZombiePlayer(-20)">⬅️ Move Left</button>
-                <button class="dir-btn" style="flex: 1; background: linear-gradient(135deg, #10b981, #059669);" onclick="shootZombieBullet()">🔥 Shoot</button>
-                <button class="dir-btn" style="flex: 1;" onclick="moveZombiePlayer(20)">➡️ Move Right</button>
-            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">👉 Drag anywhere on the canvas to move your player!</p>
         </div>
     </div>
 
@@ -1864,8 +1860,8 @@
         let flappyCanvas, flappyCtx, flappyInterval = null, bird = {}, pipes = [], flappyScore = 0, isFlappyRunning = false;
         let dinoCanvas, dinoCtx, dinoInterval = null, dino = {}, dinoObstacles = [], dinoScore = 0, isDinoRunning = false, dinoFrame = 0, isDinoNight = false, dinoSpawnCounter = 0;
 
-        // Zombie Shooter Game State
-        let zsCanvas, zsCtx, zsRunning = false, zsAnimId, zsPlayerX = 150, zsScore = 0, zsLives = 5, zsTick = 0;
+        // Zombie Shooter Game State (Free-form Drag & Auto-fire & Zombie Chasing AI)
+        let zsCanvas, zsCtx, zsRunning = false, zsAnimId, zsPlayerX = 150, zsPlayerY = 240, zsScore = 0, zsLives = 5, zsTick = 0;
         let zsBullets = [], zsZombies = [], zsPowerUps = [];
         let zsPowerType = 'normal', zsPowerTimer = 0;
 
@@ -2098,35 +2094,29 @@
             Array.from(document.getElementsByClassName('ttt-cell')).forEach(cell => { cell.textContent = ''; cell.className = 'ttt-cell'; });
         }
 
-        // ZOMBIE SHOOTER ARCADE LOGIC
+        // ZOMBIE SHOOTER ARCADE LOGIC (Drag anywhere, Chasing AI, Auto-shoot, Powerups)
         function initZombieShooterCanvas() {
             zsCanvas = document.getElementById('zs-canvas');
             if (zsCanvas) {
                 zsCtx = zsCanvas.getContext('2d');
-                zsCanvas.onclick = () => shootZombieBullet();
-            }
-        }
+                let isDragging = false;
 
-        function moveZombiePlayer(offset) {
-            if (!zsRunning) return;
-            zsPlayerX = Math.max(20, Math.min(280, zsPlayerX + offset));
-            audio.playSFX('click');
-        }
+                const updatePlayerPos = (clientX, clientY) => {
+                    if (!zsRunning) return;
+                    const rect = zsCanvas.getBoundingClientRect();
+                    let cx = (clientX - rect.left) * (zsCanvas.width / rect.width);
+                    let cy = (clientY - rect.top) * (zsCanvas.height / rect.height);
+                    zsPlayerX = Math.max(15, Math.min(zsCanvas.width - 15, cx));
+                    zsPlayerY = Math.max(15, Math.min(zsCanvas.height - 15, cy));
+                };
 
-        function shootZombieBullet() {
-            if (!zsRunning) {
-                startZombieGame();
-                return;
-            }
-            audio.playSFX('move');
-            if (zsPowerType === 'triple') {
-                zsBullets.push({ x: zsPlayerX, y: 220, vx: -2, vy: -7 });
-                zsBullets.push({ x: zsPlayerX, y: 220, vx: 0, vy: -7 });
-                zsBullets.push({ x: zsPlayerX, y: 220, vx: 2, vy: -7 });
-            } else if (zsPowerType === 'laser') {
-                zsBullets.push({ x: zsPlayerX, y: 220, vx: 0, vy: -12, isLaser: true });
-            } else {
-                zsBullets.push({ x: zsPlayerX, y: 220, vx: 0, vy: -7 });
+                zsCanvas.onmousedown = e => { isDragging = true; updatePlayerPos(e.clientX, e.clientY); };
+                window.onmousemove = e => { if (isDragging) updatePlayerPos(e.clientX, e.clientY); };
+                window.onmouseup = () => { isDragging = false; };
+
+                zsCanvas.ontouchstart = e => { isDragging = true; updatePlayerPos(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
+                window.ontouchmove = e => { if (isDragging) updatePlayerPos(e.touches[0].clientX, e.touches[0].clientY); };
+                window.ontouchend = () => { isDragging = false; };
             }
         }
 
@@ -2140,6 +2130,7 @@
             zsLives = 5;
             zsTick = 0;
             zsPlayerX = 150;
+            zsPlayerY = 240;
             zsBullets = [];
             zsZombies = [];
             zsPowerUps = [];
@@ -2162,32 +2153,39 @@
             }
 
             // Progressive Spawning: spawn gets faster as score increases
-            let spawnInterval = Math.max(25, 70 - Math.floor(zsScore / 100));
+            let spawnInterval = Math.max(25, 65 - Math.floor(zsScore / 80));
             if (zsTick % spawnInterval === 0) {
                 let zombieTypeRoll = Math.random();
                 let type = 'normal';
                 let hp = 1;
-                let speed = 1.0 + Math.min(2.5, zsScore / 300);
+                let speed = 0.8 + Math.min(2.0, zsScore / 350);
                 let color = '#22c55e';
-                let radius = 14;
+                let radius = 13;
 
-                if (zsScore > 150 && zombieTypeRoll < 0.35) {
+                // Spawn randomly from edges (top, left, or right)
+                let edge = Math.random();
+                let sx, sy;
+                if (edge < 0.4) { sx = Math.random() * zsCanvas.width; sy = -15; }
+                else if (edge < 0.7) { sx = -15; sy = Math.random() * zsCanvas.height; }
+                else { sx = zsCanvas.width + 15; sy = Math.random() * zsCanvas.height; }
+
+                if (zsScore > 150 && zombieTypeRoll < 0.3) {
                     type = 'tank';
                     hp = 3;
-                    speed *= 0.7;
+                    speed *= 0.65;
                     color = '#eab308';
-                    radius = 20;
+                    radius = 18;
                 } else if (zsScore > 300 && zombieTypeRoll > 0.8) {
                     type = 'fast';
                     hp = 1;
-                    speed *= 1.6;
+                    speed *= 1.5;
                     color = '#ef4444';
-                    radius = 11;
+                    radius = 10;
                 }
 
                 zsZombies.push({
-                    x: 20 + Math.random() * 260,
-                    y: -20,
+                    x: sx,
+                    y: sy,
                     radius: radius,
                     hp: hp,
                     maxHp: hp,
@@ -2197,9 +2195,19 @@
                 });
             }
 
-            // Auto-fire if rapid powerup is active
-            if (zsPowerType === 'rapid' && zsTick % 8 === 0) {
-                zsBullets.push({ x: zsPlayerX, y: 220, vx: 0, vy: -8 });
+            // Automatic Firing
+            let fireInterval = zsPowerType === 'rapid' ? 6 : 18;
+            if (zsTick % fireInterval === 0) {
+                audio.playSFX('move');
+                if (zsPowerType === 'triple') {
+                    zsBullets.push({ x: zsPlayerX, y: zsPlayerY, vx: -3, vy: -7 });
+                    zsBullets.push({ x: zsPlayerX, y: zsPlayerY, vx: 0, vy: -8 });
+                    zsBullets.push({ x: zsPlayerX, y: zsPlayerY, vx: 3, vy: -7 });
+                } else if (zsPowerType === 'laser') {
+                    zsBullets.push({ x: zsPlayerX, y: zsPlayerY, vx: 0, vy: -12, isLaser: true });
+                } else {
+                    zsBullets.push({ x: zsPlayerX, y: zsPlayerY, vx: 0, vy: -7 });
+                }
             }
 
             // Update Bullets
@@ -2207,14 +2215,21 @@
                 b.x += b.vx;
                 b.y += b.vy;
             });
-            zsBullets = zsBullets.filter(b => b.y > -10 && b.x > 0 && b.x < 300);
+            zsBullets = zsBullets.filter(b => b.y > -10 && b.y < 310 && b.x > -10 && b.x < 310);
 
-            // Update Zombies
+            // Update Zombies: Chasing AI toward player coordinates
             zsZombies.forEach(z => {
-                z.y += z.speed;
-                // Reach bottom defense line
-                if (z.y >= 240) {
-                    z.reached = true;
+                let dx = zsPlayerX - z.x;
+                let dy = zsPlayerY - z.y;
+                let dist = Math.hypot(dx, dy);
+                if (dist > 1) {
+                    z.x += (dx / dist) * z.speed;
+                    z.y += (dy / dist) * z.speed;
+                }
+
+                // Check collision with player
+                if (Math.hypot(z.x - zsPlayerX, z.y - zsPlayerY) < z.radius + 12) {
+                    z.collided = true;
                     zsLives--;
                     audio.playSFX('gameover');
                     document.getElementById('zs-lives').textContent = zsLives;
@@ -2223,25 +2238,24 @@
                     }
                 }
             });
-            zsZombies = zsZombies.filter(z => !z.reached && z.hp > 0);
+            zsZombies = zsZombies.filter(z => !z.collided && z.hp > 0);
 
             // Update Power-ups
             zsPowerUps.forEach(p => {
-                p.y += 1.5;
                 // Pickup check
-                if (Math.hypot(p.x - zsPlayerX, p.y - 230) < 24) {
+                if (Math.hypot(p.x - zsPlayerX, p.y - zsPlayerY) < 24) {
                     audio.playSFX('win');
                     if (p.type === 'nuke') {
-                        zsZombies = []; // Clear all zombies on screen
-                        zsScore += 50;
+                        zsZombies = []; // Wipe all zombies on screen
+                        zsScore += 60;
                     } else {
                         zsPowerType = p.type;
-                        zsPowerTimer = 350;
+                        zsPowerTimer = 400;
                     }
                     p.collected = true;
                 }
             });
-            zsPowerUps = zsPowerUps.filter(p => !p.collected && p.y < 280);
+            zsPowerUps = zsPowerUps.filter(p => !p.collected);
 
             // Bullet-Zombie Collision
             zsBullets.forEach(b => {
@@ -2270,19 +2284,11 @@
             zsCtx.fillStyle = '#0b0f19';
             zsCtx.fillRect(0, 0, zsCanvas.width, zsCanvas.height);
 
-            // Draw Ground Defense Line
-            zsCtx.strokeStyle = '#ef4444';
-            zsCtx.lineWidth = 2;
-            zsCtx.beginPath();
-            zsCtx.moveTo(0, 240);
-            zsCtx.lineTo(300, 240);
-            zsCtx.stroke();
-
             // Draw Power-ups
             zsPowerUps.forEach(p => {
                 zsCtx.fillStyle = '#facc15';
                 zsCtx.beginPath();
-                zsCtx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+                zsCtx.arc(p.x, p.y, 11, 0, Math.PI * 2);
                 zsCtx.fill();
                 zsCtx.fillStyle = '#000';
                 zsCtx.font = '10px sans-serif';
@@ -2297,7 +2303,7 @@
                 zsCtx.fillRect(b.x - 2, b.y - 4, b.isLaser ? 4 : 4, b.isLaser ? 12 : 8);
             });
 
-            // Draw Zombies
+            // Draw Chasing Zombies
             zsZombies.forEach(z => {
                 zsCtx.fillStyle = z.color;
                 zsCtx.beginPath();
@@ -2305,8 +2311,8 @@
                 zsCtx.fill();
                 // Zombie face details
                 zsCtx.fillStyle = '#000';
-                zsCtx.fillRect(z.x - 4, z.y - 3, 3, 3);
-                zsCtx.fillRect(z.x + 2, z.y - 3, 3, 3);
+                zsCtx.fillRect(z.x - 3, z.y - 3, 2, 2);
+                zsCtx.fillRect(z.x + 1, z.y - 3, 2, 2);
 
                 // Health bar for tank zombies
                 if (z.maxHp > 1) {
@@ -2320,10 +2326,10 @@
             // Draw Player Turret
             zsCtx.fillStyle = '#8b5cf6';
             zsCtx.beginPath();
-            zsCtx.arc(zsPlayerX, 230, 14, 0, Math.PI * 2);
+            zsCtx.arc(zsPlayerX, zsPlayerY, 14, 0, Math.PI * 2);
             zsCtx.fill();
             zsCtx.fillStyle = '#ffffff';
-            zsCtx.fillRect(zsPlayerX - 3, 212, 6, 14);
+            zsCtx.fillRect(zsPlayerX - 3, zsPlayerY - 8, 6, 14);
 
             // Active Powerup indicator
             if (zsPowerType !== 'normal') {
