@@ -1638,13 +1638,13 @@
             <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button>
         </div>
-        <h3 class="game-title-header">Dino Jump</h3>
+        <h3 class="game-title-header">Dino Jump (Obstacles Jump!)</h3>
         <div class="score-board" style="margin-top: 4px;">
             <div class="score-box">Score <span id="dino-score">0</span></div>
             <div class="score-box">High <span id="dino-high">0</span></div>
         </div>
-        <canvas id="dino-canvas" class="arcade-canvas" width="240" height="180" onclick="jumpDino()"></canvas>
-        <button class="action-btn" style="width: 100%; max-width: 240px; margin: 0 auto; display: block;" onclick="jumpDino()">Jump / Start</button>
+        <canvas id="dino-canvas" class="arcade-canvas" width="240" height="180" onclick="triggerObstacleJump()"></canvas>
+        <button class="action-btn" style="width: 100%; max-width: 240px; margin: 0 auto; display: block;" onclick="triggerObstacleJump()">Make Obstacle Jump!</button>
     </div>
 
     <!-- Candy -->
@@ -2490,7 +2490,8 @@
             if (!dinoCtx) return;
             if (dinoInterval) clearInterval(dinoInterval);
 
-            dino = {x: 30, y: 130, vy: 0, width: 20, height: 25, isJumping: false};
+            // Dino stays fixed on the ground now
+            dino = {x: 30, y: 130, width: 20, height: 25};
             obstacles = [];
             dinoScore = 0;
             isDinoRunning = true;
@@ -2499,39 +2500,44 @@
             dinoInterval = setInterval(updateDino, 30);
         }
 
-        function jumpDino() {
+        function triggerObstacleJump() {
             if (!isDinoRunning) {
                 startDinoGame();
                 return;
             }
-            if (!dino.isJumping) {
-                audio.playSFX('move');
-                dino.vy = -8.5;
-                dino.isJumping = true;
-            }
+            // Make any active or upcoming obstacles perform a jump over the dino!
+            audio.playSFX('move');
+            obstacles.forEach(o => {
+                if (!o.isJumping) {
+                    o.vy = -7.5;
+                    o.isJumping = true;
+                }
+            });
         }
 
         function updateDino() {
-            dino.vy += 0.5;
-            dino.y += dino.vy;
-            if (dino.y > 130) {
-                dino.y = 130;
-                dino.vy = 0;
-                dino.isJumping = false;
-            }
-
             if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < 140) {
-                obstacles.push({x: 240, width: 15, height: 25});
+                obstacles.push({x: 240, width: 15, height: 25, y: 130, vy: 0, isJumping: false});
             }
 
-            obstacles.forEach(o => { o.x -= 4; });
+            obstacles.forEach(o => {
+                o.x -= 4;
+                o.vy += 0.5;
+                o.y += o.vy;
+                if (o.y > 130) {
+                    o.y = 130;
+                    o.vy = 0;
+                    o.isJumping = false;
+                }
+            });
             obstacles = obstacles.filter(o => o.x > -30);
 
             dinoScore++;
             document.getElementById('dino-score').textContent = Math.floor(dinoScore / 5);
 
+            // Twist rule: Obstacles jump over dino, so they only hit if they fail to clear or hit the ground right on the dino (no crash unless un-jumped obstacle hits)
             obstacles.forEach(o => {
-                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && dino.y + dino.height > 155 - o.height) {
+                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && o.y === 130 && !o.isJumping) {
                     endDinoGame();
                 }
             });
@@ -2558,12 +2564,14 @@
             dinoCtx.lineTo(240, 155);
             dinoCtx.stroke();
 
+            // Draw Dino safely on the ground
             dinoCtx.fillStyle = '#a855f7';
             dinoCtx.fillRect(dino.x, dino.y, dino.width, dino.height);
 
+            // Draw Obstacles (Cactus) jumping over the dino
             dinoCtx.fillStyle = '#ef4444';
             obstacles.forEach(o => {
-                dinoCtx.fillRect(o.x, 155 - o.height, o.width, o.height);
+                dinoCtx.fillRect(o.x, o.y, o.width, o.height);
             });
         }
 
@@ -2994,9 +3002,10 @@
                             shooterScore += 2500;
                             shooterBoss = null;
                             shooterEnemies = [];
+                            
                             shooterRound = Math.min(50, shooterRound + 1);
                             enemiesDefeatedInRound = 0;
-                            requiredEnemiesForRound += 3;
+                            requiredEnemiesForRound += 2;
 
                             announcementText = shooterRound > 50 ? `VICTORY!` : `ROUND ${shooterRound}`;
                             announcementTimer = 90;
