@@ -1466,7 +1466,6 @@
                 <span class="prize-item" id="p0">🧸</span>
                 <span class="prize-item" id="p1">⭐</span>
                 <span class="prize-item" id="p2">🎁</span>
-                <span class="prize-item" id="p3">🥨</span>
             </div>
         </div>
         <div class="claw-controls">
@@ -1478,7 +1477,7 @@
         <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
     </div>
 
-    <!-- Brick Breaker (Full Version) -->
+    <!-- Brick Breaker (Updated with Continuous Levels & Powerup Drops) -->
     <div id="frostgame-container" class="game-container">
         <div class="game-floating-nav">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1499,6 +1498,8 @@
                     <button class="action-btn" onclick="startFrostGame()">PLAY AGAIN</button>
                 </div>
             </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Drag to move pad. Catch drops (✨3x, 🟢Long, 🔴Short, 💣Bomb)!</p>
+        </div>
     </div>
 
     <!-- RPS -->
@@ -1923,7 +1924,7 @@
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
 
-        let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBall, frostBricks = [], frostScreenShake = 0;
+        let frostCanvas, frostCtx, frostRunning = false, frostScore = 0, frostLives = 3, frostLvl = 1, frostAnimId, frostPaddle, frostBalls = [], frostBricks = [], frostDrops = [], frostScreenShake = 0;
 
         // Pac-Man Variables
         let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
@@ -3034,7 +3035,7 @@
             if (siRunning) siAnimId = requestAnimationFrame(spaceInvadersLoop);
         }
 
-        // Full Brick Breaker Logic (Canvas Dragging Enabled)
+        // Full Brick Breaker Logic (Continuous Progression, Drops, Powerups, 3x Ball, Bomb, Paddle resize)
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas');
             if (frostCanvas) {
@@ -3057,12 +3058,17 @@
             if (!frostCtx) return;
             frostRunning = true;
             frostScore = 0; frostLives = 3; frostLvl = 1; frostScreenShake = 0;
-            frostPaddle = { x: 145, y: 315, width: 80, height: 10 };
-            frostBall = { x: 180, y: 180, vx: 3, vy: -3.5, radius: 6 };
+            frostPaddle = { x: 140, y: 315, width: 80, height: 10 };
+            frostDrops = [];
+            initFrostBalls();
             buildFrostBricks();
             updateFrostHUD();
             cancelAnimationFrame(frostAnimId);
             frostLoop();
+        }
+
+        function initFrostBalls() {
+            frostBalls = [{ x: 180, y: 180, vx: 3, vy: -3.5, radius: 6, active: true }];
         }
 
         function buildFrostBricks() {
@@ -3108,50 +3114,127 @@
                 }
             });
 
+            // Level Complete / Continuous Progression
             if (activeBricks === 0) {
                 frostLvl++;
+                audio.playSFX('win');
                 buildFrostBricks();
-                frostBall.vx *= 1.1;
-                frostBall.vy *= 1.1;
+                // Speed up balls slightly for higher difficulty & reset positions
+                frostBalls.forEach(ball => {
+                    ball.vx *= 1.1;
+                    ball.vy *= 1.1;
+                    ball.x = 180; ball.y = 180;
+                });
+                updateFrostHUD();
             }
 
+            // Update & Draw Paddle
             frostCtx.fillStyle = '#38bdf8';
             frostCtx.fillRect(frostPaddle.x, frostPaddle.y, frostPaddle.width, frostPaddle.height);
 
-            frostBall.x += frostBall.vx;
-            frostBall.y += frostBall.vy;
+            // Update Drops
+            frostDrops.forEach((d, idx) => {
+                d.y += 2.5;
+                // Draw drop capsule based on type
+                if (d.type === '3x') frostCtx.fillStyle = '#facc15';
+                else if (d.type === 'long') frostCtx.fillStyle = '#10b981';
+                else if (d.type === 'short') frostCtx.fillStyle = '#f43f5e';
+                else if (d.type === 'bomb') frostCtx.fillStyle = '#ef4444';
 
-            if (frostBall.x - frostBall.radius < 8 || frostBall.x + frostBall.radius > 352) {
-                frostBall.vx *= -1;
-                audio.playSFX('move');
-            }
-            if (frostBall.y - frostBall.radius < 8) {
-                frostBall.vy *= -1;
-                audio.playSFX('move');
-            }
+                frostCtx.beginPath();
+                frostCtx.arc(d.x, d.y, 8, 0, Math.PI * 2);
+                frostCtx.fill();
+                frostCtx.fillStyle = '#fff';
+                frostCtx.font = '10px sans-serif';
+                frostCtx.textAlign = 'center';
+                let label = d.type === '3x' ? '✨' : d.type === 'long' ? '➕' : d.type === 'short' ? '➖' : '💣';
+                frostCtx.fillText(label, d.x, d.y + 3);
 
-            if (frostBall.y + frostBall.radius >= frostPaddle.y && frostBall.y - frostBall.radius <= frostPaddle.y + frostPaddle.height &&
-                frostBall.x >= frostPaddle.x && frostBall.x <= frostPaddle.x + frostPaddle.width) {
-                frostBall.vy *= -1;
-                audio.playSFX('click');
-                let hitPoint = frostBall.x - (frostPaddle.x + frostPaddle.width / 2);
-                frostBall.vx = hitPoint * 0.12;
-            }
-
-            frostBricks.forEach(b => {
-                if (b.status > 0) {
-                    if (frostBall.x > b.x && frostBall.x < b.x + b.width && frostBall.y > b.y && frostBall.y < b.y + b.height) {
-                        frostBall.vy *= -1;
-                        b.status--;
-                        frostScore += 15;
-                        frostScreenShake = 5;
-                        audio.playSFX('score');
+                // Check collision with paddle
+                if (d.y >= frostPaddle.y && d.y <= frostPaddle.y + frostPaddle.height && d.x >= frostPaddle.x && d.x <= frostPaddle.x + frostPaddle.width) {
+                    audio.playSFX('win');
+                    if (d.type === '3x') {
+                        // Multiplies current active ball into 3 balls
+                        let currentBalls = frostBalls.filter(b => b.active);
+                        if (currentBalls.length > 0) {
+                            let b = currentBalls[0];
+                            frostBalls.push({ x: b.x, y: b.y, vx: -b.vx || 2.5, vy: b.vy || -3, radius: 6, active: true });
+                            frostBalls.push({ x: b.x, y: b.y, vx: (b.vx || 2.5) * 0.5, vy: (b.vy || -3) * 1.1, radius: 6, active: true });
+                        }
+                    } else if (d.type === 'long') {
+                        frostPaddle.width = Math.min(130, frostPaddle.width + 25);
+                    } else if (d.type === 'short') {
+                        frostPaddle.width = Math.max(45, frostPaddle.width - 25);
+                    } else if (d.type === 'bomb') {
+                        frostLives--;
+                        frostScreenShake = 10;
+                        audio.playSFX('gameover');
                         updateFrostHUD();
                     }
+                    frostDrops.splice(idx, 1);
+                } else if (d.y > 340) {
+                    frostDrops.splice(idx, 1);
                 }
             });
 
-            if (frostBall.y > 340) {
+            // Update Balls
+            let activeBallsCount = 0;
+            frostBalls.forEach(ball => {
+                if (!ball.active) return;
+                activeBallsCount++;
+
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+
+                if (ball.x - ball.radius < 8 || ball.x + ball.radius > 352) {
+                    ball.vx *= -1;
+                    audio.playSFX('move');
+                }
+                if (ball.y - ball.radius < 8) {
+                    ball.vy *= -1;
+                    audio.playSFX('move');
+                }
+
+                if (ball.y + ball.radius >= frostPaddle.y && ball.y - ball.radius <= frostPaddle.y + frostPaddle.height &&
+                    ball.x >= frostPaddle.x && ball.x <= frostPaddle.x + frostPaddle.width) {
+                    ball.vy *= -1;
+                    audio.playSFX('click');
+                    let hitPoint = ball.x - (frostPaddle.x + frostPaddle.width / 2);
+                    ball.vx = hitPoint * 0.12;
+                }
+
+                frostBricks.forEach(b => {
+                    if (b.status > 0) {
+                        if (ball.x > b.x && ball.x < b.x + b.width && ball.y > b.y && ball.y < b.y + b.height) {
+                            ball.vy *= -1;
+                            b.status--;
+                            frostScore += 15;
+                            frostScreenShake = 5;
+                            audio.playSFX('score');
+                            updateFrostHUD();
+
+                            // Spawn powerup/drop chance (40% chance when brick is hit/destroyed)
+                            if (b.status === 0 && Math.random() < 0.45) {
+                                const types = ['3x', 'long', 'short', 'bomb'];
+                                let chosenType = types[Math.floor(Math.random() * types.length)];
+                                frostDrops.push({ x: b.x + b.width / 2, y: b.y + b.height, type: chosenType });
+                            }
+                        }
+                    }
+                });
+
+                if (ball.y > 340) {
+                    ball.active = false;
+                }
+
+                frostCtx.fillStyle = '#ffffff';
+                frostCtx.beginPath();
+                frostCtx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                frostCtx.fill();
+            });
+
+            // If all balls are lost, lose a life or trigger Game Over
+            if (activeBallsCount === 0) {
                 frostLives--;
                 audio.playSFX('gameover');
                 updateFrostHUD();
@@ -3163,16 +3246,11 @@
                     frostCtx.restore();
                     return;
                 } else {
-                    frostBall.x = 180; frostBall.y = 180; frostBall.vy = -3.5;
+                    initFrostBalls();
                 }
             }
 
-            frostCtx.fillStyle = '#ffffff';
-            frostCtx.beginPath();
-            frostCtx.arc(frostBall.x, frostBall.y, frostBall.radius, 0, Math.PI * 2);
-            frostCtx.fill();
             frostCtx.restore();
-
             frostAnimId = requestAnimationFrame(frostLoop);
         }
 
