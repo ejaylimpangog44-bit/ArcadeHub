@@ -1,5 +1,7 @@
 ArcadeHub
-🎮 Arcade Hub — PLAY · THINK · WIN
+
+PLAY · THINK · WIN
+
 A responsive, single-file frontend Arcade Hub built for GitHub Pages and Vercel hosting, containing a collection of lightweight, interactive mini-games. Designed with a sleek dark-themed UI, structured category navigation, customizable settings, and zero external backend requirements.
 
 ✨ Features
