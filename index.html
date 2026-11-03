@@ -1151,7 +1151,7 @@
 <body>
 
     <div id="splash-screen">
-        <button class="enter-hub-btn" onclick="enterHub()">PLAY</button>
+        <button class="enter-hub-btn" id="play-hub-btn" onclick="enterHub()">PLAY</button>
     </div>
 
     <header>
@@ -1315,6 +1315,7 @@
         <div class="inventory">Prizes Collected: <span id="prize-count">0</span></div>
     </div>
 
+    <!-- Space Shooter Container (Replaces Dart PvP) -->
     <div id="dartgame-container" class="game-container">
         <div class="game-screen-header">
             <button class="back-btn" onclick="backToHub()">← Back to Hub</button>
@@ -1760,7 +1761,7 @@
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
 
-                // Space Shooter variables
+        // Space Shooter variables
         let shooterCanvas, shooterCtx;
         let shooterRunning = false;
         let shooterScore = 0;
@@ -1779,434 +1780,6 @@
         let isPointerDown = false;
         let pointerX = 140, pointerY = 300;
 
-        class ShooterPlayer {
-            constructor() {
-                this.width = 30;
-                this.height = 36;
-                this.x = 140 - this.width / 2;
-                this.y = 290;
-                this.weaponType = 'STANDARD';
-                this.weaponTimer = 0;
-                this.lastShot = 0;
-                this.shootDelay = 150;
-            }
-
-            update() {
-                if (isPointerDown) {
-                    this.x += (pointerX - this.width / 2 - this.x) * 0.25;
-                    this.y += (pointerY - this.height / 2 - this.y) * 0.25;
-                }
-                this.x = Math.max(0, Math.min(280 - this.width, this.x));
-                this.y = Math.max(0, Math.min(360 - this.height, this.y));
-
-                if (this.weaponTimer > 0) {
-                    this.weaponTimer--;
-                    if (this.weaponTimer <= 0) this.weaponType = 'STANDARD';
-                }
-
-                const now = Date.now();
-                if (now - this.lastShot > this.shootDelay) {
-                    this.shoot();
-                    this.lastShot = now;
-                }
-            }
-
-            shoot() {
-                if (this.weaponType === 'STANDARD') {
-                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, 0, -8, '#38bdf8'));
-                } else if (this.weaponType === 'TRIPLE') {
-                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, 0, -8, '#f43f5e'));
-                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, -2, -7.5, '#f43f5e'));
-                    shooterBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y, 2, -7.5, '#f43f5e'));
-                } else if (this.weaponType === 'LASER') {
-                    shooterBullets.push(new ShooterBullet(this.x + 4, this.y, 0, -11, '#a855f7'));
-                    shooterBullets.push(new ShooterBullet(this.x + this.width - 8, this.y, 0, -11, '#a855f7'));
-                }
-            }
-
-            draw() {
-                if (!shooterCtx) return;
-                shooterCtx.save();
-                shooterCtx.shadowBlur = 8;
-                shooterCtx.shadowColor = '#6366f1';
-                shooterCtx.fillStyle = '#6366f1';
-                shooterCtx.beginPath();
-                shooterCtx.moveTo(this.x + this.width / 2, this.y);
-                shooterCtx.lineTo(this.x + this.width, this.y + this.height);
-                shooterCtx.lineTo(this.x + this.width / 2, this.y + this.height - 8);
-                shooterCtx.lineTo(this.x, this.y + this.height);
-                shooterCtx.closePath();
-                shooterCtx.fill();
-                shooterCtx.restore();
-            }
-        }
-
-        class ShooterBullet {
-            constructor(x, y, vx, vy, color) {
-                this.x = x; this.y = y; this.vx = vx; this.vy = vy;
-                this.width = 4; this.height = 10; this.color = color;
-            }
-            update() { this.x += this.vx; this.y += this.vy; }
-            draw() {
-                if (!shooterCtx) return;
-                shooterCtx.fillStyle = this.color;
-                shooterCtx.fillRect(this.x, this.y, this.width, this.height);
-            }
-        }
-
-        class ShooterEnemy {
-            constructor(type = 'BASIC') {
-                this.type = type;
-                this.width = type === 'ADVANCED' ? 30 : 24;
-                this.height = type === 'ADVANCED' ? 30 : 24;
-                this.x = Math.random() * (280 - this.width);
-                this.y = -this.height;
-                this.hp = type === 'ADVANCED' ? 3 : 1;
-                this.speed = type === 'ADVANCED' ? 1.5 : 2 + Math.random();
-                this.lastShot = Date.now() + Math.random() * 1000;
-                this.shootInterval = type === 'ADVANCED' ? 1400 : 2200;
-            }
-            update() {
-                this.y += this.speed;
-                if (this.type === 'ADVANCED') this.x += Math.sin(this.y * 0.05) * 1.5;
-
-                const now = Date.now();
-                if (now - this.lastShot > this.shootInterval && this.y > 0 && this.y < 280) {
-                    this.shoot();
-                    this.lastShot = now;
-                }
-            }
-            shoot() {
-                if (this.type === 'BASIC') {
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width / 2 - 2, this.y + this.height, 0, 3.5, '#ef4444'));
-                } else {
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + 4, this.y + this.height, -0.8, 4, '#f97316'));
-                    shooterEnemyBullets.push(new ShooterBullet(this.x + this.width - 8, this.y + this.height, 0.8, 4, '#f97316'));
-                }
-            }
-            draw() {
-                if (!shooterCtx) return;
-                shooterCtx.fillStyle = this.type === 'ADVANCED' ? '#f97316' : '#ef4444';
-                shooterCtx.beginPath();
-                shooterCtx.moveTo(this.x, this.y);
-                shooterCtx.lineTo(this.x + this.width, this.y);
-                shooterCtx.lineTo(this.x + this.width / 2, this.y + this.height);
-                shooterCtx.closePath();
-                shooterCtx.fill();
-            }
-        }
-
-        class ShooterBoss {
-            constructor() {
-                this.width = 80;
-                this.height = 55;
-                this.x = 280 / 2 - this.width / 2;
-                this.y = -this.height;
-                this.maxHp = 100;
-                this.hp = this.maxHp;
-                this.targetY = 40;
-                this.vx = 2;
-                this.lastAttackTime = Date.now();
-                this.spiralAngle = 0;
-                this.phase = 1;
-            }
-            update() {
-                if (this.y < this.targetY) { this.y += 1; return; }
-                this.phase = (this.hp / this.maxHp) <= 0.5 ? 2 : 1;
-                if (this.phase === 1) {
-                    this.x += this.vx;
-                    if (this.x <= 15 || this.x + this.width >= 265) this.vx *= -1;
-                } else {
-                    this.vx = 3;
-                    this.x += Math.sin(Date.now() * 0.005) * 3;
-                    this.x = Math.max(10, Math.min(280 - this.width - 10, this.x));
-                }
-
-                const now = Date.now();
-                const cd = this.phase === 2 ? 750 : 1100;
-                if (now - this.lastAttackTime > cd) {
-                    this.attack();
-                    this.lastAttackTime = now;
-                }
-            }
-            attack() {
-                const cx = this.x + this.width / 2;
-                const by = this.y + this.height;
-                if (this.phase === 1) {
-                    for (let i = -2; i <= 2; i++) {
-                        shooterEnemyBullets.push(new ShooterBullet(cx - 2 + (i * 6), by, i * 0.8, 3.5, '#e11d48'));
-                    }
-                } else {
-                    if (Math.random() > 0.4) {
-                        this.spiralAngle += 0.4;
-                        for (let i = 0; i < 6; i++) {
-                            let angle = this.spiralAngle + (i * Math.PI / 3);
-                            shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(angle) * 2.5, Math.sin(angle) * 2.5, '#f43f5e'));
-                        }
-                    } else {
-                        let angleToPlayer = Math.atan2((shooterPlayer.y + 18) - by, (shooterPlayer.x + 15) - cx);
-                        for (let off of [-0.2, 0, 0.2]) {
-                            let a = angleToPlayer + off;
-                            shooterEnemyBullets.push(new ShooterBullet(cx, by, Math.cos(a) * 4.5, Math.sin(a) * 4.5, '#a855f7'));
-                        }
-                    }
-                }
-            }
-            draw() {
-                if (!shooterCtx) return;
-                shooterCtx.save();
-                shooterCtx.shadowBlur = this.phase === 2 ? 18 : 10;
-                shooterCtx.shadowColor = this.phase === 2 ? '#f43f5e' : '#e11d48';
-                shooterCtx.fillStyle = this.phase === 2 ? '#9f1239' : '#be123c';
-                shooterCtx.beginPath();
-                shooterCtx.moveTo(this.x + this.width / 2, this.y + this.height);
-                shooterCtx.lineTo(this.x + this.width, this.y);
-                shooterCtx.lineTo(this.x + this.width * 0.75, this.y + 12);
-                shooterCtx.lineTo(this.x + this.width * 0.25, this.y + 12);
-                shooterCtx.lineTo(this.x, this.y);
-                shooterCtx.closePath();
-                shooterCtx.fill();
-
-                const bw = 140, bh = 6;
-                const bx = (280 - bw) / 2;
-                const by = 15;
-                shooterCtx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-                shooterCtx.fillRect(bx, by, bw, bh);
-                shooterCtx.fillStyle = this.phase === 2 ? '#f43f5e' : '#ef4444';
-                shooterCtx.fillRect(bx, by, bw * (this.hp / this.maxHp), bh);
-                shooterCtx.restore();
-            }
-        }
-
-        class ShooterPowerup {
-            constructor(x, y) {
-                this.x = x; this.y = y; this.size = 16; this.speed = 1.5;
-                const types = ['TRIPLE', 'LASER', 'LIFE'];
-                this.type = types[Math.floor(Math.random() * types.length)];
-            }
-            update() { this.y += this.speed; }
-            draw() {
-                if (!shooterCtx) return;
-                shooterCtx.font = '14px sans-serif';
-                shooterCtx.textAlign = 'center';
-                shooterCtx.textBaseline = 'middle';
-                let label = '🔴';
-                if (this.type === 'LASER') label = '⚡';
-                if (this.type === 'LIFE') label = '🛡️';
-                shooterCtx.fillText(label, this.x + this.size / 2, this.y + this.size / 2);
-            }
-        }
-
-        function initShooterCanvas() {
-            shooterCanvas = document.getElementById('shooter-canvas');
-            if (shooterCanvas) {
-                shooterCtx = shooterCanvas.getContext('2d');
-                
-                const ptrStart = (cx, cy) => {
-                    isPointerDown = true;
-                    const rect = shooterCanvas.getBoundingClientRect();
-                    pointerX = cx - rect.left;
-                    pointerY = cy - rect.top;
-                };
-                const ptrMove = (cx, cy) => {
-                    if (!isPointerDown) return;
-                    const rect = shooterCanvas.getBoundingClientRect();
-                    pointerX = cx - rect.left;
-                    pointerY = cy - rect.top;
-                };
-                const ptrEnd = () => { isPointerDown = false; };
-
-                shooterCanvas.addEventListener('mousedown', e => ptrStart(e.clientX, e.clientY));
-                window.addEventListener('mousemove', e => ptrMove(e.clientX, e.clientY));
-                window.addEventListener('mouseup', ptrEnd);
-
-                shooterCanvas.addEventListener('touchstart', e => {
-                    e.preventDefault();
-                    ptrStart(e.touches[0].clientX, e.touches[0].clientY);
-                }, { passive: false });
-                shooterCanvas.addEventListener('touchmove', e => {
-                    e.preventDefault();
-                    ptrMove(e.touches[0].clientX, e.touches[0].clientY);
-                }, { passive: false });
-                shooterCanvas.addEventListener('touchend', ptrEnd);
-                shooterCanvas.addEventListener('touchcancel', ptrEnd);
-            }
-            initShooterStars();
-        }
-
-        function initShooterStars() {
-            shooterStars = [];
-            for (let i = 0; i < 40; i++) {
-                shooterStars.push({
-                    x: Math.random() * 280,
-                    y: Math.random() * 360,
-                    size: Math.random() * 1.5 + 0.5,
-                    speed: Math.random() * 1 + 0.5
-                });
-            }
-        }
-
-        function updateShooterHUD() {
-            document.getElementById('shooter-score').textContent = shooterScore;
-            document.getElementById('shooter-round').textContent = shooterBoss ? (shooterBoss.phase === 2 ? 'BOSS (P2)' : 'BOSS ROUND') : `Round ${shooterRound}`;
-            let livesHtml = '';
-            for (let i = 0; i < shooterLives; i++) {
-                livesHtml += '<span class="shooter-heart">♥</span>';
-            }
-            document.getElementById('shooter-lives').innerHTML = livesHtml;
-        }
-
-        function startSpaceShooter() {
-            audio.playSFX('click');
-            if (!shooterCanvas) initShooterCanvas();
-            shooterRunning = true;
-            shooterScore = 0;
-            shooterLives = 5;
-            shooterRound = 1;
-            enemiesDefeatedInRound = 0;
-            shooterBullets = [];
-            shooterEnemyBullets = [];
-            shooterEnemies = [];
-            shooterPowerups = [];
-            shooterParticles = [];
-            shooterBoss = null;
-            shooterPlayer = new ShooterPlayer();
-            initShooterStars();
-            updateShooterHUD();
-
-            cancelAnimationFrame(shooterAnimId);
-            shooterLoop();
-        }
-
-        function shooterLoop() {
-            if (!shooterRunning || !shooterCtx) return;
-
-            shooterCtx.clearRect(0, 0, 280, 360);
-
-            // Stars
-            shooterCtx.fillStyle = '#ffffff';
-            shooterStars.forEach(s => {
-                s.y += s.speed;
-                if (s.y > 360) { s.y = 0; s.x = Math.random() * 280; }
-                shooterCtx.globalAlpha = s.speed / 2;
-                shooterCtx.fillRect(s.x, s.y, s.size, s.size);
-            });
-            shooterCtx.globalAlpha = 1;
-
-            shooterPlayer.update();
-            shooterPlayer.draw();
-
-            // Spawning
-            if (!shooterBoss) {
-                const maxEn = shooterRound === 1 ? 3 : shooterRound === 2 ? 4 : 5;
-                if (shooterEnemies.length < maxEn && Math.random() < 0.025) {
-                    let adv = shooterRound >= 2 && Math.random() > 0.5;
-                    shooterEnemies.push(new ShooterEnemy(adv ? 'ADVANCED' : 'BASIC'));
-                }
-            }
-
-            if (shooterBoss) {
-                shooterBoss.update();
-                shooterBoss.draw();
-            }
-
-            // Bullets update
-            shooterBullets.forEach((b, idx) => {
-                b.update(); b.draw();
-                if (b.y < -10) shooterBullets.splice(idx, 1);
-            });
-
-            // Enemy bullets update
-            shooterEnemyBullets.forEach((eb, idx) => {
-                eb.update(); eb.draw();
-                if (eb.x > shooterPlayer.x && eb.x < shooterPlayer.x + shooterPlayer.width && eb.y > shooterPlayer.y && eb.y < shooterPlayer.y + shooterPlayer.height) {
-                    shooterEnemyBullets.splice(idx, 1);
-                    shooterLives--;
-                    audio.playSFX('gameover');
-                    updateShooterHUD();
-                    if (shooterLives <= 0) endSpaceShooter();
-                }
-                if (eb.y > 370 || eb.y < -10 || eb.x < -10 || eb.x > 290) shooterEnemyBullets.splice(idx, 1);
-            });
-
-            // Enemies update
-            shooterEnemies.forEach((en, eIdx) => {
-                en.update(); en.draw();
-                if (en.x < shooterPlayer.x + shooterPlayer.width && en.x + en.width > shooterPlayer.x && en.y < shooterPlayer.y + shooterPlayer.height && en.y + en.height > shooterPlayer.y) {
-                    shooterEnemies.splice(eIdx, 1);
-                    shooterLives--;
-                    audio.playSFX('gameover');
-                    updateShooterHUD();
-                    if (shooterLives <= 0) endSpaceShooter();
-                }
-
-                shooterBullets.forEach((b, bIdx) => {
-                    if (b.x > en.x && b.x < en.x + en.width && b.y > en.y && b.y < en.y + en.height) {
-                        shooterBullets.splice(bIdx, 1);
-                        en.hp--;
-                        if (en.hp <= 0) {
-                            audio.playSFX('score');
-                            if (Math.random() < 0.25) shooterPowerups.push(new ShooterPowerup(en.x, en.y));
-                            shooterEnemies.splice(eIdx, 1);
-                            shooterScore += en.type === 'ADVANCED' ? 200 : 100;
-                        
-                            enemiesDefeatedInRound++;
-                            if (shooterRound === 1 && enemiesDefeatedInRound >= 10) {
-                                shooterRound = 2; enemiesDefeatedInRound = 0;
-                            } else if (shooterRound === 2 && enemiesDefeatedInRound >= 14) {
-                                shooterRound = 3; enemiesDefeatedInRound = 0;
-                                shooterBoss = new ShooterBoss();
-                            }
-                            updateShooterHUD();
-                        }
-                    }
-                });
-                if (en.y > 370) shooterEnemies.splice(eIdx, 1);
-            });
-
-            // Boss collisions
-            if (shooterBoss) {
-                shooterBullets.forEach((b, bIdx) => {
-                    if (b.x > shooterBoss.x && b.x < shooterBoss.x + shooterBoss.width && b.y > shooterBoss.y && b.y < shooterBoss.y + shooterBoss.height) {
-                        shooterBullets.splice(bIdx, 1);
-                        shooterBoss.hp--;
-                        if (shooterBoss.hp <= 0) {
-                            audio.playSFX('win');
-                            shooterScore += 2500;
-                            shooterBoss = null;
-                            shooterRound = 4;
-                            updateShooterHUD();
-                        }
-                    }
-                });
-            }
-
-            // Powerups
-            shooterPowerups.forEach((p, pIdx) => {
-                p.update(); p.draw();
-                if (p.x < shooterPlayer.x + shooterPlayer.width && p.x + p.size > shooterPlayer.x && p.y < shooterPlayer.y + shooterPlayer.height && p.y + p.size > shooterPlayer.y) {
-                    audio.playSFX('win');
-                    if (p.type === 'LIFE') {
-                        shooterLives = Math.min(5, shooterLives + 1);
-                    } else {
-                        shooterPlayer.weaponType = p.type;
-                        shooterPlayer.weaponTimer = 350;
-                    }
-                    shooterPowerups.splice(pIdx, 1);
-                    updateShooterHUD();
-                }
-                if (p.y > 370) shooterPowerups.splice(pIdx, 1);
-            });
-
-            shooterAnimId = requestAnimationFrame(shooterLoop);
-        }
-
-        function endSpaceShooter() {
-            shooterRunning = false;
-            audio.playSFX('gameover');
-            alert(`Mission Failed!\nFinal Score: ${shooterScore}`);
-        }
-
         window.onload = function() {
             generateQRCode();
             initSnakeCanvas();
@@ -2224,6 +1797,7 @@
         };
 
         function enterHub() {
+            audio.initContext();
             audio.playSFX('win');
             document.getElementById('splash-screen').classList.add('fade-out');
             document.getElementById('robot-companion').classList.add('visible');
@@ -2238,7 +1812,10 @@
             if (containerId === 'snakegame-container') initSnakeCanvas();
             if (containerId === 'flappygame-container') startFlappyGame();
             if (containerId === 'dinogame-container') startDinoGame();
-            if (containerId === 'dartgame-container') startSpaceShooter();
+            if (containerId === 'dartgame-container') {
+                initShooterCanvas();
+                startSpaceShooter();
+            }
             if (containerId === 'candygame-container' && candyBoard.length === 0) startCandyGame();
         }
 
@@ -2505,7 +2082,7 @@
         }
 
         // ==========================================
-        // SPACE SHOOTER IMPLEMENTATION (Replaces Dart PvP)
+        // SPACE SHOOTER IMPLEMENTATION
         // ==========================================
         class ShooterPlayer {
             constructor() {
@@ -2521,8 +2098,8 @@
 
             update() {
                 if (isPointerDown) {
-                    this.x += (pointerX - this.width / 2 - this.x) * 0.25;
-                    this.y += (pointerY - this.height / 2 - this.y) * 0.25;
+                    this.x += (pointerX - this.width / 2 - this.x) * 0.4;
+                    this.y += (pointerY - this.height / 2 - this.y) * 0.4;
                 }
                 this.x = Math.max(0, Math.min(280 - this.width, this.x));
                 this.y = Math.max(0, Math.min(360 - this.height, this.y));
@@ -2553,6 +2130,7 @@
             }
 
             draw() {
+                if (!shooterCtx) return;
                 shooterCtx.save();
                 shooterCtx.shadowBlur = 8;
                 shooterCtx.shadowColor = '#6366f1';
@@ -2575,6 +2153,7 @@
             }
             update() { this.x += this.vx; this.y += this.vy; }
             draw() {
+                if (!shooterCtx) return;
                 shooterCtx.fillStyle = this.color;
                 shooterCtx.fillRect(this.x, this.y, this.width, this.height);
             }
@@ -2611,6 +2190,7 @@
                 }
             }
             draw() {
+                if (!shooterCtx) return;
                 shooterCtx.fillStyle = this.type === 'ADVANCED' ? '#f97316' : '#ef4444';
                 shooterCtx.beginPath();
                 shooterCtx.moveTo(this.x, this.y);
@@ -2678,6 +2258,7 @@
                 }
             }
             draw() {
+                if (!shooterCtx) return;
                 shooterCtx.save();
                 shooterCtx.shadowBlur = this.phase === 2 ? 18 : 10;
                 shooterCtx.shadowColor = this.phase === 2 ? '#f43f5e' : '#e11d48';
@@ -2691,7 +2272,6 @@
                 shooterCtx.closePath();
                 shooterCtx.fill();
 
-                // HP Bar
                 const bw = 140, bh = 6;
                 const bx = (280 - bw) / 2;
                 const by = 15;
@@ -2711,6 +2291,7 @@
             }
             update() { this.y += this.speed; }
             draw() {
+                if (!shooterCtx) return;
                 shooterCtx.font = '14px sans-serif';
                 shooterCtx.textAlign = 'center';
                 shooterCtx.textBaseline = 'middle';
@@ -2721,60 +2302,39 @@
             }
         }
 
-        class ShooterParticle {
-            constructor(x, y, color) {
-                this.x = x; this.y = y;
-                this.vx = (Math.random() - 0.5) * 5;
-                this.vy = (Math.random() - 0.5) * 5;
-                this.radius = Math.random() * 2.5 + 1;
-                this.alpha = 1;
-                this.color = color;
-            }
-            update() { this.x += this.vx; this.y += this.vy; this.alpha -= 0.04; }
-            draw() {
-                shooterCtx.save();
-                shooterCtx.globalAlpha = Math.max(0, this.alpha);
-                shooterCtx.fillStyle = this.color;
-                shooterCtx.beginPath();
-                shooterCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                shooterCtx.fill();
-                shooterCtx.restore();
-            }
-        }
-
         function initShooterCanvas() {
             shooterCanvas = document.getElementById('shooter-canvas');
             if (shooterCanvas) {
                 shooterCtx = shooterCanvas.getContext('2d');
                 
-                const ptrStart = (cx, cy) => {
+                const updatePointer = (clientX, clientY) => {
+                    const rect = shooterCanvas.getBoundingClientRect();
+                    const scaleX = shooterCanvas.width / rect.width;
+                    const scaleY = shooterCanvas.height / rect.height;
+                    pointerX = (clientX - rect.left) * scaleX;
+                    pointerY = (clientY - rect.top) * scaleY;
+                };
+
+                shooterCanvas.onmousedown = e => {
                     isPointerDown = true;
-                    const rect = shooterCanvas.getBoundingClientRect();
-                    pointerX = cx - rect.left;
-                    pointerY = cy - rect.top;
+                    updatePointer(e.clientX, e.clientY);
                 };
-                const ptrMove = (cx, cy) => {
-                    if (!isPointerDown) return;
-                    const rect = shooterCanvas.getBoundingClientRect();
-                    pointerX = cx - rect.left;
-                    pointerY = cy - rect.top;
+                window.onmousemove = e => {
+                    if (isPointerDown) updatePointer(e.clientX, e.clientY);
                 };
-                const ptrEnd = () => { isPointerDown = false; };
+                window.onmouseup = () => { isPointerDown = false; };
 
-                shooterCanvas.addEventListener('mousedown', e => ptrStart(e.clientX, e.clientY));
-                window.addEventListener('mousemove', e => ptrMove(e.clientX, e.clientY));
-                window.addEventListener('mouseup', ptrEnd);
-
-                shooterCanvas.addEventListener('touchstart', e => {
+                shooterCanvas.ontouchstart = e => {
                     e.preventDefault();
-                    ptrStart(e.touches[0].clientX, e.touches[0].clientY);
-                }, { passive: false });
-                shooterCanvas.addEventListener('touchmove', e => {
+                    isPointerDown = true;
+                    updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+                };
+                shooterCanvas.ontouchmove = e => {
                     e.preventDefault();
-                    ptrMove(e.touches[0].clientX, e.touches[0].clientY);
-                }, { passive: false });
-                shooterCanvas.addEventListener('touchend', ptrEnd);
-                shooterCanvas.addEventListener('touchcancel', ptrEnd);
+                    updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+                };
+                shooterCanvas.ontouchend = () => { isPointerDown = false; };
+                shooterCanvas.ontouchcancel = () => { isPointerDown = false; };
             }
             initShooterStars();
         }
@@ -2803,6 +2363,8 @@
 
         function startSpaceShooter() {
             audio.playSFX('click');
+            initShooterCanvas();
+            if (!shooterCtx) return;
             shooterRunning = true;
             shooterScore = 0;
             shooterLives = 5;
@@ -2824,6 +2386,10 @@
 
         function shooterLoop() {
             if (!shooterRunning) return;
+            if (!shooterCtx) {
+                initShooterCanvas();
+                if (!shooterCtx) return;
+            }
 
             shooterCtx.clearRect(0, 0, 280, 360);
 
@@ -2854,13 +2420,11 @@
                 shooterBoss.draw();
             }
 
-            // Bullets update
             shooterBullets.forEach((b, idx) => {
                 b.update(); b.draw();
                 if (b.y < -10) shooterBullets.splice(idx, 1);
             });
 
-            // Enemy bullets update
             shooterEnemyBullets.forEach((eb, idx) => {
                 eb.update(); eb.draw();
                 if (eb.x > shooterPlayer.x && eb.x < shooterPlayer.x + shooterPlayer.width && eb.y > shooterPlayer.y && eb.y < shooterPlayer.y + shooterPlayer.height) {
@@ -2873,7 +2437,6 @@
                 if (eb.y > 370 || eb.y < -10 || eb.x < -10 || eb.x > 290) shooterEnemyBullets.splice(idx, 1);
             });
 
-            // Enemies update
             shooterEnemies.forEach((en, eIdx) => {
                 en.update(); en.draw();
                 if (en.x < shooterPlayer.x + shooterPlayer.width && en.x + en.width > shooterPlayer.x && en.y < shooterPlayer.y + shooterPlayer.height && en.y + en.height > shooterPlayer.y) {
@@ -2893,9 +2456,8 @@
                             if (Math.random() < 0.25) shooterPowerups.push(new ShooterPowerup(en.x, en.y));
                             shooterEnemies.splice(eIdx, 1);
                             shooterScore += en.type === 'ADVANCED' ? 200 : 100;
+                        
                             enemiesDefeatedInRound++;
-                            
-                            // Round progression check
                             if (shooterRound === 1 && enemiesDefeatedInRound >= 10) {
                                 shooterRound = 2; enemiesDefeatedInRound = 0;
                             } else if (shooterRound === 2 && enemiesDefeatedInRound >= 14) {
@@ -2909,7 +2471,6 @@
                 if (en.y > 370) shooterEnemies.splice(eIdx, 1);
             });
 
-            // Boss collisions
             if (shooterBoss) {
                 shooterBullets.forEach((b, bIdx) => {
                     if (b.x > shooterBoss.x && b.x < shooterBoss.x + shooterBoss.width && b.y > shooterBoss.y && b.y < shooterBoss.y + shooterBoss.height) {
@@ -2919,14 +2480,13 @@
                             audio.playSFX('win');
                             shooterScore += 2500;
                             shooterBoss = null;
-                            shooterRound = 4; // Endless survival
+                            shooterRound = 4;
                             updateShooterHUD();
                         }
                     }
                 });
             }
 
-            // Powerups
             shooterPowerups.forEach((p, pIdx) => {
                 p.update(); p.draw();
                 if (p.x < shooterPlayer.x + shooterPlayer.width && p.x + p.size > shooterPlayer.x && p.y < shooterPlayer.y + shooterPlayer.height && p.y + p.size > shooterPlayer.y) {
@@ -2952,6 +2512,7 @@
             alert(`Mission Failed!\nFinal Score: ${shooterScore}`);
         }
 
+        // Other Mini-game Implementations
         function startCandyGame() {
             audio.playSFX('click');
             candyScore = 0; candyMoves = 20; selectedCandy = null;
@@ -3041,6 +2602,7 @@
             renderCandyBoard();
         }
 
+        // Robot companion eye tracking
         document.addEventListener('mousemove', (e) => {
           const leftPupil = document.getElementById('left-pupil');
           const rightPupil = document.getElementById('right-pupil');
