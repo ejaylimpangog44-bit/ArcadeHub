@@ -1138,7 +1138,6 @@
     </header>
 
     <div id="main-menu" class="view active">
-
         <div class="category-section">
             <div class="category-title">Puzzle & Strategy</div>
             <div class="game-grid">
@@ -1206,7 +1205,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <div id="tictactoe-container" class="game-container">
@@ -1542,7 +1540,9 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered successfully:', reg.scope))
+                    .catch(err => console.log('SW registration failed:', err));
             });
         }
 
@@ -1733,7 +1733,6 @@
         const candyTypes = ['🍬', '🍫', '🍭', '🍩', '🍧'];
         let candyBoard = [], candyScore = 0, candyMoves = 20, selectedCandy = null;
 
-        // Dart PvP State
         let dartCanvas, dartCtx;
         let dartP1Score = 0, dartP2Score = 0;
         let dartCurrentPlayer = 1;
@@ -2035,7 +2034,6 @@
             }, 400);
         }
 
-        // Dart PvP Logic
         function initDartCanvas() {
             dartCanvas = document.getElementById('dart-canvas');
             if (dartCanvas) {
@@ -2316,7 +2314,6 @@
             document.getElementById('reaction-time').textContent = '0 ms';
         }
 
-        // Snake Game with Emojis (🐍 and 🍓)
         function initSnakeCanvas() {
             snakeCanvas = document.getElementById('snake-canvas');
             if (snakeCanvas) snakeCtx = snakeCanvas.getContext('2d');
@@ -2389,7 +2386,6 @@
             });
         }
 
-        // Flappy Arcade with Emoji (🐦) and balanced physics
         function initFlappyCanvas() {
             flappyCanvas = document.getElementById('flappy-canvas');
             if (flappyCanvas) flappyCtx = flappyCanvas.getContext('2d');
@@ -2470,7 +2466,6 @@
             flappyCtx.fillText('🐦', bird.x, bird.y);
         }
 
-        // Dino Jump with Emoji (🦖)
         function initDinoCanvas() {
             dinoCanvas = document.getElementById('dino-canvas');
             if (dinoCanvas) dinoCtx = dinoCanvas.getContext('2d');
