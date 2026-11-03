@@ -228,20 +228,16 @@
         .left-bolt { left: 6px; }
         .right-bolt { right: 6px; }
 
-        /* ===================== STICKMAN RUSH STYLES (WIDER & FLUID) ===================== */
+        /* ===================== STICKMAN RUSH STYLES (WIDE LANDSCAPE-OPTIMIZED) ===================== */
         @keyframes sr-appear { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes sr-bounce { 50% { transform: translateY(-12px); } }
 
         #stickman-container, #stickman-container * { font-family: Nunito, 'Segoe UI', Roboto, sans-serif; }
         #stickman-container .sr-hidden { display: none !important; }
         #stickman-container .sr-screen { animation: sr-appear .3s ease; width: 100%; }
-        
-        /* Expand max-width across all elements from 600px to 480px / 100% full width */
-        #stickman-container .sr-top-controls { display: flex; justify-content: flex-end; width: 100%; max-width: 480px; margin: 0 auto 6px auto; }
-        #stickman-container .sr-icon-btn { padding: 8px 14px; border-radius: 11px; background: rgba(139,92,246,0.2); color: var(--text-main); font-weight: 900; cursor: pointer; border: 1px solid var(--primary); font-size: 14px; }
 
-        /* SR Menu */
-        #stickman-container .sr-menu-screen { max-width: 480px; margin: auto; width: 100%; }
+        /* Widen containers to allow full screen usage in landscape/desktop */
+        #stickman-container .sr-menu-screen { max-width: 720px; margin: auto; width: 100%; }
         #stickman-container .sr-hero { text-align: center; padding: 12px 6px 6px; }
         #stickman-container .sr-hero-character { font-size: 55px; animation: sr-bounce 1.5s infinite ease-in-out; display: block; }
         #stickman-container .sr-eyebrow { color: var(--primary); font-size: 10px; font-weight: 900; letter-spacing: 3px; display: block; margin-bottom: 4px; }
@@ -268,7 +264,7 @@
         #stickman-container .sr-instructions p { font-size: 9px; color: #6b7280; margin-top: 10px; }
 
         /* SR Levels */
-        #stickman-container .sr-level-screen { text-align: center; max-width: 480px; margin: auto; width: 100%; }
+        #stickman-container .sr-level-screen { text-align: center; max-width: 720px; margin: auto; width: 100%; }
         #stickman-container .sr-level-screen h2 { margin-top: 6px; font-size: 20px; color: #f3f4f6; }
         #stickman-container .sr-level-screen > p { color: #9ca3af; margin: 4px 0 14px; font-size: 12px; }
         #stickman-container .sr-level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -279,19 +275,20 @@
         #stickman-container .sr-level-card small { display: block; font-size: 9px; color: #9ca3af; font-weight: 900; margin-top: 2px; }
         #stickman-container .sr-back-btn { padding: 6px 12px; border-radius: 8px; background: rgba(139,92,246,0.2); color: var(--primary); font-weight: 900; cursor: pointer; border: 1px solid var(--primary); margin-bottom: 8px; display: inline-block; font-size: 12px; }
 
-        /* SR Game HUD - Expanded to occupy maximum width (480px max) */
-        #stickman-container .sr-game-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; width: 100%; max-width: 480px; }
+        /* SR Game HUD & Elements - Expanded wide for Landscape & Desktop view */
+        #stickman-container .sr-game-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; width: 100%; max-width: 720px; }
         #stickman-container .sr-game-toolbar span, #stickman-container .sr-game-toolbar strong { display: block; color: #f3f4f6; }
         #stickman-container .sr-hud-label { font-size: 9px; color: var(--primary); font-weight: 900; letter-spacing: 2px; }
         #stickman-container .sr-pause-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; font-weight: 900; color: #f3f4f6; cursor: pointer; font-size: 11px; }
         #stickman-container .sr-pause-btn:hover { background: rgba(255,255,255,0.2); }
-        #stickman-container .sr-hud { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; width: 100%; max-width: 480px; }
+        
+        #stickman-container .sr-hud { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; width: 100%; max-width: 720px; }
         #stickman-container .sr-hud-item { background: rgba(17,24,39,0.8); padding: 8px 4px; border-radius: 9px; border: 1px solid var(--border); text-align: center; }
         #stickman-container .sr-hud-item small { display: block; font-size: 8px; color: #9ca3af; font-weight: 900; letter-spacing: 1px; }
         #stickman-container .sr-hud-item strong { display: block; font-size: 14px; font-weight: 900; color: #f3f4f6; }
 
-        /* SR Canvas - Wider responsive sizing matching other games */
-        #stickman-container .sr-canvas-wrap { position: relative; overflow: hidden; border-radius: 12px; border: 2px solid var(--border); background: #dff4ff; box-shadow: 0 8px 25px rgba(0,0,0,0.3); width: 100%; max-width: 480px; }
+        /* SR Canvas - Generously widened up to 720px for optimal landscape immersion */
+        #stickman-container .sr-canvas-wrap { position: relative; overflow: hidden; border-radius: 12px; border: 2px solid var(--border); background: #dff4ff; box-shadow: 0 8px 25px rgba(0,0,0,0.3); width: 100%; max-width: 720px; }
         #stickman-container #sr-gameCanvas { display: block; width: 100%; height: auto; aspect-ratio: 900/420; }
 
         /* SR Overlays */
@@ -310,14 +307,14 @@
         #stickman-container .sr-secondary-btn { width: 100%; padding: 10px; border-radius: 9px; font-weight: 900; margin-top: 6px; cursor: pointer; border: 1px solid var(--border); font-size: 13px; background: rgba(255,255,255,0.08); color: #f3f4f6; }
         #stickman-container .sr-secondary-btn:hover { background: rgba(255,255,255,0.15); }
 
-        /* SR Mobile Controls - Matched to 480px width */
-        #stickman-container .sr-mobile-controls { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; width: 100%; max-width: 480px; }
+        /* SR Mobile Controls - Matched to 720px wide layout */
+        #stickman-container .sr-mobile-controls { display: flex; justify-content: space-between; gap: 10px; margin-top: 10px; width: 100%; max-width: 720px; }
         #stickman-container .sr-ctrl-btn { flex: 1; padding: 12px; border-radius: 12px; color: white; display: flex; flex-direction: column; align-items: center; gap: 2px; touch-action: none; user-select: none; cursor: pointer; border: none; -webkit-tap-highlight-color: transparent; }
         #stickman-container .sr-ctrl-btn span { font-size: 20px; }
         #stickman-container .sr-ctrl-btn small { font-weight: 900; font-size: 10px; }
         #stickman-container .sr-jump-ctrl { background: linear-gradient(135deg, var(--primary), var(--accent)); }
         #stickman-container .sr-slide-ctrl { background: linear-gradient(135deg, #ff9e43, #ff6b35); }
-        #stickman-container .sr-game-tip { text-align: center; color: #6b7280; font-size: 10px; margin-top: 8px; width: 100%; max-width: 480px; }
+        #stickman-container .sr-game-tip { text-align: center; color: #6b7280; font-size: 10px; margin-top: 8px; width: 100%; max-width: 720px; }
 
         @media (max-width: 480px) {
             #stickman-container .sr-instruction-grid { grid-template-columns: repeat(2, 1fr); }
@@ -715,10 +712,6 @@
             <button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶ Fullscreen</button>
         </div>
 
-        <div class="sr-top-controls">
-            <button id="sr-soundToggle" class="sr-icon-btn">🔊</button>
-        </div>
-
         <!-- SR: Main Menu -->
         <section id="sr-menuScreen" class="sr-screen sr-menu-screen">
             <div class="sr-hero">
@@ -1016,12 +1009,6 @@
             document.getElementById('sr-pauseMenuBtn').addEventListener('click', sr_openMenu);
             document.getElementById('sr-resultMenuBtn').addEventListener('click', sr_openMenu);
             document.getElementById('sr-retryBtn').addEventListener('click', () => sr_startGame(sr_mode, sr_selectedLevel));
-            document.getElementById('sr-soundToggle').addEventListener('click', () => {
-                sr_soundEnabled = !sr_soundEnabled;
-                document.getElementById('sr-soundToggle').textContent = sr_soundEnabled ? '🔊' : '🔇';
-                if (sr_soundEnabled && sr_state === 'playing') { sr_initAudio(); sr_startMusic(); }
-                else sr_stopMusic();
-            });
             document.getElementById('sr-jumpBtn').addEventListener('pointerdown', e => { e.preventDefault(); sr_jump(); });
             document.getElementById('sr-slideBtn').addEventListener('pointerdown', e => { e.preventDefault(); sr_startSlide(); });
             ['pointerup','pointerleave','pointercancel'].forEach(type => {
