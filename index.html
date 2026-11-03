@@ -2888,75 +2888,6 @@
             shooterLoop();
         }
 
-       function getRequiredEnemies(round) {
-    return 10 + ((round - 1) * 2);
-}
-
-function advanceShooterRound() {
-
-    // Check if the player completed Round 50
-    if (shooterRound >= 50) {
-        completeShooterGame();
-        return;
-    }
-
-    shooterRound++;
-
-    enemiesDefeatedInRound = 0;
-
-    // Calculate the enemy requirement automatically
-    requiredEnemiesForRound = getRequiredEnemies(shooterRound);
-
-    // Clear remaining enemies and bullets
-    shooterEnemies = [];
-    shooterEnemyBullets = [];
-    shooterBullets = [];
-
-    // Check whether this is a boss round
-    if (shooterRound % 3 === 0) {
-
-        announcementText = `WARNING: BOSS ROUND ${shooterRound}`;
-        announcementTimer = 120;
-
-        shooterBoss = new ShooterBoss(shooterRound);
-
-    } else {
-
-        announcementText = `ROUND ${shooterRound}`;
-        announcementTimer = 90;
-
-        shooterBoss = null;
-    }
-
-    updateShooterHUD();
-}
-
-function completeShooterGame() {
-
-    shooterRunning = false;
-
-    cancelAnimationFrame(shooterAnimId);
-
-    shooterBoss = null;
-
-    audio.playSFX('win');
-
-    const overlayTitle =
-        document.getElementById('shooter-over-title');
-
-    overlayTitle.textContent = "VICTORY!";
-
-    overlayTitle.style.color = "#22c55e";
-
-    document.getElementById('final-shooter-score')
-        .textContent = `Final Score: ${shooterScore}`;
-
-    document.getElementById('shooter-gameover-overlay')
-        .classList.add('active');
-}
-
-
-
         function shooterLoop() {
             if (!shooterRunning) return;
             if (!shooterCtx) { initShooterCanvas(); if (!shooterCtx) return; }
@@ -3033,36 +2964,49 @@ function completeShooterGame() {
                             shooterScore += 100;
                             enemiesDefeatedInRound++;
                             
-                            if (
-    enemiesDefeatedInRound >= requiredEnemiesForRound &&
-    !shooterBoss
-) {
-    advanceShooterRound();
-}
+                            if (enemiesDefeatedInRound >= requiredEnemiesForRound && shooterRound < 50 && !shooterBoss) {
+                                shooterRound++;
+                                enemiesDefeatedInRound = 0;
+                                requiredEnemiesForRound += 2;
+                                
+                                if (shooterRound % 3 === 0) {
+                                    announcementText = `WARNING: BOSS ROUND`;
+                                    announcementTimer = 120;
+                                    shooterBoss = new ShooterBoss(shooterRound);
+                                } else {
+                                    announcementText = `ROUND ${shooterRound}`;
+                                    announcementTimer = 90;
+                                }
+                            }
+                            updateShooterHUD();
+                        }
+                    }
                 });
                 if (en.y > 350) shooterEnemies.splice(eIdx, 1);
             });
 
             if (!shooterRunning) return;
 
-         if (shooterBoss.hp <= 0) {
+            if (shooterBoss) {
+                shooterBullets.forEach((b, bIdx) => {
+                    if (b.x > shooterBoss.x && b.x < shooterBoss.x + shooterBoss.width && b.y > shooterBoss.y && b.y < shooterBoss.y + shooterBoss.height) {
+                        shooterBullets.splice(bIdx, 1);
+                        shooterBoss.hp--;
+                        if (shooterBoss.hp <= 0) {
+                            audio.playSFX('win');
+                            shooterScore += 2500;
+                            shooterBoss = null; // Cleanly clear boss reference so loop won't freeze
+                            shooterEnemies = []; // Clear remaining enemies immediately
+                            
+                            // Immediately advance round to Round 4+ and scale smoothly
+                            shooterRound = Math.min(50, shooterRound + 1);
+                            enemiesDefeatedInRound = 0;
+                            requiredEnemiesForRound += 2;
 
-    audio.playSFX('win');
-
-    shooterScore += 2500;
-
-    // Remove the defeated boss
-    shooterBoss = null;
-
-    // Clear remaining enemies
-    shooterEnemies = [];
-
-    // Clear enemy projectiles
-    shooterEnemyBullets = [];
-
-    // Automatically continue to the next round
-    advanceShooterRound();
-}
+                            announcementText = shooterRound > 50 ? `VICTORY!` : `ROUND ${shooterRound}`;
+                            announcementTimer = 90;
+                            updateShooterHUD();
+                        }
                     }
                 });
             }
