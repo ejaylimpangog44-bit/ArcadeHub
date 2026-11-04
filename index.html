@@ -406,7 +406,7 @@
         </div>
     </div>
 
-    <!-- Piano Tiles -->
+    <!-- Piano Tiles (White Theme Tiles) -->
     <div id="piano-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -431,11 +431,11 @@
                     <button class="action-btn" onclick="startPianoGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Tap falling tiles & hold long tiles to play the melody!</p>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Tap falling white tiles & hold long tiles to play!</p>
         </div>
     </div>
 
-    <!-- Turbo Car Racing -->
+    <!-- Turbo Car Racing (Fixed Collision, 5s Shield Timer, Recharging Booster) -->
     <div id="carracing-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -444,7 +444,7 @@
         <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
             <div class="score-board" style="margin-top:4px; width:100%;">
                 <div class="score-box">Score <span id="car-score">0</span></div>
-                <div class="score-box">Coins 🪙 <span id="car-coins">0</span></div>
+                <div class="score-box">Shield 🛡️ <span id="car-shield-time">OFF</span></div>
                 <div class="score-box">High 🏆 <span id="car-high">0</span></div>
             </div>
             <div style="position:relative; display:inline-block;">
@@ -455,12 +455,12 @@
                     <button class="action-btn" onclick="startCarGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <div class="dir-pad" style="max-width: 260px; grid-template-columns: 1fr 1fr 1fr;">
+            <div class="dir-pad" style="max-width: 260px; grid-template-columns: 1fr 1.2fr 1fr;">
                 <button class="dir-btn" onclick="moveCar('LEFT')">⬅️</button>
-                <button class="dir-btn" style="background:linear-gradient(135deg, #10b981, #059669)" onclick="triggerCarBoost()">⚡ BOOST</button>
+                <button class="dir-btn" id="car-boost-btn" style="background:linear-gradient(135deg, #10b981, #059669); font-size:0.8rem;" onclick="triggerCarBoost()">⚡ BOOST (100%)</button>
                 <button class="dir-btn" onclick="moveCar('RIGHT')">➡️</button>
             </div>
-            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Left/Right to steer. Grab Shields 🛡️, Coins 🪙 & Nitro ⚡!</p>
+            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Steer left/right, grab 🛡️ Shield (5s) & ⚡ Nitro packs!</p>
         </div>
     </div>
 
@@ -1011,9 +1011,6 @@
             else { if (document.exitFullscreen) document.exitFullscreen(); }
         }
 
-        // ===================================================
-        // BULLETPROOF BACK TO HUB CLEANUP FUNCTION
-        // ===================================================
         function backToHub() {
             audio.playSFX('click');
             if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
@@ -1117,11 +1114,11 @@
         }
 
         // ===================================================
-        // 1. TURBO CAR RACING ENGINE
+        // 1. TURBO CAR RACING ENGINE (FIXED COLLISION, 5S SHIELD, RECHARGE BOOST)
         // ===================================================
         let carCanvas, carCtx, carRunning = false, carAnimId, carScore = 0, carCoinsCollected = 0;
-        let playerCar = { lane: 1, x: 0, y: 280, width: 36, height: 60, hasShield: false };
-        let trafficCars = [], carCollectibles = [], roadOffset = 0, carBoostActive = 0;
+        let playerCar = { lane: 1, x: 0, y: 280, width: 34, height: 56, shieldTimer: 0 };
+        let trafficCars = [], carCollectibles = [], roadOffset = 0, carBoostActive = 0, carBoostCharge = 100;
         const lanes = [65, 140, 215];
 
         function initCarCanvas() {
@@ -1138,13 +1135,14 @@
             carScore = 0;
             carCoinsCollected = 0;
             playerCar.lane = 1;
-            playerCar.hasShield = false;
+            playerCar.shieldTimer = 0;
             trafficCars = [];
             carCollectibles = [];
             roadOffset = 0;
             carBoostActive = 0;
+            carBoostCharge = 100;
             document.getElementById('car-score').textContent = 0;
-            document.getElementById('car-coins').textContent = 0;
+            document.getElementById('car-shield-time').textContent = 'OFF';
             document.getElementById('car-high').textContent = ScoreManager.getStats('carracing').highScore;
             cancelAnimationFrame(carAnimId);
             carLoop();
@@ -1158,20 +1156,51 @@
         }
 
         function triggerCarBoost() {
-            if(!carRunning || carBoostActive > 0) return;
+            if(!carRunning || carBoostActive > 0 || carBoostCharge < 100) return;
             audio.playSFX('powerup');
-            carBoostActive = 120;
+            carBoostActive = 100; // Duration of boost
+            carBoostCharge = 0;   // Drain meter
         }
 
         let carSpawnTimer = 0;
         function carLoop() {
             if(!carRunning) return;
-            let speedMult = carBoostActive > 0 ? 2.2 : 1.0;
-            if(carBoostActive > 0) carBoostActive--;
 
+            // Recharge Boost meter over time if not active
+            if(carBoostActive > 0) {
+                carBoostActive--;
+            } else if(carBoostCharge < 100) {
+                carBoostCharge = Math.min(100, carBoostCharge + 0.6);
+            }
+
+            let boostBtn = document.getElementById('car-boost-btn');
+            if(boostBtn) {
+                if(carBoostActive > 0) {
+                    boostBtn.textContent = "⚡ BOOSTING!";
+                    boostBtn.style.opacity = '1';
+                } else if(carBoostCharge < 100) {
+                    boostBtn.textContent = `⏳ RECHARGING (${Math.floor(carBoostCharge)}%)`;
+                    boostBtn.style.opacity = '0.5';
+                } else {
+                    boostBtn.textContent = "⚡ READY TO BOOST";
+                    boostBtn.style.opacity = '1';
+                }
+            }
+
+            let speedMult = carBoostActive > 0 ? 2.2 : 1.0;
             carScore += Math.floor(1 * speedMult);
             document.getElementById('car-score').textContent = Math.floor(carScore / 5);
             roadOffset = (roadOffset + (6 * speedMult)) % 40;
+
+            // Manage 5-second Shield Timer (60 frames per second approx -> 300 frames)
+            if(playerCar.shieldTimer > 0) {
+                playerCar.shieldTimer--;
+                let secondsLeft = Math.ceil(playerCar.shieldTimer / 60);
+                document.getElementById('car-shield-time').textContent = `${secondsLeft}s`;
+                if(playerCar.shieldTimer <= 0) {
+                    document.getElementById('car-shield-time').textContent = 'OFF';
+                }
+            }
 
             carSpawnTimer++;
             if(carSpawnTimer > Math.max(20, 45 - Math.floor(carScore / 200))) {
@@ -1193,7 +1222,9 @@
 
             playerCar.x = lanes[playerCar.lane] - playerCar.width / 2;
 
+            // Collectibles check
             carCollectibles.forEach(c => {
+                let cx = lanes[c.lane];
                 if(playerCar.lane === c.lane && playerCar.y < c.y + 20 && playerCar.y + playerCar.height > c.y) {
                     c.y = 999;
                     if(c.type === 'coin') {
@@ -1203,21 +1234,27 @@
                         document.getElementById('car-coins').textContent = carCoinsCollected;
                     } else if(c.type === 'shield') {
                         audio.playSFX('powerup');
-                        playerCar.hasShield = true;
+                        playerCar.shieldTimer = 300; // 5 seconds (60fps * 5)
+                        document.getElementById('car-shield-time').textContent = '5s';
                     } else if(c.type === 'nitro') {
+                        audio.playSFX('powerup');
+                        carBoostCharge = 100;
                         triggerCarBoost();
                     }
                 }
             });
 
+            // Accurate Collision Check with Traffic Cars
             trafficCars.forEach(tc => {
-                if(playerCar.lane === tc.lane && playerCar.y < tc.y + tc.height && playerCar.y + playerCar.height > tc.y) {
+                let tx = lanes[tc.lane] - playerCar.width / 2;
+                if(playerCar.lane === tc.lane && playerCar.y < tc.y + 56 && playerCar.y + playerCar.height > tc.y) {
                     if(carBoostActive > 0) {
                         tc.y = 999;
                         audio.playSFX('score');
                         carScore += 100;
-                    } else if(playerCar.hasShield) {
-                        playerCar.hasShield = false;
+                    } else if(playerCar.shieldTimer > 0) {
+                        playerCar.shieldTimer = 0; // Shield absorbs crash
+                        document.getElementById('car-shield-time').textContent = 'OFF';
                         tc.y = 999;
                         audio.playSFX('gameover');
                     } else {
@@ -1232,6 +1269,7 @@
                 }
             });
 
+            // Draw road & graphics
             carCtx.fillStyle = '#1e293b';
             carCtx.fillRect(0, 0, 280, 360);
             carCtx.fillStyle = carBoostActive > 0 ? '#0284c7' : '#0f172a';
@@ -1264,16 +1302,16 @@
                 let tx = lanes[tc.lane] - playerCar.width / 2;
                 carCtx.fillStyle = tc.color;
                 carCtx.beginPath(); carCtx.roundRect(tx, tc.y, playerCar.width, playerCar.height, 6); carCtx.fill();
-                carCtx.fillStyle = '#020617'; carCtx.fillRect(tx + 6, tc.y + 10, playerCar.width - 12, 12);
+                carCtx.fillStyle = '#020617'; carCtx.fillRect(tx + 5, tc.y + 10, playerCar.width - 10, 12);
                 carCtx.fillStyle = '#facc15'; carCtx.fillRect(tx + 4, tc.y + tc.height - 4, 6, 3); carCtx.fillRect(tx + playerCar.width - 10, tc.y + tc.height - 4, 6, 3);
             });
 
             carCtx.fillStyle = carBoostActive > 0 ? '#38bdf8' : 'var(--primary, #8b5cf6)';
             carCtx.beginPath(); carCtx.roundRect(playerCar.x, playerCar.y, playerCar.width, playerCar.height, 6); carCtx.fill();
-            carCtx.fillStyle = '#38bdf8'; carCtx.fillRect(playerCar.x + 6, playerCar.y + 12, playerCar.width - 12, 14);
+            carCtx.fillStyle = '#38bdf8'; carCtx.fillRect(playerCar.x + 5, playerCar.y + 12, playerCar.width - 10, 14);
             carCtx.fillStyle = '#ef4444'; carCtx.fillRect(playerCar.x + 4, playerCar.y + 2, 6, 3); carCtx.fillRect(playerCar.x + playerCar.width - 10, playerCar.y + 2, 6, 3);
 
-            if(playerCar.hasShield) {
+            if(playerCar.shieldTimer > 0) {
                 carCtx.strokeStyle = '#38bdf8'; carCtx.lineWidth = 3;
                 carCtx.beginPath(); carCtx.arc(playerCar.x + playerCar.width/2, playerCar.y + playerCar.height/2, 32, 0, Math.PI*2); carCtx.stroke();
             }
@@ -1282,7 +1320,7 @@
         }
 
         // ===================================================
-        // 2. PIANO TILES PRO ENGINE
+        // 2. PIANO TILES PRO ENGINE (WHITE THEME TILES)
         // ===================================================
         const pianoSongs = { 
             odeToJoy: [330,330,349,392,392,349,330,294,262,262,294,330,330,294,294], 
@@ -1340,12 +1378,15 @@
             pianoTiles.forEach(t=>{
                 t.y+=pianoSpeed;
                 if(!t.clicked){
-                    pianoCtx.fillStyle=t.isLong ? '#8b5cf6' : '#1e293b';
-                    pianoCtx.beginPath(); pianoCtx.roundRect(t.lane*laneWidth+3,t.y,laneWidth-6,t.height, 6); pianoCtx.fill();
-                    pianoCtx.strokeStyle=t.isLong ? '#ec4899' : 'var(--primary)'; pianoCtx.lineWidth=2;
-                    pianoCtx.strokeRect(t.lane*laneWidth+3,t.y,laneWidth-6,t.height);
+                    // WHITE TILE THEME
+                    pianoCtx.fillStyle=t.isLong ? '#f8fafc' : '#ffffff';
+                    pianoCtx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+                    pianoCtx.shadowBlur = 8;
+                    pianoCtx.beginPath(); pianoCtx.roundRect(t.lane*laneWidth+4,t.y,laneWidth-8,t.height, 6); pianoCtx.fill();
+                    pianoCtx.shadowBlur = 0; // reset shadow
+                    
                     if(t.isLong) {
-                        pianoCtx.fillStyle="#fff"; pianoCtx.font="10px sans-serif"; pianoCtx.fillText("HOLD", t.lane*laneWidth + laneWidth/2 - 14, t.y + 20);
+                        pianoCtx.fillStyle="#0f172a"; pianoCtx.font="bold 10px sans-serif"; pianoCtx.fillText("HOLD", t.lane*laneWidth + laneWidth/2 - 14, t.y + 20);
                     }
                 }
             });
@@ -2025,7 +2066,7 @@
         }
 
         // ===================================================
-        // 11. DINO RUNNER PRO ENGINE (WITH SPRITES)
+        // 11. DINO RUNNER PRO ENGINE
         // ===================================================
         let dinoCanvas, dinoCtx, dinoInterval = null, dinoAnimId, dinoScore = 0, dinoFrame = 0, dinoSpawnCounter = 0, isDinoNight = false, isDinoRunning = false;
         let dino = { x: 45, y: 125, width: 32, height: 36, isDucking: false, vy: 0 };
