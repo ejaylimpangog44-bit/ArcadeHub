@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Arcade Hub</title>
+<!-- Chosen Palette: Neon Violet Dark Theme -->
+<!-- Application Structure Plan: Integrated single-page arcade portal with dynamic game switching, modal overlay settings, animated robot companion, and custom canvas-rendered web games. -->
+<!-- Visualization & Content Choices: Custom Canvas rendering for 2D arcade games including Stick Run, Snake, Dino Runner, Car Racing, Fruit Slasher, and Piano Tiles. NO SVG or Mermaid used. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -199,7 +203,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 .left-bolt { left: 6px; }
 .right-bolt { right: 6px; }
 ​/* Stick Run Integration Styles */
-#stickman-container { font-family: Arial, sans-serif; }
+#stickman-container { font-family: Arial, sans-serif; width: 100%; max-width: 900px; }
 #stickman-container .sr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; width: 100%; max-width: 900px; }
 #stickman-container .sr-header h1 { font-size: clamp(22px, 4vw, 34px); letter-spacing: 3px; color: #fff; }
 #stickman-container .sr-header h1 span { color: #ffc857; }
@@ -249,6 +253,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 <div class="category-title">Featured game</div>
 <div class="game-grid">
 <div class="game-card featured" onclick="openGame('stickman-container')">
+<img src="images/stick-run.png" alt="Stick Run">
 <span class="game-icon">🏃</span>
 <span class="game-name">Stick Run (Play Now)</span>
 </div>
@@ -820,7 +825,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Tap JUMP (Space/Up) for Cacti or DUCK (Down) for Flying Pterodactyls!</p>
 </div>
 </div>
-​<!-- Stick Run (Stickman Runner) -->
+​<!-- Stick Run (Stickman Endless Runner) -->
 <div id="stickman-container" class="game-container">
 <div class="game-nav-bar">
 <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -828,7 +833,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 </div>
 ​<div class="sr-header">
 <h1>STICK <span>RUN</span></h1>
-<button id="soundButton" onclick="toggleStickSound()" style="margin:0;padding:10px 15px;background:#252e40;color:white;border:1px solid #46536a;border-radius:8px;cursor:pointer;">🔊 Sound ON</button>
+<button id="soundButton" onclick="toggleStickSound()" style="margin:0;padding:8px 14px;background:#252e40;color:white;border:1px solid #46536a;border-radius:8px;cursor:pointer;font-weight:bold;">🔊 Sound ON</button>
 </div>
 ​<div class="sr-stats">
 <div class="sr-stat">
@@ -2854,24 +2859,23 @@ if (frostRunning) frostAnimId = requestAnimationFrame(frostLoop);
 ​// ===================================================
 // 13. STICK RUN (STICKMAN ENDLESS RUNNER ENGINE)
 // ===================================================
-let stickCanvas, stickCtx;
-const STICK_WIDTH = 900, STICK_HEIGHT = 450, STICK_GROUND = 370;
-​let stickGameState = "menu";
-let stickScore = 0;
-let stickCoins = 0;
-let stickBest = Number(localStorage.getItem("stickRunBest")) || 0;
-​let stickSpeed = 5;
-let stickFrame = 0;
-let stickObstacleTimer = 0;
-let stickCoinTimer = 0;
-let stickSoundEnabled = true;
-​document.getElementById("best").textContent = stickBest;
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+​let gameState = "menu";
+let score = 0;
+let coins = 0;
+let best = Number(localStorage.getItem("stickRunBest")) || 0;
+​let speed = 5;
+let frame = 0;
+let obstacleTimer = 0;
+let coinTimer = 0;
+let soundEnabled = true;
+​document.getElementById("best").textContent = best;
 ​function initStickGameCanvas() {
-stickCanvas = document.getElementById("game");
-if (stickCanvas) stickCtx = stickCanvas.getContext("2d");
+// Canvas is pre-sized in HTML
 }
-​function playStickSound(frequency = 400, duration = 0.1, type = "sine") {
-if (!stickSoundEnabled) return;
+​function playSound(frequency = 400, duration = 0.1, type = "sine") {
+if (!soundEnabled) return;
 try {
 audio.initContext();
 const osc = audio.audioCtx.createOscillator();
@@ -2887,12 +2891,12 @@ osc.stop(audio.audioCtx.currentTime + duration);
 } catch (e) {}
 }
 ​function toggleStickSound() {
-stickSoundEnabled = !stickSoundEnabled;
-document.getElementById("soundButton").textContent = stickSoundEnabled ? "🔊 Sound ON" : "🔇 Sound OFF";
+soundEnabled = !soundEnabled;
+document.getElementById("soundButton").textContent = soundEnabled ? "🔊 Sound ON" : "🔇 Sound OFF";
 }
-​const stickPlayer = {
+​const player = {
 x: 120,
-y: STICK_GROUND,
+y: 370,
 width: 30,
 height: 65,
 velocityY: 0,
@@ -2903,24 +2907,24 @@ sliding: false,
 slideTimer: 0,
 animation: 0,
 ​jump() {
-if (!this.grounded || this.sliding || stickGameState !== "playing") return;
+if (!this.grounded || this.sliding || gameState !== "playing") return;
 this.velocityY = this.jumpPower;
 this.grounded = false;
-playStickSound(500, 0.12);
+playSound(500, 0.12);
 },
 ​slide() {
-if (!this.grounded || stickGameState !== "playing") return;
+if (!this.grounded || gameState !== "playing") return;
 this.sliding = true;
 this.slideTimer = 35;
-playStickSound(250, 0.08);
+playSound(250, 0.08);
 },
 ​update() {
 this.animation += 0.18;
 if (!this.grounded) {
 this.velocityY += this.gravity;
 this.y += this.velocityY;
-if (this.y >= STICK_GROUND) {
-this.y = STICK_GROUND;
+if (this.y >= 370) {
+this.y = 370;
 this.velocityY = 0;
 this.grounded = true;
 }
@@ -2931,48 +2935,47 @@ if (this.slideTimer <= 0) this.sliding = false;
 }
 },
 ​draw() {
-if(!stickCtx) return;
-stickCtx.save();
-stickCtx.translate(this.x, this.y);
-stickCtx.strokeStyle = "#17202c";
-stickCtx.lineWidth = 5;
-stickCtx.lineCap = "round";
-stickCtx.lineJoin = "round";
+ctx.save();
+ctx.translate(this.x, this.y);
+ctx.strokeStyle = "#17202c";
+ctx.lineWidth = 5;
+ctx.lineCap = "round";
+ctx.lineJoin = "round";
 ​if (this.sliding) {
-stickCtx.beginPath();
-stickCtx.arc(13, -17, 10, 0, Math.PI * 2);
-stickCtx.stroke();
-stickCtx.beginPath();
-stickCtx.moveTo(23, -15);
-stickCtx.lineTo(48, -10);
-stickCtx.lineTo(60, -3);
-stickCtx.moveTo(43, -10);
-stickCtx.lineTo(30, 0);
-stickCtx.moveTo(45, -9);
-stickCtx.lineTo(65, -13);
-stickCtx.moveTo(48, -10);
-stickCtx.lineTo(65, -3);
-stickCtx.stroke();
+ctx.beginPath();
+ctx.arc(13, -17, 10, 0, Math.PI * 2);
+ctx.stroke();
+​ctx.beginPath();
+ctx.moveTo(23, -15);
+ctx.lineTo(48, -10);
+ctx.lineTo(60, -3);
+​ctx.moveTo(43, -10);
+ctx.lineTo(30, 0);
+​ctx.moveTo(45, -9);
+ctx.lineTo(65, -13);
+​ctx.moveTo(48, -10);
+ctx.lineTo(65, -3);
+ctx.stroke();
 } else {
-stickCtx.beginPath();
-stickCtx.arc(0, -52, 11, 0, Math.PI * 2);
-stickCtx.stroke();
-stickCtx.beginPath();
-stickCtx.moveTo(0, -41);
-stickCtx.lineTo(0, -17);
-const running = this.grounded;
+ctx.beginPath();
+ctx.arc(0, -52, 11, 0, Math.PI * 2);
+ctx.stroke();
+​ctx.beginPath();
+ctx.moveTo(0, -41);
+ctx.lineTo(0, -17);
+​const running = this.grounded;
 const swing = running ? Math.sin(this.animation) * 17 : 0;
-stickCtx.moveTo(0, -35);
-stickCtx.lineTo(-13 + swing, -25);
-stickCtx.moveTo(0, -35);
-stickCtx.lineTo(13 - swing, -25);
-stickCtx.moveTo(0, -17);
-stickCtx.lineTo(-10 + swing, 0);
-stickCtx.moveTo(0, -17);
-stickCtx.lineTo(10 - swing, 0);
-stickCtx.stroke();
+​ctx.moveTo(0, -35);
+ctx.lineTo(-13 + swing, -25);
+​ctx.moveTo(0, -35);
+ctx.lineTo(13 - swing, -25);
+​ctx.moveTo(0, -17);
+ctx.lineTo(-10 + swing, 0);
+​ctx.moveTo(0, -17);
+ctx.lineTo(10 - swing, 0);
+​ctx.stroke();
 }
-stickCtx.restore();
+ctx.restore();
 },
 ​getHitbox() {
 if (this.sliding) {
@@ -2981,253 +2984,245 @@ return { x: this.x - 5, y: this.y - 29, width: 70, height: 29 };
 return { x: this.x - 12, y: this.y - 62, width: 24, height: 62 };
 }
 };
-​let stickObstacles = [];
-​function createStickObstacle() {
+​let obstacles = [];
+​function createObstacle() {
 const types = ["box", "spikes", "barrier"];
 const type = types[Math.floor(Math.random() * types.length)];
 let obstacle = {
-x: STICK_WIDTH + 30,
+x: 930,
 type,
 width: type === "barrier" ? 75 : 35,
 height: type === "barrier" ? 20 : 40
 };
 if (type === "barrier") {
-obstacle.y = STICK_GROUND - 52;
+obstacle.y = 370 - 52;
 } else {
-obstacle.y = STICK_GROUND - obstacle.height;
+obstacle.y = 370 - obstacle.height;
 }
-stickObstacles.push(obstacle);
+obstacles.push(obstacle);
 }
-​function updateStickObstacles() {
-stickObstacleTimer++;
-const interval = Math.max(48, 95 - stickSpeed * 3);
-if (stickObstacleTimer > interval) {
-createStickObstacle();
-stickObstacleTimer = 0;
+​function updateObstacles() {
+obstacleTimer++;
+const interval = Math.max(48, 95 - speed * 3);
+if (obstacleTimer > interval) {
+createObstacle();
+obstacleTimer = 0;
 }
-stickObstacles.forEach(obs => { obs.x -= stickSpeed; });
-stickObstacles = stickObstacles.filter(obs => obs.x + obs.width > -20);
+obstacles.forEach(obs => { obs.x -= speed; });
+obstacles = obstacles.filter(obs => obs.x + obs.width > -20);
 }
-​function drawStickObstacles() {
-if(!stickCtx) return;
-stickObstacles.forEach(obs => {
+​function drawObstacles() {
+obstacles.forEach(obs => {
 if (obs.type === "box") {
-stickCtx.fillStyle = "#9a5a38";
-stickCtx.fillRect(obs.x, obs.y, obs.width, obs.height);
-stickCtx.strokeStyle = "#63391f";
-stickCtx.lineWidth = 3;
-stickCtx.strokeRect(obs.x, obs.y, obs.width, obs.height);
+ctx.fillStyle = "#9a5a38";
+ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+ctx.strokeStyle = "#63391f";
+ctx.lineWidth = 3;
+ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
 } else if (obs.type === "spikes") {
-stickCtx.fillStyle = "#e64c4c";
-stickCtx.beginPath();
-stickCtx.moveTo(obs.x, STICK_GROUND);
-stickCtx.lineTo(obs.x + 17, obs.y);
-stickCtx.lineTo(obs.x + 35, STICK_GROUND);
-stickCtx.closePath();
-stickCtx.fill();
+ctx.fillStyle = "#e64c4c";
+ctx.beginPath();
+ctx.moveTo(obs.x, 370);
+ctx.lineTo(obs.x + 17, obs.y);
+ctx.lineTo(obs.x + 35, 370);
+ctx.closePath();
+ctx.fill();
 } else {
-stickCtx.fillStyle = "#6d4a9b";
-stickCtx.fillRect(obs.x, obs.y, obs.width, obs.height);
-stickCtx.fillStyle = "#513575";
-stickCtx.fillRect(obs.x + 8, obs.y + 5, obs.width - 16, 5);
+ctx.fillStyle = "#6d4a9b";
+ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+ctx.fillStyle = "#513575";
+ctx.fillRect(obs.x + 8, obs.y + 5, obs.width - 16, 5);
 }
 });
 }
-​function checkStickCollision(a, b) {
+​function checkCollision(a, b) {
 return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }
-​function detectStickCollisions() {
-const hitbox = stickPlayer.getHitbox();
-for (const obs of stickObstacles) {
+​function detectCollisions() {
+const hitbox = player.getHitbox();
+for (const obs of obstacles) {
 let obsBox = obs.type === "barrier" ? { x: obs.x, y: obs.y, width: obs.width, height: obs.height } : { x: obs.x + 3, y: obs.y + 3, width: obs.width - 6, height: obs.height - 3 };
-if (checkStickCollision(hitbox, obsBox)) {
+if (checkCollision(hitbox, obsBox)) {
 endStickGame();
 return;
 }
 }
 }
-​let stickCollectibles = [];
-​function createStickCoins() {
-stickCoinTimer++;
-if (stickCoinTimer > 100) {
+​let collectibles = [];
+​function createCoins() {
+coinTimer++;
+if (coinTimer > 100) {
 const height = Math.random() > 0.5 ? 275 : 325;
 for (let i = 0; i < 4; i++) {
-stickCollectibles.push({ x: STICK_WIDTH + i * 35, y: height, collected: false });
+collectibles.push({ x: 930 + i * 35, y: height, collected: false });
 }
-stickCoinTimer = 0;
+coinTimer = 0;
 }
 }
-​function updateStickCoins() {
-stickCollectibles.forEach(coin => {
-coin.x -= stickSpeed;
+​function updateCoins() {
+collectibles.forEach(coin => {
+coin.x -= speed;
 if (!coin.collected) {
-const dx = coin.x - (stickPlayer.x + 5);
-const dy = coin.y - (stickPlayer.y - 35);
+const dx = coin.x - (player.x + 5);
+const dy = coin.y - (player.y - 35);
 if (Math.hypot(dx, dy) < 27) {
 coin.collected = true;
-stickCoins++;
-playStickSound(850, 0.12);
-document.getElementById("coins").textContent = stickCoins;
+coins++;
+playSound(850, 0.12);
+document.getElementById("coins").textContent = coins;
 }
 }
 });
-stickCollectibles = stickCollectibles.filter(coin => coin.x > -30 && !coin.collected);
+collectibles = collectibles.filter(coin => coin.x > -30 && !coin.collected);
 }
-​function drawStickCoins() {
-if(!stickCtx) return;
-stickCollectibles.forEach(coin => {
-stickCtx.fillStyle = "#ffc928";
-stickCtx.beginPath();
-stickCtx.arc(coin.x, coin.y, 10, 0, Math.PI * 2);
-stickCtx.fill();
-stickCtx.strokeStyle = "#d18a00";
-stickCtx.lineWidth = 3;
-stickCtx.stroke();
-stickCtx.fillStyle = "#fff2a5";
-stickCtx.font = "bold 12px Arial";
-stickCtx.fillText("$", coin.x - 4, coin.y + 4);
+​function drawCoins() {
+collectibles.forEach(coin => {
+ctx.fillStyle = "#ffc928";
+ctx.beginPath();
+ctx.arc(coin.x, coin.y, 10, 0, Math.PI * 2);
+ctx.fill();
+ctx.strokeStyle = "#d18a00";
+ctx.lineWidth = 3;
+ctx.stroke();
+ctx.fillStyle = "#fff2a5";
+ctx.font = "bold 12px Arial";
+ctx.fillText("$", coin.x - 4, coin.y + 4);
 });
 }
-​let stickClouds = [{x: 100, y: 80, size: 30}, {x: 400, y: 120, size: 25}, {x: 700, y: 70, size: 35}];
-​function drawStickCloud(x, y, size) {
-if(!stickCtx) return;
-stickCtx.fillStyle = "rgba(255,255,255,.8)";
-stickCtx.beginPath();
-stickCtx.arc(x, y, size, 0, Math.PI * 2);
-stickCtx.arc(x + size, y - 10, size * .8, 0, Math.PI * 2);
-stickCtx.arc(x + size * 2, y, size, 0, Math.PI * 2);
-stickCtx.fill();
+​let clouds = [{x: 100, y: 80, size: 30}, {x: 400, y: 120, size: 25}, {x: 700, y: 70, size: 35}];
+​function drawCloud(x, y, size) {
+ctx.fillStyle = "rgba(255,255,255,.8)";
+ctx.beginPath();
+ctx.arc(x, y, size, 0, Math.PI * 2);
+ctx.arc(x + size, y - 10, size * .8, 0, Math.PI * 2);
+ctx.arc(x + size * 2, y, size, 0, Math.PI * 2);
+ctx.fill();
 }
-​function drawStickBackground() {
-if(!stickCtx) return;
-const gradient = stickCtx.createLinearGradient(0, 0, 0, STICK_HEIGHT);
+​function drawBackground() {
+const gradient = ctx.createLinearGradient(0, 0, 0, 450);
 gradient.addColorStop(0, "#8ed5f2");
 gradient.addColorStop(1, "#e4f5fa");
-stickCtx.fillStyle = gradient;
-stickCtx.fillRect(0, 0, STICK_WIDTH, STICK_HEIGHT);
-​stickCtx.fillStyle = "#ffe69a";
-stickCtx.beginPath();
-stickCtx.arc(760, 85, 38, 0, Math.PI * 2);
-stickCtx.fill();
-​stickClouds.forEach(cloud => {
-drawStickCloud(cloud.x, cloud.y, cloud.size);
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 900, 450);
+​ctx.fillStyle = "#ffe69a";
+ctx.beginPath();
+ctx.arc(760, 85, 38, 0, Math.PI * 2);
+ctx.fill();
+​clouds.forEach(cloud => {
+drawCloud(cloud.x, cloud.y, cloud.size);
 cloud.x -= 0.5;
-if (cloud.x < -100) cloud.x = STICK_WIDTH + 50;
+if (cloud.x < -100) cloud.x = 950;
 });
-​stickCtx.fillStyle = "#a9d9b2";
-stickCtx.beginPath();
-stickCtx.moveTo(0, STICK_GROUND);
-stickCtx.lineTo(150, 280);
-stickCtx.lineTo(320, STICK_GROUND);
-stickCtx.lineTo(500, 300);
-stickCtx.lineTo(700, STICK_GROUND);
-stickCtx.lineTo(900, 260);
-stickCtx.lineTo(900, STICK_GROUND);
-stickCtx.closePath();
-stickCtx.fill();
-​stickCtx.fillStyle = "#4caa67";
-stickCtx.fillRect(0, STICK_GROUND, STICK_WIDTH, STICK_HEIGHT - STICK_GROUND);
-stickCtx.fillStyle = "#267f48";
-stickCtx.fillRect(0, STICK_GROUND, STICK_WIDTH, 7);
-​stickCtx.fillStyle = "#368d50";
+​ctx.fillStyle = "#a9d9b2";
+ctx.beginPath();
+ctx.moveTo(0, 370);
+ctx.lineTo(150, 280);
+ctx.lineTo(320, 370);
+ctx.lineTo(500, 300);
+ctx.lineTo(700, 370);
+ctx.lineTo(900, 260);
+ctx.lineTo(900, 370);
+ctx.closePath();
+ctx.fill();
+​ctx.fillStyle = "#4caa67";
+ctx.fillRect(0, 370, 900, 80);
+ctx.fillStyle = "#267f48";
+ctx.fillRect(0, 370, 900, 7);
+​ctx.fillStyle = "#368d50";
 for (let i = 0; i < 20; i++) {
-const x = ((i * 70 - stickFrame * stickSpeed) % STICK_WIDTH + STICK_WIDTH) % STICK_WIDTH;
-stickCtx.fillRect(x, STICK_GROUND + 25, 35, 3);
+const x = ((i * 70 - frame * speed) % 900 + 900) % 900;
+ctx.fillRect(x, 370 + 25, 35, 3);
 }
 }
-​function stickGameLoop() {
-requestAnimationFrame(stickGameLoop);
+​function gameLoop() {
+requestAnimationFrame(gameLoop);
 const activeContainer = document.getElementById('stickman-container');
 if(!activeContainer || !activeContainer.classList.contains('active')) return;
-​if(!stickCtx) initStickGameCanvas();
-drawStickBackground();
-​if (stickGameState === "playing") {
-stickFrame++;
-stickPlayer.update();
-updateStickObstacles();
-createStickCoins();
-updateStickCoins();
-detectStickCollisions();
-​stickscore += 0.12;
-stickSpeed = Math.min(12, 5 + stickscore / 180);
-document.getElementById("score").textContent = Math.floor(stickscore);
-​drawStickCoins();
-drawStickObstacles();
-stickPlayer.draw();
+​drawBackground();
+​if (gameState === "playing") {
+frame++;
+player.update();
+updateObstacles();
+createCoins();
+updateCoins();
+detectCollisions();
+​score += 0.12;
+speed = Math.min(12, 5 + score / 180);
+document.getElementById("score").textContent = Math.floor(score);
+​drawCoins();
+drawObstacles();
+player.draw();
 } else {
-drawStickCoins();
-drawStickObstacles();
-stickPlayer.draw();
+drawCoins();
+drawObstacles();
+player.draw();
 }
 }
-​let stickscore = 0;
-function stickJump() { stickPlayer.jump(); }
-function stickSlide() { stickPlayer.slide(); }
+​function stickJump() { player.jump(); }
+function stickSlide() { player.slide(); }
 ​document.addEventListener("keydown", event => {
 const c = document.getElementById('stickman-container');
 if(!c || !c.classList.contains('active')) return;
 if(["Space", "ArrowUp", "ArrowDown"].includes(event.code)) event.preventDefault();
 if(event.code === "Space" || event.code === "ArrowUp") {
-if(stickGameState === "menu") startStickGame();
+if(gameState === "menu") startStickGame();
 else stickJump();
 }
 if(event.code === "ArrowDown") stickSlide();
 if(event.code === "KeyP" || event.code === "Escape") {
-if(stickGameState === "playing") pauseStickGame();
-else if(stickGameState === "paused") resumeStickGame();
+if(gameState === "playing") pauseStickGame();
+else if(gameState === "paused") resumeStickGame();
 }
 });
-​document.getElementById("jumpBtn").addEventListener("pointerdown", e => { e.preventDefault(); stickJump(); });
-document.getElementById("slideBtn").addEventListener("pointerdown", e => { e.preventDefault(); stickSlide(); });
 ​function startStickGame() {
-stickscore = 0;
-stickCoins = 0;
-stickSpeed = 5;
-stickFrame = 0;
-stickObstacleTimer = 0;
-stickCoinTimer = 0;
-stickObstacles = [];
-stickCollectibles = [];
-​stickPlayer.y = STICK_GROUND;
-stickPlayer.velocityY = 0;
-stickPlayer.grounded = true;
-stickPlayer.sliding = false;
-stickPlayer.slideTimer = 0;
-​stickGameState = "playing";
-​document.getElementById("startScreen").classList.add("hidden");
-document.getElementById("gameOverScreen").classList.add("hidden");
-document.getElementById("pauseScreen").classList.add("hidden");
+score = 0;
+coins = 0;
+speed = 5;
+frame = 0;
+obstacleTimer = 0;
+coinTimer = 0;
+obstacles = [];
+collectibles = [];
+​player.y = 370;
+player.velocityY = 0;
+player.grounded = true;
+player.sliding = false;
+player.slideTimer = 0;
+​gameState = "playing";
+​document.getElementById("startScreen").classList.add("sr-hidden");
+document.getElementById("gameOverScreen").classList.add("sr-hidden");
+document.getElementById("pauseScreen").classList.add("sr-hidden");
 ​document.getElementById("score").textContent = "0";
 document.getElementById("coins").textContent = "0";
-​playStickSound(550, 0.15);
+​playSound(550, 0.15);
 }
 ​function pauseStickGame() {
-if (stickGameState !== "playing") return;
-stickGameState = "paused";
-document.getElementById("pauseScreen").classList.remove("hidden");
+if (gameState !== "playing") return;
+gameState = "paused";
+document.getElementById("pauseScreen").classList.remove("sr-hidden");
 }
 ​function resumeStickGame() {
-if (stickGameState !== "paused") return;
-stickGameState = "playing";
-document.getElementById("pauseScreen").classList.add("hidden");
+if (gameState !== "paused") return;
+gameState = "playing";
+document.getElementById("pauseScreen").classList.add("sr-hidden");
 }
 ​function endStickGame() {
-if (stickGameState !== "playing") return;
-stickGameState = "over";
-const final = Math.floor(stickscore);
-const newRecord = final > stickBest;
+if (gameState !== "playing") return;
+gameState = "over";
+const final = Math.floor(score);
+const newRecord = final > best;
 if (newRecord) {
-stickBest = final;
-localStorage.setItem("stickRunBest", stickBest);
-document.getElementById("best").textContent = stickBest;
+best = final;
+localStorage.setItem("stickRunBest", best);
+document.getElementById("best").textContent = best;
 }
 document.getElementById("finalScore").textContent = final;
-document.getElementById("finalCoins").textContent = stickCoins;
+document.getElementById("finalCoins").textContent = coins;
 document.getElementById("recordMessage").textContent = newRecord ? "NEW HIGH SCORE! Congratulations!" : "Keep practicing!";
-document.getElementById("gameOverScreen").classList.remove("hidden");
-playStickSound(150, 0.5, "triangle");
+document.getElementById("gameOverScreen").classList.remove("sr-hidden");
+playSound(150, 0.5, "triangle");
 }
-​stickGameLoop();
+​gameLoop();
 </script>
 </body>
 </html>
