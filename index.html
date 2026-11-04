@@ -162,7 +162,7 @@
         .game-container.active { display: flex; }
         .game-container:fullscreen { width: 100vw !important; height: 100vh !important; max-width: none !important; border-radius: 0 !important; justify-content: center !important; align-items: center !important; background-color: var(--bg-color) !important; padding: 20px !important; overflow: auto !important; }
 
-        .game-nav-bar { width: 100%; max-width: 380px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .game-nav-bar { width: 100%; max-width: 380px; display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px; }
         .nav-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: #fff; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.2s; }
         .nav-btn:hover { background: rgba(255,255,255,0.25); }
 
@@ -429,7 +429,6 @@
     <!-- WORDSCAPE PRO CONTAINER -->
     <div id="wordscape-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('wordscape-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -463,7 +462,6 @@
     <!-- SPEED SOLITAIRE SPRINT CONTAINER -->
     <div id="solitaire-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('solitaire-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -494,7 +492,6 @@
     <!-- COIN SCATTER MULTIPLIER CARD GAME CONTAINER -->
     <div id="scattercard-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('scattercard-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -537,7 +534,6 @@
     <!-- BLACKJACK 21 PRO CONTAINER -->
     <div id="blackjack-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('blackjack-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -573,7 +569,6 @@
     <!-- HIGH-LOW PREDICTOR CONTAINER -->
     <div id="highlow-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('highlow-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -599,7 +594,6 @@
     <!-- Piano Tiles -->
     <div id="piano-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('piano-container')">⛶ Fullscreen</button>
         </div>
         <div style="width: 100%; max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
@@ -627,7 +621,6 @@
     <!-- Turbo Car Racing -->
     <div id="carracing-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('carracing-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -655,7 +648,6 @@
     <!-- Tic Tac Toe Pro -->
     <div id="tictactoe-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('tictactoe-container')">⛶ Fullscreen</button>
         </div>
         <div id="ttt-setup-screen" class="screen active">
@@ -710,7 +702,6 @@
     <!-- Fruit Master -->
     <div id="fruitslice-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('fruitslice-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -733,7 +724,6 @@
     <!-- Brick Breaker -->
     <div id="frostgame-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('frostgame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:360px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -756,7 +746,6 @@
     <!-- Number Master -->
     <div id="guessgame-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('guessgame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -782,7 +771,6 @@
     <!-- Whack-a-Mole Pro -->
     <div id="molegame-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('molegame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -809,7 +797,6 @@
     <!-- Snake Evolution -->
     <div id="snakegame-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('snakegame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:300px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -838,7 +825,6 @@
     <!-- Dino Runner Pro -->
     <div id="dinogame-container" class="game-container">
         <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
             <button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -864,7 +850,7 @@
 
     <!-- Stick Run (Endless Edition) -->
     <div id="stickman-container" class="game-container">
-        <div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠 HUB</button><button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶</button></div>
+        <div class="game-nav-bar"><button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶</button></div>
         <div class="sr-main-menu" id="sr-main-menu" style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:420px; margin:0 auto; background: linear-gradient(135deg, #111827, #0b0f19); border:2px solid var(--primary); border-radius:16px; padding:25px; box-shadow:0 10px 30px var(--accent-glow);">
             <div style="text-align:center; margin-bottom:20px;">
                 <div style="font-size: 36px; background: linear-gradient(135deg, #ef4444, #f59e0b); width: 64px; height: 64px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
@@ -1740,18 +1726,23 @@
         }
 
         // ===================================================
-        // COIN SCATTER MULTIPLIER (DICE ROLL & RANDOM SPINS)
+        // COIN SCATTER MULTIPLIER (DICE ROLL & TOTAL WINS TRACKER)
         // ===================================================
         let scatterBalance = 1000000;
         let scatterBet = 1000;
         let scatterSpinsRemaining = 0;
+        let totalScatterWins = 0;
         let isScatterActive = false;
 
         function initScatterGame() {
             let savedBal = localStorage.getItem('arcadehub_scatter_bal');
             if(savedBal !== null) scatterBalance = parseInt(savedBal);
+            let savedWins = localStorage.getItem('arcadehub_scatter_total_wins');
+            if(savedWins !== null) totalScatterWins = parseInt(savedWins);
+
             document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
             document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
+            document.getElementById('scatter-win').textContent = totalScatterWins.toLocaleString();
         }
 
         function setScatterBet(amt, btn) {
@@ -1860,17 +1851,18 @@
             if(roundWin > 0) {
                 audio.playSFX('win');
                 scatterBalance += roundWin;
-                document.getElementById('scatter-win').textContent = roundWin.toLocaleString();
+                totalScatterWins += roundWin;
+                document.getElementById('scatter-win').textContent = totalScatterWins.toLocaleString();
                 document.getElementById('scatter-status').textContent = `🎉 Win! Collected +${roundWin.toLocaleString()} coins!`;
                 ScoreManager.saveScore('scatter', roundWin);
             } else {
                 audio.playSFX('gameover');
-                document.getElementById('scatter-win').textContent = "0";
                 document.getElementById('scatter-status').textContent = "No multipliers this spin. Try again!";
             }
 
             document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
             localStorage.setItem('arcadehub_scatter_bal', scatterBalance);
+            localStorage.setItem('arcadehub_scatter_total_wins', totalScatterWins);
 
             if(scatterSpinsRemaining > 0) {
                 document.getElementById('scatter-spin-btn').textContent = `SPIN AGAIN (${scatterSpinsRemaining} left)`;
