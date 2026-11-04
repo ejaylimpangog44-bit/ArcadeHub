@@ -329,12 +329,13 @@
     </header>
 
     <div id="main-menu" class="view active">
+        <!-- FEATURED GAME SECTION -->
         <div class="category-section">
-            <div class="category-title">Action & Arcade</div>
+            <div class="category-title">Featured game</div>
             <div class="game-grid">
-                <div class="game-card featured" onclick="openGame('piano-container')">
-                    <span class="game-icon">🎹</span>
-                    <span class="game-name">Piano Tiles Pro (Play Now)</span>
+                <div class="game-card featured" onclick="openGame('stickman-container')">
+                    <span class="game-icon">🏃</span>
+                    <span class="game-name">Stickman Rush (Play Now)</span>
                 </div>
             </div>
         </div>
@@ -356,13 +357,13 @@
         <div class="category-section">
             <div class="category-title">Action & Arcade</div>
             <div class="game-grid">
+                <div class="game-card" onclick="openGame('piano-container')">
+                    <span class="game-icon">🎹</span>
+                    <span class="game-name">Piano Tiles Pro</span>
+                </div>
                 <div class="game-card" onclick="openGame('carracing-container')">
                     <span class="game-icon">🏎️</span>
                     <span class="game-name">Turbo Car Racing</span>
-                </div>
-                <div class="game-card" onclick="openGame('stickman-container')">
-                    <span class="game-icon">🏃</span>
-                    <span class="game-name">Stickman Rush</span>
                 </div>
                 <div class="game-card" onclick="openGame('pacman-container')">
                     <span class="game-icon">🟡</span>
@@ -435,7 +436,7 @@
         </div>
     </div>
 
-    <!-- Turbo Car Racing (Fixed Collision, 5s Shield Timer, Recharging Booster) -->
+    <!-- Turbo Car Racing (Fixed Collision, 5s Shield Timer, Recharging Boost) -->
     <div id="carracing-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -443,7 +444,7 @@
         </div>
         <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
             <div class="score-board" style="margin-top:4px; width:100%;">
-                <div class="score-box">Score <span id="car-score">0</span></div>
+                <div class="score-box">Coins 🪙 <span id="car-coins">0</span></div>
                 <div class="score-box">Shield 🛡️ <span id="car-shield-time">OFF</span></div>
                 <div class="score-box">High 🏆 <span id="car-high">0</span></div>
             </div>
@@ -1114,7 +1115,7 @@
         }
 
         // ===================================================
-        // 1. TURBO CAR RACING ENGINE (FIXED COLLISION, 5S SHIELD, RECHARGE BOOST)
+        // 1. TURBO CAR RACING ENGINE (FIXED COIN HUD & CRASH)
         // ===================================================
         let carCanvas, carCtx, carRunning = false, carAnimId, carScore = 0, carCoinsCollected = 0;
         let playerCar = { lane: 1, x: 0, y: 280, width: 34, height: 56, shieldTimer: 0 };
@@ -1141,7 +1142,7 @@
             roadOffset = 0;
             carBoostActive = 0;
             carBoostCharge = 100;
-            document.getElementById('car-score').textContent = 0;
+            document.getElementById('car-coins').textContent = 0;
             document.getElementById('car-shield-time').textContent = 'OFF';
             document.getElementById('car-high').textContent = ScoreManager.getStats('carracing').highScore;
             cancelAnimationFrame(carAnimId);
@@ -1189,7 +1190,6 @@
 
             let speedMult = carBoostActive > 0 ? 2.2 : 1.0;
             carScore += Math.floor(1 * speedMult);
-            document.getElementById('car-score').textContent = Math.floor(carScore / 5);
             roadOffset = (roadOffset + (6 * speedMult)) % 40;
 
             // Manage 5-second Shield Timer (60 frames per second approx -> 300 frames)
