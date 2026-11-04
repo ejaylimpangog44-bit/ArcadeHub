@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arcade Hub - Ultimate Full Version Edition</title>
+    <title>Arcade Hub</title>
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -572,7 +572,7 @@
         </div>
     </div>
 
-    <!-- Brick Breaker (Original Full Version Maintained) -->
+    <!-- Brick Breaker -->
     <div id="frostgame-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -929,7 +929,7 @@
 
     <script>
         // ===================================================
-        // HUB CORE & SYSTEM AUDIO
+        // HUB CORE & NAVIGATION SYSTEM
         // ===================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
@@ -1011,6 +1011,42 @@
             else { if (document.exitFullscreen) document.exitFullscreen(); }
         }
 
+        // ===================================================
+        // BULLETPROOF BACK TO HUB CLEANUP FUNCTION
+        // ===================================================
+        function backToHub() {
+            audio.playSFX('click');
+            if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+            
+            // Clear all possible game intervals and loops
+            if (typeof snakeInterval !== 'undefined') clearInterval(snakeInterval);
+            if (typeof dinoInterval !== 'undefined') clearInterval(dinoInterval);
+            if (typeof moleTimer !== 'undefined') clearInterval(moleTimer);
+            if (typeof reactionTimeout !== 'undefined') clearTimeout(reactionTimeout);
+            
+            // Cancel all animation frames for canvas-based games
+            if (typeof pacAnimId !== 'undefined') cancelAnimationFrame(pacAnimId);
+            if (typeof frostAnimId !== 'undefined') cancelAnimationFrame(frostAnimId);
+            if (typeof fruitAnimId !== 'undefined') cancelAnimationFrame(fruitAnimId);
+            if (typeof pianoAnimId !== 'undefined') cancelAnimationFrame(pianoAnimId);
+            if (typeof carAnimId !== 'undefined') cancelAnimationFrame(carAnimId);
+            if (typeof dinoAnimId !== 'undefined') cancelAnimationFrame(dinoAnimId);
+            if (typeof sr_animationId !== 'undefined') cancelAnimationFrame(sr_animationId);
+
+            // Stop flags
+            if (typeof pacRunning !== 'undefined') pacRunning = false;
+            if (typeof frostRunning !== 'undefined') frostRunning = false;
+            if (typeof fruitRunning !== 'undefined') fruitRunning = false;
+            if (typeof pianoRunning !== 'undefined') pianoRunning = false;
+            if (typeof carRunning !== 'undefined') carRunning = false;
+            if (typeof isDinoRunning !== 'undefined') isDinoRunning = false;
+            if (typeof sr_state !== 'undefined') { sr_state = 'stopped'; sr_stopMusic(); }
+
+            // Hide all containers and show main menu
+            document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
+            document.getElementById('main-menu').classList.add('active');
+        }
+
         window.onload = function() {
             generateQRCode();
             initSnakeCanvas(); initDinoCanvas(); initFrostCanvas(); initPacManCanvas(); initFruitCanvas(); initPianoCanvas(); initCarCanvas();
@@ -1078,25 +1114,6 @@
             }, 50);
         }
 
-        function backToHub() {
-            audio.playSFX('click');
-            if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-            if (snakeInterval) clearInterval(snakeInterval);
-            if (dinoInterval) clearInterval(dinoInterval);
-            if (moleTimer) clearInterval(moleTimer);
-            if (reactionTimeout) clearTimeout(reactionTimeout);
-            if (pacRunning) { pacRunning = false; cancelAnimationFrame(pacAnimId); }
-            if (frostRunning) { frostRunning = false; cancelAnimationFrame(frostAnimId); }
-            if (fruitRunning) { fruitRunning = false; cancelAnimationFrame(fruitAnimId); }
-            if (pianoRunning) { pianoRunning = false; cancelAnimationFrame(pianoAnimId); }
-            if (carRunning) { carRunning = false; cancelAnimationFrame(carAnimId); }
-            if (sr_state === 'playing' || sr_state === 'paused') {
-                sr_state = 'stopped'; sr_stopMusic(); cancelAnimationFrame(sr_animationId);
-            }
-            document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
-            document.getElementById('main-menu').classList.add('active');
-        }
-
         function generateQRCode() {
             const targetUrl = window.location.href || "https://arcadehubgames-july12.vercel.app/";
             document.getElementById('current-url-text').textContent = targetUrl;
@@ -1147,13 +1164,12 @@
         function triggerCarBoost() {
             if(!carRunning || carBoostActive > 0) return;
             audio.playSFX('powerup');
-            carBoostActive = 120; // 2 seconds boost
+            carBoostActive = 120;
         }
 
         let carSpawnTimer = 0;
         function carLoop() {
             if(!carRunning) return;
-            
             let speedMult = carBoostActive > 0 ? 2.2 : 1.0;
             if(carBoostActive > 0) carBoostActive--;
 
@@ -1181,7 +1197,6 @@
 
             playerCar.x = lanes[playerCar.lane] - playerCar.width / 2;
 
-            // Collectibles check
             carCollectibles.forEach(c => {
                 let cX = lanes[c.lane];
                 if(playerCar.lane === c.lane && playerCar.y < c.y + 20 && playerCar.y + playerCar.height > c.y) {
@@ -1200,11 +1215,9 @@
                 }
             });
 
-            // Collision check
             trafficCars.forEach(tc => {
-                if(playerCar.lane === tc.lane && playerCar.y < tc.y + playerCar.height && playerCar.y + playerCar.height > tc.y) {
+                if(playerCar.lane === tc.lane && playerCar.y < tc.y + tc.height && playerCar.y + playerCar.height > tc.y) {
                     if(carBoostActive > 0) {
-                        // Blast through cars during boost!
                         tc.y = 999;
                         audio.playSFX('score');
                         carScore += 100;
@@ -1224,26 +1237,20 @@
                 }
             });
 
-            // Render Road
             carCtx.fillStyle = '#1e293b';
             carCtx.fillRect(0, 0, 280, 360);
-
-            // Grass sides
             carCtx.fillStyle = carBoostActive > 0 ? '#0284c7' : '#0f172a';
             carCtx.fillRect(0, 0, 30, 360);
             carCtx.fillRect(250, 0, 30, 360);
 
-            // Road dividers
             carCtx.strokeStyle = '#ffffff';
             carCtx.lineWidth = 3;
             carCtx.setLineDash([20, 20]);
             carCtx.lineDashOffset = -roadOffset;
-
             carCtx.beginPath(); carCtx.moveTo(105, 0); carCtx.lineTo(105, 360); carCtx.stroke();
             carCtx.beginPath(); carCtx.moveTo(175, 0); carCtx.lineTo(175, 360); carCtx.stroke();
             carCtx.setLineDash([]);
 
-            // Draw Collectibles
             carCollectibles.forEach(c => {
                 let cx = lanes[c.lane];
                 if(c.type === 'coin') {
@@ -1258,7 +1265,6 @@
                 }
             });
 
-            // Draw Traffic Cars
             trafficCars.forEach(tc => {
                 let tx = lanes[tc.lane] - playerCar.width / 2;
                 carCtx.fillStyle = tc.color;
@@ -1267,7 +1273,6 @@
                 carCtx.fillStyle = '#facc15'; carCtx.fillRect(tx + 4, tc.y + tc.height - 4, 6, 3); carCtx.fillRect(tx + playerCar.width - 10, tc.y + tc.height - 4, 6, 3);
             });
 
-            // Draw Player Car
             carCtx.fillStyle = carBoostActive > 0 ? '#38bdf8' : 'var(--primary, #8b5cf6)';
             carCtx.beginPath(); carCtx.roundRect(playerCar.x, playerCar.y, playerCar.width, playerCar.height, 6); carCtx.fill();
             carCtx.fillStyle = '#38bdf8'; carCtx.fillRect(playerCar.x + 6, playerCar.y + 12, playerCar.width - 12, 14);
@@ -1365,7 +1370,7 @@
         }
 
         // ===================================================
-        // 3. FULL VERSION ENGINE: TIC-TAC-TOE PRO (3x3 & 4x4 + MINIMAX AI)
+        // 3. FULL VERSION ENGINE: TIC-TAC-TOE PRO
         // ===================================================
         let tttBoard = [], tttGridSize = 3;
         let currentPlayer = 'X', isGameActive = true, selectedMode = 'pvp', selectedDiff = 'easy', gameMode = 'pvp', aiDifficulty = 'easy';
@@ -1401,7 +1406,6 @@
 
         function checkWinCondition(board, size) {
             let winLines = [];
-            // Rows & Cols
             for(let i=0; i<size; i++) {
                 let row = [], col = [];
                 for(let j=0; j<size; j++) {
@@ -1410,7 +1414,6 @@
                 }
                 winLines.push(row, col);
             }
-            // Diagonals
             let d1 = [], d2 = [];
             for(let i=0; i<size; i++) {
                 d1.push(i*size + i);
@@ -1463,7 +1466,6 @@
             let targetIdx = empty[Math.floor(Math.random()*empty.length)];
             
             if(aiDifficulty === 'hard' && tttGridSize === 3) {
-                // Optimal Minimax Decision for Hard Mode
                 let bestScore = -Infinity;
                 for(let i of empty) {
                     tttBoard[i] = 'O';
@@ -1561,25 +1563,21 @@
                     if(g.x<0)g.x=pacGridSize-1;if(g.x>=pacGridSize)g.x=0;if(g.y<0)g.y=pacGridSize-1;if(g.y>=pacGridSize)g.y=0;
                 });
 
-                // Eat Dots
                 pacDots=pacDots.filter(d=>{if(d.x===pacman.x&&d.y===pacman.y){audio.playSFX('score');pacScore+=10;document.getElementById('pac-score').textContent=pacScore;return false;}return true;});
                 
-                // Eat Power Pellets
                 powerPellets=powerPellets.filter(p=>{
                     if(p.x===pacman.x&&p.y===pacman.y){
                         audio.playSFX('powerup');
                         pacScore+=50;
-                        pacPowerTime=40; // Scared ghosts
+                        pacPowerTime=40;
                         return false;
                     }
                     return true;
                 });
 
-                // Ghost Collisions
                 ghosts.forEach(g=>{
                     if(g.x===pacman.x&&g.y===pacman.y){
                         if(pacPowerTime > 0) {
-                            // Eat ghost
                             audio.playSFX('win');
                             pacScore+=200;
                             g.x = 6; g.y = 6;
@@ -1607,19 +1605,15 @@
                 }
             }
 
-            // Render
             pacCtx.fillStyle='#0b0f19'; pacCtx.fillRect(0,0,pacCanvas.width,pacCanvas.height); 
             let tileSize=pacCanvas.width/pacGridSize;
             
-            // Dots
             pacCtx.fillStyle='#fbbf24'; 
             pacDots.forEach(d=>{pacCtx.beginPath();pacCtx.arc(d.x*tileSize+tileSize/2,d.y*tileSize+tileSize/2,3,0,Math.PI*2);pacCtx.fill();});
             
-            // Power Pellets
             pacCtx.fillStyle='#38bdf8'; 
             powerPellets.forEach(p=>{pacCtx.beginPath();pacCtx.arc(p.x*tileSize+tileSize/2,p.y*tileSize+tileSize/2,7,0,Math.PI*2);pacCtx.fill();});
 
-            // Ghosts
             ghosts.forEach(g=>{
                 pacCtx.fillStyle = pacPowerTime > 0 ? '#3b82f6' : g.color;
                 pacCtx.beginPath(); 
@@ -1630,7 +1624,6 @@
                 pacCtx.fill();
             });
 
-            // Pac-Man
             pacCtx.fillStyle='#eab308'; pacCtx.beginPath(); 
             let x=pacman.x*tileSize+tileSize/2,y=pacman.y*tileSize+tileSize/2,radius=tileSize/2-2;
             let startAngle=.2,endAngle=1.8; 
@@ -1668,7 +1661,7 @@
                             if(fruitLives<=0) endFruitGame();
                         } else if(f.isFreeze) {
                             audio.playSFX('powerup');
-                            freezeTimer = 90; // 3 sec freeze
+                            freezeTimer = 90;
                         } else {
                             slicedThisSwipe++;
                             audio.playSFX('score');
@@ -1765,7 +1758,6 @@
                     rpsStage=1;
                 }
             } else {
-                // vs AI Mode
                 const options = ['rock', 'paper', 'scissors'];
                 let aiChoice = options[Math.floor(Math.random() * options.length)];
                 resolveRPSRound(choice, aiChoice);
@@ -1865,7 +1857,7 @@
         }
 
         // ===================================================
-        // 8. FULL VERSION ENGINE: WHACK-A-MOLE PRO (9 HOLES + TIMED)
+        // 8. FULL VERSION ENGINE: WHACK-A-MOLE PRO
         // ===================================================
         let moleActiveIdx = -1, moleScore = 0, moleTimer = null, isMolePlaying = false, moleTimeLeft = 20;
 
@@ -2027,16 +2019,10 @@
 
         function drawRealSnake() {
             snakeCtx.fillStyle='#0a0f1d'; snakeCtx.fillRect(0,0,260,260); 
-            
-            // Food
             snakeCtx.fillStyle='#ec4899'; snakeCtx.beginPath(); snakeCtx.arc(snakeFood.x*10+5,snakeFood.y*10+5,4.5,0,Math.PI*2); snakeCtx.fill();
-            
-            // Golden Power Food
             if(snakePowerFood) {
                 snakeCtx.fillStyle='#facc15'; snakeCtx.beginPath(); snakeCtx.arc(snakePowerFood.x*10+5,snakePowerFood.y*10+5,6,0,Math.PI*2); snakeCtx.fill();
             }
-
-            // Snake
             snake.forEach((part,idx)=>{
                 snakeCtx.fillStyle=idx===0?'#10b981':'#059669';let sz=idx===0?9:8;let offset=idx===0?.5:1;
                 snakeCtx.beginPath();snakeCtx.roundRect(part.x*10+offset,part.y*10+offset,sz,sz,3);snakeCtx.fill();
@@ -2044,43 +2030,70 @@
         }
 
         // ===================================================
-        // 11. FULL VERSION ENGINE: DINO RUNNER PRO
+        // 11. FULL VERSION ENGINE: DINO RUNNER PRO (REPLACED & FIXED)
         // ===================================================
-        function initDinoCanvas() { dinoCanvas=document.getElementById('dino-canvas'); if(dinoCanvas)dinoCtx=dinoCanvas.getContext('2d'); }
+        let dinoCanvas, dinoCtx, dinoInterval = null, dinoAnimId, dinoScore = 0, dinoFrame = 0, dinoSpawnCounter = 0, isDinoNight = false, isDinoRunning = false;
+        let dino = { x: 45, y: 130, width: 28, height: 32, isDucking: false, vy: 0 };
+        let dinoObstacles = [];
+
+        function initDinoCanvas() { 
+            dinoCanvas = document.getElementById('dino-canvas'); 
+            if (dinoCanvas) dinoCtx = dinoCanvas.getContext('2d'); 
+        }
+
         function startDinoGame() {
-            audio.playSFX('click'); document.getElementById('dino-gameover-overlay').style.display='none'; initDinoCanvas(); if(!dinoCtx)return; if(dinoInterval)clearInterval(dinoInterval);
-            dino={x:45,y:130,width:28,height:32, isDucking: false}; dinoObstacles=[]; dinoScore=0; dinoFrame=0; dinoSpawnCounter=0; isDinoNight=false; isDinoRunning=true;
-            document.getElementById('dino-score').textContent=0; document.getElementById('dino-birds-dodged').textContent=0;
-            dinoInterval=setInterval(updateDino,22);
+            audio.playSFX('click'); 
+            document.getElementById('dino-gameover-overlay').style.display = 'none'; 
+            initDinoCanvas(); 
+            if (!dinoCtx) return; 
+            
+            if (dinoInterval) clearInterval(dinoInterval);
+            cancelAnimationFrame(dinoAnimId);
+
+            dino = { x: 45, y: 130, width: 28, height: 32, isDucking: false, vy: 0 }; 
+            dinoObstacles = []; 
+            dinoScore = 0; 
+            dinoFrame = 0; 
+            dinoSpawnCounter = 0; 
+            isDinoNight = false; 
+            isDinoRunning = true;
+
+            document.getElementById('dino-score').textContent = 0; 
+            document.getElementById('dino-birds-dodged').textContent = 0;
+            document.getElementById('dino-high').textContent = ScoreManager.getStats('dino').highScore;
+            
+            dinoLoop();
         }
 
         function dinoJump() {
-            if(!isDinoRunning || dino.y < 130) return;
+            if (!isDinoRunning || dino.y < 130) return;
             audio.playSFX('move');
             dino.vy = -10.5;
         }
+
         function dinoDuck() {
-            if(!isDinoRunning) return;
+            if (!isDinoRunning) return;
             dino.isDucking = true;
             setTimeout(() => { dino.isDucking = false; }, 600);
         }
 
-        let birdsDodged = 0;
-        function updateDino() {
-            dinoFrame++; dinoSpawnCounter++;
+        function dinoLoop() {
+            if (!isDinoRunning) return;
             
-            // Physics
-            if(dino.vy !== undefined) {
+            dinoFrame++; 
+            dinoSpawnCounter++;
+            
+            if (dino.vy !== undefined) {
                 dino.y += dino.vy;
                 dino.vy += 0.55;
-                if(dino.y >= 130) { dino.y = 130; dino.vy = 0; }
+                if (dino.y >= 130) { dino.y = 130; dino.vy = 0; }
             }
 
-            if(dinoSpawnCounter>=95){
-                dinoSpawnCounter=0;
+            if (dinoSpawnCounter >= 95) {
+                dinoSpawnCounter = 0;
                 let isBird = Math.random() < 0.35 && dinoScore > 200;
                 dinoObstacles.push({
-                    x:320,
+                    x: 320,
                     y: isBird ? 100 : 130,
                     width: isBird ? 24 : 18,
                     height: isBird ? 18 : 32,
@@ -2088,54 +2101,67 @@
                 });
             }
 
-            dinoObstacles.forEach(o=>{ o.x -= 4.8; });
-            dinoObstacles=dinoObstacles.filter(o=>o.x>-40); 
+            dinoObstacles.forEach(o => { o.x -= 4.8; });
+            dinoObstacles = dinoObstacles.filter(o => o.x > -40); 
+            
             dinoScore++; 
-            document.getElementById('dino-score').textContent=dinoScore; 
-            isDinoNight=Math.floor(dinoScore/400)%2===1;
+            document.getElementById('dino-score').textContent = dinoScore; 
+            isDinoNight = Math.floor(dinoScore / 400) % 2 === 1;
 
-            // Collision Check
-            dinoObstacles.forEach(o=>{
+            dinoObstacles.forEach(o => {
                 let curDinoHeight = dino.isDucking ? 18 : dino.height;
                 let curDinoY = dino.isDucking ? dino.y + 14 : dino.y;
-                if(dino.x < o.x + o.width && dino.x + dino.width > o.x && curDinoY < o.y + o.height && curDinoY + curDinoHeight > o.y) {
+                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && curDinoY < o.y + o.height && curDinoY + curDinoHeight > o.y) {
                     endDinoGame();
                 }
             }); 
+
             drawDino();
+            
+            if (isDinoRunning) {
+                dinoAnimId = requestAnimationFrame(dinoLoop);
+            }
         }
+
         function endDinoGame() { 
             audio.playSFX('gameover'); 
-            clearInterval(dinoInterval); 
-            isDinoRunning=false; 
+            isDinoRunning = false; 
+            cancelAnimationFrame(dinoAnimId);
             document.getElementById('dino-final-msg').textContent = `Final Distance Score: ${dinoScore}`;
-            document.getElementById('dino-gameover-overlay').style.display='flex'; 
-            let stats=ScoreManager.saveScore('dino',dinoScore); 
-            document.getElementById('dino-high').textContent=stats.highScore; 
+            document.getElementById('dino-gameover-overlay').style.display = 'flex'; 
+            let stats = ScoreManager.saveScore('dino', dinoScore); 
+            document.getElementById('dino-high').textContent = stats.highScore; 
         }
+
         function drawDino() {
-            dinoCtx.fillStyle=isDinoNight?'#020617':'#111827'; dinoCtx.fillRect(0,0,320,180); 
-            dinoCtx.strokeStyle=isDinoNight?'#38bdf8':'#64748b'; dinoCtx.lineWidth=2; dinoCtx.beginPath(); dinoCtx.moveTo(0,162); dinoCtx.lineTo(320,162); dinoCtx.stroke();
+            dinoCtx.fillStyle = isDinoNight ? '#020617' : '#111827'; 
+            dinoCtx.fillRect(0, 0, 320, 180); 
             
-            // Draw Dino
-            dinoCtx.fillStyle=isDinoNight?'#38bdf8':'#a855f7'; 
+            dinoCtx.strokeStyle = isDinoNight ? '#38bdf8' : '#64748b'; 
+            dinoCtx.lineWidth = 2; 
+            dinoCtx.beginPath(); 
+            dinoCtx.moveTo(0, 162); 
+            dinoCtx.lineTo(320, 162); 
+            dinoCtx.stroke();
+            
+            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7'; 
             let dHeight = dino.isDucking ? 18 : dino.height;
             let dY = dino.isDucking ? dino.y + 14 : dino.y;
             dinoCtx.fillRect(dino.x, dY, dino.width, dHeight);
 
-            // Obstacles
-            dinoObstacles.forEach(o=>{
-                if(o.isBird) {
-                    dinoCtx.fillStyle='#ef4444';
-                    dinoCtx.beginPath(); dinoCtx.arc(o.x+10, o.y+9, 8, 0, Math.PI*2); dinoCtx.fill();
+            dinoObstacles.forEach(o => {
+                if (o.isBird) {
+                    dinoCtx.fillStyle = '#ef4444';
+                    dinoCtx.beginPath(); 
+                    dinoCtx.arc(o.x + 10, o.y + 9, 8, 0, Math.PI * 2); 
+                    dinoCtx.fill();
                 } else {
-                    dinoCtx.fillStyle='#22c55e';
-                    dinoCtx.fillRect(o.x,o.y,o.width,o.height);
+                    dinoCtx.fillStyle = '#22c55e';
+                    dinoCtx.fillRect(o.x, o.y, o.width, o.height);
                 }
             });
         }
 
-        // Key listeners for Dino
         window.addEventListener('keydown', e => {
             const c = document.getElementById('dinogame-container');
             if(!c || !c.classList.contains('active')) return;
@@ -2176,14 +2202,6 @@
             if(frostBalls.length===0){frostLives--;audio.playSFX('gameover');updateFrostHUD();if(frostLives<=0){frostRunning=false;document.getElementById('final-frost-score').textContent=`Final Score: ${frostScore}`;document.getElementById('frost-gameover-overlay').style.display='flex';ScoreManager.saveScore('brickbreaker',frostScore);frostCtx.restore();return;}else initFrostBalls();}
             frostCtx.restore(); frostAnimId=requestAnimationFrame(frostLoop);
         }
-
-        // Robot Eye Movement
-        document.addEventListener('mousemove', (e) => {
-            const lp=document.getElementById('left-pupil'),rp=document.getElementById('right-pupil'),hd=document.querySelector('.robot-head'),rc=document.getElementById('robot-companion');
-            if(!hd||!lp||!rp||!rc.classList.contains('visible'))return;
-            const hr=hd.getBoundingClientRect(),angle=Math.atan2(e.clientY-(hr.top+hr.height/2),e.clientX-(hr.left+hr.width/2)),mx=Math.cos(angle)*3,my=Math.sin(angle)*3;
-            lp.style.transform=`translate(${mx}px,${my}px)`; rp.style.transform=`translate(${mx}px,${my}px)`;
-        });
 
         // ===================================================
         // 13. STICKMAN RUSH ENGINE (MAINTAINED FULL VERSION)
