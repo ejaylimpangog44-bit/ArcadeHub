@@ -374,6 +374,10 @@
                     <span class="game-icon">🔢</span>
                     <span class="game-name">Number Master</span>
                 </div>
+                <div class="game-card" onclick="openGame('wordscape-container')">
+                    <span class="game-icon">📝</span>
+                    <span class="game-name">Wordscape Pro</span>
+                </div>
             </div>
         </div>
 
@@ -430,6 +434,41 @@
         </div>
     </div>
 
+    <!-- WORDSCAPE PRO CONTAINER -->
+    <div id="wordscape-container" class="game-container">
+        <div class="game-nav-bar">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('wordscape-container')">⛶ Fullscreen</button>
+        </div>
+        <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+            <div class="score-board" style="margin-top:4px; width:100%;">
+                <div class="score-box">Score 🏆 <span id="ws-score">0</span></div>
+                <div class="score-box">Level 🧩 <span id="ws-level">1</span></div>
+                <div class="score-box">Found <span id="ws-found">0/0</span></div>
+            </div>
+
+            <div id="ws-word-board" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:12px; min-height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
+                <!-- Crossword slots -->
+            </div>
+
+            <div id="ws-current-word" style="font-size:1.4rem; font-weight:bold; letter-spacing:4px; color:var(--primary); margin-bottom:12px; min-height:35px; background:rgba(17,24,39,0.8); border:1px solid var(--border); border-radius:8px; width:100%; display:flex; align-items:center; justify-content:center;">
+                _ _ _ _
+            </div>
+
+            <div style="position:relative; width:180px; height:180px; margin:0 auto 16px auto;" id="ws-letter-wheel">
+                <!-- Circular letter buttons -->
+            </div>
+
+            <p id="ws-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-main);">Tap letters to form valid words!</p>
+
+            <div style="display:flex; gap:8px; width:100%;">
+                <button class="action-btn" style="flex:1; background:#334155;" onclick="shuffleWordLetters()">SHUFFLE 🔀</button>
+                <button class="action-btn" style="flex:1; background:#b91c1c;" onclick="clearWordSelection()">CLEAR ❌</button>
+                <button class="action-btn" style="flex:1;" onclick="submitWordscapeGuess()">SUBMIT ✅</button>
+            </div>
+        </div>
+    </div>
+
     <!-- SPEED SOLITAIRE SPRINT CONTAINER -->
     <div id="solitaire-container" class="game-container">
         <div class="game-nav-bar">
@@ -481,7 +520,6 @@
                 <button class="opt-btn" id="bet-btn-3" onclick="setScatterBet(10000, this)">Bet 10K</button>
             </div>
 
-            <!-- Card Scatter 3x3 Grid Display -->
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; width:100%; margin-bottom:12px;" id="scatter-card-grid">
                 <div class="ttt-cell" id="sc-0" style="font-size:1.6rem; background:#111827;">🎴</div>
                 <div class="ttt-cell" id="sc-1" style="font-size:1.6rem; background:#111827;">🎴</div>
@@ -562,7 +600,7 @@
         </div>
     </div>
 
-    <!-- Piano Tiles (White Theme Tiles) -->
+    <!-- Piano Tiles -->
     <div id="piano-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1270,6 +1308,7 @@
                     document.getElementById('bj-balance').textContent = bjBalance.toLocaleString();
                 }
                 if (containerId === 'highlow-container') initHighLowGame();
+                if (containerId === 'wordscape-container') startWordscapeGame();
             }, 50);
         }
 
@@ -1277,6 +1316,159 @@
             const targetUrl = window.location.href || "https://arcadehubgames-july12.vercel.app/";
             document.getElementById('current-url-text').textContent = targetUrl;
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
+        }
+
+        // ===================================================
+        // WORDSCAPE PRO ENGINE
+        // ===================================================
+        const wordscapeLevels = [
+            { letters: ['C', 'A', 'T', 'S'], words: ['CATS', 'ACTS', 'CAST', 'SAT', 'CAT'] },
+            { letters: ['P', 'L', 'A', 'Y'], words: ['PLAY', 'PAL', 'PAY', 'LAY'] },
+            { letters: ['B', 'A', 'R', 'K'], words: ['BARK', 'BAR', 'BRA', 'ARK'] },
+            { letters: ['S', 'T', 'A', 'R'], words: ['STAR', 'RATS', 'ARTS', 'TAR', 'RAT', 'SAT'] }
+        ];
+        let wsLevelIdx = 0, wsScore = 0, wsFoundWords = [], wsCurrentSelection = '';
+
+        function startWordscapeGame() {
+            audio.playSFX('click');
+            wsLevelIdx = 0;
+            wsScore = 0;
+            loadWordscapeLevel();
+        }
+
+        function loadWordscapeLevel() {
+            if(wsLevelIdx >= wordscapeLevels.length) wsLevelIdx = 0;
+            let lvl = wordscapeLevels[wsLevelIdx];
+            wsFoundWords = [];
+            wsCurrentSelection = '';
+            document.getElementById('ws-score').textContent = wsScore;
+            document.getElementById('ws-level').textContent = wsLevelIdx + 1;
+            document.getElementById('ws-found').textContent = `0/${lvl.words.length}`;
+            document.getElementById('ws-current-word').textContent = '_ _ _ _';
+            document.getElementById('ws-status').textContent = "Form words using the letter wheel!";
+
+            // Render crossword board slots
+            let boardEl = document.getElementById('ws-word-board');
+            boardEl.innerHTML = '';
+            lvl.words.forEach((w, wIdx) => {
+                let row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.gap = '6px';
+                for(let i=0; i<w.length; i++) {
+                    let cell = document.createElement('div');
+                    cell.className = 'ttt-cell';
+                    cell.style.width = '32px';
+                    cell.style.height = '32px';
+                    cell.style.fontSize = '1rem';
+                    cell.style.background = '#0b0f19';
+                    cell.id = `ws-slot-${wIdx}-${i}`;
+                    cell.textContent = '_';
+                    row.appendChild(cell);
+                }
+                boardEl.appendChild(row);
+            });
+
+            renderWordWheel();
+        }
+
+        function renderWordWheel() {
+            let lvl = wordscapeLevels[wsLevelIdx];
+            let wheelEl = document.getElementById('ws-letter-wheel');
+            wheelEl.innerHTML = '';
+            let letters = [...lvl.letters];
+
+            letters.forEach((char, idx) => {
+                let angle = (idx / letters.length) * Math.PI * 2 - Math.PI / 2;
+                let x = 70 + Math.cos(angle) * 55;
+                let y = 70 + Math.sin(angle) * 55;
+
+                let btn = document.createElement('button');
+                btn.className = 'action-btn';
+                btn.style.position = 'absolute';
+                btn.style.left = `${x}px`;
+                btn.style.top = `${y}px`;
+                btn.style.width = '42px';
+                btn.style.height = '42px';
+                btn.style.borderRadius = '50%';
+                btn.style.padding = '0';
+                btn.style.fontSize = '1.1rem';
+                btn.style.fontWeight = 'bold';
+                btn.textContent = char;
+                btn.onclick = () => selectWordLetter(char, btn);
+                wheelEl.appendChild(btn);
+            });
+        }
+
+        function selectWordLetter(char, btn) {
+            audio.playSFX('move');
+            wsCurrentSelection += char;
+            btn.style.opacity = '0.5';
+            btn.disabled = true;
+            document.getElementById('ws-current-word').textContent = wsCurrentSelection.split('').join(' ');
+        }
+
+        function shuffleWordLetters() {
+            audio.playSFX('click');
+            let wheelEl = document.getElementById('ws-letter-wheel');
+            let btns = Array.from(wheelEl.children);
+            btns.sort(() => Math.random() - 0.5);
+            btns.forEach((btn, idx) => {
+                let angle = (idx / btns.length) * Math.PI * 2 - Math.PI / 2;
+                btn.style.left = `${70 + Math.cos(angle) * 55}px`;
+                btn.style.top = `${70 + Math.sin(angle) * 55}px`;
+            });
+        }
+
+        function clearWordSelection() {
+            audio.playSFX('click');
+            wsCurrentSelection = '';
+            document.getElementById('ws-current-word').textContent = '_ _ _ _';
+            let wheelEl = document.getElementById('ws-letter-wheel');
+            Array.from(wheelEl.children).forEach(btn => {
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            });
+        }
+
+        function submitWordscapeGuess() {
+            let lvl = wordscapeLevels[wsLevelIdx];
+            if(lvl.words.includes(wsCurrentSelection) && !wsFoundWords.includes(wsCurrentSelection)) {
+                audio.playSFX('win');
+                wsFoundWords.push(wsCurrentSelection);
+                wsScore += wsCurrentSelection.length * 50;
+                document.getElementById('ws-score').textContent = wsScore;
+                document.getElementById('ws-found').textContent = `${wsFoundWords.length}/${lvl.words.length}`;
+                document.getElementById('ws-status').textContent = `🎉 Found word: ${wsCurrentSelection}!`;
+
+                // Reveal letters on crossword slots
+                lvl.words.forEach((w, wIdx) => {
+                    if(w === wsCurrentSelection) {
+                        for(let i=0; i<w.length; i++) {
+                            let slot = document.getElementById(`ws-slot-${wIdx}-${i}`);
+                            if(slot) {
+                                slot.textContent = w[i];
+                                slot.style.background = 'var(--primary)';
+                                slot.style.color = '#fff';
+                            }
+                        }
+                    }
+                });
+
+                clearWordSelection();
+
+                if(wsFoundWords.length === lvl.words.length) {
+                    audio.playSFX('win');
+                    document.getElementById('ws-status').textContent = "🌟 Level Complete! Loading next level...";
+                    setTimeout(() => {
+                        wsLevelIdx++;
+                        loadWordscapeLevel();
+                    }, 1500);
+                }
+            } else {
+                audio.playSFX('gameover');
+                document.getElementById('ws-status').textContent = wsFoundWords.includes(wsCurrentSelection) ? "Already found that word!" : "Not in word list!";
+                clearWordSelection();
+            }
         }
 
         // ===================================================
@@ -1347,7 +1539,6 @@
             let card = solTableauCards[index];
             let diff = Math.abs(card.val - solFoundationCard.val);
 
-            // Allow wrapping or exact ±1 match
             if(diff === 1 || diff === 12) {
                 audio.playSFX('score');
                 solScore += 100;
@@ -1415,7 +1606,6 @@
             let rollingSymbols = ['🎴', '♠️', '♥️', '♦️', '♣️', '🪙', 'x2', 'x3', 'x5', 'x10'];
             let rollIntervals = [];
 
-            // Real rolling effect per cell with sequential lock-in
             for(let i=0; i<9; i++) {
                 rollIntervals[i] = setInterval(() => {
                     let randSym = rollingSymbols[Math.floor(Math.random() * rollingSymbols.length)];
@@ -1429,7 +1619,6 @@
                 }, 75);
             }
 
-            // Stop rolling sequentially from top-left to bottom-right (reels locking in)
             for(let i=0; i<9; i++) {
                 setTimeout(() => {
                     clearInterval(rollIntervals[i]);
@@ -1451,7 +1640,6 @@
                     }
                     audio.playSFX('click');
 
-                    // When last reel locks in, evaluate winnings
                     if(i === 8) {
                         finalizeScatterWin(gridCells);
                     }
