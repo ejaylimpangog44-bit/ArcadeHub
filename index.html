@@ -656,7 +656,7 @@
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
                     <button class="opt-btn active" id="setup-easy" onclick="selectSetupDiff('easy')">Easy</button>
                     <button class="opt-btn" id="setup-normal" onclick="selectSetupDiff('normal')">Medium</button>
-                    <button class="opt-btn" id="setup-hard" onclick="selectSetupDiff('hard')">Unbeatable</button>
+                    <button class="opt-btn" id="setup-hard" onclick="selectSetupDiff('hard')">Hard</button>
                 </div>
             </div>
             <button class="start-game-btn" onclick="startLoadingScreen()">Start Match 🚀</button>
@@ -2206,7 +2206,7 @@
         }
 
         // ===================================================
-        // TIC-TAC-TOE PRO ENGINE
+        // TIC-TAC-TOE PRO ENGINE (WITH HARD MINIMAX AI)
         // ===================================================
         let tttBoard = [], tttGridSize = 3;
         let currentPlayer = 'X', isGameActive = true, selectedMode = 'pvp', selectedDiff = 'easy', gameMode = 'pvp', aiDifficulty = 'easy';
@@ -2293,12 +2293,71 @@
             document.getElementById('ttt-status').textContent=gameMode==='ai'&&currentPlayer==='O'?'AI\'s Turn...': `Player ${currentPlayer}'s Turn`;
         }
 
+        // --- Minimax Algorithm for True "Hard" AI ---
+        function minimax(newBoard, player) {
+            let res = checkWinCondition(newBoard, 3);
+            if (res) {
+                if (res.winner === 'X') return { score: -10 };
+                if (res.winner === 'O') return { score: 10 };
+                if (res.winner === 'DRAW') return { score: 0 };
+            }
+
+            let availSpots = [];
+            newBoard.forEach((v, i) => { if (v === '') availSpots.push(i); });
+
+            let moves = [];
+            for (let i = 0; i < availSpots.length; i++) {
+                let move = {};
+                move.index = availSpots[i];
+                newBoard[availSpots[i]] = player;
+
+                if (player === 'O') {
+                    let result = minimax(newBoard, 'X');
+                    move.score = result.score;
+                } else {
+                    let result = minimax(newBoard, 'O');
+                    move.score = result.score;
+                }
+
+                newBoard[availSpots[i]] = '';
+                moves.push(move);
+            }
+
+            let bestMove;
+            if (player === 'O') {
+                let bestScore = -10000;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score > bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = i;
+                    }
+                }
+            } else {
+                let bestScore = 10000;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score < bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = i;
+                    }
+                }
+            }
+            return moves[bestMove];
+        }
+
         function aiMove() { 
-            if(!isGameActive)return; 
-            let empty=[]; 
-            tttBoard.forEach((v,i)=>{if(v==='')empty.push(i);}); 
-            if(empty.length===0)return; 
-            let targetIdx = empty[Math.floor(Math.random()*empty.length)];
+            if(!isGameActive) return; 
+            let empty = []; 
+            tttBoard.forEach((v, i) => { if (v === '') empty.push(i); }); 
+            if(empty.length === 0) return; 
+
+            let targetIdx;
+            if (aiDifficulty === 'hard' && tttGridSize === 3) {
+                let bestCall = minimax(tttBoard, 'O');
+                targetIdx = bestCall.index;
+            } else {
+                targetIdx = empty[Math.floor(Math.random() * empty.length)];
+            }
+
             audio.playSFX('move'); 
             makeMove(targetIdx, 'O'); 
         }
