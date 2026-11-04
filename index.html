@@ -144,7 +144,21 @@
         .bottom-nav-item span { font-size: 18px; }
         .bottom-nav-item.active, .bottom-nav-item:hover { color: var(--primary); }
 
-        .game-container { position: relative; background-color: transparent; border: none; border-radius: 0; padding: 8px 4px; width: 100%; max-width: 100%; flex: 1; box-shadow: none; text-align: center; display: none; flex-direction: column; justify-content: flex-start; align-items: center; }
+        .game-container { 
+            position: relative; 
+            background-color: transparent; 
+            border: none; 
+            border-radius: 0; 
+            padding: 8px 4px; 
+            width: 100%; 
+            max-width: 480px; 
+            flex: 1; 
+            display: none; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            margin: 0 auto;
+        }
         .game-container.active { display: flex; }
         .game-container:fullscreen { width: 100vw !important; height: 100vh !important; max-width: none !important; border-radius: 0 !important; justify-content: center !important; align-items: center !important; background-color: var(--bg-color) !important; padding: 20px !important; overflow: auto !important; }
 
@@ -1042,7 +1056,7 @@
             const eyeCenterY = rect.top + rect.height / 2;
 
             const angle = Math.atan2(mouseY - eyeCenterY, mouseX - eyeCenterX);
-            const maxDist = 5; // Maximum offset distance inside the eye socket
+            const maxDist = 5;
             
             const distance = Math.min(maxDist, Math.hypot(mouseX - eyeCenterX, mouseY - eyeCenterY) / 15);
             
@@ -1308,6 +1322,11 @@
             audio.playSFX('click');
             if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
 
+            // Restore hub global elements
+            document.querySelector('header').style.display = 'flex';
+            document.querySelector('.welcome-banner').style.display = 'block';
+            document.querySelector('.search-bar-container').style.display = 'block';
+
             if (typeof snakeInterval !== 'undefined') clearInterval(snakeInterval);
             if (typeof dinoInterval !== 'undefined') clearInterval(dinoInterval);
             if (typeof moleTimer !== 'undefined') clearInterval(moleTimer);
@@ -1369,9 +1388,15 @@
         }
 
         function openGame(containerId) {
+            // Hide hub global elements
+            document.querySelector('header').style.display = 'none';
+            document.querySelector('.welcome-banner').style.display = 'none';
+            document.querySelector('.search-bar-container').style.display = 'none';
+            
             document.getElementById('main-menu').classList.remove('active');
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById(containerId).classList.add('active');
+            
             setTimeout(() => {
                 if (containerId === 'snakegame-container') startSnakeGame();
                 if (containerId === 'dinogame-container') startDinoGame();
@@ -1737,11 +1762,9 @@
             btn.classList.add('active');
         }
 
-        // Step 1: User bets and rolls dice to determine spins (x3, x5, or x10 spins)
         function rollDiceForSpins() {
             if(isScatterActive) return;
 
-            // If no spins remaining, deduct bet and roll for new spins
             if(scatterSpinsRemaining <= 0) {
                 if(scatterBalance < scatterBet) {
                     audio.playSFX('gameover');
@@ -1751,7 +1774,6 @@
                 scatterBalance -= scatterBet;
                 document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
 
-                // Randomly pick spin count options: x3, x5, or x10 spins
                 const spinOptions = [3, 5, 10];
                 scatterSpinsRemaining = spinOptions[Math.floor(Math.random() * spinOptions.length)];
                 
@@ -1763,7 +1785,6 @@
                 return;
             }
 
-            // Step 2: Execute an active spin using remaining spins count
             executeScatterSpin();
         }
 
@@ -1799,7 +1820,6 @@
                 setTimeout(() => {
                     clearInterval(rollIntervals[i]);
                     
-                    // Random chance for multiplier (x3, x5, x10) or no multiplier at all
                     let multiplierPool = ['x3', 'x5', 'x10', null, null]; 
                     let chosenMultiplier = multiplierPool[Math.floor(Math.random() * multiplierPool.length)];
                     let standardSymbols = ['🎴', '♠️', '♥️', '♦️', '🪙'];
@@ -2679,7 +2699,7 @@
                     let stats=ScoreManager.saveScore('mole',moleScore);
                     document.getElementById('mole-high').textContent=stats.highScore;
                 }
-            },325); // Doubled speed: interval shortened from 650ms to 325ms
+            },325);
         }
         function whackMole(idx) { 
             if(!isMolePlaying)return; 
