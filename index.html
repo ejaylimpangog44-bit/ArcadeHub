@@ -320,7 +320,7 @@
                     <span class="game-icon">🎴</span>
                     <span class="game-name">Speed Solitaire</span>
                 </div>
-                <div class="game-card" data-name="coin scatter multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter', '🎰', { objective: 'Place your bet and roll the dice for automatic spins (5, 15, or 25 spins), landing randomized x3, x5, and x10 multipliers to win big coins!', controls: 'Select bet and tap start to roll dice and auto-spin.' })">
+                <div class="game-card" data-name="coin scatter multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter', '🎰', { objective: 'Place your bet and roll the dice to earn spins, then spin the reels to land multipliers and win big coins!', controls: 'Select bet, roll dice for spins, and hit spin.' })">
                     <span class="game-icon">🎰</span>
                     <span class="game-name">Coin Scatter</span>
                 </div>
@@ -499,7 +499,7 @@
             <!-- Dice Roll Status Box -->
             <div id="scatter-dice-box" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:10px; width:100%; margin-bottom:10px; text-align:center;">
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">DICE ROLL SPINS GENERATOR</p>
-                <div id="scatter-dice-display" style="font-size:1.6rem; font-weight:bold; color:#38bdf8;">🎲 Ready to Roll</div>
+                <div id="scatter-dice-display" style="font-size:1.8rem; font-weight:bold; color:#38bdf8;">🎲 ⚀</div>
             </div>
 
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; width:100%; margin-bottom:12px;" id="scatter-card-grid">
@@ -514,9 +514,9 @@
                 <div class="ttt-cell" id="sc-8" style="font-size:1.6rem; background:#111827;">🎴</div>
             </div>
 
-            <p id="scatter-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-muted);">Choose your bet and hit Auto-Spin to roll dice & start spins!</p>
+            <p id="scatter-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-muted);">Choose your bet and roll the dice for spins!</p>
 
-            <button class="action-btn" style="width:100%; max-width:320px; margin:0 auto; padding:14px; font-size:1.1rem;" id="scatter-spin-btn" onclick="startScatterAutoSpins()">START AUTO-SPIN (🎲 Roll & Spin)</button>
+            <button class="action-btn" style="width:100%; max-width:320px; margin:0 auto; padding:14px; font-size:1.1rem;" id="scatter-spin-btn" onclick="rollDiceForSpins()">ROLL DICE & SPIN (🪙 Bet)</button>
         </div>
     </div>
 
@@ -1042,7 +1042,7 @@
             const eyeCenterY = rect.top + rect.height / 2;
 
             const angle = Math.atan2(mouseY - eyeCenterY, mouseX - eyeCenterX);
-            const maxDist = 5; 
+            const maxDist = 5; // Maximum offset distance inside the eye socket
             
             const distance = Math.min(maxDist, Math.hypot(mouseX - eyeCenterX, mouseY - eyeCenterY) / 15);
             
@@ -1205,7 +1205,7 @@
 
         const gameInstructionsMap = {
             'solitaire-container': { objective: "Match cards in your tableau that are 1 rank higher or lower than the foundation card.", controls: "Tap playable cards to match before time runs out." },
-            'scattercard-container': { objective: "Place your bet and roll the dice for automatic spins (5, 15, or 25 spins), landing randomized x3, x5, and x10 multipliers to win big coins!", controls: "Select bet and tap start to roll dice and auto-spin." },
+            'scattercard-container': { objective: "Place your bet and roll the dice to earn spins, then spin the reels to land multipliers and win big coins!", controls: "Select bet, roll dice for spins, and hit spin." },
             'blackjack-container': { objective: "Get as close to 21 as possible without busting.", controls: "Hit for another card or Stand to hold your hand." },
             'highlow-container': { objective: "Predict whether the next card will be higher or lower.", controls: "Tap Higher or Lower buttons based on current card." },
             'tictactoe-container': { objective: "Align 3 or 4 matching symbols in a row.", controls: "Tap empty cells on the grid." },
@@ -1354,9 +1354,18 @@
         };
 
         function enterHub() {
-            audio.initContext(); audio.playSFX('win');
-            document.getElementById('splash-screen').classList.add('fade-out');
-            document.getElementById('robot-companion').classList.add('visible');
+            try {
+                audio.initContext(); 
+                audio.playSFX('win');
+            } catch (err) {
+                console.warn("Audio context prevented or failed:", err);
+            }
+            
+            const splash = document.getElementById('splash-screen');
+            const robot = document.getElementById('robot-companion');
+            
+            if (splash) splash.classList.add('fade-out');
+            if (robot) robot.classList.add('visible');
         }
 
         function openGame(containerId) {
@@ -1706,7 +1715,7 @@
         }
 
         // ===================================================
-        // COIN SCATTER MULTIPLIER (DICE ROLL & AUTO-SPIN ENGINE)
+        // COIN SCATTER MULTIPLIER (DICE ROLL & RANDOM SPINS)
         // ===================================================
         let scatterBalance = 1000000;
         let scatterBet = 1000;
@@ -1728,47 +1737,45 @@
             btn.classList.add('active');
         }
 
-        function startScatterAutoSpins() {
-            if(isScatterActive || scatterSpinsRemaining > 0) return;
+        // Step 1: User bets and rolls dice to determine spins (x3, x5, or x10 spins)
+        function rollDiceForSpins() {
+            if(isScatterActive) return;
 
-            if(scatterBalance < scatterBet) {
-                audio.playSFX('gameover');
-                document.getElementById('scatter-status').textContent = "Not enough coins in balance! 💀";
+            // If no spins remaining, deduct bet and roll for new spins
+            if(scatterSpinsRemaining <= 0) {
+                if(scatterBalance < scatterBet) {
+                    audio.playSFX('gameover');
+                    document.getElementById('scatter-status').textContent = "Not enough coins in balance! 💀";
+                    return;
+                }
+                scatterBalance -= scatterBet;
+                document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
+
+                // Randomly pick spin count options: x3, x5, or x10 spins
+                const spinOptions = [3, 5, 10];
+                scatterSpinsRemaining = spinOptions[Math.floor(Math.random() * spinOptions.length)];
+                
+                audio.playSFX('powerup');
+                document.getElementById('scatter-dice-display').textContent = `🎲 Rolled ${scatterSpinsRemaining} Spins!`;
+                document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
+                document.getElementById('scatter-spin-btn').textContent = "START SPINS (▶)";
+                document.getElementById('scatter-status').textContent = `You got x${scatterSpinsRemaining} spins! Tap to spin the reels.`;
                 return;
             }
 
-            // Deduct bet
-            scatterBalance -= scatterBet;
-            document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
-
-            // Automatically roll dice to get 5, 15, or 25 spins
-            const spinOptions = [5, 15, 25];
-            scatterSpinsRemaining = spinOptions[Math.floor(Math.random() * spinOptions.length)];
-
-            audio.playSFX('powerup');
-            document.getElementById('scatter-dice-display').textContent = `🎲 Rolled ${scatterSpinsRemaining} Spins!`;
-            document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
-            document.getElementById('scatter-spin-btn').disabled = true;
-            document.getElementById('scatter-spin-btn').style.opacity = '0.5';
-
-            // Automatically trigger consecutive spins
-            runNextScatterSpin();
+            // Step 2: Execute an active spin using remaining spins count
+            executeScatterSpin();
         }
 
-        function runNextScatterSpin() {
-            if(scatterSpinsRemaining <= 0) {
-                isScatterActive = false;
-                document.getElementById('scatter-spin-btn').disabled = false;
-                document.getElementById('scatter-spin-btn').style.opacity = '1';
-                document.getElementById('scatter-spin-btn').textContent = "START AUTO-SPIN (🎲 Roll & Spin)";
-                document.getElementById('scatter-status').textContent = "✨ All automated spins completed!";
-                return;
-            }
+        function executeScatterSpin() {
+            if(isScatterActive || scatterSpinsRemaining <= 0) return;
 
             isScatterActive = true;
             scatterSpinsRemaining--;
             document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
-            document.getElementById('scatter-status').textContent = `🎰 Auto-spinning... (${scatterSpinsRemaining} spins remaining)`;
+            document.getElementById('scatter-spin-btn').disabled = true;
+            document.getElementById('scatter-spin-btn').style.opacity = '0.5';
+            document.getElementById('scatter-status').textContent = `🎰 Spinning reels (${scatterSpinsRemaining} left)...`;
 
             let gridCells = [];
             for(let i=0; i<9; i++) {
@@ -1784,16 +1791,16 @@
                     let randSym = rollingSymbols[Math.floor(Math.random() * rollingSymbols.length)];
                     gridCells[i].textContent = randSym;
                     gridCells[i].style.color = randSym.includes('x') ? '#facc15' : 'var(--text-main)';
-                    audio.playTone(300 + (i * 15), 0.03, 'triangle');
-                }, 50);
+                    audio.playTone(300 + (i * 20), 0.04, 'triangle');
+                }, 75);
             }
 
             for(let i=0; i<9; i++) {
                 setTimeout(() => {
                     clearInterval(rollIntervals[i]);
                     
-                    // Randomized multiplier chance (x3, x5, x10)
-                    let multiplierPool = ['x3', 'x5', 'x10', null, null, null]; 
+                    // Random chance for multiplier (x3, x5, x10) or no multiplier at all
+                    let multiplierPool = ['x3', 'x5', 'x10', null, null]; 
                     let chosenMultiplier = multiplierPool[Math.floor(Math.random() * multiplierPool.length)];
                     let standardSymbols = ['🎴', '♠️', '♥️', '♦️', '🪙'];
 
@@ -1810,13 +1817,13 @@
                     audio.playSFX('click');
 
                     if(i === 8) {
-                        processScatterSpinResult(gridCells);
+                        finalizeScatterSpinWin(gridCells);
                     }
-                }, 400 + (i * 100));
+                }, 600 + (i * 180));
             }
         }
 
-        function processScatterSpinResult(gridCells) {
+        function finalizeScatterSpinWin(gridCells) {
             let roundWin = 0;
             for(let i=0; i<9; i++) {
                 let txt = gridCells[i].textContent;
@@ -1826,22 +1833,31 @@
                 }
             }
 
+            isScatterActive = false;
+            document.getElementById('scatter-spin-btn').disabled = false;
+            document.getElementById('scatter-spin-btn').style.opacity = '1';
+
             if(roundWin > 0) {
                 audio.playSFX('win');
                 scatterBalance += roundWin;
                 document.getElementById('scatter-win').textContent = roundWin.toLocaleString();
+                document.getElementById('scatter-status').textContent = `🎉 Win! Collected +${roundWin.toLocaleString()} coins!`;
                 ScoreManager.saveScore('scatter', roundWin);
             } else {
+                audio.playSFX('gameover');
                 document.getElementById('scatter-win').textContent = "0";
+                document.getElementById('scatter-status').textContent = "No multipliers this spin. Try again!";
             }
 
             document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
             localStorage.setItem('arcadehub_scatter_bal', scatterBalance);
 
-            // Automatically proceed to the next spin after a short pause
-            setTimeout(() => {
-                runNextScatterSpin();
-            }, 600);
+            if(scatterSpinsRemaining > 0) {
+                document.getElementById('scatter-spin-btn').textContent = `SPIN AGAIN (${scatterSpinsRemaining} left)`;
+            } else {
+                document.getElementById('scatter-spin-btn').textContent = "ROLL DICE & SPIN (🪙 Bet)";
+                document.getElementById('scatter-status').textContent = "Spins finished! Select bet to roll dice again.";
+            }
         }
 
         // ===================================================
@@ -2663,7 +2679,7 @@
                     let stats=ScoreManager.saveScore('mole',moleScore);
                     document.getElementById('mole-high').textContent=stats.highScore;
                 }
-            },325);
+            },325); // Doubled speed: interval shortened from 650ms to 325ms
         }
         function whackMole(idx) { 
             if(!isMolePlaying)return; 
@@ -3263,4 +3279,142 @@
                     srCtx.restore();
 
                     if(deathAnim.timer > 35) { srRunning = false; returnToSrMenu(); }
-                    else { srAnimId = requestAnimationFrame(srGameLoop);
+                    else { srAnimId = requestAnimationFrame(srGameLoop); }
+                    return;
+                }
+            }
+
+            spawnTimer++;
+            if(spawnTimer > Math.max(45, 90 - srSpeed * 2)) {
+                spawnTimer = 0;
+                let patternRoll = Math.random();
+
+                if(patternRoll < 0.25) {
+                    srObstacles.push({ x: 850, y: 254, w: 45, h: 112, type: 'double_crate' });
+                } else if(patternRoll < 0.50) {
+                    srObstacles.push({ x: 850, y: 310, w: 45, h: 56, type: 'crate' });
+                } else if(patternRoll < 0.75) {
+                    srObstacles.push({ x: 850, y: 330, w: 36, h: 36, rotation: 0, type: 'ground_saw' });
+                } else {
+                    srObstacles.push({ x: 850, y: 260, w: 36, h: 36, rotation: 0, type: 'floating_saw' });
+                }
+
+                if(Math.random() < 0.4) {
+                    srCrates.push({ x: 880, y: 190 });
+                }
+            }
+
+            srPlayer.frame += 0.2;
+            srPlayer.vy += 0.65;
+            srPlayer.y += srPlayer.vy;
+
+            let targetGroundY = 310;
+            let landedOnCrate = false;
+
+            if(!srPlayer.sliding) {
+                srObstacles.forEach(o => {
+                    if(o.type === 'crate' || o.type === 'double_crate') {
+                        let crateSurfaceY = o.type === 'double_crate' ? 254 : 310;
+                        if(srPlayer.x + srPlayer.w > o.x + 4 && srPlayer.x < o.x + o.w - 4) {
+                            if(srPlayer.y + srPlayer.h >= crateSurfaceY && srPlayer.y + srPlayer.h - srPlayer.vy <= crateSurfaceY + 10 && srPlayer.vy >= 0) {
+                                targetGroundY = crateSurfaceY - srPlayer.h;
+                                landedOnCrate = true;
+                            }
+                        }
+                    }
+                });
+            }
+
+            if(srPlayer.y >= targetGroundY) {
+                srPlayer.y = targetGroundY;
+                srPlayer.vy = 0;
+                srPlayer.grounded = true;
+                srPlayer.doubleJumpAvailable = true;
+            } else {
+                srPlayer.grounded = false;
+            }
+
+            if(srPlayer.sliding) {
+                srPlayer.slideTimer--;
+                if(srPlayer.slideTimer <= 0) srPlayer.sliding = false;
+            }
+
+            srScore += 0.15;
+            srSpeed = 6 + Math.floor(srScore / 120);
+            let currentScoreInt = Math.floor(srScore);
+            document.getElementById('sr-score').textContent = currentScoreInt;
+
+            srObstacles.forEach(o => { 
+                o.x -= srSpeed; 
+                if(o.type.includes('saw')) o.rotation += 0.2;
+            });
+            srCrates.forEach(c => {
+                c.x -= srSpeed;
+                let px = srPlayer.x + srPlayer.w/2;
+                let py = srPlayer.y + srPlayer.h/2;
+                if(Math.hypot(px - c.x, py - c.y) < 25) {
+                    c.collected = true;
+                    srCoins++;
+                    audio.playSFX('score');
+                    document.getElementById('sr-coins-val').textContent = srCoins;
+                }
+            });
+            srCrates = srCrates.filter(c => c.x > -30 && !c.collected);
+            srObstacles = srObstacles.filter(o => o.x > -50);
+
+            let pBox = srPlayer.sliding ? {x: srPlayer.x, y: srPlayer.y + 26, w: srPlayer.w + 15, h: 30} : {x: srPlayer.x, y: srPlayer.y, w: srPlayer.w, h: srPlayer.h};
+            for(let o of srObstacles) {
+                if((o.type === 'crate' || o.type === 'double_crate') && landedOnCrate && pBox.y + pBox.h <= (o.type === 'double_crate' ? 254 : 310) + 4) {
+                    continue;
+                }
+                if(pBox.x < o.x + o.w - 5 && pBox.x + pBox.w > o.x + 5 && pBox.y < o.y + o.h && pBox.y + pBox.h > o.y) {
+                    audio.playSFX('gameover');
+                    if(currentScoreInt > srHighScore) { 
+                        srHighScore = currentScoreInt; 
+                        localStorage.setItem('sr_high', srHighScore); 
+                    }
+                    ScoreManager.saveScore('sr', currentScoreInt);
+
+                    if(o.type.includes('saw')) {
+                        deathAnim = { type: 'saw_shred', x: srPlayer.x + 14, y: srPlayer.y + 25, timer: 0 };
+                    } else {
+                        deathAnim = { type: 'crate_crash', x: srPlayer.x + 14, y: srPlayer.y + 25, timer: 0 };
+                    }
+                    break;
+                }
+            }
+
+            srCtx.save();
+            srCtx.translate(srPlayer.x, srPlayer.y);
+            srCtx.strokeStyle = '#000000';
+            srCtx.lineWidth = 4;
+            srCtx.lineCap = 'round';
+
+            if(srPlayer.sliding) {
+                srCtx.beginPath(); srCtx.arc(15, 26, 8, 0, Math.PI*2); srCtx.stroke();
+                srCtx.beginPath(); srCtx.moveTo(15, 34); srCtx.lineTo(38, 44); srCtx.stroke();
+                srCtx.beginPath(); srCtx.moveTo(32, 38); srCtx.lineTo(46, 32); srCtx.stroke();
+                srCtx.beginPath(); srCtx.moveTo(22, 39); srCtx.lineTo(2, 50); srCtx.stroke();
+                srCtx.beginPath(); srCtx.moveTo(26, 41); srCtx.lineTo(8, 52); srCtx.stroke();
+            } else {
+                let isJumping = !srPlayer.grounded;
+                let headAngle = isJumping ? srPlayer.frame * 2 : 0;
+
+                srCtx.beginPath(); srCtx.arc(14 + Math.cos(headAngle)*3, 12 + Math.sin(headAngle)*3, 9, 0, Math.PI*2); srCtx.stroke();
+                srCtx.beginPath(); srCtx.moveTo(14, 21); srCtx.lineTo(14, 42); srCtx.stroke();
+
+                let swing = Math.sin(srPlayer.frame) * 14;
+                srCtx.beginPath();
+                srCtx.moveTo(14, 28); srCtx.lineTo(4 + swing, isJumping ? 22 : 38);
+                srCtx.moveTo(14, 28); srCtx.lineTo(24 - swing, isJumping ? 22 : 38);
+                srCtx.moveTo(14, 42); srCtx.lineTo(4 - swing, isJumping ? 52 : 56);
+                srCtx.moveTo(14, 42); srCtx.lineTo(24 + swing, isJumping ? 52 : 56);
+                srCtx.stroke();
+            }
+            srCtx.restore();
+
+            if(srRunning) srAnimId = requestAnimationFrame(srGameLoop);
+        }
+    </script>
+</body>
+</html>
