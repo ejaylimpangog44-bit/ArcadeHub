@@ -200,24 +200,25 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 .right-bolt { right: 6px; }
 
 /* Stick Run Integration Styles */
-#stickman-container { font-family: Arial, sans-serif; width: 100%; max-width: 900px; }
-#stickman-container .sr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; width: 100%; max-width: 900px; }
-#stickman-container .sr-header h1 { font-size: clamp(22px, 4vw, 34px); letter-spacing: 3px; color: #fff; }
+#stickman-container { font-family: Arial, sans-serif; width: 100%; max-width: 480px; margin: 0 auto; }
+#stickman-container .sr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; width: 100%; }
+#stickman-container .sr-header h1 { font-size: clamp(20px, 4vw, 28px); letter-spacing: 2px; color: #fff; }
 #stickman-container .sr-header h1 span { color: #ffc857; }
-#stickman-container .sr-stats { display: flex; justify-content: center; gap: 12px; margin-bottom: 12px; width: 100%; max-width: 900px; }
-#stickman-container .sr-stat { background: #202635; padding: 10px 20px; border-radius: 10px; min-width: 100px; text-align: center; border: 1px solid var(--border); }
-#stickman-container .sr-stat small { display: block; color: #9ba8bd; font-size: 11px; margin-bottom: 5px; }
-#stickman-container .sr-stat strong { font-size: 20px; color: #fff; }
-#stickman-container .sr-game-box { position: relative; width: 100%; max-width: 900px; overflow: hidden; border-radius: 15px; background: #bce4f6; border: 3px solid #303a4d; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+#stickman-container .sr-stats { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; width: 100%; }
+#stickman-container .sr-stat { background: #111827; padding: 8px 12px; border-radius: 10px; flex: 1; text-align: center; border: 1px solid var(--border); }
+#stickman-container .sr-stat small { display: block; color: var(--text-muted); font-size: 10px; margin-bottom: 3px; }
+#stickman-container .sr-stat strong { font-size: 16px; color: #fff; }
+#stickman-container .sr-game-box { position: relative; width: 100%; overflow: hidden; border-radius: 12px; background: #bce4f6; border: 2px solid var(--border); box-shadow: 0 8px 20px rgba(0,0,0,0.3); margin-bottom: 12px; }
 #stickman-container canvas { display: block; width: 100%; height: auto; aspect-ratio: 900/450; touch-action: none; }
-#stickman-container .sr-overlay { position: absolute; inset: 0; background: rgba(10, 15, 25, .88); display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; z-index: 5; backdrop-filter: blur(3px); }
-#stickman-container .sr-overlay h2 { font-size: clamp(28px, 5vw, 45px); margin-bottom: 12px; color: #ffc857; font-weight: 900; }
-#stickman-container button { border: none; padding: 13px 25px; border-radius: 9px; background: #ffc857; color: #171717; font-weight: bold; cursor: pointer; margin-top: 18px; font-size: 15px; transition: .2s; }
-#stickman-container button:hover { transform: scale(1.05); background: #ffdc83; }
-#stickman-container .sr-hidden { display: none !important; }
-#stickman-container .sr-mobile-controls { display: none; justify-content: center; gap: 15px; margin-top: 15px; width: 100%; max-width: 900px; }
-#stickman-container .sr-mobile-controls button { width: 120px; height: 55px; margin: 0; touch-action: none; background: #ffc857; color: #171717; }
-@media (pointer: coarse) { #stickman-container .sr-mobile-controls { display: flex; } }
+#stickman-container .sr-mode-select { display: flex; gap: 8px; margin-bottom: 10px; width: 100%; }
+#stickman-container .sr-mode-btn { flex: 1; background: #111827; color: var(--text-muted); border: 1px solid var(--border); padding: 8px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+#stickman-container .sr-mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+#stickman-container .sr-start-bar { width: 100%; margin-bottom: 12px; }
+#stickman-container .sr-start-bar button { width: 100%; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; padding: 14px; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px var(--accent-glow); transition: transform 0.2s; }
+#stickman-container .sr-start-bar button:hover { transform: translateY(-2px); }
+#stickman-container .sr-mobile-controls { display: flex; justify-content: center; gap: 12px; width: 100%; }
+#stickman-container .sr-mobile-controls button { flex: 1; height: 56px; border: none; border-radius: 12px; background: #334155; color: white; font-weight: bold; font-size: 1rem; cursor: pointer; touch-action: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: background 0.2s; }
+#stickman-container .sr-mobile-controls button:active { background: var(--primary); transform: scale(0.97); }
 </style>
 </head>
 <body>
@@ -580,12 +581,15 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 <div class="sr-stat"><small>COINS</small><strong id="coins">0</strong></div>
 <div class="sr-stat"><small>BEST</small><strong id="best">0</strong></div>
 </div>
+<div class="sr-mode-select">
+<button class="sr-mode-btn active" id="mode-endless" onclick="setStickMode('endless', this)">🏃 Endless Run</button>
+<button class="sr-mode-btn" id="mode-levels" onclick="setStickMode('levels', this)">⭐ Level Mode</button>
+</div>
 <div class="sr-game-box">
 <canvas id="game" width="900" height="450"></canvas>
-<div class="sr-overlay" id="startScreen">
-<h2>STICK RUN</h2>
-<button onclick="startStickGame()">START RUNNING</button>
 </div>
+<div class="sr-start-bar">
+<button onclick="startStickGame()">START RUNNING</button>
 </div>
 <div class="sr-mobile-controls">
 <button id="jumpBtn">⬆ JUMP</button>
@@ -2786,6 +2790,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 let stickGameState = "menu";
+let stickGameMode = "endless";
 let score = 0;
 let coins = 0;
 let best = Number(localStorage.getItem("stickRunBest")) || 0;
@@ -2799,6 +2804,13 @@ let soundEnabled = true;
 document.getElementById("best").textContent = best;
 
 function initStickGameCanvas() {
+}
+
+function setStickMode(mode, btn) {
+audio.playSFX('click');
+stickGameMode = mode;
+document.querySelectorAll('.sr-mode-btn').forEach(b => b.classList.remove('active'));
+btn.classList.add('active');
 }
 
 function playSound(frequency = 400, duration = 0.1, type = "sine") {
@@ -3101,7 +3113,7 @@ ctx.fillRect(x, 370 + 25, 35, 3);
 function gameLoop() {
 requestAnimationFrame(gameLoop);
 const activeContainer = document.getElementById('stickman-container');
-if(!activeContainer || !activeContainer.classList.contains('active')) return;
+if(!activeContainer || !activeContainer.classList.get("active") && !activeContainer.classList.contains('active')) return;
 
 drawBackground();
 
@@ -3141,10 +3153,13 @@ else stickJump();
 if(event.code === "ArrowDown") stickSlide();
 });
 
+document.getElementById('jumpBtn').addEventListener('pointerdown', e => { e.preventDefault(); stickJump(); });
+document.getElementById('slideBtn').addEventListener('pointerdown', e => { e.preventDefault(); stickSlide(); });
+
 function startStickGame() {
 score = 0;
 coins = 0;
-speed = 5;
+speed = stickGameMode === 'levels' ? 7 : 5;
 frame = 0;
 obstacleTimer = 0;
 coinTimer = 0;
@@ -3158,8 +3173,6 @@ player.sliding = false;
 player.slideTimer = 0;
 
 stickGameState = "playing";
-
-document.getElementById("startScreen").classList.add("sr-hidden");
 document.getElementById("score").textContent = "0";
 document.getElementById("coins").textContent = "0";
 
@@ -3171,7 +3184,7 @@ if (stickGameState !== "playing") return;
 stickGameState = "over";
 const final = Math.floor(score);
 const newRecord = final > best;
-if (newRecord) {
+if (newRecord && stickGameMode === 'endless') {
 best = final;
 localStorage.setItem("stickRunBest", best);
 document.getElementById("best").textContent = best;
@@ -3179,15 +3192,13 @@ document.getElementById("best").textContent = best;
 
 playSound(150, 0.5, "triangle");
 
-let msg = `GAME OVER!\nYour Score: ${final}\nCoins Collected: ${coins}`;
-if (newRecord) {
+let msg = `GAME OVER!\nMode: ${stickGameMode === 'levels' ? 'Level Mode' : 'Endless Run'}\nYour Score: ${final}\nCoins Collected: ${coins}`;
+if (newRecord && stickGameMode === 'endless') {
 msg += `\nNEW HIGH SCORE! Congratulations!`;
 } else {
 msg += `\nKeep practicing!`;
 }
 alert(msg);
-
-document.getElementById("startScreen").classList.remove("sr-hidden");
 }
 
 gameLoop();
