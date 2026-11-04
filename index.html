@@ -447,24 +447,27 @@
                 <div class="score-box">Found <span id="ws-found">0/0</span></div>
             </div>
 
-            <div id="ws-word-board" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:12px; min-height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
+            <div id="ws-category-badge" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--primary); font-weight:800; margin-bottom:6px;">Category: Easy Warmup</div>
+
+            <div id="ws-word-board" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:10px; min-height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
                 <!-- Crossword slots -->
             </div>
 
-            <div id="ws-current-word" style="font-size:1.4rem; font-weight:bold; letter-spacing:4px; color:var(--primary); margin-bottom:12px; min-height:35px; background:rgba(17,24,39,0.8); border:1px solid var(--border); border-radius:8px; width:100%; display:flex; align-items:center; justify-content:center;">
+            <div id="ws-current-word" style="font-size:1.3rem; font-weight:bold; letter-spacing:4px; color:var(--primary); margin-bottom:8px; min-height:30px; background:rgba(17,24,39,0.8); border:1px solid var(--border); border-radius:8px; width:100%; display:flex; align-items:center; justify-content:center;">
                 _ _ _ _
             </div>
 
-            <div style="position:relative; width:180px; height:180px; margin:0 auto 16px auto;" id="ws-letter-wheel">
+            <div style="position:relative; width:180px; height:180px; margin:0 auto 10px auto;" id="ws-letter-wheel">
+                <!-- Swipe trace canvas overlay -->
+                <canvas id="ws-trace-canvas" width="180" height="180" style="position:absolute; top:0; left:0; pointer-events:none; z-index:10;"></canvas>
                 <!-- Circular letter buttons -->
             </div>
 
-            <p id="ws-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-main);">Tap letters to form valid words!</p>
+            <p id="ws-status" style="margin-bottom:10px; font-weight:600; font-size:0.85rem; color:var(--text-main);">Swipe across letters to connect words!</p>
 
             <div style="display:flex; gap:8px; width:100%;">
-                <button class="action-btn" style="flex:1; background:#334155;" onclick="shuffleWordLetters()">SHUFFLE 🔀</button>
-                <button class="action-btn" style="flex:1; background:#b91c1c;" onclick="clearWordSelection()">CLEAR ❌</button>
-                <button class="action-btn" style="flex:1;" onclick="submitWordscapeGuess()">SUBMIT ✅</button>
+                <button class="action-btn" style="flex:1; background:#334155; padding:8px;" onclick="shuffleWordLetters()">SHUFFLE 🔀</button>
+                <button class="action-btn" style="flex:1; background:#b91c1c; padding:8px;" onclick="clearWordSelection()">CLEAR ❌</button>
             </div>
         </div>
     </div>
@@ -1319,15 +1322,23 @@
         }
 
         // ===================================================
-        // WORDSCAPE PRO ENGINE
+        // WORDSCAPE PRO ENGINE (EXPANDED & SWIPE-DRAGGABLE)
         // ===================================================
         const wordscapeLevels = [
-            { letters: ['C', 'A', 'T', 'S'], words: ['CATS', 'ACTS', 'CAST', 'SAT', 'CAT'] },
-            { letters: ['P', 'L', 'A', 'Y'], words: ['PLAY', 'PAL', 'PAY', 'LAY'] },
-            { letters: ['B', 'A', 'R', 'K'], words: ['BARK', 'BAR', 'BRA', 'ARK'] },
-            { letters: ['S', 'T', 'A', 'R'], words: ['STAR', 'RATS', 'ARTS', 'TAR', 'RAT', 'SAT'] }
+            { category: 'Easy Warmup', letters: ['C', 'A', 'T', 'S'], words: ['CATS', 'ACTS', 'CAST', 'SAT', 'CAT'] },
+            { category: 'Easy Warmup', letters: ['P', 'L', 'A', 'Y'], words: ['PLAY', 'PAL', 'PAY', 'LAY'] },
+            { category: 'Easy Warmup', letters: ['B', 'A', 'R', 'K'], words: ['BARK', 'BAR', 'BRA', 'ARK'] },
+            { category: 'Easy Warmup', letters: ['S', 'T', 'A', 'R'], words: ['STAR', 'RATS', 'ARTS', 'TAR', 'RAT', 'SAT'] },
+            { category: 'Nature & Outdoors', letters: ['P', 'L', 'A', 'N', 'T'], words: ['PLANT', 'PLAN', 'ANT', 'PAN', 'TALL', 'NATAL'] },
+            { category: 'Nature & Outdoors', letters: ['W', 'A', 'T', 'E', 'R'], words: ['WATER', 'RATE', 'TAPE', 'WEAR', 'TART', 'TEAR'] },
+            { category: 'Nature & Outdoors', letters: ['R', 'I', 'V', 'E', 'R'], words: ['RIVER', 'EVER', 'VINE', 'REER', 'VEER'] },
+            { category: 'Nature & Outdoors', letters: ['S', 'T', 'O', 'N', 'E'], words: ['STONE', 'NOTE', 'TONE', 'NEST', 'SENT', 'TOSE'] },
+            { category: 'Tech & Code', letters: ['C', 'O', 'D', 'E', 'R'], words: ['CODER', 'CORE', 'RIDE', 'DECK', 'RED', 'COD'] },
+            { category: 'Tech & Code', letters: ['B', 'Y', 'T', 'E', 'S'], words: ['BYTES', 'BEST', 'BITE', 'SEST', 'SET', 'BYE'] },
+            { category: 'Master Challenge', letters: ['P', 'O', 'W', 'E', 'R'], words: ['POWER', 'ROPE', 'PORE', 'WORE', 'PEAR', 'ROW'] },
+            { category: 'Master Challenge', letters: ['S', 'P', 'A', 'R', 'K'], words: ['SPARK', 'PARK', 'SPARK', 'ASK', 'RAP', 'ASK'] }
         ];
-        let wsLevelIdx = 0, wsScore = 0, wsFoundWords = [], wsCurrentSelection = '';
+        let wsLevelIdx = 0, wsScore = 0, wsFoundWords = [], wsCurrentSelection = '', wsActiveLetterNodes = [], wsIsDragging = false;
 
         function startWordscapeGame() {
             audio.playSFX('click');
@@ -1344,8 +1355,9 @@
             document.getElementById('ws-score').textContent = wsScore;
             document.getElementById('ws-level').textContent = wsLevelIdx + 1;
             document.getElementById('ws-found').textContent = `0/${lvl.words.length}`;
+            document.getElementById('ws-category-badge').textContent = `Category: ${lvl.category}`;
             document.getElementById('ws-current-word').textContent = '_ _ _ _';
-            document.getElementById('ws-status').textContent = "Form words using the letter wheel!";
+            document.getElementById('ws-status').textContent = "Swipe across letters to connect words!";
 
             // Render crossword board slots
             let boardEl = document.getElementById('ws-word-board');
@@ -1357,9 +1369,9 @@
                 for(let i=0; i<w.length; i++) {
                     let cell = document.createElement('div');
                     cell.className = 'ttt-cell';
-                    cell.style.width = '32px';
-                    cell.style.height = '32px';
-                    cell.style.fontSize = '1rem';
+                    cell.style.width = '30px';
+                    cell.style.height = '30px';
+                    cell.style.fontSize = '0.95rem';
                     cell.style.background = '#0b0f19';
                     cell.id = `ws-slot-${wIdx}-${i}`;
                     cell.textContent = '_';
@@ -1374,60 +1386,136 @@
         function renderWordWheel() {
             let lvl = wordscapeLevels[wsLevelIdx];
             let wheelEl = document.getElementById('ws-letter-wheel');
-            wheelEl.innerHTML = '';
+            // Keep the trace canvas, clear other letter buttons
+            let existingButtons = wheelEl.querySelectorAll('button');
+            existingButtons.forEach(b => b.remove());
+
             let letters = [...lvl.letters];
+            wsActiveLetterNodes = [];
 
             letters.forEach((char, idx) => {
                 let angle = (idx / letters.length) * Math.PI * 2 - Math.PI / 2;
-                let x = 70 + Math.cos(angle) * 55;
-                let y = 70 + Math.sin(angle) * 55;
+                let x = 90 + Math.cos(angle) * 55;
+                let y = 90 + Math.sin(angle) * 55;
 
                 let btn = document.createElement('button');
-                btn.className = 'action-btn';
+                btn.className = 'action-btn ws-letter-node';
                 btn.style.position = 'absolute';
-                btn.style.left = `${x}px`;
-                btn.style.top = `${y}px`;
+                btn.style.left = `${x - 21}px`;
+                btn.style.top = `${y - 21}px`;
                 btn.style.width = '42px';
                 btn.style.height = '42px';
                 btn.style.borderRadius = '50%';
                 btn.style.padding = '0';
                 btn.style.fontSize = '1.1rem';
                 btn.style.fontWeight = 'bold';
+                btn.style.zIndex = '15';
                 btn.textContent = char;
-                btn.onclick = () => selectWordLetter(char, btn);
+                btn.dataset.char = char;
+                btn.dataset.index = idx;
                 wheelEl.appendChild(btn);
+
+                wsActiveLetterNodes.push({ el: btn, char, x, y });
+            });
+
+            setupWordWheelSwipeEvents();
+        }
+
+        function setupWordWheelSwipeEvents() {
+            const wheelEl = document.getElementById('ws-letter-wheel');
+            const traceCanvas = document.getElementById('ws-trace-canvas');
+            const tCtx = traceCanvas.getContext('2d');
+
+            const getEventPos = (e) => {
+                const rect = wheelEl.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            };
+
+            const startDrag = (e) => {
+                wsIsDragging = true;
+                wsCurrentSelection = '';
+                wsActiveLetterNodes.forEach(n => n.el.style.background = 'var(--primary)');
+                checkNodeHit(getEventPos(e));
+                e.preventDefault();
+            };
+
+            const moveDrag = (e) => {
+                if(!wsIsDragging) return;
+                const pos = getEventPos(e);
+                checkNodeHit(pos);
+                drawTraceLine(pos);
+                e.preventDefault();
+            };
+
+            const endDrag = () => {
+                if(!wsIsDragging) return;
+                wsIsDragging = false;
+                tCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
+                wsActiveLetterNodes.forEach(n => n.el.style.background = 'var(--primary)');
+                if(wsCurrentSelection.length > 0) {
+                    submitWordscapeGuess();
+                }
+            };
+
+            wheelEl.onmousedown = startDrag;
+            window.onmousemove = moveDrag;
+            window.onmouseup = endDrag;
+
+            wheelEl.ontouchstart = startDrag;
+            window.ontouchmove = moveDrag;
+            window.ontouchend = endDrag;
+        }
+
+        function checkNodeHit(pos) {
+            wsActiveLetterNodes.forEach(node => {
+                let dist = Math.hypot(pos.x - node.x, pos.y - node.y);
+                if(dist < 26 && !wsCurrentSelection.includes(node.char)) {
+                    audio.playSFX('move');
+                    wsCurrentSelection += node.char;
+                    node.el.style.background = 'var(--accent)';
+                    document.getElementById('ws-current-word').textContent = wsCurrentSelection.split('').join(' ');
+                }
             });
         }
 
-        function selectWordLetter(char, btn) {
-            audio.playSFX('move');
-            wsCurrentSelection += char;
-            btn.style.opacity = '0.5';
-            btn.disabled = true;
-            document.getElementById('ws-current-word').textContent = wsCurrentSelection.split('').join(' ');
+        function drawTraceLine(currentPos) {
+            const traceCanvas = document.getElementById('ws-trace-canvas');
+            const tCtx = traceCanvas.getContext('2d');
+            tCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
+
+            let selectedNodes = wsActiveLetterNodes.filter(n => wsCurrentSelection.includes(n.char));
+            if(selectedNodes.length === 0) return;
+
+            tCtx.strokeStyle = 'var(--accent)';
+            tCtx.lineWidth = 5;
+            tCtx.lineCap = 'round';
+            tCtx.beginPath();
+            tCtx.moveTo(selectedNodes[0].x, selectedNodes[0].y);
+            for(let i=1; i<selectedNodes.length; i++) {
+                tCtx.lineTo(selectedNodes[i].x, selectedNodes[i].y);
+            }
+            tCtx.lineTo(currentPos.x, currentPos.y);
+            tCtx.stroke();
         }
 
         function shuffleWordLetters() {
             audio.playSFX('click');
+            let lvl = wordscapeLevels[wsLevelIdx];
             let wheelEl = document.getElementById('ws-letter-wheel');
-            let btns = Array.from(wheelEl.children);
-            btns.sort(() => Math.random() - 0.5);
-            btns.forEach((btn, idx) => {
-                let angle = (idx / btns.length) * Math.PI * 2 - Math.PI / 2;
-                btn.style.left = `${70 + Math.cos(angle) * 55}px`;
-                btn.style.top = `${70 + Math.sin(angle) * 55}px`;
-            });
+            let letters = [...lvl.letters].sort(() => Math.random() - 0.5);
+            lvl.letters = letters;
+            renderWordWheel();
         }
 
         function clearWordSelection() {
             audio.playSFX('click');
             wsCurrentSelection = '';
             document.getElementById('ws-current-word').textContent = '_ _ _ _';
-            let wheelEl = document.getElementById('ws-letter-wheel');
-            Array.from(wheelEl.children).forEach(btn => {
-                btn.style.opacity = '1';
-                btn.disabled = false;
-            });
+            wsActiveLetterNodes.forEach(n => n.el.style.background = 'var(--primary)');
+            const traceCanvas = document.getElementById('ws-trace-canvas');
+            traceCanvas.getContext('2d').clearRect(0, 0, traceCanvas.width, traceCanvas.height);
         }
 
         function submitWordscapeGuess() {
