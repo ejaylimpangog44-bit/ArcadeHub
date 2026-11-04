@@ -344,8 +344,12 @@
         <div class="category-section">
             <div class="category-title">Card Games</div>
             <div class="game-grid">
-                <div class="game-card" onclick="openGame('scattercard-container')">
+                <div class="game-card" onclick="openGame('solitaire-container')">
                     <span class="game-icon">🎴</span>
+                    <span class="game-name">Speed Solitaire Sprint</span>
+                </div>
+                <div class="game-card" onclick="openGame('scattercard-container')">
+                    <span class="game-icon">🎰</span>
                     <span class="game-name">Coin Scatter Multiplier</span>
                 </div>
                 <div class="game-card" onclick="openGame('blackjack-container')">
@@ -422,6 +426,39 @@
                     <span class="game-icon">⚡</span>
                     <span class="game-name">Reaction Reflex Pro</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPEED SOLITAIRE SPRINT CONTAINER -->
+    <div id="solitaire-container" class="game-container">
+        <div class="game-nav-bar">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('solitaire-container')">⛶ Fullscreen</button>
+        </div>
+        <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+            <div class="score-board" style="margin-top:4px; width:100%;">
+                <div class="score-box">Score 🏆 <span id="sol-score">0</span></div>
+                <div class="score-box">Time ⏱️ <span id="sol-time">60s</span></div>
+            </div>
+
+            <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:10px; text-align:center;">
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">FOUNDATION (Target)</p>
+                <div id="sol-foundation" style="font-size:2.2rem; min-height:50px; display:flex; align-items:center; justify-content:center; color:#38bdf8;">🎴</div>
+            </div>
+
+            <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:12px; text-align:center;">
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">TABLEAU (Tap playable cards ±1 rank)</p>
+                <div id="sol-tableau" style="display:flex; justify-content:center; gap:8px; min-height:75px;">
+                    <!-- Dynamically populated cards -->
+                </div>
+            </div>
+
+            <p id="sol-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-main);">Match cards that are 1 rank higher or lower!</p>
+
+            <div style="display:flex; gap:8px; width:100%;">
+                <button class="action-btn" style="flex:1; background:#334155;" onclick="drawSolitaireCard()">DRAW CARD 🃏</button>
+                <button class="action-btn" style="flex:1;" onclick="startSolitaireGame()">NEW GAME</button>
             </div>
         </div>
     </div>
@@ -1138,6 +1175,7 @@
             if (typeof dinoInterval !== 'undefined') clearInterval(dinoInterval);
             if (typeof moleTimer !== 'undefined') clearInterval(moleTimer);
             if (typeof reactionTimeout !== 'undefined') clearTimeout(reactionTimeout);
+            if (typeof solTimer !== 'undefined') clearInterval(solTimer);
 
             if (typeof pacAnimId !== 'undefined') cancelAnimationFrame(pacAnimId);
             if (typeof frostAnimId !== 'undefined') cancelAnimationFrame(frostAnimId);
@@ -1153,6 +1191,7 @@
             if (typeof pianoRunning !== 'undefined') pianoRunning = false;
             if (typeof carRunning !== 'undefined') carRunning = false;
             if (typeof isDinoRunning !== 'undefined') isDinoRunning = false;
+            if (typeof solRunning !== 'undefined') solRunning = false;
             if (typeof sr_state !== 'undefined') { sr_state = 'stopped'; sr_stopMusic(); }
 
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
@@ -1223,6 +1262,7 @@
                 if (containerId === 'piano-container') startPianoGame();
                 if (containerId === 'carracing-container') startCarGame();
                 if (containerId === 'stickman-container') sr_initializeGame();
+                if (containerId === 'solitaire-container') startSolitaireGame();
                 if (containerId === 'scattercard-container') initScatterGame();
                 if (containerId === 'blackjack-container') {
                     let savedBal = localStorage.getItem('arcadehub_scatter_bal');
@@ -1237,6 +1277,97 @@
             const targetUrl = window.location.href || "https://arcadehubgames-july12.vercel.app/";
             document.getElementById('current-url-text').textContent = targetUrl;
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
+        }
+
+        // ===================================================
+        // SPEED SOLITAIRE SPRINT ENGINE
+        // ===================================================
+        let solScore = 0, solTime = 60, solRunning = false, solTimer = null;
+        let solFoundationCard = { val: 7, suit: '♥️', name: '7' };
+        let solTableauCards = [];
+
+        function startSolitaireGame() {
+            audio.playSFX('click');
+            if(solTimer) clearInterval(solTimer);
+            solScore = 0;
+            solTime = 60;
+            solRunning = true;
+            document.getElementById('sol-score').textContent = solScore;
+            document.getElementById('sol-time').textContent = `${solTime}s`;
+            document.getElementById('sol-status').textContent = "Match cards that are 1 rank higher or lower!";
+
+            solFoundationCard = generateRandomCard();
+            solTableauCards = [generateRandomCard(), generateRandomCard(), generateRandomCard(), generateRandomCard()];
+            updateSolitaireDisplay();
+
+            solTimer = setInterval(() => {
+                solTime--;
+                document.getElementById('sol-time').textContent = `${solTime}s`;
+                if(solTime <= 0) {
+                    clearInterval(solTimer);
+                    solRunning = false;
+                    audio.playSFX('gameover');
+                    document.getElementById('sol-status').textContent = `⏰ Time's up! Final Score: ${solScore}`;
+                }
+            }, 1000);
+        }
+
+        function generateRandomCard() {
+            let val = Math.floor(Math.random() * 11) + 2;
+            let suits = ['♠️', '♥️', '♦️', '♣️'];
+            let suit = suits[Math.floor(Math.random() * suits.length)];
+            let name = val === 11 ? 'J' : val === 12 ? 'Q' : val === 13 ? 'K' : val.toString();
+            return { val, suit, name };
+        }
+
+        function updateSolitaireDisplay() {
+            const fEl = document.getElementById('sol-foundation');
+            fEl.textContent = `${solFoundationCard.name}${solFoundationCard.suit}`;
+            fEl.style.color = (solFoundationCard.suit === '♥️' || solFoundationCard.suit === '♦️') ? '#f43f5e' : '#38bdf8';
+
+            const tEl = document.getElementById('sol-tableau');
+            tEl.innerHTML = '';
+            solTableauCards.forEach((card, index) => {
+                let cBox = document.createElement('div');
+                cBox.className = 'ttt-cell';
+                cBox.style.fontSize = '1.4rem';
+                cBox.style.width = '65px';
+                cBox.style.height = '85px';
+                cBox.style.flexDirection = 'column';
+                cBox.style.background = '#1e293b';
+                cBox.style.color = (card.suit === '♥️' || card.suit === '♦️') ? '#f43f5e' : '#38bdf8';
+                cBox.innerHTML = `<span>${card.name}</span><span style="font-size:1.8rem;">${card.suit}</span>`;
+                cBox.onclick = () => playSolitaireCard(index);
+                tEl.appendChild(cBox);
+            });
+        }
+
+        function playSolitaireCard(index) {
+            if(!solRunning) return;
+            let card = solTableauCards[index];
+            let diff = Math.abs(card.val - solFoundationCard.val);
+
+            // Allow wrapping or exact ±1 match
+            if(diff === 1 || diff === 12) {
+                audio.playSFX('score');
+                solScore += 100;
+                solFoundationCard = card;
+                solTableauCards[index] = generateRandomCard();
+                document.getElementById('sol-score').textContent = solScore;
+                document.getElementById('sol-status').textContent = `🎉 Matched ${card.name}${card.suit}! +100 pts`;
+                updateSolitaireDisplay();
+            } else {
+                audio.playSFX('move');
+                document.getElementById('sol-status').textContent = `❌ Can't play ${card.name}${card.suit} on ${solFoundationCard.name}${solFoundationCard.suit}!`;
+            }
+        }
+
+        function drawSolitaireCard() {
+            if(!solRunning) return;
+            audio.playSFX('click');
+            solTableauCards[Math.floor(Math.random() * solTableauCards.length)] = generateRandomCard();
+            updateSolitaireDisplay();
+            document.getElementById('sol-status').textContent = "New cards drawn into tableau!";
         }
 
         // ===================================================
