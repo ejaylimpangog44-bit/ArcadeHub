@@ -87,8 +87,6 @@
         .logo-icon { font-size: 22px; background: linear-gradient(135deg, var(--primary), var(--accent)); width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px var(--accent-glow); }
         .logo-text h1 { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo-text p { font-size: 10px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
-        .header-settings-btn { background: rgba(139, 92, 246, 0.15); border: 1px solid var(--primary); color: var(--text-main); padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
-        .header-settings-btn:hover { background-color: var(--primary); color: white; }
 
         .welcome-banner { width: 100%; max-width: 600px; margin-bottom: 14px; padding: 0 4px; }
         .welcome-banner h2 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 2px; }
@@ -175,8 +173,8 @@
         .settings-header { background: rgba(139,92,246,0.2); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
         .settings-header h3 { font-size: 15px; letter-spacing: 2px; text-transform: uppercase; color: var(--primary); font-weight: 700; }
         .settings-close-x { background: var(--accent); color: white; border: none; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-        .settings-tabs { display: flex; background: rgba(11,15,25,0.8); border-bottom: 1px solid var(--border); padding: 6px 10px; gap: 6px; }
-        .settings-tab-btn { flex: 1; background: transparent; border: none; color: var(--text-muted); padding: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .settings-tabs { display: flex; background: rgba(11,15,25,0.8); border-bottom: 1px solid var(--border); padding: 6px 10px; gap: 6px; overflow-x: auto; }
+        .settings-tab-btn { flex: 1; min-width: 70px; background: transparent; border: none; color: var(--text-muted); padding: 8px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
         .settings-tab-btn.active { background: var(--primary); color: white; box-shadow: 0 0 10px var(--accent-glow); }
         .settings-body { padding: 20px; }
         .settings-panel { display: none; }
@@ -200,14 +198,25 @@
         .settings-footer { padding: 12px 20px; background: rgba(11,15,25,0.9); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
         .settings-save-btn { background: #15803d; color: white; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
 
-        /* Smooth Sliding Settings Drawer */
+        /* Compact Mobile-First Responsive Settings Panel */
         #settings-drawer {
-            position: fixed; top: 0; right: -420px; width: 100%; max-width: 400px; height: 100vh;
-            background: linear-gradient(145deg, #111827, #0b0f19); border-left: 2px solid var(--primary);
-            box-shadow: -10px 0 30px rgba(0,0,0,0.7); z-index: 1000; transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
+            width: 90%; max-width: 420px; max-height: 85vh;
+            background: linear-gradient(145deg, #111827, #0b0f19); border: 2px solid var(--primary);
+            border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); z-index: 1000;
+            display: flex; flex-direction: column; overflow: hidden; opacity: 0; visibility: hidden;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, visibility 0.25s ease;
         }
-        #settings-drawer.active { right: 0; }
+        #settings-drawer.active {
+            transform: translate(-50%, -50%) scale(1); opacity: 1; visibility: visible;
+        }
+        @media (min-width: 768px) {
+            #settings-drawer {
+                top: 0; left: auto; right: -420px; transform: none;
+                height: 100vh; max-height: 100vh; border-radius: 0; border-y: none; border-right: none;
+            }
+            #settings-drawer.active { right: 0; transform: none; }
+        }
         .drawer-backdrop {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6);
             backdrop-filter: blur(4px); z-index: 995; opacity: 0; visibility: hidden; transition: opacity 0.35s ease, visibility 0.35s ease;
@@ -282,7 +291,6 @@
                 <p>Play • Think • Win</p>
             </div>
         </div>
-        <button class="header-settings-btn" onclick="openSettingsModal()">⚙️ Settings</button>
     </header>
 
     <div class="welcome-banner">
@@ -295,12 +303,6 @@
     </div>
 
     <div id="main-menu" class="view active">
-        <!-- Recently Played Row (Auto Updated) -->
-        <div class="category-section" id="recently-played-section" style="display:none;">
-            <div class="category-title">Recently Played</div>
-            <div class="recent-scroll-row" id="recent-scroll-container"></div>
-        </div>
-
         <div class="category-section" data-category="card">
             <div class="category-title">Card Games</div>
             <div class="game-grid">
@@ -867,7 +869,7 @@
         <div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠 HUB</button><button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶</button></div>
         <div class="sr-main-menu" id="sr-main-menu" style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:420px; margin:0 auto; background: linear-gradient(135deg, #111827, #0b0f19); border:2px solid var(--primary); border-radius:16px; padding:25px; box-shadow:0 10px 30px var(--accent-glow);">
             <div style="text-align:center; margin-bottom:20px;">
-                <img src="1000030580_2.png" alt="Stick Run Logo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 14px; margin-bottom: 10px; box-shadow: 0 4px 15px var(--accent-glow);">
+                <img src="stick-run.png" alt="Stick Run Logo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 14px; margin-bottom: 10px; box-shadow: 0 4px 15px var(--accent-glow);">
                 <h1 style="font-size:2rem; font-weight:900; letter-spacing:2px; color:#fff;">STICK <span style="color:#ef4444;">RUN</span></h1>
             </div>
 
@@ -904,9 +906,7 @@
             </div>
             <div class="settings-body">
                 <div style="font-size: 42px; margin-bottom: 12px;" id="inst-modal-icon">🕹️</div>
-                <div style="background: rgba(17,24,39,0.9); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 18px; text-align: left;" id="inst-modal-content">
-                    <!-- Dynamic structural instructions inserted here -->
-                </div>
+                <div style="background: rgba(17,24,39,0.9); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 18px; text-align: left;" id="inst-modal-content"></div>
                 <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer;" onclick="toggleDontShowAgain()">
                     <input type="checkbox" id="dont-show-checkbox" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary);">
                     <span>Don't show instructions again for this game</span>
@@ -928,7 +928,7 @@
         </button>
     </nav>
 
-    <!-- Smooth Sliding Settings Drawer -->
+    <!-- Smooth Sliding/Popup Settings Panel -->
     <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeSettingsDrawer()"></div>
     <div id="settings-drawer">
         <div class="settings-header">
@@ -954,6 +954,12 @@
                     <div class="setting-control">
                         <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
                     </div>
+                </div>
+
+                <!-- RECENTLY PLAYED SECTION INTEGRATED INSIDE AUDIO/SETTINGS PANEL -->
+                <div class="category-section" id="recently-played-section" style="margin-top: 20px; display:none;">
+                    <div class="category-title" style="margin-bottom: 8px;">Recently Played</div>
+                    <div class="recent-scroll-row" id="recent-scroll-container"></div>
                 </div>
             </div>
             <div class="settings-panel" id="panel-theme">
@@ -1083,7 +1089,6 @@
             pendingGameName = gameName;
             pendingGameIcon = icon;
 
-            // Check if user has "Don't Show Again" enabled for this game
             let skippedGames = JSON.parse(localStorage.getItem('arcadehub_skipped_instructions') || '{}');
             let globalEnabled = localStorage.getItem('arcadehub_global_instructions') !== 'false';
 
@@ -1096,7 +1101,6 @@
             document.getElementById('inst-modal-title').textContent = `🎮 ${gameName}`;
             document.getElementById('inst-modal-icon').innerHTML = icon ? icon : `<img src="1000030580_2.png" style="width:48px;height:48px;object-fit:cover;border-radius:10px;">`;
             
-            // Build structured instructional content blocks
             let contentHTML = `
                 <div style="margin-bottom: 10px;">
                     <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Objective</strong>
@@ -1160,6 +1164,7 @@
                 let card = document.createElement('div');
                 card.className = 'recent-card';
                 card.onclick = () => {
+                    closeSettingsDrawer();
                     let inst = gameInstructionsMap[game.id] || { objective: "Set a high score!", controls: "Tap controls to play." };
                     showGameInstructions(game.id, game.name, game.icon, inst);
                 };
@@ -1239,13 +1244,13 @@
             audio.playSFX('click');
             document.getElementById('settings-drawer').classList.add('active');
             document.getElementById('drawer-backdrop').classList.add('active');
+            renderRecentGames();
         }
         function closeSettingsDrawer() {
             audio.playSFX('click');
             document.getElementById('settings-drawer').classList.remove('active');
             document.getElementById('drawer-backdrop').classList.remove('active');
         }
-        function openSettingsModal() { openSettingsDrawer(); }
 
         function toggleInstructionPreference() {
             audio.playSFX('click');
