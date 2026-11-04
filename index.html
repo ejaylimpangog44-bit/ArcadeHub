@@ -592,7 +592,7 @@
                     <button class="action-btn" onclick="startFrostGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Catch 3x Balls, Paddle upgrades, and avoid Bombs!</p>
+            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Move mouse/touch to control the paddle & break all bricks!</p>
         </div>
     </div>
 
@@ -1017,14 +1017,12 @@
         function backToHub() {
             audio.playSFX('click');
             if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-            
-            // Clear all possible game intervals and loops
+
             if (typeof snakeInterval !== 'undefined') clearInterval(snakeInterval);
             if (typeof dinoInterval !== 'undefined') clearInterval(dinoInterval);
             if (typeof moleTimer !== 'undefined') clearInterval(moleTimer);
             if (typeof reactionTimeout !== 'undefined') clearTimeout(reactionTimeout);
-            
-            // Cancel all animation frames for canvas-based games
+
             if (typeof pacAnimId !== 'undefined') cancelAnimationFrame(pacAnimId);
             if (typeof frostAnimId !== 'undefined') cancelAnimationFrame(frostAnimId);
             if (typeof fruitAnimId !== 'undefined') cancelAnimationFrame(fruitAnimId);
@@ -1033,7 +1031,6 @@
             if (typeof dinoAnimId !== 'undefined') cancelAnimationFrame(dinoAnimId);
             if (typeof sr_animationId !== 'undefined') cancelAnimationFrame(sr_animationId);
 
-            // Stop flags
             if (typeof pacRunning !== 'undefined') pacRunning = false;
             if (typeof frostRunning !== 'undefined') frostRunning = false;
             if (typeof fruitRunning !== 'undefined') fruitRunning = false;
@@ -1042,7 +1039,6 @@
             if (typeof isDinoRunning !== 'undefined') isDinoRunning = false;
             if (typeof sr_state !== 'undefined') { sr_state = 'stopped'; sr_stopMusic(); }
 
-            // Hide all containers and show main menu
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
         }
@@ -1052,7 +1048,7 @@
             initSnakeCanvas(); initDinoCanvas(); initFrostCanvas(); initPacManCanvas(); initFruitCanvas(); initPianoCanvas(); initCarCanvas();
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
-            
+
             document.getElementById('snake-high').textContent = ScoreManager.getStats('snake').highScore;
             document.getElementById('mole-high').textContent = ScoreManager.getStats('mole').highScore;
             document.getElementById('dino-high').textContent = ScoreManager.getStats('dino').highScore;
@@ -1060,7 +1056,7 @@
             document.getElementById('car-high').textContent = ScoreManager.getStats('carracing').highScore;
             document.getElementById('frost-score').textContent = String(ScoreManager.getStats('brickbreaker').highScore).padStart(6,'0');
             document.getElementById('piano-high').textContent = ScoreManager.getStats('pianotiles').highScore;
-            
+
             const bestGuessData = localStorage.getItem('arcadehub_guess');
             if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
 
@@ -1121,7 +1117,7 @@
         }
 
         // ===================================================
-        // 1. FULL VERSION ENGINE: TURBO CAR RACING
+        // 1. TURBO CAR RACING ENGINE
         // ===================================================
         let carCanvas, carCtx, carRunning = false, carAnimId, carScore = 0, carCoinsCollected = 0;
         let playerCar = { lane: 1, x: 0, y: 280, width: 36, height: 60, hasShield: false };
@@ -1198,7 +1194,6 @@
             playerCar.x = lanes[playerCar.lane] - playerCar.width / 2;
 
             carCollectibles.forEach(c => {
-                let cX = lanes[c.lane];
                 if(playerCar.lane === c.lane && playerCar.y < c.y + 20 && playerCar.y + playerCar.height > c.y) {
                     c.y = 999;
                     if(c.type === 'coin') {
@@ -1287,7 +1282,7 @@
         }
 
         // ===================================================
-        // 2. FULL VERSION ENGINE: PIANO TILES PRO
+        // 2. PIANO TILES PRO ENGINE
         // ===================================================
         const pianoSongs = { 
             odeToJoy: [330,330,349,392,392,349,330,294,262,262,294,330,330,294,294], 
@@ -1341,7 +1336,7 @@
             let laneWidth=pianoCanvas.width/4; 
             pianoCtx.strokeStyle='rgba(255,255,255,.08)'; pianoCtx.lineWidth=1;
             for(let i=1;i<4;i++){pianoCtx.beginPath();pianoCtx.moveTo(i*laneWidth,0);pianoCtx.lineTo(i*laneWidth,pianoCanvas.height);pianoCtx.stroke();}
-            
+
             pianoTiles.forEach(t=>{
                 t.y+=pianoSpeed;
                 if(!t.clicked){
@@ -1354,7 +1349,7 @@
                     }
                 }
             });
-            
+
             pianoTiles.forEach(t=>{if(!t.clicked && t.y>pianoCanvas.height) endPianoGame();}); 
             let topTileY=Math.min(...pianoTiles.map(t=>t.y)); 
             if(topTileY>-10) spawnPianoTile(topTileY-95); 
@@ -1370,7 +1365,7 @@
         }
 
         // ===================================================
-        // 3. FULL VERSION ENGINE: TIC-TAC-TOE PRO
+        // 3. TIC-TAC-TOE PRO ENGINE
         // ===================================================
         let tttBoard = [], tttGridSize = 3;
         let currentPlayer = 'X', isGameActive = true, selectedMode = 'pvp', selectedDiff = 'easy', gameMode = 'pvp', aiDifficulty = 'easy';
@@ -1381,7 +1376,7 @@
         function selectSetupDiff(diff) { audio.playSFX('move'); selectedDiff=diff; ['easy','normal','hard'].forEach(d=>document.getElementById(`setup-${d}`).classList.toggle('active',d===diff)); }
         function startLoadingScreen() { audio.playSFX('click'); gameMode=selectedMode; aiDifficulty=selectedDiff; document.getElementById('ttt-setup-screen').classList.remove('active'); document.getElementById('ttt-loading-screen').classList.add('active'); setTimeout(()=>{document.getElementById('ttt-loading-screen').classList.remove('active');document.getElementById('ttt-game-screen').classList.add('active');resetTTT();},600); }
         function backToSetup() { audio.playSFX('click'); document.getElementById('ttt-game-screen').classList.remove('active'); document.getElementById('ttt-setup-screen').classList.add('active'); }
-        
+
         function renderBoardHTML() {
             const boardEl = document.getElementById('ttt-board');
             boardEl.style.gridTemplateColumns = `repeat(${tttGridSize}, 1fr)`;
@@ -1435,7 +1430,7 @@
             tttBoard[index]=player; 
             const cell=document.getElementById('ttt-board').children[index]; 
             cell.textContent=player; cell.classList.add(player.toLowerCase());
-            
+
             let res = checkWinCondition(tttBoard, tttGridSize);
             if(res) {
                 if(res.winner === 'DRAW') {
@@ -1464,7 +1459,7 @@
             if(empty.length===0)return; 
 
             let targetIdx = empty[Math.floor(Math.random()*empty.length)];
-            
+
             if(aiDifficulty === 'hard' && tttGridSize === 3) {
                 let bestScore = -Infinity;
                 for(let i of empty) {
@@ -1522,7 +1517,7 @@
         }
 
         // ===================================================
-        // 4. FULL VERSION ENGINE: PAC-MAN DX
+        // 4. PAC-MAN DX ENGINE
         // ===================================================
         let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
         let pacman = { x:1, y:1, dx:1, dy:0 }, pacDots = [], powerPellets = [], ghosts = [];
@@ -1542,7 +1537,7 @@
             for(let r=0;r<pacGridSize;r++)
                 for(let c=0;c<pacGridSize;c++)
                     if((r>0&&r<pacGridSize-1)&&(c>0&&c<pacGridSize-1)) pacDots.push({x:c,y:r});
-            
+
             document.getElementById('pac-score').textContent=pacScore; document.getElementById('pac-lives').textContent=pacLives; document.getElementById('pac-high').textContent=ScoreManager.getStats('pacman').highScore;
             cancelAnimationFrame(pacAnimId); pacLoop();
         }
@@ -1555,7 +1550,7 @@
             if(pacTick%11===0){
                 pacman.x+=pacman.dx; pacman.y+=pacman.dy;
                 if(pacman.x<0)pacman.x=pacGridSize-1; if(pacman.x>=pacGridSize)pacman.x=0; if(pacman.y<0)pacman.y=pacGridSize-1; if(pacman.y>=pacGridSize)pacman.y=0;
-                
+
                 ghosts.forEach(g=>{
                     const dirs=[{dx:0,dy:-1},{dx:0,dy:1},{dx:-1,dy:0},{dx:1,dy:0}];
                     if(Math.random()<.65){let rd=dirs[Math.floor(Math.random()*dirs.length)];g.dx=rd.dx;g.dy=rd.dy;}
@@ -1564,7 +1559,7 @@
                 });
 
                 pacDots=pacDots.filter(d=>{if(d.x===pacman.x&&d.y===pacman.y){audio.playSFX('score');pacScore+=10;document.getElementById('pac-score').textContent=pacScore;return false;}return true;});
-                
+
                 powerPellets=powerPellets.filter(p=>{
                     if(p.x===pacman.x&&p.y===pacman.y){
                         audio.playSFX('powerup');
@@ -1607,10 +1602,10 @@
 
             pacCtx.fillStyle='#0b0f19'; pacCtx.fillRect(0,0,pacCanvas.width,pacCanvas.height); 
             let tileSize=pacCanvas.width/pacGridSize;
-            
+
             pacCtx.fillStyle='#fbbf24'; 
             pacDots.forEach(d=>{pacCtx.beginPath();pacCtx.arc(d.x*tileSize+tileSize/2,d.y*tileSize+tileSize/2,3,0,Math.PI*2);pacCtx.fill();});
-            
+
             pacCtx.fillStyle='#38bdf8'; 
             powerPellets.forEach(p=>{pacCtx.beginPath();pacCtx.arc(p.x*tileSize+tileSize/2,p.y*tileSize+tileSize/2,7,0,Math.PI*2);pacCtx.fill();});
 
@@ -1631,12 +1626,12 @@
             let mouthOpen=Math.floor(pacTick/4)%2===0;
             if(mouthOpen){pacCtx.arc(x,y,radius,startAngle*Math.PI,endAngle*Math.PI,false);pacCtx.lineTo(x,y);}else pacCtx.arc(x,y,radius,0,Math.PI*2);
             pacCtx.fill(); 
-            
+
             if(pacRunning) pacAnimId=requestAnimationFrame(pacLoop);
         }
 
         // ===================================================
-        // 5. FULL VERSION ENGINE: FRUIT MASTER
+        // 5. FRUIT MASTER ENGINE
         // ===================================================
         let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, fruitCombo = 0, flyingFruits = [], sliceTrails = [];
         let freezeTimer = 0;
@@ -1649,7 +1644,7 @@
                 let cx=(clientX-rect.left)*(fruitCanvas.width/rect.width);
                 let cy=(clientY-rect.top)*(fruitCanvas.height/rect.height);
                 sliceTrails.push({x:cx,y:cy,alpha:1.0});
-                
+
                 let slicedThisSwipe = 0;
                 flyingFruits.forEach(f=>{
                     if(!f.sliced&&Math.hypot(f.x-cx,f.y-cy)<f.radius+16){
@@ -1698,7 +1693,7 @@
                 flyingFruits.push({x:40+Math.random()*220,y:330,vx:(Math.random()-.5)*4,vy:-11-Math.random()*3,gravity:.35,radius:18,emoji:chosen.emoji,points:chosen.points,isBomb,isFreeze,sliced:false});
             }
             fruitCtx.fillStyle=freezeTimer>0?'#0369a1':'#111827'; fruitCtx.fillRect(0,0,fruitCanvas.width,fruitCanvas.height);
-            
+
             flyingFruits.forEach(f=>{
                 f.x += f.vx * speedMod;
                 f.vy += f.gravity * speedMod;
@@ -1708,7 +1703,7 @@
                 }
             });
             flyingFruits=flyingFruits.filter(f=>f.y<360);
-            
+
             sliceTrails.forEach(t=>{
                 t.alpha-=.08;
                 if(t.alpha>0){
@@ -1728,7 +1723,7 @@
         }
 
         // ===================================================
-        // 6. FULL VERSION ENGINE: RPS ARENA
+        // 6. RPS ARENA ENGINE
         // ===================================================
         let rpsMode = 'ai', rpsP1Score = 0, rpsP2Score = 0, rpsStreak = 0, rpsP1Choice = null, rpsStage = 1;
 
@@ -1744,7 +1739,7 @@
         function handleRPSInput(choice) {
             audio.playSFX('click'); 
             const status=document.getElementById('rps-status');
-            
+
             if(rpsMode === 'pvp') {
                 if(rpsStage===1){
                     rpsP1Choice=choice;
@@ -1802,7 +1797,7 @@
         }
 
         // ===================================================
-        // 7. FULL VERSION ENGINE: NUMBER MASTER
+        // 7. NUMBER MASTER ENGINE
         // ===================================================
         let guessMaxRange = 100, targetNumber = Math.floor(Math.random()*100)+1, guessAttempts = 0, guessLivesLeft = 7;
 
@@ -1820,7 +1815,7 @@
             const val=parseInt(document.getElementById('guess-input').value); 
             const status=document.getElementById('guess-status');
             if(isNaN(val)||val<1||val>guessMaxRange){status.textContent=`Enter 1-${guessMaxRange}!`;return;} 
-            
+
             audio.playSFX('click'); 
             guessAttempts++; 
             guessLivesLeft--;
@@ -1857,7 +1852,7 @@
         }
 
         // ===================================================
-        // 8. FULL VERSION ENGINE: WHACK-A-MOLE PRO
+        // 8. WHACK-A-MOLE PRO ENGINE
         // ===================================================
         let moleActiveIdx = -1, moleScore = 0, moleTimer = null, isMolePlaying = false, moleTimeLeft = 20;
 
@@ -1871,7 +1866,7 @@
             moleTimer=setInterval(()=>{
                 moleTimeLeft--;
                 document.getElementById('mole-time').textContent=`${moleTimeLeft}s`;
-                
+
                 document.querySelectorAll('#molegame-container .mole-hole').forEach(h=>h.classList.remove('active'));
                 moleActiveIdx=Math.floor(Math.random()*9);
                 document.querySelectorAll('#molegame-container .mole-hole')[moleActiveIdx].classList.add('active');
@@ -1899,7 +1894,7 @@
         }
 
         // ===================================================
-        // 9. FULL VERSION ENGINE: REACTION REFLEX PRO
+        // 9. REACTION REFLEX PRO ENGINE
         // ===================================================
         let reactionState = 'waiting', reactionStart = 0, reactionTimeout = null, reactionTime = 0, bestReaction = null;
         let reactionTries = [];
@@ -1961,7 +1956,7 @@
         }
 
         // ===================================================
-        // 10. FULL VERSION ENGINE: SNAKE EVOLUTION
+        // 10. SNAKE EVOLUTION ENGINE
         // ===================================================
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakePowerFood = null, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0, snakeSpeedLvl = 1;
 
@@ -1979,11 +1974,11 @@
             }
         }
         function changeSnakeDir(dir) { audio.playSFX('move'); if(dir==='UP'&&snakeDir!=='DOWN')nextSnakeDir='UP'; if(dir==='DOWN'&&snakeDir!=='UP')nextSnakeDir='DOWN'; if(dir==='LEFT'&&snakeDir!=='RIGHT')nextSnakeDir='LEFT'; if(dir==='RIGHT'&&snakeDir!=='LEFT')nextSnakeDir='RIGHT'; }
-        
+
         function updateRealSnake() {
             snakeDir=nextSnakeDir; let head={x:snake[0].x,y:snake[0].y};
             if(snakeDir==='UP')head.y--; if(snakeDir==='DOWN')head.y++; if(snakeDir==='LEFT')head.x--; if(snakeDir==='RIGHT')head.x++;
-            
+
             if(head.x<0||head.x>=26||head.y<0||head.y>=26||snake.some(s=>s.x===head.x&&s.y===head.y)){
                 audio.playSFX('gameover');
                 clearInterval(snakeInterval);
@@ -2030,10 +2025,10 @@
         }
 
         // ===================================================
-        // 11. FULL VERSION ENGINE: DINO RUNNER PRO (REPLACED & FIXED)
+        // 11. DINO RUNNER PRO ENGINE (WITH SPRITES)
         // ===================================================
         let dinoCanvas, dinoCtx, dinoInterval = null, dinoAnimId, dinoScore = 0, dinoFrame = 0, dinoSpawnCounter = 0, isDinoNight = false, isDinoRunning = false;
-        let dino = { x: 45, y: 130, width: 28, height: 32, isDucking: false, vy: 0 };
+        let dino = { x: 45, y: 125, width: 32, height: 36, isDucking: false, vy: 0 };
         let dinoObstacles = [];
 
         function initDinoCanvas() { 
@@ -2050,7 +2045,7 @@
             if (dinoInterval) clearInterval(dinoInterval);
             cancelAnimationFrame(dinoAnimId);
 
-            dino = { x: 45, y: 130, width: 28, height: 32, isDucking: false, vy: 0 }; 
+            dino = { x: 45, y: 125, width: 32, height: 36, isDucking: false, vy: 0 }; 
             dinoObstacles = []; 
             dinoScore = 0; 
             dinoFrame = 0; 
@@ -2066,7 +2061,7 @@
         }
 
         function dinoJump() {
-            if (!isDinoRunning || dino.y < 130) return;
+            if (!isDinoRunning || dino.y < 125) return;
             audio.playSFX('move');
             dino.vy = -10.5;
         }
@@ -2086,32 +2081,32 @@
             if (dino.vy !== undefined) {
                 dino.y += dino.vy;
                 dino.vy += 0.55;
-                if (dino.y >= 130) { dino.y = 130; dino.vy = 0; }
+                if (dino.y >= 125) { dino.y = 125; dino.vy = 0; }
             }
 
             if (dinoSpawnCounter >= 95) {
                 dinoSpawnCounter = 0;
-                let isBird = Math.random() < 0.35 && dinoScore > 200;
+                let isBird = Math.random() < 0.4 && dinoScore > 150;
                 dinoObstacles.push({
                     x: 320,
-                    y: isBird ? 100 : 130,
-                    width: isBird ? 24 : 18,
-                    height: isBird ? 18 : 32,
+                    y: isBird ? 90 : 125,
+                    width: isBird ? 32 : 22,
+                    height: isBird ? 24 : 36,
                     isBird
                 });
             }
 
             dinoObstacles.forEach(o => { o.x -= 4.8; });
-            dinoObstacles = dinoObstacles.filter(o => o.x > -40); 
+            dinoObstacles = dinoObstacles.filter(o => o.x > -50); 
             
             dinoScore++; 
             document.getElementById('dino-score').textContent = dinoScore; 
             isDinoNight = Math.floor(dinoScore / 400) % 2 === 1;
 
             dinoObstacles.forEach(o => {
-                let curDinoHeight = dino.isDucking ? 18 : dino.height;
-                let curDinoY = dino.isDucking ? dino.y + 14 : dino.y;
-                if (dino.x < o.x + o.width && dino.x + dino.width > o.x && curDinoY < o.y + o.height && curDinoY + curDinoHeight > o.y) {
+                let curDinoHeight = dino.isDucking ? 20 : dino.height;
+                let curDinoY = dino.isDucking ? dino.y + 16 : dino.y;
+                if (dino.x < o.x + o.width - 6 && dino.x + dino.width - 6 > o.x && curDinoY < o.y + o.height && curDinoY + curDinoHeight > o.y) {
                     endDinoGame();
                 }
             }); 
@@ -2127,7 +2122,7 @@
             audio.playSFX('gameover'); 
             isDinoRunning = false; 
             cancelAnimationFrame(dinoAnimId);
-            document.getElementById('dino-final-msg').textContent = `Final Distance Score: ${dinoScore}`;
+            document.getElementById('dino-final-msg').textContent = `Final Score: ${dinoScore}`;
             document.getElementById('dino-gameover-overlay').style.display = 'flex'; 
             let stats = ScoreManager.saveScore('dino', dinoScore); 
             document.getElementById('dino-high').textContent = stats.highScore; 
@@ -2140,71 +2135,216 @@
             dinoCtx.strokeStyle = isDinoNight ? '#38bdf8' : '#64748b'; 
             dinoCtx.lineWidth = 2; 
             dinoCtx.beginPath(); 
-            dinoCtx.moveTo(0, 162); 
-            dinoCtx.lineTo(320, 162); 
+            dinoCtx.moveTo(0, 161); 
+            dinoCtx.lineTo(320, 161); 
             dinoCtx.stroke();
             
-            dinoCtx.fillStyle = isDinoNight ? '#38bdf8' : '#a855f7'; 
-            let dHeight = dino.isDucking ? 18 : dino.height;
-            let dY = dino.isDucking ? dino.y + 14 : dino.y;
-            dinoCtx.fillRect(dino.x, dY, dino.width, dHeight);
+            let dColor = isDinoNight ? '#38bdf8' : '#22c55e';
+            let dHeight = dino.isDucking ? 20 : dino.height;
+            let dY = dino.isDucking ? dino.y + 16 : dino.y;
+            
+            dinoCtx.fillStyle = dColor;
+            if (!dino.isDucking) {
+                dinoCtx.fillRect(dino.x + 6, dY + 12, 20, 16); 
+                dinoCtx.fillRect(dino.x + 18, dY, 14, 14);     
+                dinoCtx.fillRect(dino.x + 28, dY + 4, 6, 6);     
+                dinoCtx.fillStyle = isDinoNight ? '#020617' : '#ffffff';
+                dinoCtx.fillRect(dino.x + 30, dY + 5, 2, 2);     
+                dinoCtx.fillRect(dino.x, dY + 14, 8, 6);
+                dinoCtx.fillRect(dino.x - 4, dY + 10, 6, 6);
+                let legCycle = Math.floor(dinoFrame / 6) % 2;
+                if (legCycle === 0) {
+                    dinoCtx.fillRect(dino.x + 8, dY + 28, 4, 8);
+                    dinoCtx.fillRect(dino.x + 18, dY + 28, 4, 6);
+                } else {
+                    dinoCtx.fillRect(dino.x + 10, dY + 28, 4, 6);
+                    dinoCtx.fillRect(dino.x + 16, dY + 28, 4, 8);
+                }
+            } else {
+                dinoCtx.fillRect(dino.x + 4, dY + 8, 26, 12);
+                dinoCtx.fillRect(dino.x + 22, dY + 2, 12, 10);
+            }
 
             dinoObstacles.forEach(o => {
                 if (o.isBird) {
                     dinoCtx.fillStyle = '#ef4444';
-                    dinoCtx.beginPath(); 
-                    dinoCtx.arc(o.x + 10, o.y + 9, 8, 0, Math.PI * 2); 
-                    dinoCtx.fill();
+                    dinoCtx.fillRect(o.x + 8, o.y + 8, 16, 8); 
+                    dinoCtx.fillRect(o.x + 22, o.y + 6, 8, 4);  
+                    let wingUp = Math.floor(dinoFrame / 8) % 2 === 0;
+                    dinoCtx.fillStyle = '#f87171';
+                    if (wingUp) {
+                        dinoCtx.fillRect(o.x + 10, o.y, 10, 8);
+                    } else {
+                        dinoCtx.fillRect(o.x + 10, o.y + 12, 10, 8);
+                    }
                 } else {
-                    dinoCtx.fillStyle = '#22c55e';
-                    dinoCtx.fillRect(o.x, o.y, o.width, o.height);
+                    dinoCtx.fillStyle = '#16a34a';
+                    dinoCtx.fillRect(o.x + 6, o.y, 10, 32);     
+                    dinoCtx.fillRect(o.x, o.y + 8, 6, 8);       
+                    dinoCtx.fillRect(o.x, o.y + 4, 4, 8);       
+                    dinoCtx.fillRect(o.x + 16, o.y + 14, 6, 8); 
+                    dinoCtx.fillRect(o.x + 18, o.y + 10, 4, 8); 
                 }
             });
         }
 
-        window.addEventListener('keydown', e => {
-            const c = document.getElementById('dinogame-container');
-            if(!c || !c.classList.contains('active')) return;
-            if(e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w') dinoJump();
-            if(e.key === 'ArrowDown' || e.key === 's') dinoDuck();
-        });
+        // ===================================================
+        // 12. BRICK BREAKER ENGINE
+        // ===================================================
+        let frostCanvas, frostCtx, frostRunning = false, frostAnimId, frostScore = 0, frostLives = 3, frostLvl = 1, frostScreenShake = 0;
+        let frostPaddle = { x: 140, y: 315, width: 80, height: 10 }, frostBalls = [], frostBricks = [], frostDrops = [];
 
-        // ===================================================
-        // 12. BRICK BREAKER ENGINE (MAINTAINED FULL VERSION)
-        // ===================================================
         function initFrostCanvas() {
-            frostCanvas=document.getElementById('frost-canvas'); if(!frostCanvas)return; frostCtx=frostCanvas.getContext('2d');
-            const updateFrostPointer=(clientX)=>{if(!frostRunning)return;const rect=frostCanvas.getBoundingClientRect();let canvasX=(clientX-rect.left)*(frostCanvas.width/rect.width);if(frostPaddle)frostPaddle.x=Math.max(0,Math.min(360-frostPaddle.width,canvasX-frostPaddle.width/2));};
-            frostCanvas.onmousemove=e=>updateFrostPointer(e.clientX); frostCanvas.ontouchmove=e=>{e.preventDefault();updateFrostPointer(e.touches[0].clientX);}; frostCanvas.ontouchstart=e=>{e.preventDefault();updateFrostPointer(e.touches[0].clientX);};
+            frostCanvas = document.getElementById('frost-canvas'); 
+            if (frostCanvas) frostCtx = frostCanvas.getContext('2d');
         }
+
         function startFrostGame() {
-            audio.playSFX('click'); document.getElementById('frost-gameover-overlay').style.display='none'; initFrostCanvas(); if(!frostCtx)return;
-            frostRunning=true;frostScore=0;frostLives=3;frostLvl=1;frostScreenShake=0;frostPaddle={x:140,y:315,width:80,height:10};frostDrops=[];initFrostBalls();buildFrostBricks();updateFrostHUD();cancelAnimationFrame(frostAnimId);frostLoop();
+            audio.playSFX('click'); 
+            document.getElementById('frost-gameover-overlay').style.display = 'none'; 
+            initFrostCanvas(); 
+            if (!frostCtx) return;
+            
+            frostRunning = true; 
+            frostScore = 0; 
+            frostLives = 3; 
+            frostLvl = 1; 
+            frostScreenShake = 0;
+            frostPaddle = { x: 140, y: 315, width: 80, height: 10 };
+            frostDrops = [];
+            
+            initFrostBalls();
+            buildFrostBricks();
+            updateFrostHUD();
+            
+            cancelAnimationFrame(frostAnimId);
+            frostLoop();
         }
-        function initFrostBalls(){frostBalls=[{x:180,y:180,vx:3,vy:-3.5,radius:6,active:true}];}
-        function buildFrostBricks(){frostBricks=[];const rows=5,cols=8,width=38,height=16,padding=4,offsetTop=35,offsetLeft=12;for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){let hits=r<2?2:1;frostBricks.push({x:offsetLeft+c*(width+padding),y:offsetTop+r*(height+padding),width,height,status:hits});}}
-        function updateFrostHUD(){document.getElementById('frost-score').textContent=String(frostScore).padStart(6,'0');document.getElementById('frost-lvl').textContent=`LVL ${frostLvl}`;document.getElementById('frost-lives').textContent=frostLives;}
+
+        function initFrostBalls() { 
+            frostBalls = [{ x: 180, y: 180, vx: 3, vy: -3.5, radius: 6, active: true }]; 
+        }
+
+        function buildFrostBricks() {
+            frostBricks = [];
+            const rows = 5, cols = 8, width = 38, height = 16, padding = 4, offsetTop = 35, offsetLeft = 12;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    let hits = r < 2 ? 2 : 1;
+                    frostBricks.push({ x: offsetLeft + c * (width + padding), y: offsetTop + r * (height + padding), width, height, status: hits });
+                }
+            }
+        }
+
+        function updateFrostHUD() {
+            document.getElementById('frost-score').textContent = String(frostScore).padStart(6, '0');
+            document.getElementById('frost-lvl').textContent = `LVL ${frostLvl}`;
+            document.getElementById('frost-lives').textContent = frostLives;
+        }
+
         function frostLoop() {
-            if(!frostRunning)return; if(!frostCtx){initFrostCanvas();if(!frostCtx)return;}
-            frostCtx.save();if(frostScreenShake>0){frostScreenShake--;frostCtx.translate((Math.random()-.5)*6,(Math.random()-.5)*6);}
-            frostCtx.fillStyle='#080d1a';frostCtx.fillRect(0,0,360,340);frostCtx.strokeStyle='#8b5cf6';frostCtx.lineWidth=3;frostCtx.strokeRect(4,4,352,332);
-            let activeBricks=0; frostBricks.forEach(b=>{if(b.status>0){activeBricks++;frostCtx.fillStyle=b.status===2?'#ec4899':'#8b5cf6';frostCtx.fillRect(b.x,b.y,b.width,b.height);}});
-            if(activeBricks===0){frostLvl++;audio.playSFX('win');buildFrostBricks();frostDrops=[];frostBalls.forEach(ball=>{ball.vx*=1.1;ball.vy*=1.1;ball.x=180;ball.y=180;});updateFrostHUD();}
-            frostCtx.fillStyle='#38bdf8';frostCtx.fillRect(frostPaddle.x,frostPaddle.y,frostPaddle.width,frostPaddle.height);
-            frostDrops.forEach(d=>{d.y+=2.2;frostCtx.fillStyle=d.type==='bomb'?'#ef4444':(d.type==='multiball'?'#10b981':'#f59e0b');frostCtx.beginPath();frostCtx.arc(d.x,d.y,10,0,Math.PI*2);frostCtx.fill();frostCtx.fillStyle='#ffffff';frostCtx.font='10px sans-serif';frostCtx.textAlign='center';frostCtx.textBaseline='middle';let label=d.type==='multiball'?'3x':(d.type==='longpaddle'?'↔+':(d.type==='shortpaddle'?'↔-':'💣'));frostCtx.fillText(label,d.x,d.y);
-            if(d.y+10>=frostPaddle.y&&d.y-10<=frostPaddle.y+frostPaddle.height&&d.x>=frostPaddle.x&&d.x<=frostPaddle.x+frostPaddle.width){d.collected=true;if(d.type==='multiball'){audio.playSFX('score');let nb=[];frostBalls.forEach(b=>{if(b.active){nb.push({x:b.x,y:b.y,vx:b.vx+1.5,vy:b.vy,radius:6,active:true});nb.push({x:b.x,y:b.y,vx:b.vx-1.5,vy:b.vy,radius:6,active:true});}});frostBalls.push(...nb);}else if(d.type==='longpaddle'){audio.playSFX('score');frostPaddle.width=Math.min(130,frostPaddle.width+25);}else if(d.type==='shortpaddle'){audio.playSFX('gameover');frostPaddle.width=Math.max(45,frostPaddle.width-25);}else if(d.type==='bomb'){audio.playSFX('gameover');frostLives--;frostScreenShake=12;updateFrostHUD();if(frostLives<=0){frostRunning=false;document.getElementById('final-frost-score').textContent=`Final Score: ${frostScore}`;document.getElementById('frost-gameover-overlay').style.display='flex';ScoreManager.saveScore('brickbreaker',frostScore);frostCtx.restore();return;}}}});
-            frostDrops=frostDrops.filter(d=>!d.collected&&d.y<340);
-            frostBalls.forEach(ball=>{if(!ball.active)return;ball.x+=ball.vx;ball.y+=ball.vy;if(ball.x-ball.radius<8||ball.x+ball.radius>352){ball.vx*=-1;audio.playSFX('move');}if(ball.y-ball.radius<8){ball.vy*=-1;audio.playSFX('move');}
-            if(ball.y+ball.radius>=frostPaddle.y&&ball.y-ball.radius<=frostPaddle.y+frostPaddle.height&&ball.x>=frostPaddle.x&&ball.x<=frostPaddle.x+frostPaddle.width){ball.vy*=-1;audio.playSFX('click');let hp=ball.x-(frostPaddle.x+frostPaddle.width/2);ball.vx=hp*.12;}
-            frostBricks.forEach(b=>{if(b.status>0&&ball.x>b.x&&ball.x<b.x+b.width&&ball.y>b.y&&ball.y<b.y+b.height){ball.vy*=-1;b.status--;frostScore+=15;frostScreenShake=5;audio.playSFX('score');if(b.status===0&&Math.random()<.30){const types=['multiball','longpaddle','shortpaddle','bomb'];frostDrops.push({x:b.x+b.width/2,y:b.y+b.height,type:types[Math.floor(Math.random()*types.length)],collected:false});}updateFrostHUD();}});
-            if(ball.y>340)ball.active=false;frostCtx.fillStyle='#ffffff';frostCtx.beginPath();frostCtx.arc(ball.x,ball.y,ball.radius,0,Math.PI*2);frostCtx.fill();});
-            frostBalls=frostBalls.filter(b=>b.active);
-            if(frostBalls.length===0){frostLives--;audio.playSFX('gameover');updateFrostHUD();if(frostLives<=0){frostRunning=false;document.getElementById('final-frost-score').textContent=`Final Score: ${frostScore}`;document.getElementById('frost-gameover-overlay').style.display='flex';ScoreManager.saveScore('brickbreaker',frostScore);frostCtx.restore();return;}else initFrostBalls();}
-            frostCtx.restore(); frostAnimId=requestAnimationFrame(frostLoop);
+            if (!frostRunning) return; 
+            if (!frostCtx) { initFrostCanvas(); if (!frostCtx) return; }
+            
+            frostCtx.save();
+            if (frostScreenShake > 0) {
+                frostScreenShake--;
+                frostCtx.translate((Math.random() - .5) * 6, (Math.random() - .5) * 6);
+            }
+            
+            frostCtx.fillStyle = '#080d1a'; 
+            frostCtx.fillRect(0, 0, 360, 340);
+            
+            let activeBricks = 0; 
+            frostBricks.forEach(b => {
+                if (b.status > 0) {
+                    activeBricks++;
+                    frostCtx.fillStyle = b.status === 2 ? '#ec4899' : '#8b5cf6';
+                    frostCtx.fillRect(b.x, b.y, b.width, b.height);
+                }
+            });
+
+            if (activeBricks === 0) {
+                frostLvl++; 
+                audio.playSFX('win'); 
+                buildFrostBricks(); 
+                frostDrops = [];
+                frostBalls.forEach(ball => { ball.vx *= 1.1; ball.vy *= 1.1; ball.x = 180; ball.y = 180; });
+                updateFrostHUD();
+            }
+
+            frostCanvas.onmousemove = (e) => {
+                let rect = frostCanvas.getBoundingClientRect();
+                let cx = (e.clientX - rect.left) * (frostCanvas.width / rect.width);
+                frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, cx - frostPaddle.width / 2));
+            };
+            frostCanvas.ontouchmove = (e) => {
+                e.preventDefault();
+                let rect = frostCanvas.getBoundingClientRect();
+                let cx = (e.touches[0].clientX - rect.left) * (frostCanvas.width / rect.width);
+                frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, cx - frostPaddle.width / 2));
+            };
+
+            frostCtx.fillStyle = '#38bdf8'; 
+            frostCtx.fillRect(frostPaddle.x, frostPaddle.y, frostPaddle.width, frostPaddle.height);
+
+            frostBalls.forEach(ball => {
+                if (!ball.active) return;
+                ball.x += ball.vx; 
+                ball.y += ball.vy;
+                
+                if (ball.x - ball.radius < 0 || ball.x + ball.radius > 360) { ball.vx *= -1; audio.playSFX('move'); }
+                if (ball.y - ball.radius < 0) { ball.vy *= -1; audio.playSFX('move'); }
+                
+                if (ball.y + ball.radius >= frostPaddle.y && ball.y - ball.radius <= frostPaddle.y + frostPaddle.height && ball.x >= frostPaddle.x && ball.x <= frostPaddle.x + frostPaddle.width) {
+                    ball.vy *= -1; 
+                    audio.playSFX('click');
+                    let hitPos = ball.x - (frostPaddle.x + frostPaddle.width / 2);
+                    ball.vx = hitPos * 0.12;
+                }
+
+                frostBricks.forEach(b => {
+                    if (b.status > 0 && ball.x > b.x && ball.x < b.x + b.width && ball.y > b.y && ball.y < b.y + b.height) {
+                        ball.vy *= -1; 
+                        b.status--; 
+                        frostScore += 15; 
+                        frostScreenShake = 5;
+                        audio.playSFX('score'); 
+                        updateFrostHUD();
+                    }
+                });
+
+                if (ball.y > 340) ball.active = false;
+                
+                frostCtx.fillStyle = '#ffffff'; 
+                frostCtx.beginPath(); 
+                frostCtx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); 
+                frostCtx.fill();
+            });
+
+            frostBalls = frostBalls.filter(b => b.active);
+            if (frostBalls.length === 0) {
+                frostLives--; 
+                audio.playSFX('gameover'); 
+                updateFrostHUD();
+                if (frostLives <= 0) {
+                    frostRunning = false;
+                    document.getElementById('final-frost-score').textContent = `Final Score: ${frostScore}`;
+                    document.getElementById('frost-gameover-overlay').style.display = 'flex';
+                    ScoreManager.saveScore('brickbreaker', frostScore);
+                    frostCtx.restore();
+                    return;
+                } else {
+                    initFrostBalls();
+                }
+            }
+
+            frostCtx.restore(); 
+            if (frostRunning) frostAnimId = requestAnimationFrame(frostLoop);
         }
 
         // ===================================================
-        // 13. STICKMAN RUSH ENGINE (MAINTAINED FULL VERSION)
+        // 13. STICKMAN RUSH ENGINE
         // ===================================================
         "use strict";
 
