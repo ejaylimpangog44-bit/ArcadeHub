@@ -779,7 +779,7 @@
                 <div class="mole-hole" onclick="whackMole(7)"><span id="m7">🐹</span></div>
                 <div class="mole-hole" onclick="whackMole(8)"><span id="m8">🐹</span></div>
             </div>
-            <button class="action-btn" style="width:100%; max-width:300px; margin:0 auto; display:block;" id="mole-start-btn" onclick="startMoleGame()">Start Game</button>
+            <button class="action-btn" style="width:100%; max-width:300px; margin:0 auto; display:block;" id="mole-start-btn" onclick="startMoleGame()">Start Game (2x Speed)</button>
         </div>
     </div>
 
@@ -2559,7 +2559,7 @@
         }
 
         // ===================================================
-        // WHACK-A-MOLE PRO ENGINE
+        // WHACK-A-MOLE PRO ENGINE (UPGRADED TO 2X SPEED)
         // ===================================================
         let moleActiveIdx = -1, moleScore = 0, moleTimer = null, isMolePlaying = false, moleTimeLeft = 20;
 
@@ -2568,7 +2568,7 @@
             isMolePlaying=true; moleScore=0; moleTimeLeft=20;
             document.getElementById('mole-score').textContent='0'; 
             document.getElementById('mole-time').textContent='20s'; 
-            document.getElementById('mole-start-btn').textContent='Playing...';
+            document.getElementById('mole-start-btn').textContent='Playing (2x Speed)...';
 
             moleTimer=setInterval(()=>{
                 moleTimeLeft--;
@@ -2582,12 +2582,12 @@
                     clearInterval(moleTimer);
                     document.querySelectorAll('#molegame-container .mole-hole').forEach(h=>h.classList.remove('active'));
                     isMolePlaying=false;
-                    document.getElementById('mole-start-btn').textContent='Start Game';
+                    document.getElementById('mole-start-btn').textContent='Start Game (2x Speed)';
                     audio.playSFX('win');
                     let stats=ScoreManager.saveScore('mole',moleScore);
                     document.getElementById('mole-high').textContent=stats.highScore;
                 }
-            },650);
+            },325); // Doubled speed: interval shortened from 650ms to 325ms
         }
         function whackMole(idx) { 
             if(!isMolePlaying)return; 
