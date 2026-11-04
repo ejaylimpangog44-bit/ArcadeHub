@@ -517,6 +517,22 @@
         </div>
     </div>
 
+    <!-- COIN SCATTER V2 CUSTOM IN-APP WIN ALERT MODAL -->
+    <div class="modal-overlay" id="scatter-win-modal" style="z-index: 1050;">
+        <div class="settings-modal-box" style="text-align: center; max-width: 340px;">
+            <div class="settings-header">
+                <h3>🎰 Session Complete</h3>
+                <button class="settings-close-x" onclick="closeScatterWinModal()">✕</button>
+            </div>
+            <div class="settings-body" style="padding: 24px 20px;">
+                <div style="font-size: 38px; margin-bottom: 8px;">🪙</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Total Winnings</p>
+                <div id="scatter-animated-win-amount" style="font-size: 1.8rem; font-weight: 900; color: #facc15; margin-bottom: 20px;">0 coins</div>
+                <button class="start-game-btn" onclick="closeScatterWinModal()" style="width: 100%;">OK</button>
+            </div>
+        </div>
+    </div>
+
     <!-- BLACKJACK 21 PRO CONTAINER -->
     <div id="blackjack-container" class="game-container">
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -1692,7 +1708,7 @@
         }
 
         // ===================================================
-        // COIN SCATTER v2 ENGINE (NUMBER COUNTING & ALERT POPUP)
+        // COIN SCATTER v2 ENGINE (OVERLAY MODAL & COUNTING ANIMATION)
         // ===================================================
         let scatterBalance = 1000000;
         let scatterBet = 1000;
@@ -1730,7 +1746,7 @@
 
                 const spinOptions = [3, 5, 10];
                 scatterSpinsRemaining = spinOptions[Math.floor(Math.random() * spinOptions.length)];
-                sessionTotalWins = 0; // Reset session tracker for this batch of spins
+                sessionTotalWins = 0; 
                 
                 audio.playSFX('powerup');
                 document.getElementById('scatter-dice-display').textContent = `🎲 Rolled ${scatterSpinsRemaining} Spins!`;
@@ -1816,7 +1832,6 @@
                 audio.playSFX('win');
                 sessionTotalWins += roundWin;
                 
-                // Number counting animation on balance display
                 animateBalanceCount(scatterBalance, scatterBalance + roundWin, 600);
                 scatterBalance += roundWin;
                 
@@ -1835,11 +1850,38 @@
                 document.getElementById('scatter-spin-btn').textContent = "ROLL DICE & SPIN (🪙 Bet)";
                 document.getElementById('scatter-status').textContent = "Spins finished! Select bet to roll dice again.";
                 
-                // Trigger alert popup showing total amount won after all spins complete
+                // Show custom overlay modal with number counting animation
                 setTimeout(() => {
-                    alert(`🎰 Coin Scatter v2 Session Complete!\n\nTotal Winnings: 🪙 ${sessionTotalWins.toLocaleString()} coins!`);
+                    showScatterWinModal(sessionTotalWins);
                 }, 300);
             }
+        }
+
+        function showScatterWinModal(finalWinAmount) {
+            const modal = document.getElementById('scatter-win-modal');
+            const amountEl = document.getElementById('scatter-animated-win-amount');
+            modal.classList.add('active');
+            
+            // Number counting animation
+            let duration = 800;
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                let progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                let currentVal = Math.floor(progress * finalWinAmount);
+                amountEl.textContent = `${currentVal.toLocaleString()} coins`;
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    amountEl.textContent = `${finalWinAmount.toLocaleString()} coins`;
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        function closeScatterWinModal() {
+            audio.playSFX('click');
+            document.getElementById('scatter-win-modal').classList.remove('active');
         }
 
         function animateBalanceCount(startVal, endVal, duration) {
