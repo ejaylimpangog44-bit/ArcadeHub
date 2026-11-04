@@ -2715,12 +2715,12 @@
         }
 
         // ===================================================
-        // STICK RUN - CLASSIC ENDLESS RUN ENGINE (WITH ROOF LANDING & SLIDE FIX)
+        // STICK RUN - CLASSIC ENDLESS RUN ENGINE (WITH DEATH ANIMATIONS)
         // ===================================================
         let srCanvas, srCtx, srRunning = false, srAnimId;
         let srScore = 0, srCoins = 0, srSpeed = 6, srHighScore = Number(localStorage.getItem('sr_high')) || 0;
         let srPlayer = { x: 100, y: 310, w: 28, h: 56, vy: 0, grounded: true, doubleJumpAvailable: true, sliding: false, slideTimer: 0, frame: 0 };
-        let srObstacles = [], srCrates = [];
+        let srObstacles = [], srCrates = [], deathAnim = null;
         let srBgMusicInterval = null;
 
         function startStickRunGame() {
@@ -2750,6 +2750,7 @@
             srSpeed = 6;
             srObstacles = [];
             srCrates = [];
+            deathAnim = null;
             srPlayer.y = 310;
             srPlayer.vy = 0;
             srPlayer.grounded = true;
@@ -2777,7 +2778,7 @@
         }
 
         function srJump() {
-            if(!srRunning) return;
+            if(!srRunning || deathAnim) return;
             if(srPlayer.grounded) {
                 srPlayer.vy = -12.5;
                 srPlayer.grounded = false;
@@ -2792,7 +2793,7 @@
         }
 
         function srSlide() {
-            if(!srPlayer.grounded || srPlayer.sliding || !srRunning) return;
+            if(!srPlayer.grounded || srPlayer.sliding || !srRunning || deathAnim) return;
             srPlayer.sliding = true;
             srPlayer.slideTimer = 30;
             audio.playSFX('click');
@@ -2809,6 +2810,128 @@
         let spawnTimer = 0;
         function srGameLoop() {
             if(!srRunning) return;
+
+            // Render background gradient & floor every frame
+            let grad = srCtx.createLinearGradient(0, 0, 0, 400);
+            grad.addColorStop(0, '#ffbb44');
+            grad.addColorStop(0.7, '#ff8822');
+            grad.addColorStop(1, '#dd6611');
+            srCtx.fillStyle = grad;
+            srCtx.fillRect(0, 0, 800, 400);
+
+            srCtx.fillStyle = '#b0b0b0';
+            srCtx.fillRect(0, 366, 800, 34);
+            srCtx.fillStyle = '#888888';
+            for(let i = -40; i < 850; i += 40) {
+                srCtx.beginPath();
+                srCtx.moveTo(i + (srScore * srSpeed) % 40, 366);
+                srCtx.lineTo(i + 20 + (srScore * srSpeed) % 40, 366);
+                srCtx.lineTo(i - 15 + (srScore * srSpeed) % 40, 400);
+                srCtx.lineTo(i - 35 + (srScore * srSpeed) % 40, 400);
+                srCtx.closePath();
+                srCtx.fill();
+            }
+
+            // Draw Coins
+            srCrates.forEach(c => {
+                srCtx.fillStyle = '#facc15';
+                srCtx.beginPath(); srCtx.arc(c.x, c.y, 11, 0, Math.PI*2); srCtx.fill();
+                srCtx.strokeStyle = '#ca8a04'; srCtx.lineWidth = 2; srCtx.stroke();
+                srCtx.fillStyle = '#713f12'; srCtx.font = 'bold 12px sans-serif'; srCtx.fillText('$', c.x - 4, c.y + 4);
+            });
+
+            // Draw Obstacles
+            srObstacles.forEach(o => {
+                if(o.type === 'crate' || o.type === 'double_crate') {
+                    srCtx.fillStyle = '#b47535';
+                    srCtx.fillRect(o.x, 310, o.w, 56);
+                    srCtx.strokeStyle = '#6e441a'; srCtx.lineWidth = 3;
+                    srCtx.strokeRect(o.x, 310, o.w, 56);
+                    srCtx.beginPath();
+                    srCtx.moveTo(o.x, 310); srCtx.lineTo(o.x + o.w, 366);
+                    srCtx.moveTo(o.x + o.w, 310); srCtx.lineTo(o.x, 366);
+                    srCtx.stroke();
+
+                    if(o.type === 'double_crate') {
+                        srCtx.fillStyle = '#b47535';
+                        srCtx.fillRect(o.x, 254, o.w, 56);
+                        srCtx.strokeRect(o.x, 254, o.w, 56);
+                        srCtx.beginPath();
+                        srCtx.moveTo(o.x, 254); srCtx.lineTo(o.x + o.w, 310);
+                        srCtx.moveTo(o.x + o.w, 254); srCtx.lineTo(o.x, 310);
+                        srCtx.stroke();
+                    }
+                } else {
+                    srCtx.save();
+                    srCtx.translate(o.x + o.w/2, o.y + o.h/2);
+                    srCtx.rotate(o.rotation);
+                    srCtx.fillStyle = '#94a3b8';
+                    srCtx.beginPath(); srCtx.arc(0, 0, 18, 0, Math.PI*2); srCtx.fill();
+                    srCtx.strokeStyle = '#334155'; srCtx.lineWidth = 3; srCtx.stroke();
+                    for(let s=0; s<8; s++) {
+                        srCtx.rotate(Math.PI / 4);
+                        srCtx.fillStyle = '#cbd5e1';
+                        srCtx.fillRect(-3, -24, 6, 8);
+                    }
+                    srCtx.restore();
+                }
+            });
+
+            // Handle Death Animation Frame if active
+            if(deathAnim) {
+                deathAnim.timer++;
+                if(deathAnim.type === 'crate_crash') {
+                    // Blood burst pop and bounce back
+                    srCtx.save();
+                    srCtx.fillStyle = '#dc2626';
+                    for(let b=0; b<12; b++) {
+                        let angle = (b / 12) * Math.PI * 2;
+                        let dist = deathAnim.timer * 4;
+                        srCtx.beginPath();
+                        srCtx.arc(deathAnim.x + Math.cos(angle)*dist, deathAnim.y + Math.sin(angle)*dist, 4, 0, Math.PI*2);
+                        srCtx.fill();
+                    }
+                    srCtx.fillStyle = '#7f1d1d';
+                    srCtx.font = 'bold 22px sans-serif';
+                    srCtx.fillText('💥 CRASH!', deathAnim.x - 30, deathAnim.y - 30);
+                    srCtx.restore();
+
+                    if(deathAnim.timer > 35) {
+                        srRunning = false;
+                        returnToSrMenu();
+                    } else {
+                        srAnimId = requestAnimationFrame(srGameLoop);
+                    }
+                    return;
+                } else if(deathAnim.type === 'saw_shred') {
+                    // Broken into pieces (scattered limbs and blood)
+                    srCtx.save();
+                    srCtx.strokeStyle = '#000';
+                    srCtx.lineWidth = 4;
+                    let t = deathAnim.timer;
+                    // Head flying
+                    srCtx.beginPath(); srCtx.arc(deathAnim.x + t*3, deathAnim.y - t*2, 8, 0, Math.PI*2); srCtx.stroke();
+                    // Arm 1 flying
+                    srCtx.beginPath(); srCtx.moveTo(deathAnim.x, deathAnim.y); srCtx.lineTo(deathAnim.x - t*4, deathAnim.y - t*3); srCtx.stroke();
+                    // Leg 1 flying
+                    srCtx.beginPath(); srCtx.moveTo(deathAnim.x, deathAnim.y); srCtx.lineTo(deathAnim.x + t*5, deathAnim.y + t*2); srCtx.stroke();
+                    
+                    // Blood splatter
+                    srCtx.fillStyle = '#dc2626';
+                    for(let b=0; b<10; b++) {
+                        srCtx.fillRect(deathAnim.x + (b * 7 - 35) * (t/10), deathAnim.y + (b % 3 * 8) * (t/10), 5, 5);
+                    }
+                    srCtx.restore();
+
+                    if(deathAnim.timer > 35) {
+                        srRunning = false;
+                        returnToSrMenu();
+                    } else {
+                        srAnimId = requestAnimationFrame(srGameLoop);
+                    }
+                    return;
+                }
+            }
 
             spawnTimer++;
             if(spawnTimer > Math.max(45, 90 - srSpeed * 2)) {
@@ -2832,11 +2955,9 @@
 
             srPlayer.frame += 0.2;
             
-            // Physics & Vertical Movement
             srPlayer.vy += 0.65;
             srPlayer.y += srPlayer.vy;
 
-            // Ground & Roof Crate Landing Logic
             let targetGroundY = 310;
             let landedOnCrate = false;
 
@@ -2844,7 +2965,6 @@
                 srObstacles.forEach(o => {
                     if(o.type === 'crate' || o.type === 'double_crate') {
                         let crateSurfaceY = o.type === 'double_crate' ? 254 : 310;
-                        // Check if player is falling onto the top surface of the crate
                         if(srPlayer.x + srPlayer.w > o.x + 4 && srPlayer.x < o.x + o.w - 4) {
                             if(srPlayer.y + srPlayer.h >= crateSurfaceY && srPlayer.y + srPlayer.h - srPlayer.vy <= crateSurfaceY + 10 && srPlayer.vy >= 0) {
                                 targetGroundY = crateSurfaceY - srPlayer.h;
@@ -2892,97 +3012,30 @@
             srCrates = srCrates.filter(c => c.x > -30 && !c.collected);
             srObstacles = srObstacles.filter(o => o.x > -50);
 
-            // Crash Collision Checking (front face or saws)
+            // Collision & Death Trigger Check
             let pBox = srPlayer.sliding ? {x: srPlayer.x, y: srPlayer.y + 26, w: srPlayer.w + 15, h: 30} : {x: srPlayer.x, y: srPlayer.y, w: srPlayer.w, h: srPlayer.h};
             for(let o of srObstacles) {
-                // If it's a crate and player landed on top, skip front crash check
                 if((o.type === 'crate' || o.type === 'double_crate') && landedOnCrate && pBox.y + pBox.h <= (o.type === 'double_crate' ? 254 : 310) + 4) {
                     continue;
                 }
                 if(pBox.x < o.x + o.w - 5 && pBox.x + pBox.w > o.x + 5 && pBox.y < o.y + o.h && pBox.y + pBox.h > o.y) {
-                    srRunning = false;
                     audio.playSFX('gameover');
                     if(currentScoreInt > srHighScore) { 
                         srHighScore = currentScoreInt; 
                         localStorage.setItem('sr_high', srHighScore); 
                     }
-                    alert(`💥 CRASH! Final Score: ${currentScoreInt} | Coins: ${srCoins}`);
-                    returnToSrMenu();
-                    return;
+
+                    // Trigger smooth death animation depending on obstacle type
+                    if(o.type.includes('saw')) {
+                        deathAnim = { type: 'saw_shred', x: srPlayer.x + 14, y: srPlayer.y + 25, timer: 0 };
+                    } else {
+                        deathAnim = { type: 'crate_crash', x: srPlayer.x + 14, y: srPlayer.y + 25, timer: 0 };
+                    }
+                    break;
                 }
             }
 
-            // Classic Stick Run Gradient Background (Orange Sky)
-            let grad = srCtx.createLinearGradient(0, 0, 0, 400);
-            grad.addColorStop(0, '#ffbb44');
-            grad.addColorStop(0.7, '#ff8822');
-            grad.addColorStop(1, '#dd6611');
-            srCtx.fillStyle = grad;
-            srCtx.fillRect(0, 0, 800, 400);
-
-            // Angled Striped Ground Floor
-            srCtx.fillStyle = '#b0b0b0';
-            srCtx.fillRect(0, 366, 800, 34);
-            srCtx.fillStyle = '#888888';
-            for(let i = -40; i < 850; i += 40) {
-                srCtx.beginPath();
-                srCtx.moveTo(i + (srScore * srSpeed) % 40, 366);
-                srCtx.lineTo(i + 20 + (srScore * srSpeed) % 40, 366);
-                srCtx.lineTo(i - 15 + (srScore * srSpeed) % 40, 400);
-                srCtx.lineTo(i - 35 + (srScore * srSpeed) % 40, 400);
-                srCtx.closePath();
-                srCtx.fill();
-            }
-
-            // Draw Coins
-            srCrates.forEach(c => {
-                srCtx.fillStyle = '#facc15';
-                srCtx.beginPath(); srCtx.arc(c.x, c.y, 11, 0, Math.PI*2); srCtx.fill();
-                srCtx.strokeStyle = '#ca8a04'; srCtx.lineWidth = 2; srCtx.stroke();
-                srCtx.fillStyle = '#713f12'; srCtx.font = 'bold 12px sans-serif'; srCtx.fillText('$', c.x - 4, c.y + 4);
-            });
-
-            // Draw Obstacles (Crates, Double Crates & Saw Blades)
-            srObstacles.forEach(o => {
-                if(o.type === 'crate' || o.type === 'double_crate') {
-                    // Bottom Crate
-                    srCtx.fillStyle = '#b47535';
-                    srCtx.fillRect(o.x, 310, o.w, 56);
-                    srCtx.strokeStyle = '#6e441a'; srCtx.lineWidth = 3;
-                    srCtx.strokeRect(o.x, 310, o.w, 56);
-                    srCtx.beginPath();
-                    srCtx.moveTo(o.x, 310); srCtx.lineTo(o.x + o.w, 366);
-                    srCtx.moveTo(o.x + o.w, 310); srCtx.lineTo(o.x, 366);
-                    srCtx.stroke();
-
-                    if(o.type === 'double_crate') {
-                        // Top Crate
-                        srCtx.fillStyle = '#b47535';
-                        srCtx.fillRect(o.x, 254, o.w, 56);
-                        srCtx.strokeRect(o.x, 254, o.w, 56);
-                        srCtx.beginPath();
-                        srCtx.moveTo(o.x, 254); srCtx.lineTo(o.x + o.w, 310);
-                        srCtx.moveTo(o.x + o.w, 254); srCtx.lineTo(o.x, 310);
-                        srCtx.stroke();
-                    }
-                } else {
-                    // Metal Saw Blade (Ground or Floating)
-                    srCtx.save();
-                    srCtx.translate(o.x + o.w/2, o.y + o.h/2);
-                    srCtx.rotate(o.rotation);
-                    srCtx.fillStyle = '#94a3b8';
-                    srCtx.beginPath(); srCtx.arc(0, 0, 18, 0, Math.PI*2); srCtx.fill();
-                    srCtx.strokeStyle = '#334155'; srCtx.lineWidth = 3; srCtx.stroke();
-                    for(let s=0; s<8; s++) {
-                        srCtx.rotate(Math.PI / 4);
-                        srCtx.fillStyle = '#cbd5e1';
-                        srCtx.fillRect(-3, -24, 6, 8);
-                    }
-                    srCtx.restore();
-                }
-            });
-
-            // Draw Stickman Runner (With Complete Sliding Limbs & Running Poses)
+            // Draw Stickman Runner
             srCtx.save();
             srCtx.translate(srPlayer.x, srPlayer.y);
             srCtx.strokeStyle = '#000000';
@@ -2990,14 +3043,12 @@
             srCtx.lineCap = 'round';
 
             if(srPlayer.sliding) {
-                // Fixed Sliding Pose with Visible Head, Torso, Arms and Extended Legs
-                srCtx.beginPath(); srCtx.arc(15, 26, 8, 0, Math.PI*2); srCtx.stroke(); // Head
-                srCtx.beginPath(); srCtx.moveTo(15, 34); srCtx.lineTo(38, 44); srCtx.stroke(); // Torso
-                srCtx.beginPath(); srCtx.moveTo(32, 38); srCtx.lineTo(46, 32); srCtx.stroke(); // Arm outstretched
-                srCtx.beginPath(); srCtx.moveTo(22, 39); srCtx.lineTo(2, 50); srCtx.stroke(); // Extended front leg
-                srCtx.beginPath(); srCtx.moveTo(26, 41); srCtx.lineTo(8, 52); srCtx.stroke(); // Extended back leg
+                srCtx.beginPath(); srCtx.arc(15, 26, 8, 0, Math.PI*2); srCtx.stroke();
+                srCtx.beginPath(); srCtx.moveTo(15, 34); srCtx.lineTo(38, 44); srCtx.stroke();
+                srCtx.beginPath(); srCtx.moveTo(32, 38); srCtx.lineTo(46, 32); srCtx.stroke();
+                srCtx.beginPath(); srCtx.moveTo(22, 39); srCtx.lineTo(2, 50); srCtx.stroke();
+                srCtx.beginPath(); srCtx.moveTo(26, 41); srCtx.lineTo(8, 52); srCtx.stroke();
             } else {
-                // Running / Mid-Air Pose
                 let isJumping = !srPlayer.grounded;
                 let headAngle = isJumping ? srPlayer.frame * 2 : 0;
                 
