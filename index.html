@@ -371,9 +371,7 @@
 
             <div id="ws-category-badge" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--primary); font-weight:800; margin-bottom:6px;">Category: Easy Warmup</div>
 
-            <div id="ws-word-board" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:10px; min-height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
-                <!-- Crossword slots -->
-            </div>
+            <div id="ws-word-board" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:10px; min-height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;"></div>
 
             <div id="ws-current-word" style="font-size:1.3rem; font-weight:bold; letter-spacing:4px; color:var(--primary); margin-bottom:8px; min-height:30px; background:rgba(17,24,39,0.8); border:1px solid var(--border); border-radius:8px; width:100%; display:flex; align-items:center; justify-content:center;">
                 _ _ _ _
@@ -683,7 +681,7 @@
                     <button class="action-btn" onclick="startFruitGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Slice fruits quickly for combos! Avoid 💣 bombs & ❄️ freeze time!</p>
+            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Slice fruits for half-split animations! Avoid 💣 bombs (triggers vibration)!</p>
         </div>
     </div>
 
@@ -707,7 +705,7 @@
                     <button class="action-btn" onclick="startFrostGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Move mouse/touch to control the paddle & break all bricks!</p>
+            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Catch drops: 🟢 x3 Balls, 🔵 Long Pad, 🔴 Short Pad, 💀 -HP!</p>
         </div>
     </div>
 
@@ -868,7 +866,7 @@
                 <button class="dir-btn" onclick="dinoJump()">⬆️ JUMP</button>
                 <button class="dir-btn" onclick="dinoDuck()">⬇️ DUCK</button>
             </div>
-            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Tap JUMP (Space/Up) for Cacti or DUCK (Down) for Flying Pterodactyls!</p>
+            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Jump over Cacti or Duck under Flying Pterodactyls!</p>
         </div>
     </div>
 
@@ -2186,75 +2184,144 @@
         }
 
         // ===================================================
-        // FRUIT MASTER ENGINE
+        // FRUIT MASTER ENGINE (ENHANCED WITH SLICE HALVES & VIBRATION)
         // ===================================================
-        let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [];
+        let fruitCanvas, fruitCtx, fruitRunning = false, fruitAnimId, fruitScore = 0, fruitLives = 3, flyingFruits = [], sliceTrails = [], fruitHalves = [];
 
         function initFruitCanvas() {
-            fruitCanvas=document.getElementById('fruit-canvas'); if(!fruitCanvas)return; fruitCtx=fruitCanvas.getContext('2d'); let isDragging=false;
-            const registerSwipe=(clientX,clientY)=>{
-                if(!fruitRunning)return;
-                const rect=fruitCanvas.getBoundingClientRect();
-                let cx=(clientX-rect.left)*(fruitCanvas.width/rect.width);
-                let cy=(clientY-rect.top)*(fruitCanvas.height/rect.height);
-                sliceTrails.push({x:cx,y:cy,alpha:1.0});
+            fruitCanvas = document.getElementById('fruit-canvas'); 
+            if (!fruitCanvas) return; 
+            fruitCtx = fruitCanvas.getContext('2d'); 
+            let isDragging = false;
 
-                flyingFruits.forEach(f=>{
-                    if(!f.sliced&&Math.hypot(f.x-cx,f.y-cy)<f.radius+16){
-                        f.sliced=true;
-                        if(f.isBomb){
+            const registerSwipe = (clientX, clientY) => {
+                if (!fruitRunning) return;
+                const rect = fruitCanvas.getBoundingClientRect();
+                let cx = (clientX - rect.left) * (fruitCanvas.width / rect.width);
+                let cy = (clientY - rect.top) * (fruitCanvas.height / rect.height);
+                sliceTrails.push({ x: cx, y: cy, alpha: 1.0 });
+
+                flyingFruits.forEach(f => {
+                    if (!f.sliced && Math.hypot(f.x - cx, f.y - cy) < f.radius + 20) {
+                        f.sliced = true;
+                        if (f.isBomb) {
                             audio.playSFX('gameover');
+                            if (navigator.vibrate) navigator.vibrate([200, 100, 200]); // Phone vibration
                             fruitLives--;
-                            document.getElementById('fruit-lives').textContent=fruitLives;
-                            if(fruitLives<=0) endFruitGame();
+                            document.getElementById('fruit-lives').textContent = fruitLives;
+                            if (fruitLives <= 0) endFruitGame();
                         } else {
                             audio.playSFX('score');
-                            fruitScore+=f.points;
-                            document.getElementById('fruit-score').textContent=fruitScore;
+                            fruitScore += f.points;
+                            document.getElementById('fruit-score').textContent = fruitScore;
+                            
+                            // Spawn fruit slice halves animation
+                            fruitHalves.push(
+                                { x: f.x - 6, y: f.y, vx: -2.5, vy: -3, emoji: f.emoji, rot: -0.2, vRot: -0.1 },
+                                { x: f.x + 6, y: f.y, vx: 2.5, vy: -3, emoji: f.emoji, rot: 0.2, vRot: 0.1 }
+                            );
                         }
                     }
                 });
             };
-            fruitCanvas.onmousedown=e=>{isDragging=true;registerSwipe(e.clientX,e.clientY);};
-            window.onmousemove=e=>{if(isDragging)registerSwipe(e.clientX,e.clientY);};
-            window.onmouseup=()=>{isDragging=false;};
+
+            fruitCanvas.onmousedown = e => { isDragging = true; registerSwipe(e.clientX, e.clientY); };
+            fruitCanvas.onmousemove = e => { if (isDragging) registerSwipe(e.clientX, e.clientY); };
+            window.onmouseup = () => { isDragging = false; };
+            
+            fruitCanvas.ontouchstart = e => { isDragging = true; registerSwipe(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
+            fruitCanvas.ontouchmove = e => { if (isDragging) registerSwipe(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
+            fruitCanvas.ontouchend = () => { isDragging = false; };
         }
-        function startFruitGame() { audio.playSFX('click'); document.getElementById('fruit-gameover-overlay').style.display='none'; initFruitCanvas(); if(!fruitCtx)return; fruitRunning=true; fruitScore=0; fruitLives=3; flyingFruits=[]; sliceTrails=[]; document.getElementById('fruit-score').textContent=0; document.getElementById('fruit-lives').textContent=3; cancelAnimationFrame(fruitAnimId); fruitLoop(); }
-        let fruitTick=0;
+
+        function startFruitGame() { 
+            audio.playSFX('click'); 
+            document.getElementById('fruit-gameover-overlay').style.display = 'none'; 
+            initFruitCanvas(); 
+            if (!fruitCtx) return; 
+            fruitRunning = true; 
+            fruitScore = 0; 
+            fruitLives = 3; 
+            flyingFruits = []; 
+            fruitHalves = [];
+            sliceTrails = []; 
+            document.getElementById('fruit-score').textContent = 0; 
+            document.getElementById('fruit-lives').textContent = 3; 
+            cancelAnimationFrame(fruitAnimId); 
+            fruitLoop(); 
+        }
+
+        let fruitTick = 0;
         function fruitLoop() {
-            if(!fruitRunning)return; fruitTick++;
-            if(fruitTick%45===0){
-                let isBomb=Math.random()<.18;
-                const types=[{emoji:'🍉',points:20},{emoji:'🍎',points:10},{emoji:'🍌',points:15}];
-                let chosen=isBomb?{emoji:'💣',points:0}:types[Math.floor(Math.random()*types.length)];
-                flyingFruits.push({x:40+Math.random()*220,y:330,vx:(Math.random()-.5)*4,vy:-11-Math.random()*3,gravity:.35,radius:18,emoji:chosen.emoji,points:chosen.points,isBomb,sliced:false});
+            if (!fruitRunning) return; 
+            fruitTick++;
+            if (fruitTick % 45 === 0) {
+                let isBomb = Math.random() < 0.18;
+                const types = [{ emoji: '🍉', points: 20 }, { emoji: '🍎', points: 10 }, { emoji: '🍌', points: 15 }, { emoji: '🍊', points: 15 }];
+                let chosen = isBomb ? { emoji: '💣', points: 0 } : types[Math.floor(Math.random() * types.length)];
+                flyingFruits.push({ x: 50 + Math.random() * 200, y: 330, vx: (Math.random() - 0.5) * 4, vy: -11 - Math.random() * 3, gravity: 0.35, radius: 20, emoji: chosen.emoji, points: chosen.points, isBomb, sliced: false });
             }
-            fruitCtx.fillStyle='#111827'; fruitCtx.fillRect(0,0,fruitCanvas.width,fruitCanvas.height);
 
-            flyingFruits.forEach(f=>{
-                f.x+=f.vx; f.vy+=f.gravity; f.y+=f.vy;
-                if(!f.sliced){
-                    fruitCtx.font='26px sans-serif';fruitCtx.textAlign='center';fruitCtx.textBaseline='middle';fruitCtx.fillText(f.emoji,f.x,f.y);
+            fruitCtx.fillStyle = '#111827'; 
+            fruitCtx.fillRect(0, 0, fruitCanvas.width, fruitCanvas.height);
+
+            // Update & draw flying fruits
+            flyingFruits.forEach(f => {
+                f.x += f.vx; 
+                f.vy += f.gravity; 
+                f.y += f.vy;
+                if (!f.sliced) {
+                    fruitCtx.font = '28px sans-serif'; 
+                    fruitCtx.textAlign = 'center'; 
+                    fruitCtx.textBaseline = 'middle'; 
+                    fruitCtx.fillText(f.emoji, f.x, f.y);
                 }
             });
-            flyingFruits=flyingFruits.filter(f=>f.y<360);
+            flyingFruits = flyingFruits.filter(f => f.y < 360);
 
-            sliceTrails.forEach(t=>{
-                t.alpha-=.08;
-                if(t.alpha>0){
-                    fruitCtx.strokeStyle=`rgba(56,189,248,${t.alpha})`;
-                    fruitCtx.lineWidth=5;
-                    fruitCtx.beginPath();fruitCtx.arc(t.x,t.y,7,0,Math.PI*2);fruitCtx.stroke();
+            // Update & draw sliced halves animation
+            fruitHalves.forEach(h => {
+                h.x += h.vx;
+                h.vy += 0.4;
+                h.y += h.vy;
+                h.rot += h.vRot;
+                
+                fruitCtx.save();
+                fruitCtx.translate(h.x, h.y);
+                fruitCtx.rotate(h.rot);
+                fruitCtx.font = '24px sans-serif';
+                fruitCtx.textAlign = 'center';
+                fruitCtx.textBaseline = 'middle';
+                fruitCtx.fillText(h.emoji, 0, 0);
+                fruitCtx.restore();
+            });
+            fruitHalves = fruitHalves.filter(h => h.y < 360);
+
+            // Draw glowing slice blade trail
+            sliceTrails.forEach(t => {
+                t.alpha -= 0.1;
+                if (t.alpha > 0) {
+                    fruitCtx.strokeStyle = `rgba(56, 189, 248, ${t.alpha})`;
+                    fruitCtx.shadowColor = '#38bdf8';
+                    fruitCtx.shadowBlur = 8;
+                    fruitCtx.lineWidth = 4;
+                    fruitCtx.beginPath(); 
+                    fruitCtx.arc(t.x, t.y, 6, 0, Math.PI * 2); 
+                    fruitCtx.stroke();
+                    fruitCtx.shadowBlur = 0;
                 }
             });
-            sliceTrails=sliceTrails.filter(t=>t.alpha>0); 
-            if(fruitRunning) fruitAnimId=requestAnimationFrame(fruitLoop);
+            sliceTrails = sliceTrails.filter(t => t.alpha > 0); 
+
+            if (fruitRunning) fruitAnimId = requestAnimationFrame(fruitLoop);
         }
+
         function endFruitGame() { 
-            fruitRunning=false; audio.playSFX('gameover'); 
+            fruitRunning = false; 
+            audio.playSFX('gameover'); 
             document.getElementById('fruit-final-msg').textContent = `Final Score: ${fruitScore}`;
-            document.getElementById('fruit-gameover-overlay').style.display='flex'; 
-            ScoreManager.saveScore('fruitslasher',fruitScore); 
+            document.getElementById('fruit-gameover-overlay').style.display = 'flex'; 
+            ScoreManager.saveScore('fruitslasher', fruitScore); 
         }
 
         // ===================================================
@@ -2498,10 +2565,10 @@
         }
 
         // ===================================================
-        // DINO RUNNER PRO ENGINE
+        // DINO RUNNER PRO ENGINE (REAL DINOSAUR, CACTUS & PTERODACTYL)
         // ===================================================
-        let dinoCanvas, dinoCtx, dinoAnimId, dinoScore = 0, isDinoRunning = false;
-        let dino = { x: 45, y: 125, width: 32, height: 36, isDucking: false, vy: 0 };
+        let dinoCanvas, dinoCtx, dinoAnimId, dinoScore = 0, isDinoRunning = false, dinoBirdsDodged = 0;
+        let dino = { x: 35, y: 125, width: 34, height: 36, isDucking: false, vy: 0, animFrame: 0 };
         let dinoObstacles = [];
 
         function initDinoCanvas() { 
@@ -2516,57 +2583,72 @@
             if (!dinoCtx) return; 
             cancelAnimationFrame(dinoAnimId);
 
-            dino = { x: 45, y: 125, width: 32, height: 36, isDucking: false, vy: 0 }; 
+            dino = { x: 35, y: 125, width: 34, height: 36, isDucking: false, vy: 0, animFrame: 0 }; 
             dinoObstacles = []; 
             dinoScore = 0; 
+            dinoBirdsDodged = 0;
             isDinoRunning = true;
 
             document.getElementById('dino-score').textContent = 0; 
+            document.getElementById('dino-birds-dodged').textContent = 0;
             document.getElementById('dino-high').textContent = ScoreManager.getStats('dino').highScore;
             dinoLoop();
         }
 
         function dinoJump() {
-            if (!isDinoRunning || dino.y < 125) return;
+            if (!isDinoRunning || dino.y < 125 || dino.isDucking) return;
             audio.playSFX('move');
             dino.vy = -10.5;
         }
 
         function dinoDuck() {
-            if (!isDinoRunning) return;
+            if (!isDinoRunning || dino.y < 125) return;
             dino.isDucking = true;
-            setTimeout(() => { dino.isDucking = false; }, 600);
+            setTimeout(() => { dino.isDucking = false; }, 650);
         }
 
         let dinoSpawnCounter = 0;
         function dinoLoop() {
             if (!isDinoRunning) return;
             dinoSpawnCounter++;
+            dino.animFrame += 0.2;
             
             dino.y += dino.vy;
             dino.vy += 0.55;
             if (dino.y >= 125) { dino.y = 125; dino.vy = 0; }
 
-            if (dinoSpawnCounter >= 95) {
+            if (dinoSpawnCounter >= 90) {
                 dinoSpawnCounter = 0;
-                dinoObstacles.push({ x: 320, y: 125, width: 22, height: 36 });
+                let isBird = Math.random() < 0.35 && dinoScore > 300;
+                if (isBird) {
+                    dinoObstacles.push({ x: 320, y: 95, width: 32, height: 22, type: 'bird', wingFrame: 0 });
+                } else {
+                    let isDouble = Math.random() < 0.3 && dinoScore > 150;
+                    dinoObstacles.push({ x: 320, y: 122, width: isDouble ? 34 : 20, height: 38, type: 'cactus' });
+                }
             }
 
-            dinoObstacles.forEach(o => { o.x -= 4.8; });
+            dinoObstacles.forEach(o => { 
+                o.x -= 5.2; 
+                if(o.type === 'bird') o.wingFrame += 0.15;
+            });
             dinoObstacles = dinoObstacles.filter(o => o.x > -50); 
             
             dinoScore++; 
             document.getElementById('dino-score').textContent = dinoScore; 
 
+            // Precise Bounding Box Collision Check
+            let curH = dino.isDucking ? 20 : dino.height;
+            let curY = dino.isDucking ? dino.y + 16 : dino.y;
+            
             dinoObstacles.forEach(o => {
-                let curDinoHeight = dino.isDucking ? 20 : dino.height;
-                let curDinoY = dino.isDucking ? dino.y + 16 : dino.y;
-                if (dino.x < o.x + o.width - 6 && dino.x + dino.width - 6 > o.x && curDinoY < o.y + o.height && curDinoY + curDinoHeight > o.y) {
+                if (dino.x < o.x + o.width - 4 && dino.x + dino.width - 4 > o.x + 4 && 
+                    curY < o.y + o.height - 2 && curY + curH > o.y + 2) {
                     endDinoGame();
                 }
             }); 
 
-            drawDino();
+            drawDinoScene();
             if (isDinoRunning) dinoAnimId = requestAnimationFrame(dinoLoop);
         }
 
@@ -2580,31 +2662,100 @@
             document.getElementById('dino-high').textContent = stats.highScore; 
         }
 
-        function drawDino() {
-            dinoCtx.fillStyle = '#111827'; dinoCtx.fillRect(0, 0, 320, 180); 
-            dinoCtx.strokeStyle = '#64748b'; dinoCtx.lineWidth = 2; 
-            dinoCtx.beginPath(); dinoCtx.moveTo(0, 161); dinoCtx.lineTo(320, 161); dinoCtx.stroke();
-            
-            dinoCtx.fillStyle = '#22c55e';
-            dinoCtx.fillRect(dino.x + 6, dino.y + 12, 20, 16); 
-            dinoCtx.fillRect(dino.x + 18, dino.y, 14, 14);     
+        function drawDinoScene() {
+            dinoCtx.fillStyle = '#0b0f19'; 
+            dinoCtx.fillRect(0, 0, 320, 180); 
 
+            // Ground Line
+            dinoCtx.strokeStyle = '#334155'; 
+            dinoCtx.lineWidth = 2; 
+            dinoCtx.beginPath(); 
+            dinoCtx.moveTo(0, 161); 
+            dinoCtx.lineTo(320, 161); 
+            dinoCtx.stroke();
+            
+            // Draw Real Dinosaur Sprite
+            dinoCtx.fillStyle = '#10b981';
+            if (dino.isDucking) {
+                // Ducking body
+                dinoCtx.fillRect(dino.x, dino.y + 16, 32, 20); // body
+                dinoCtx.fillRect(dino.x + 22, dino.y + 10, 16, 12); // head
+                dinoCtx.fillStyle = '#059669';
+                dinoCtx.fillRect(dino.x + 4, dino.y + 32, 8, 4);
+                dinoCtx.fillRect(dino.x + 18, dino.y + 32, 8, 4);
+            } else {
+                // Standing body
+                dinoCtx.fillRect(dino.x + 8, dino.y + 14, 20, 18); // torso
+                dinoCtx.fillRect(dino.x + 20, dino.y + 2, 14, 16); // head
+                dinoCtx.fillRect(dino.x + 2, dino.y + 18, 10, 8);   // tail
+                
+                // Animated Legs
+                let legCycle = Math.sin(dino.animFrame);
+                dinoCtx.fillStyle = '#059669';
+                if (dino.y < 125) {
+                    dinoCtx.fillRect(dino.x + 10, dino.y + 32, 4, 4);
+                    dinoCtx.fillRect(dino.x + 20, dino.y + 32, 4, 4);
+                } else if (legCycle > 0) {
+                    dinoCtx.fillRect(dino.x + 9, dino.y + 32, 5, 4);
+                    dinoCtx.fillRect(dino.x + 18, dino.y + 30, 5, 6);
+                } else {
+                    dinoCtx.fillRect(dino.x + 9, dino.y + 30, 5, 6);
+                    dinoCtx.fillRect(dino.x + 18, dino.y + 32, 5, 4);
+                }
+            }
+
+            // Draw Obstacles (Cacti & Pterodactyls)
             dinoObstacles.forEach(o => {
-                dinoCtx.fillStyle = '#16a34a';
-                dinoCtx.fillRect(o.x + 6, o.y, 10, 32);     
-                dinoCtx.fillRect(o.x, o.y + 8, 6, 8);       
+                if (o.type === 'cactus') {
+                    dinoCtx.fillStyle = '#22c55e';
+                    dinoCtx.fillRect(o.x + 6, o.y + 4, o.width - 12, o.height - 4);
+                    // Cactus arms
+                    dinoCtx.fillRect(o.x, o.y + 12, 6, 8);
+                    dinoCtx.fillRect(o.x + o.width - 6, o.y + 16, 6, 8);
+                } else if (o.type === 'bird') {
+                    dinoCtx.fillStyle = '#f43f5e';
+                    // Pterodactyl body & wings
+                    dinoCtx.fillRect(o.x + 6, o.y + 8, 20, 8);
+                    dinoCtx.fillRect(o.x + 22, o.y + 4, 8, 8); // head
+                    
+                    let wingFlap = Math.sin(o.wingFrame);
+                    dinoCtx.beginPath();
+                    if (wingFlap > 0) {
+                        dinoCtx.moveTo(o.x + 10, o.y + 8); dinoCtx.lineTo(o.x + 16, o.y - 4); dinoCtx.lineTo(o.x + 22, o.y + 8);
+                    } else {
+                        dinoCtx.moveTo(o.x + 10, o.y + 12); dinoCtx.lineTo(o.x + 16, o.y + 22); dinoCtx.lineTo(o.x + 22, o.y + 12);
+                    }
+                    dinoCtx.fillStyle = '#fb7185';
+                    dinoCtx.fill();
+                }
             });
         }
 
         // ===================================================
-        // BRICK BREAKER ENGINE
+        // BRICK BREAKER ENGINE (WITH POWER-UP DROPS: x3, PAD SIZE, -HP)
         // ===================================================
         let frostCanvas, frostCtx, frostRunning = false, frostAnimId, frostScore = 0, frostLives = 3, frostLvl = 1;
-        let frostPaddle = { x: 140, y: 315, width: 80, height: 10 }, frostBalls = [], frostBricks = [];
+        let frostPaddle = { x: 140, y: 315, width: 80, height: 10 }, frostBalls = [], frostBricks = [], frostPowerUps = [];
 
         function initFrostCanvas() {
             frostCanvas = document.getElementById('frost-canvas'); 
-            if (frostCanvas) frostCtx = frostCanvas.getContext('2d');
+            if (frostCanvas) {
+                frostCtx = frostCanvas.getContext('2d');
+                frostCanvas.onmousemove = (e) => {
+                    if (!frostRunning) return;
+                    let rect = frostCanvas.getBoundingClientRect();
+                    let cx = (e.clientX - rect.left) * (frostCanvas.width / rect.width);
+                    frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, cx - frostPaddle.width / 2));
+                };
+                frostCanvas.ontouchmove = (e) => {
+                    if (!frostRunning) return;
+                    let rect = frostCanvas.getBoundingClientRect();
+                    let touch = e.touches[0];
+                    let cx = (touch.clientX - rect.left) * (frostCanvas.width / rect.width);
+                    frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, cx - frostPaddle.width / 2));
+                    e.preventDefault();
+                };
+            }
         }
 
         function startFrostGame() {
@@ -2618,6 +2769,7 @@
             frostLives = 3; 
             frostLvl = 1; 
             frostPaddle = { x: 140, y: 315, width: 80, height: 10 };
+            frostPowerUps = [];
             initFrostBalls();
             buildFrostBricks();
             updateFrostHUD();
@@ -2648,7 +2800,8 @@
 
         function frostLoop() {
             if (!frostRunning) return; 
-            frostCtx.fillStyle = '#080d1a'; frostCtx.fillRect(0, 0, 360, 340);
+            frostCtx.fillStyle = '#080d1a'; 
+            frostCtx.fillRect(0, 0, 360, 340);
             
             let activeBricks = 0; 
             frostBricks.forEach(b => {
@@ -2660,47 +2813,97 @@
             });
 
             if (activeBricks === 0) {
-                frostLvl++; audio.playSFX('win'); buildFrostBricks(); 
-                frostBalls.forEach(ball => { ball.x = 180; ball.y = 180; });
+                frostLvl++; 
+                audio.playSFX('win'); 
+                buildFrostBricks(); 
+                frostBalls = [{ x: 180, y: 180, vx: 3, vy: -3.5, radius: 6, active: true }];
                 updateFrostHUD();
             }
 
-            frostCanvas.onmousemove = (e) => {
-                let rect = frostCanvas.getBoundingClientRect();
-                let cx = (e.clientX - rect.left) * (frostCanvas.width / rect.width);
-                frostPaddle.x = Math.max(0, Math.min(360 - frostPaddle.width, cx - frostPaddle.width / 2));
-            };
-
+            // Draw & Update Paddle
             frostCtx.fillStyle = '#38bdf8'; 
             frostCtx.fillRect(frostPaddle.x, frostPaddle.y, frostPaddle.width, frostPaddle.height);
 
+            // Update & Draw Power-Up Drops
+            frostPowerUps.forEach(p => {
+                p.y += 2.5;
+                frostCtx.fillStyle = p.type === 'x3' ? '#10b981' : p.type === 'longer' ? '#38bdf8' : p.type === 'shorter' ? '#f59e0b' : '#ef4444';
+                frostCtx.beginPath();
+                frostCtx.roundRect(p.x, p.y, 22, 22, 6);
+                frostCtx.fill();
+                frostCtx.fillStyle = '#ffffff';
+                frostCtx.font = 'bold 10px sans-serif';
+                frostCtx.fillText(p.label, p.x + 3, p.y + 15);
+
+                // Catch drop check
+                if (p.y + 22 >= frostPaddle.y && p.x + 22 >= frostPaddle.x && p.x <= frostPaddle.x + frostPaddle.width) {
+                    p.collected = true;
+                    audio.playSFX('powerup');
+                    if (p.type === 'x3' && frostBalls.length > 0) {
+                        let refB = frostBalls[0];
+                        frostBalls.push({ x: refB.x, y: refB.y, vx: -refB.vx, vy: refB.vy, radius: 6, active: true });
+                        frostBalls.push({ x: refB.x, y: refB.y, vx: refB.vx * 0.8, vy: refB.vy * 1.1, radius: 6, active: true });
+                    } else if (p.type === 'longer') {
+                        frostPaddle.width = Math.min(130, frostPaddle.width + 25);
+                    } else if (p.type === 'shorter') {
+                        frostPaddle.width = Math.max(50, frostPaddle.width - 20);
+                    } else if (p.type === 'reducer') {
+                        frostLives = Math.max(1, frostLives - 1);
+                        updateFrostHUD();
+                    }
+                }
+            });
+            frostPowerUps = frostPowerUps.filter(p => p.y < 340 && !p.collected);
+
+            // Update Balls
             frostBalls.forEach(ball => {
                 if (!ball.active) return;
-                ball.x += ball.vx; ball.y += ball.vy;
+                ball.x += ball.vx; 
+                ball.y += ball.vy;
                 
                 if (ball.x - ball.radius < 0 || ball.x + ball.radius > 360) { ball.vx *= -1; audio.playSFX('move'); }
                 if (ball.y - ball.radius < 0) { ball.vy *= -1; audio.playSFX('move'); }
                 
                 if (ball.y + ball.radius >= frostPaddle.y && ball.x >= frostPaddle.x && ball.x <= frostPaddle.x + frostPaddle.width) {
-                    ball.vy *= -1; audio.playSFX('click');
+                    ball.vy *= -1; 
+                    audio.playSFX('click');
                 }
 
                 frostBricks.forEach(b => {
                     if (b.status > 0 && ball.x > b.x && ball.x < b.x + b.width && ball.y > b.y && ball.y < b.y + b.height) {
-                        ball.vy *= -1; b.status = 0; frostScore += 15;
-                        audio.playSFX('score'); updateFrostHUD();
+                        ball.vy *= -1; 
+                        b.status = 0; 
+                        frostScore += 15;
+                        audio.playSFX('score'); 
+                        updateFrostHUD();
+
+                        // Chance to drop power-up
+                        if (Math.random() < 0.28) {
+                            let types = [
+                                { type: 'x3', label: 'x3' },
+                                { type: 'longer', label: 'L+' },
+                                { type: 'shorter', label: 'S-' },
+                                { type: 'reducer', label: '-HP' }
+                            ];
+                            let chosen = types[Math.floor(Math.random() * types.length)];
+                            frostPowerUps.push({ x: b.x + b.width/2 - 11, y: b.y, type: chosen.type, label: chosen.label, collected: false });
+                        }
                     }
                 });
 
                 if (ball.y > 340) ball.active = false;
                 
                 frostCtx.fillStyle = '#ffffff'; 
-                frostCtx.beginPath(); frostCtx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); frostCtx.fill();
+                frostCtx.beginPath(); 
+                frostCtx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); 
+                frostCtx.fill();
             });
 
             frostBalls = frostBalls.filter(b => b.active);
             if (frostBalls.length === 0) {
-                frostLives--; audio.playSFX('gameover'); updateFrostHUD();
+                frostLives--; 
+                audio.playSFX('gameover'); 
+                updateFrostHUD();
                 if (frostLives <= 0) {
                     frostRunning = false;
                     document.getElementById('final-frost-score').textContent = `Final Score: ${frostScore}`;
@@ -2715,7 +2918,7 @@
         }
 
         // ===================================================
-        // STICK RUN - CLASSIC ENDLESS RUN ENGINE (WITH DEATH ANIMATIONS)
+        // STICK RUN - CLASSIC ENDLESS RUN ENGINE
         // ===================================================
         let srCanvas, srCtx, srRunning = false, srAnimId;
         let srScore = 0, srCoins = 0, srSpeed = 6, srHighScore = Number(localStorage.getItem('sr_high')) || 0;
@@ -2811,7 +3014,6 @@
         function srGameLoop() {
             if(!srRunning) return;
 
-            // Render background gradient & floor every frame
             let grad = srCtx.createLinearGradient(0, 0, 0, 400);
             grad.addColorStop(0, '#ffbb44');
             grad.addColorStop(0.7, '#ff8822');
@@ -2832,7 +3034,6 @@
                 srCtx.fill();
             }
 
-            // Draw Coins
             srCrates.forEach(c => {
                 srCtx.fillStyle = '#facc15';
                 srCtx.beginPath(); srCtx.arc(c.x, c.y, 11, 0, Math.PI*2); srCtx.fill();
@@ -2840,7 +3041,6 @@
                 srCtx.fillStyle = '#713f12'; srCtx.font = 'bold 12px sans-serif'; srCtx.fillText('$', c.x - 4, c.y + 4);
             });
 
-            // Draw Obstacles
             srObstacles.forEach(o => {
                 if(o.type === 'crate' || o.type === 'double_crate') {
                     srCtx.fillStyle = '#b47535';
@@ -2877,11 +3077,9 @@
                 }
             });
 
-            // Handle Death Animation Frame if active
             if(deathAnim) {
                 deathAnim.timer++;
                 if(deathAnim.type === 'crate_crash') {
-                    // Blood burst pop and bounce back
                     srCtx.save();
                     srCtx.fillStyle = '#dc2626';
                     for(let b=0; b<12; b++) {
@@ -2896,39 +3094,26 @@
                     srCtx.fillText('💥 CRASH!', deathAnim.x - 30, deathAnim.y - 30);
                     srCtx.restore();
 
-                    if(deathAnim.timer > 35) {
-                        srRunning = false;
-                        returnToSrMenu();
-                    } else {
-                        srAnimId = requestAnimationFrame(srGameLoop);
-                    }
+                    if(deathAnim.timer > 35) { srRunning = false; returnToSrMenu(); }
+                    else { srAnimId = requestAnimationFrame(srGameLoop); }
                     return;
                 } else if(deathAnim.type === 'saw_shred') {
-                    // Broken into pieces (scattered limbs and blood)
                     srCtx.save();
                     srCtx.strokeStyle = '#000';
                     srCtx.lineWidth = 4;
                     let t = deathAnim.timer;
-                    // Head flying
                     srCtx.beginPath(); srCtx.arc(deathAnim.x + t*3, deathAnim.y - t*2, 8, 0, Math.PI*2); srCtx.stroke();
-                    // Arm 1 flying
                     srCtx.beginPath(); srCtx.moveTo(deathAnim.x, deathAnim.y); srCtx.lineTo(deathAnim.x - t*4, deathAnim.y - t*3); srCtx.stroke();
-                    // Leg 1 flying
                     srCtx.beginPath(); srCtx.moveTo(deathAnim.x, deathAnim.y); srCtx.lineTo(deathAnim.x + t*5, deathAnim.y + t*2); srCtx.stroke();
                     
-                    // Blood splatter
                     srCtx.fillStyle = '#dc2626';
                     for(let b=0; b<10; b++) {
                         srCtx.fillRect(deathAnim.x + (b * 7 - 35) * (t/10), deathAnim.y + (b % 3 * 8) * (t/10), 5, 5);
                     }
                     srCtx.restore();
 
-                    if(deathAnim.timer > 35) {
-                        srRunning = false;
-                        returnToSrMenu();
-                    } else {
-                        srAnimId = requestAnimationFrame(srGameLoop);
-                    }
+                    if(deathAnim.timer > 35) { srRunning = false; returnToSrMenu(); }
+                    else { srAnimId = requestAnimationFrame(srGameLoop); }
                     return;
                 }
             }
@@ -2954,7 +3139,6 @@
             }
 
             srPlayer.frame += 0.2;
-            
             srPlayer.vy += 0.65;
             srPlayer.y += srPlayer.vy;
 
@@ -3012,7 +3196,6 @@
             srCrates = srCrates.filter(c => c.x > -30 && !c.collected);
             srObstacles = srObstacles.filter(o => o.x > -50);
 
-            // Collision & Death Trigger Check
             let pBox = srPlayer.sliding ? {x: srPlayer.x, y: srPlayer.y + 26, w: srPlayer.w + 15, h: 30} : {x: srPlayer.x, y: srPlayer.y, w: srPlayer.w, h: srPlayer.h};
             for(let o of srObstacles) {
                 if((o.type === 'crate' || o.type === 'double_crate') && landedOnCrate && pBox.y + pBox.h <= (o.type === 'double_crate' ? 254 : 310) + 4) {
@@ -3025,7 +3208,6 @@
                         localStorage.setItem('sr_high', srHighScore); 
                     }
 
-                    // Trigger smooth death animation depending on obstacle type
                     if(o.type.includes('saw')) {
                         deathAnim = { type: 'saw_shred', x: srPlayer.x + 14, y: srPlayer.y + 25, timer: 0 };
                     } else {
@@ -3035,7 +3217,6 @@
                 }
             }
 
-            // Draw Stickman Runner
             srCtx.save();
             srCtx.translate(srPlayer.x, srPlayer.y);
             srCtx.strokeStyle = '#000000';
