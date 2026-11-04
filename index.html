@@ -90,6 +90,10 @@
         .header-settings-btn { background: rgba(139, 92, 246, 0.15); border: 1px solid var(--primary); color: var(--text-main); padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
         .header-settings-btn:hover { background-color: var(--primary); color: white; }
 
+        .search-bar-container { width: 100%; max-width: 600px; margin-bottom: 16px; padding: 0 4px; }
+        .search-input { width: 100%; background: rgba(17, 24, 39, 0.8); border: 1px solid var(--border); color: var(--text-main); padding: 12px 16px; border-radius: 14px; font-size: 0.95rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--accent-glow); }
+
         .view { width: 100%; max-width: 600px; display: none; }
         .view.active { display: block; }
 
@@ -250,12 +254,16 @@
         <button class="header-settings-btn" onclick="openSettingsModal()">⚙️ Settings</button>
     </header>
 
+    <div class="search-bar-container">
+        <input type="text" id="game-search-input" class="search-input" placeholder="🔍 Search your favorite games..." oninput="filterGames(this.value)">
+    </div>
+
     <div id="main-menu" class="view active">
         <!-- FEATURED GAME SECTION -->
-        <div class="category-section">
+        <div class="category-section" data-category="featured">
             <div class="category-title">Featured game</div>
             <div class="game-grid">
-                <div class="game-card featured" onclick="openGame('stickman-container')">
+                <div class="game-card featured" data-name="stick run endless edition" onclick="openGame('stickman-container')">
                     <span class="game-icon">🏃</span>
                     <span class="game-name">Stick Run (Endless Edition)</span>
                 </div>
@@ -263,92 +271,92 @@
         </div>
 
         <!-- CARD GAMES CATEGORY -->
-        <div class="category-section">
+        <div class="category-section" data-category="card">
             <div class="category-title">Card Games</div>
             <div class="game-grid">
-                <div class="game-card" onclick="openGame('solitaire-container')">
+                <div class="game-card" data-name="speed solitaire sprint" onclick="openGame('solitaire-container')">
                     <span class="game-icon">🎴</span>
                     <span class="game-name">Speed Solitaire Sprint</span>
                 </div>
-                <div class="game-card" onclick="openGame('scattercard-container')">
+                <div class="game-card" data-name="coin scatter multiplier" onclick="openGame('scattercard-container')">
                     <span class="game-icon">🎰</span>
                     <span class="game-name">Coin Scatter Multiplier</span>
                 </div>
-                <div class="game-card" onclick="openGame('blackjack-container')">
+                <div class="game-card" data-name="blackjack 21 pro" onclick="openGame('blackjack-container')">
                     <span class="game-icon">🃏</span>
                     <span class="game-name">Blackjack 21 Pro</span>
                 </div>
-                <div class="game-card" onclick="openGame('highlow-container')">
+                <div class="game-card" data-name="high low predictor" onclick="openGame('highlow-container')">
                     <span class="game-icon">🔼</span>
                     <span class="game-name">High-Low Predictor</span>
                 </div>
             </div>
         </div>
 
-        <div class="category-section">
+        <div class="category-section" data-category="puzzle">
             <div class="category-title">Puzzle & Strategy</div>
             <div class="game-grid">
-                <div class="game-card" onclick="openGame('tictactoe-container')">
+                <div class="game-card" data-name="tic tac toe pro" onclick="openGame('tictactoe-container')">
                     <span class="game-icon">❌</span>
                     <span class="game-name">Tic-Tac-Toe Pro</span>
                 </div>
-                <div class="game-card" onclick="openGame('guessgame-container')">
+                <div class="game-card" data-name="number master" onclick="openGame('guessgame-container')">
                     <span class="game-icon">🔢</span>
                     <span class="game-name">Number Master</span>
                 </div>
-                <div class="game-card" onclick="openGame('wordscape-container')">
+                <div class="game-card" data-name="wordscape pro" onclick="openGame('wordscape-container')">
                     <span class="game-icon">📝</span>
                     <span class="game-name">Wordscape Pro</span>
                 </div>
             </div>
         </div>
 
-        <div class="category-section">
+        <div class="category-section" data-category="action">
             <div class="category-title">Action & Arcade</div>
             <div class="game-grid">
-                <div class="game-card" onclick="openGame('piano-container')">
+                <div class="game-card" data-name="piano tiles pro" onclick="openGame('piano-container')">
                     <span class="game-icon">🎹</span>
                     <span class="game-name">Piano Tiles Pro</span>
                 </div>
-                <div class="game-card" onclick="openGame('carracing-container')">
+                <div class="game-card" data-name="turbo car racing" onclick="openGame('carracing-container')">
                     <span class="game-icon">🏎️</span>
                     <span class="game-name">Turbo Car Racing</span>
                 </div>
-                <div class="game-card" onclick="openGame('pacman-container')">
+                <div class="game-card" data-name="pac man dx" onclick="openGame('pacman-container')">
                     <span class="game-icon">🟡</span>
                     <span class="game-name">Pac-Man DX</span>
                 </div>
-                <div class="game-card" onclick="openGame('fruitslice-container')">
+                <div class="game-card" data-name="fruit master" onclick="openGame('fruitslice-container')">
                     <span class="game-icon">🍉</span>
                     <span class="game-name">Fruit Master</span>
                 </div>
-                <div class="game-card" onclick="openGame('molegame-container')">
+                <div class="game-card" data-name="whack a mole pro" onclick="openGame('molegame-container')">
                     <span class="game-icon">🔨</span>
                     <span class="game-name">Whack-a-Mole Pro</span>
                 </div>
-                <div class="game-card" onclick="openGame('frostgame-container')">
+                <div class="game-card" data-name="brick breaker" onclick="openGame('frostgame-container')">
                     <span class="game-icon">🧱</span>
                     <span class="game-name">Brick Breaker</span>
                 </div>
-                <div class="game-card" onclick="openGame('snakegame-container')">
+                <div class="game-card" data-name="snake evolution" onclick="openGame('snakegame-container')">
                     <span class="game-icon">🐍</span>
                     <span class="game-name">Snake Evolution</span>
                 </div>
-                <div class="game-card" onclick="openGame('dinogame-container')">
+                <div class="game-card" data-name="dino runner pro" onclick="openGame('dinogame-container')">
                     <span class="game-icon">🦖</span>
                     <span class="game-name">Dino Runner Pro</span>
                 </div>
             </div>
         </div>
 
-        <div class="category-section">
+        <div class="category-section" data-category="reflex">
             <div class="category-title">Quick Reflexes</div>
             <div class="game-grid">
-                <div class="game-card" onclick="openGame('rpsgame-container')">
+                <div class="game-card" data-name="rps arena" onclick="openGame('rpsgame-container')">
                     <span class="game-icon">✊</span>
                     <span class="game-name">RPS Arena</span>
                 </div>
-                <div class="game-card" onclick="openGame('reactiongame-container')">
+                <div class="game-card" data-name="reaction reflex pro" onclick="openGame('reactiongame-container')">
                     <span class="game-icon">⚡</span>
                     <span class="game-name">Reaction Reflex Pro</span>
                 </div>
@@ -432,7 +440,7 @@
                 <div class="score-box">Balance 🪙 <span id="scatter-balance">1,000,000</span></div>
                 <div class="score-box">Win 🏆 <span id="scatter-win">0</span></div>
             </div>
-            
+
             <div style="display:flex; gap:6px; margin-bottom:10px; width:100%; justify-content:center;">
                 <button class="opt-btn active" id="bet-btn-1" onclick="setScatterBet(1000, this)">Bet 1K</button>
                 <button class="opt-btn" id="bet-btn-2" onclick="setScatterBet(5000, this)">Bet 5K</button>
@@ -452,7 +460,7 @@
             </div>
 
             <p id="scatter-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-muted);">Hit Spin to roll the scatter reels!</p>
-            
+
             <button class="action-btn" style="width:100%; max-width:320px; margin:0 auto; padding:14px; font-size:1.1rem;" id="scatter-spin-btn" onclick="spinScatterCards()">SPIN / DEAL (🪙 Bet)</button>
         </div>
     </div>
@@ -472,20 +480,20 @@
             <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:12px; text-align:center;">
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">DEALER'S HAND (<span id="bj-dealer-score">?</span>)</p>
                 <div id="bj-dealer-cards" style="font-size:1.5rem; margin-bottom:10px; min-height:35px;">🎴 🎴</div>
-                
+
                 <hr style="border-color:var(--border); margin:8px 0;">
-                
+
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">YOUR HAND (<span id="bj-player-score">0</span>)</p>
                 <div id="bj-player-cards" style="font-size:1.5rem; min-height:35px;">🎴 🎴</div>
             </div>
 
             <p id="bj-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-main);">Place your bet and hit Deal!</p>
-            
+
             <div style="display:flex; gap:8px; width:100%; margin-bottom:8px;" id="bj-bet-controls">
                 <button class="action-btn" style="flex:1; background:#334155;" onclick="startBlackjack(1000)">Bet 1K</button>
                 <button class="action-btn" style="flex:1; background:#334155;" onclick="startBlackjack(5000)">Bet 5K</button>
             </div>
-            
+
             <div style="display:flex; gap:8px; width:100%; display:none;" id="bj-action-controls">
                 <button class="action-btn" style="flex:1; background:#15803d;" onclick="bjHit()">HIT 🎯</button>
                 <button class="action-btn" style="flex:1; background:#b91c1c;" onclick="bjStand()">STAND 🛑</button>
@@ -980,6 +988,28 @@
         // ===================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
+        }
+
+        function filterGames(query) {
+            const q = query.toLowerCase().trim();
+            const sections = document.querySelectorAll('.category-section');
+            
+            sections.forEach(section => {
+                const cards = section.querySelectorAll('.game-card');
+                let hasVisibleCard = false;
+
+                cards.forEach(card => {
+                    const name = card.getAttribute('data-name') || '';
+                    if (name.includes(q)) {
+                        card.style.display = 'flex';
+                        hasVisibleCard = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                section.style.display = hasVisibleCard ? 'block' : 'none';
+            });
         }
 
         const ScoreManager = {
@@ -1594,7 +1624,7 @@
             bjBalance -= bjCurrentBet;
             document.getElementById('bj-balance').textContent = bjBalance.toLocaleString();
             document.getElementById('bj-bet').textContent = bjCurrentBet.toLocaleString();
-            
+
             audio.playSFX('click');
             bjGameOver = false;
 
@@ -1703,7 +1733,7 @@
             let savedBal = localStorage.getItem('arcadehub_scatter_bal');
             if(savedBal !== null) hlBalance = parseInt(savedBal);
             document.getElementById('hl-balance').textContent = hlBalance.toLocaleString();
-            
+
             hlCurrentCard = Math.floor(Math.random() * 11) + 2;
             hlStreak = 0;
             document.getElementById('hl-streak').textContent = hlStreak;
@@ -2214,7 +2244,7 @@
                             audio.playSFX('score');
                             fruitScore += f.points;
                             document.getElementById('fruit-score').textContent = fruitScore;
-                            
+
                             // Spawn fruit slice halves animation
                             fruitHalves.push(
                                 { x: f.x - 6, y: f.y, vx: -2.5, vy: -3, emoji: f.emoji, rot: -0.2, vRot: -0.1 },
@@ -2228,7 +2258,7 @@
             fruitCanvas.onmousedown = e => { isDragging = true; registerSwipe(e.clientX, e.clientY); };
             fruitCanvas.onmousemove = e => { if (isDragging) registerSwipe(e.clientX, e.clientY); };
             window.onmouseup = () => { isDragging = false; };
-            
+
             fruitCanvas.ontouchstart = e => { isDragging = true; registerSwipe(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
             fruitCanvas.ontouchmove = e => { if (isDragging) registerSwipe(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); };
             fruitCanvas.ontouchend = () => { isDragging = false; };
@@ -2285,7 +2315,7 @@
                 h.vy += 0.4;
                 h.y += h.vy;
                 h.rot += h.vRot;
-                
+
                 fruitCtx.save();
                 fruitCtx.translate(h.x, h.y);
                 fruitCtx.rotate(h.rot);
@@ -2612,7 +2642,7 @@
             if (!isDinoRunning) return;
             dinoSpawnCounter++;
             dino.animFrame += 0.2;
-            
+
             dino.y += dino.vy;
             dino.vy += 0.55;
             if (dino.y >= 125) { dino.y = 125; dino.vy = 0; }
@@ -2633,14 +2663,14 @@
                 if(o.type === 'bird') o.wingFrame += 0.15;
             });
             dinoObstacles = dinoObstacles.filter(o => o.x > -50); 
-            
+
             dinoScore++; 
             document.getElementById('dino-score').textContent = dinoScore; 
 
             // Precise Bounding Box Collision Check
             let curH = dino.isDucking ? 20 : dino.height;
             let curY = dino.isDucking ? dino.y + 16 : dino.y;
-            
+
             dinoObstacles.forEach(o => {
                 if (dino.x < o.x + o.width - 4 && dino.x + dino.width - 4 > o.x + 4 && 
                     curY < o.y + o.height - 2 && curY + curH > o.y + 2) {
@@ -2673,7 +2703,7 @@
             dinoCtx.moveTo(0, 161); 
             dinoCtx.lineTo(320, 161); 
             dinoCtx.stroke();
-            
+
             // Draw Real Dinosaur Sprite
             dinoCtx.fillStyle = '#10b981';
             if (dino.isDucking) {
@@ -2688,7 +2718,7 @@
                 dinoCtx.fillRect(dino.x + 8, dino.y + 14, 20, 18); // torso
                 dinoCtx.fillRect(dino.x + 20, dino.y + 2, 14, 16); // head
                 dinoCtx.fillRect(dino.x + 2, dino.y + 18, 10, 8);   // tail
-                
+
                 // Animated Legs
                 let legCycle = Math.sin(dino.animFrame);
                 dinoCtx.fillStyle = '#059669';
@@ -2717,7 +2747,7 @@
                     // Pterodactyl body & wings
                     dinoCtx.fillRect(o.x + 6, o.y + 8, 20, 8);
                     dinoCtx.fillRect(o.x + 22, o.y + 4, 8, 8); // head
-                    
+
                     let wingFlap = Math.sin(o.wingFrame);
                     dinoCtx.beginPath();
                     if (wingFlap > 0) {
@@ -2763,7 +2793,7 @@
             document.getElementById('frost-gameover-overlay').style.display = 'none'; 
             initFrostCanvas(); 
             if (!frostCtx) return;
-            
+
             frostRunning = true; 
             frostScore = 0; 
             frostLives = 3; 
@@ -2773,7 +2803,7 @@
             initFrostBalls();
             buildFrostBricks();
             updateFrostHUD();
-            
+
             cancelAnimationFrame(frostAnimId);
             frostLoop();
         }
@@ -2802,7 +2832,7 @@
             if (!frostRunning) return; 
             frostCtx.fillStyle = '#080d1a'; 
             frostCtx.fillRect(0, 0, 360, 340);
-            
+
             let activeBricks = 0; 
             frostBricks.forEach(b => {
                 if (b.status > 0) {
@@ -2860,10 +2890,10 @@
                 if (!ball.active) return;
                 ball.x += ball.vx; 
                 ball.y += ball.vy;
-                
+
                 if (ball.x - ball.radius < 0 || ball.x + ball.radius > 360) { ball.vx *= -1; audio.playSFX('move'); }
                 if (ball.y - ball.radius < 0) { ball.vy *= -1; audio.playSFX('move'); }
-                
+
                 if (ball.y + ball.radius >= frostPaddle.y && ball.x >= frostPaddle.x && ball.x <= frostPaddle.x + frostPaddle.width) {
                     ball.vy *= -1; 
                     audio.playSFX('click');
@@ -2892,7 +2922,7 @@
                 });
 
                 if (ball.y > 340) ball.active = false;
-                
+
                 frostCtx.fillStyle = '#ffffff'; 
                 frostCtx.beginPath(); 
                 frostCtx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); 
@@ -3105,7 +3135,7 @@
                     srCtx.beginPath(); srCtx.arc(deathAnim.x + t*3, deathAnim.y - t*2, 8, 0, Math.PI*2); srCtx.stroke();
                     srCtx.beginPath(); srCtx.moveTo(deathAnim.x, deathAnim.y); srCtx.lineTo(deathAnim.x - t*4, deathAnim.y - t*3); srCtx.stroke();
                     srCtx.beginPath(); srCtx.moveTo(deathAnim.x, deathAnim.y); srCtx.lineTo(deathAnim.x + t*5, deathAnim.y + t*2); srCtx.stroke();
-                    
+
                     srCtx.fillStyle = '#dc2626';
                     for(let b=0; b<10; b++) {
                         srCtx.fillRect(deathAnim.x + (b * 7 - 35) * (t/10), deathAnim.y + (b % 3 * 8) * (t/10), 5, 5);
@@ -3232,10 +3262,10 @@
             } else {
                 let isJumping = !srPlayer.grounded;
                 let headAngle = isJumping ? srPlayer.frame * 2 : 0;
-                
+
                 srCtx.beginPath(); srCtx.arc(14 + Math.cos(headAngle)*3, 12 + Math.sin(headAngle)*3, 9, 0, Math.PI*2); srCtx.stroke();
                 srCtx.beginPath(); srCtx.moveTo(14, 21); srCtx.lineTo(14, 42); srCtx.stroke();
-                
+
                 let swing = Math.sin(srPlayer.frame) * 14;
                 srCtx.beginPath();
                 srCtx.moveTo(14, 28); srCtx.lineTo(4 + swing, isJumping ? 22 : 38);
