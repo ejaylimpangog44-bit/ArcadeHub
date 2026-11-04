@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Arcade Hub</title>
-<!-- Chosen Palette: Neon Violet Dark Theme -->
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -216,10 +215,6 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 #stickman-container .sr-overlay p { color: #d5deed; margin: 6px; line-height: 1.5; font-size: 14px; }
 #stickman-container button { border: none; padding: 13px 25px; border-radius: 9px; background: #ffc857; color: #171717; font-weight: bold; cursor: pointer; margin-top: 18px; font-size: 15px; transition: .2s; }
 #stickman-container button:hover { transform: scale(1.05); background: #ffdc83; }
-#stickman-container .sr-controls { display: flex; justify-content: center; gap: 12px; margin-top: 15px; flex-wrap: wrap; width: 100%; max-width: 900px; }
-#stickman-container .sr-controls button { margin-top: 0; background: #252e40; color: white; border: 1px solid #46536a; }
-#stickman-container .sr-controls button:active { background: #ffc857; color: black; }
-#stickman-container .sr-instructions { color: #9ba8bd; font-size: 13px; margin-top: 15px; line-height: 1.8; text-align: center; }
 #stickman-container .sr-hidden { display: none !important; }
 #stickman-container .sr-mobile-controls { display: none; justify-content: center; gap: 15px; margin-top: 15px; width: 100%; max-width: 900px; }
 #stickman-container .sr-mobile-controls button { width: 120px; height: 55px; margin: 0; touch-action: none; background: #ffc857; color: #171717; }
@@ -249,7 +244,6 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 </header>
 
 <div id="main-menu" class="view active">
-<!-- FEATURED GAME SECTION -->
 <div class="category-section">
 <div class="category-title">Featured game</div>
 <div class="game-grid">
@@ -260,7 +254,6 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 </div>
 </div>
 
-<!-- CARD GAMES CATEGORY -->
 <div class="category-section">
 <div class="category-title">Card Games</div>
 <div class="game-grid">
@@ -582,7 +575,6 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 <div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶ Fullscreen</button></div>
 <div class="sr-header">
 <h1>STICK <span>RUN</span></h1>
-<button id="soundButton" onclick="toggleStickSound()" style="margin:0;padding:8px 14px;background:#252e40;color:white;border:1px solid #46536a;border-radius:8px;cursor:pointer;font-weight:bold;">🔊 Sound ON</button>
 </div>
 <div class="sr-stats">
 <div class="sr-stat"><small>SCORE</small><strong id="score">0</strong></div>
@@ -598,30 +590,11 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 <p>Collect coins and beat your high score.</p>
 <button onclick="startStickGame()">START RUNNING</button>
 </div>
-<div class="sr-overlay sr-hidden" id="gameOverScreen">
-<h2>GAME OVER!</h2>
-<p>Your Score: <strong id="finalScore">0</strong></p>
-<p>Coins Collected: <strong id="finalCoins">0</strong></p>
-<p id="recordMessage"></p>
-<button onclick="startStickGame()">PLAY AGAIN</button>
-</div>
-<div class="sr-overlay sr-hidden" id="pauseScreen">
-<h2>PAUSED</h2>
-<p>Take a break!</p>
-<button onclick="resumeStickGame()">RESUME</button>
-<button onclick="startStickGame()">RESTART</button>
-</div>
-</div>
-<div class="sr-controls">
-<button onclick="stickJump()">⬆ JUMP (SPACE)</button>
-<button onclick="stickSlide()">⬇ SLIDE (DOWN)</button>
-<button onclick="pauseStickGame()">Ⅱ PAUSE</button>
 </div>
 <div class="sr-mobile-controls">
 <button id="jumpBtn">⬆ JUMP</button>
 <button id="slideBtn">⬇ SLIDE</button>
 </div>
-<div class="sr-instructions">SPACE / UP = Jump &nbsp; | &nbsp; DOWN = Slide &nbsp; | &nbsp; P = Pause</div>
 </div>
 
 <!-- Settings Modal -->
@@ -2853,11 +2826,6 @@ osc.stop(audio.audioCtx.currentTime + duration);
 } catch (e) {}
 }
 
-function toggleStickSound() {
-soundEnabled = !soundEnabled;
-document.getElementById("soundButton").textContent = soundEnabled ? "🔊 Sound ON" : "🔇 Sound OFF";
-}
-
 const player = {
 x: 120,
 y: 370,
@@ -3175,10 +3143,6 @@ if(stickGameState === "menu") startStickGame();
 else stickJump();
 }
 if(event.code === "ArrowDown") stickSlide();
-if(event.code === "KeyP" || event.code === "Escape") {
-if(stickGameState === "playing") pauseStickGame();
-else if(stickGameState === "paused") resumeStickGame();
-}
 });
 
 function startStickGame() {
@@ -3200,25 +3164,10 @@ player.slideTimer = 0;
 stickGameState = "playing";
 
 document.getElementById("startScreen").classList.add("sr-hidden");
-document.getElementById("gameOverScreen").classList.add("sr-hidden");
-document.getElementById("pauseScreen").classList.add("sr-hidden");
-
 document.getElementById("score").textContent = "0";
 document.getElementById("coins").textContent = "0";
 
 playSound(550, 0.15);
-}
-
-function pauseStickGame() {
-if (stickGameState !== "playing") return;
-stickGameState = "paused";
-document.getElementById("pauseScreen").classList.remove("sr-hidden");
-}
-
-function resumeStickGame() {
-if (stickGameState !== "paused") return;
-stickGameState = "playing";
-document.getElementById("pauseScreen").classList.add("sr-hidden");
 }
 
 function endStickGame() {
@@ -3231,11 +3180,20 @@ best = final;
 localStorage.setItem("stickRunBest", best);
 document.getElementById("best").textContent = best;
 }
-document.getElementById("finalScore").textContent = final;
-document.getElementById("finalCoins").textContent = coins;
-document.getElementById("recordMessage").textContent = newRecord ? "NEW HIGH SCORE! Congratulations!" : "Keep practicing!";
-document.getElementById("gameOverScreen").classList.remove("sr-hidden");
+
 playSound(150, 0.5, "triangle");
+
+// Replaced middle screen overlay with alert popup
+let msg = `GAME OVER!\nYour Score: ${final}\nCoins Collected: ${coins}`;
+if (newRecord) {
+msg += `\nNEW HIGH SCORE! Congratulations!`;
+} else {
+msg += `\nKeep practicing!`;
+}
+alert(msg);
+
+// Return to start overlay screen so user can play again
+document.getElementById("startScreen").classList.remove("sr-hidden");
 }
 
 gameLoop();
