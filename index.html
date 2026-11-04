@@ -212,7 +212,6 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 #stickman-container canvas { display: block; width: 100%; height: auto; aspect-ratio: 900/450; touch-action: none; }
 #stickman-container .sr-overlay { position: absolute; inset: 0; background: rgba(10, 15, 25, .88); display: flex; justify-content: center; align-items: center; flex-direction: column; padding: 20px; z-index: 5; backdrop-filter: blur(3px); }
 #stickman-container .sr-overlay h2 { font-size: clamp(28px, 5vw, 45px); margin-bottom: 12px; color: #ffc857; font-weight: 900; }
-#stickman-container .sr-overlay p { color: #d5deed; margin: 6px; line-height: 1.5; font-size: 14px; }
 #stickman-container button { border: none; padding: 13px 25px; border-radius: 9px; background: #ffc857; color: #171717; font-weight: bold; cursor: pointer; margin-top: 18px; font-size: 15px; transition: .2s; }
 #stickman-container button:hover { transform: scale(1.05); background: #ffdc83; }
 #stickman-container .sr-hidden { display: none !important; }
@@ -248,7 +247,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 <div class="category-title">Featured game</div>
 <div class="game-grid">
 <div class="game-card featured" onclick="openGame('stickman-container')">
-<span class="game-icon">🏃</span>
+<img src="stick-run.png" alt="Stick Run Logo" class="game-icon" style="width: 32px; height: 32px; object-fit: contain; border-radius: 8px;">
 <span class="game-name">Stick Run (Play Now)</span>
 </div>
 </div>
@@ -298,7 +297,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- WORDSCAPE PRO CONTAINER -->
 <div id="wordscape-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('wordscape-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('wordscape-container')">⛶</button></div>
 <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Score 🏆 <span id="ws-score">0</span></div><div class="score-box">Level 🧩 <span id="ws-level">1</span></div><div class="score-box">Found <span id="ws-found">0/0</span></div></div>
 <div id="ws-category-badge" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--primary); font-weight:800; margin-bottom:6px;">Category: Easy Warmup</div>
@@ -312,7 +311,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- SPEED SOLITAIRE SPRINT CONTAINER -->
 <div id="solitaire-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('solitaire-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('solitaire-container')">⛶</button></div>
 <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Score 🏆 <span id="sol-score">0</span></div><div class="score-box">Time ⏱️ <span id="sol-time">60s</span></div></div>
 <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:10px; text-align:center;"><p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">FOUNDATION (Target)</p><div id="sol-foundation" style="font-size:2.2rem; min-height:50px; display:flex; align-items:center; justify-content:center; color:#38bdf8;">🎴</div></div>
@@ -324,7 +323,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- COIN SCATTER MULTIPLIER CARD GAME CONTAINER -->
 <div id="scattercard-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('scattercard-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('scattercard-container')">⛶</button></div>
 <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Balance 🪙 <span id="scatter-balance">1,000,000</span></div><div class="score-box">Win 🏆 <span id="scatter-win">0</span></div></div>
 <div style="display:flex; gap:6px; margin-bottom:10px; width:100%; justify-content:center;"><button class="opt-btn active" id="bet-btn-1" onclick="setScatterBet(1000, this)">Bet 1K</button><button class="opt-btn" id="bet-btn-2" onclick="setScatterBet(5000, this)">Bet 5K</button><button class="opt-btn" id="bet-btn-3" onclick="setScatterBet(10000, this)">Bet 10K</button></div>
@@ -340,7 +339,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- BLACKJACK 21 PRO CONTAINER -->
 <div id="blackjack-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('blackjack-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('blackjack-container')">⛶</button></div>
 <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Bankroll 🪙 <span id="bj-balance">1,000,000</span></div><div class="score-box">Bet 🪙 <span id="bj-bet">1,000</span></div></div>
 <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:12px; text-align:center;">
@@ -358,7 +357,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- HIGH-LOW PREDICTOR CONTAINER -->
 <div id="highlow-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('highlow-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('highlow-container')">⛶</button></div>
 <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Bankroll 🪙 <span id="hl-balance">1,000,000</span></div><div class="score-box">Streak 🔥 <span id="hl-streak">0</span></div></div>
 <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:20px; width:100%; margin-bottom:12px; text-align:center;">
@@ -373,7 +372,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Piano Tiles -->
 <div id="piano-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('piano-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('piano-container')">⛶</button></div>
 <div style="width: 100%; max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
 <div class="score-board" style="margin-top: 4px; width: 100%;"><div class="score-box">Score 🎵 <span id="piano-score">0</span></div><div class="score-box">Streak 🔥 <span id="piano-streak">0</span></div><div class="score-box">Best 🏆 <span id="piano-high">0</span></div></div>
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 8px; width: 100%;">
@@ -395,7 +394,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Turbo Car Racing -->
 <div id="carracing-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('carracing-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('carracing-container')">⛶</button></div>
 <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Coins 🪙 <span id="car-coins">0</span></div><div class="score-box">Shield 🛡️ <span id="car-shield-time">OFF</span></div><div class="score-box">High 🏆 <span id="car-high">0</span></div></div>
 <div style="position:relative; display:inline-block;">
@@ -417,7 +416,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Tic Tac Toe Pro -->
 <div id="tictactoe-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('tictactoe-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('tictactoe-container')">⛶</button></div>
 <div id="ttt-setup-screen" class="screen active">
 <p style="margin-bottom: 12px; color: var(--text-muted); font-size: 0.9rem;">Configure match settings</p>
 <div class="setup-group"><label class="setup-label">Game Mode</label><div class="setup-options-2"><button class="opt-btn active" id="setup-pvp" onclick="selectSetupMode('pvp')">2 Players</button><button class="opt-btn" id="setup-ai" onclick="selectSetupMode('ai')">vs AI</button></div></div>
@@ -436,7 +435,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Pac-Man DX -->
 <div id="pacman-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('pacman-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('pacman-container')">⛶</button></div>
 <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Score <span id="pac-score">0</span></div><div class="score-box">High <span id="pac-high">0</span></div><div class="score-box">Lives ❤️ <span id="pac-lives">3</span></div></div>
 <div style="position:relative; display:inline-block;">
@@ -453,7 +452,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Fruit Master -->
 <div id="fruitslice-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('fruitslice-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('fruitslice-container')">⛶</button></div>
 <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Score <span id="fruit-score">0</span></div><div class="score-box">Combo 🔥 <span id="fruit-combo">0x</span></div><div class="score-box">Lives ❤️ <span id="fruit-lives">3</span></div></div>
 <div style="position:relative; display:inline-block;">
@@ -470,7 +469,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Brick Breaker -->
 <div id="frostgame-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('frostgame-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('frostgame-container')">⛶</button></div>
 <div style="width:100%; max-width:360px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board"><div class="score-box">Score <span id="frost-score">000000</span></div><div class="score-box" id="frost-lvl">LVL 1</div><div class="score-box">❤️ <span id="frost-lives">3</span></div></div>
 <div style="position:relative; display:inline-block;">
@@ -487,7 +486,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- RPS Arena -->
 <div id="rpsgame-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('rpsgame-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('rpsgame-container')">⛶</button></div>
 <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div style="display:flex; gap:8px; margin-bottom:8px; width:100%; justify-content:center;"><button class="opt-btn active" id="rps-mode-ai" onclick="setRPSMode('ai')">vs AI Engine</button><button class="opt-btn" id="rps-mode-pvp" onclick="setRPSMode('pvp')">2 Players (Local)</button></div>
 <div class="score-board"><div class="score-box"><span id="rps-p1-label">Player 1</span> <span id="rps-p1-score">0</span></div><div class="score-box">Streak 🔥 <span id="rps-streak">0</span></div><div class="score-box"><span id="rps-p2-label">AI Robot</span> <span id="rps-p2-score">0</span></div></div>
@@ -500,7 +499,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Number Master -->
 <div id="guessgame-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('guessgame-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('guessgame-container')">⛶</button></div>
 <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div style="display:flex; gap:6px; margin-bottom:8px; width:100%;"><button class="opt-btn active" id="guess-diff-1" onclick="setGuessDiff(100)">1-100</button><button class="opt-btn" id="guess-diff-2" onclick="setGuessDiff(500)">1-500</button><button class="opt-btn" id="guess-diff-3" onclick="setGuessDiff(1000)">1-1000</button></div>
 <div class="score-board" style="margin-top:4px;"><div class="score-box">Attempts Left <span id="guess-lives">7</span></div><div class="score-box">Attempts Used <span id="guess-attempts">0</span></div><div class="score-box">Best <span id="guess-best">-</span></div></div>
@@ -512,7 +511,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Whack-a-Mole Pro -->
 <div id="molegame-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('molegame-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('molegame-container')">⛶</button></div>
 <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Score <span id="mole-score">0</span></div><div class="score-box">Time ⏱️ <span id="mole-time">20s</span></div><div class="score-box">High Score <span id="mole-high">0</span></div></div>
 <div class="mole-grid">
@@ -526,7 +525,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Reaction Reflex Pro -->
 <div id="reactiongame-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('reactiongame-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('reactiongame-container')">⛶</button></div>
 <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">Test your visual & audible reflexes!</p>
 <div class="score-board" style="width:100%;"><div class="score-box">Time <span id="reaction-time">0 ms</span></div><div class="score-box">Avg (5 Tries) <span id="reaction-avg">-</span></div><div class="score-box">Best <span id="reaction-best">-</span></div></div>
@@ -537,7 +536,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Snake Evolution -->
 <div id="snakegame-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('snakegame-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('snakegame-container')">⛶</button></div>
 <div style="width:100%; max-width:300px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Score <span id="snake-score">0</span></div><div class="score-box">Speed ⚡ <span id="snake-speed-lvl">1x</span></div><div class="score-box">High <span id="snake-high">0</span></div></div>
 <div style="position:relative; display:inline-block;">
@@ -554,7 +553,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Dino Runner Pro -->
 <div id="dinogame-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('dinogame-container')">⛶</button></div>
 <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
 <div class="score-board" style="margin-top:4px; width:100%;"><div class="score-box">Score <span id="dino-score">0</span></div><div class="score-box">Pterodactyls 🦇 <span id="dino-birds-dodged">0</span></div><div class="score-box">High <span id="dino-high">0</span></div></div>
 <div style="position:relative; display:inline-block;">
@@ -572,7 +571,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 <!-- Stick Run (Stickman Endless Runner) -->
 <div id="stickman-container" class="game-container">
-<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">← Back</button><button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶ Fullscreen</button></div>
+<div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠</button><button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶</button></div>
 <div class="sr-header">
 <h1>STICK <span>RUN</span></h1>
 </div>
@@ -585,9 +584,6 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 <canvas id="game" width="900" height="450"></canvas>
 <div class="sr-overlay" id="startScreen">
 <h2>STICK RUN</h2>
-<p>The nostalgic endless runner!</p>
-<p>Jump over obstacles. Slide under barriers.</p>
-<p>Collect coins and beat your high score.</p>
 <button onclick="startStickGame()">START RUNNING</button>
 </div>
 </div>
@@ -3183,7 +3179,6 @@ document.getElementById("best").textContent = best;
 
 playSound(150, 0.5, "triangle");
 
-// Replaced middle screen overlay with alert popup
 let msg = `GAME OVER!\nYour Score: ${final}\nCoins Collected: ${coins}`;
 if (newRecord) {
 msg += `\nNEW HIGH SCORE! Congratulations!`;
@@ -3192,7 +3187,6 @@ msg += `\nKeep practicing!`;
 }
 alert(msg);
 
-// Return to start overlay screen so user can play again
 document.getElementById("startScreen").classList.remove("sr-hidden");
 }
 
