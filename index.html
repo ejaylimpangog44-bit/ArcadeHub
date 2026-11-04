@@ -340,6 +340,25 @@
             </div>
         </div>
 
+        <!-- CARD GAMES CATEGORY -->
+        <div class="category-section">
+            <div class="category-title">Card Games</div>
+            <div class="game-grid">
+                <div class="game-card" onclick="openGame('scattercard-container')">
+                    <span class="game-icon">🎴</span>
+                    <span class="game-name">Coin Scatter Multiplier</span>
+                </div>
+                <div class="game-card" onclick="openGame('blackjack-container')">
+                    <span class="game-icon">🃏</span>
+                    <span class="game-name">Blackjack 21 Pro</span>
+                </div>
+                <div class="game-card" onclick="openGame('highlow-container')">
+                    <span class="game-icon">🔼</span>
+                    <span class="game-name">High-Low Predictor</span>
+                </div>
+            </div>
+        </div>
+
         <div class="category-section">
             <div class="category-title">Puzzle & Strategy</div>
             <div class="game-grid">
@@ -404,6 +423,102 @@
                     <span class="game-name">Reaction Reflex Pro</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- COIN SCATTER MULTIPLIER CARD GAME CONTAINER -->
+    <div id="scattercard-container" class="game-container">
+        <div class="game-nav-bar">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('scattercard-container')">⛶ Fullscreen</button>
+        </div>
+        <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+            <div class="score-board" style="margin-top:4px; width:100%;">
+                <div class="score-box">Balance 🪙 <span id="scatter-balance">1,000,000</span></div>
+                <div class="score-box">Win 🏆 <span id="scatter-win">0</span></div>
+            </div>
+            
+            <div style="display:flex; gap:6px; margin-bottom:10px; width:100%; justify-content:center;">
+                <button class="opt-btn active" id="bet-btn-1" onclick="setScatterBet(1000, this)">Bet 1K</button>
+                <button class="opt-btn" id="bet-btn-2" onclick="setScatterBet(5000, this)">Bet 5K</button>
+                <button class="opt-btn" id="bet-btn-3" onclick="setScatterBet(10000, this)">Bet 10K</button>
+            </div>
+
+            <!-- Card Scatter Grid Display -->
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; width:100%; margin-bottom:12px;" id="scatter-card-grid">
+                <div class="ttt-cell" id="sc-0" style="font-size:1.6rem; background:#111827;">🎴</div>
+                <div class="ttt-cell" id="sc-1" style="font-size:1.6rem; background:#111827;">🎴</div>
+                <div class="ttt-cell" id="sc-2" style="font-size:1.6rem; background:#111827;">🎴</div>
+                <div class="ttt-cell" id="sc-3" style="font-size:1.6rem; background:#111827;">🎴</div>
+                <div class="ttt-cell" id="sc-4" style="font-size:1.6rem; background:#111827;">🎴</div>
+                <div class="ttt-cell" id="sc-5" style="font-size:1.6rem; background:#111827;">🎴</div>
+            </div>
+
+            <p id="scatter-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-muted);">Hit Spin to scatter cards & multipliers!</p>
+            
+            <button class="action-btn" style="width:100%; max-width:320px; margin:0 auto; padding:14px; font-size:1.1rem;" id="scatter-spin-btn" onclick="spinScatterCards()">SPIN / DEAL (🪙 Bet)</button>
+        </div>
+    </div>
+
+    <!-- BLACKJACK 21 PRO CONTAINER -->
+    <div id="blackjack-container" class="game-container">
+        <div class="game-nav-bar">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('blackjack-container')">⛶ Fullscreen</button>
+        </div>
+        <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+            <div class="score-board" style="margin-top:4px; width:100%;">
+                <div class="score-box">Bankroll 🪙 <span id="bj-balance">1,000,000</span></div>
+                <div class="score-box">Bet 🪙 <span id="bj-bet">1,000</span></div>
+            </div>
+
+            <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:12px; text-align:center;">
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">DEALER'S HAND (<span id="bj-dealer-score">?</span>)</p>
+                <div id="bj-dealer-cards" style="font-size:1.5rem; margin-bottom:10px; min-height:35px;">🎴 🎴</div>
+                
+                <hr style="border-color:var(--border); margin:8px 0;">
+                
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">YOUR HAND (<span id="bj-player-score">0</span>)</p>
+                <div id="bj-player-cards" style="font-size:1.5rem; min-height:35px;">🎴 🎴</div>
+            </div>
+
+            <p id="bj-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-main);">Place your bet and hit Deal!</p>
+            
+            <div style="display:flex; gap:8px; width:100%; margin-bottom:8px;" id="bj-bet-controls">
+                <button class="action-btn" style="flex:1; background:#334155;" onclick="startBlackjack(1000)">Bet 1K</button>
+                <button class="action-btn" style="flex:1; background:#334155;" onclick="startBlackjack(5000)">Bet 5K</button>
+            </div>
+            
+            <div style="display:flex; gap:8px; width:100%; display:none;" id="bj-action-controls">
+                <button class="action-btn" style="flex:1; background:#15803d;" onclick="bjHit()">HIT 🎯</button>
+                <button class="action-btn" style="flex:1; background:#b91c1c;" onclick="bjStand()">STAND 🛑</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HIGH-LOW PREDICTOR CONTAINER -->
+    <div id="highlow-container" class="game-container">
+        <div class="game-nav-bar">
+            <button class="nav-btn" onclick="backToHub()">← Back</button>
+            <button class="nav-btn" onclick="toggleFullscreen('highlow-container')">⛶ Fullscreen</button>
+        </div>
+        <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+            <div class="score-board" style="margin-top:4px; width:100%;">
+                <div class="score-box">Bankroll 🪙 <span id="hl-balance">1,000,000</span></div>
+                <div class="score-box">Streak 🔥 <span id="hl-streak">0</span></div>
+            </div>
+
+            <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:20px; width:100%; margin-bottom:12px; text-align:center;">
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">CURRENT CARD</p>
+                <div id="hl-card-display" style="font-size:3rem; margin-bottom:12px;">🎴 7</div>
+                <p id="hl-status" style="font-weight:600; font-size:0.9rem; color:var(--text-main);">Will the next card be Higher or Lower?</p>
+            </div>
+
+            <div style="display:flex; gap:10px; width:100%;" id="hl-controls">
+                <button class="action-btn" style="flex:1; background:#15803d;" onclick="guessHighLow('higher')">🔼 HIGHER</button>
+                <button class="action-btn" style="flex:1; background:#b91c1c;" onclick="guessHighLow('lower')">🔽 LOWER</button>
+            </div>
+            <button class="control-btn" style="width:100%; margin-top:8px;" onclick="initHighLowGame()">Reset Game</button>
         </div>
     </div>
 
@@ -1105,6 +1220,13 @@
                 if (containerId === 'piano-container') startPianoGame();
                 if (containerId === 'carracing-container') startCarGame();
                 if (containerId === 'stickman-container') sr_initializeGame();
+                if (containerId === 'scattercard-container') initScatterGame();
+                if (containerId === 'blackjack-container') {
+                    let savedBal = localStorage.getItem('arcadehub_scatter_bal');
+                    if(savedBal !== null) bjBalance = parseInt(savedBal);
+                    document.getElementById('bj-balance').textContent = bjBalance.toLocaleString();
+                }
+                if (containerId === 'highlow-container') initHighLowGame();
             }, 50);
         }
 
@@ -1112,6 +1234,245 @@
             const targetUrl = window.location.href || "https://arcadehubgames-july12.vercel.app/";
             document.getElementById('current-url-text').textContent = targetUrl;
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
+        }
+
+        // ===================================================
+        // COIN SCATTER MULTIPLIER (CARD GAME) ENGINE
+        // ===================================================
+        let scatterBalance = 1000000;
+        let scatterBet = 1000;
+
+        function initScatterGame() {
+            let savedBal = localStorage.getItem('arcadehub_scatter_bal');
+            if(savedBal !== null) scatterBalance = parseInt(savedBal);
+            document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
+        }
+
+        function setScatterBet(amt, btn) {
+            audio.playSFX('click');
+            scatterBet = amt;
+            document.querySelectorAll('#scattercard-container .opt-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function spinScatterCards() {
+            if(scatterBalance < scatterBet) {
+                audio.playSFX('gameover');
+                document.getElementById('scatter-status').textContent = "Not enough coins in balance! 💀";
+                return;
+            }
+
+            scatterBalance -= scatterBet;
+            document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
+            audio.playSFX('click');
+            document.getElementById('scatter-status').textContent = "Dealing & scattering cards... 🎴";
+
+            let gridCells = [];
+            for(let i=0; i<6; i++) {
+                gridCells.push(document.getElementById(`sc-${i}`));
+                gridCells[i].textContent = "🔄";
+                gridCells[i].style.borderColor = "var(--border)";
+            }
+
+            setTimeout(() => {
+                let multipliers = [1, 1, 3, 3, 5, 10];
+                let cardSymbols = ['🎴', '♠️', '♥️', '♦️', '♣️', '🪙'];
+                let roundWin = 0;
+                let hitMultipliers = [];
+
+                for(let i=0; i<6; i++) {
+                    let chosenMult = multipliers[Math.floor(Math.random() * multipliers.length)];
+                    let chosenSym = cardSymbols[Math.floor(Math.random() * cardSymbols.length)];
+                    
+                    if(chosenMult > 1) {
+                        hitMultipliers.push(chosenMult);
+                        roundWin += (scatterBet * chosenMult);
+                        gridCells[i].textContent = `x${chosenMult}`;
+                        gridCells[i].style.borderColor = "#facc15";
+                    } else {
+                        gridCells[i].textContent = chosenSym;
+                        gridCells[i].style.borderColor = "var(--border)";
+                    }
+                }
+
+                if(roundWin > 0) {
+                    audio.playSFX('win');
+                    scatterBalance += roundWin;
+                    document.getElementById('scatter-win').textContent = roundWin.toLocaleString();
+                    document.getElementById('scatter-status').textContent = `🎉 Scatter Hit! Won +${roundWin.toLocaleString()} coins!`;
+                } else {
+                    audio.playSFX('gameover');
+                    document.getElementById('scatter-win').textContent = "0";
+                    document.getElementById('scatter-status').textContent = "No multipliers scattered. Try again!";
+                }
+
+                document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
+                localStorage.setItem('arcadehub_scatter_bal', scatterBalance);
+            }, 400);
+        }
+
+        // ===================================================
+        // BLACKJACK 21 PRO ENGINE
+        // ===================================================
+        let bjBalance = 1000000;
+        let bjCurrentBet = 1000;
+        let bjPlayerHand = [], bjDealerHand = [];
+        let bjGameOver = true;
+
+        function startBlackjack(betAmount) {
+            let savedBal = localStorage.getItem('arcadehub_scatter_bal');
+            if(savedBal !== null) bjBalance = parseInt(savedBal);
+
+            if(bjBalance < betAmount) {
+                audio.playSFX('gameover');
+                document.getElementById('bj-status').textContent = "Not enough coins in balance! 💀";
+                return;
+            }
+
+            bjCurrentBet = betAmount;
+            bjBalance -= bjCurrentBet;
+            document.getElementById('bj-balance').textContent = bjBalance.toLocaleString();
+            document.getElementById('bj-bet').textContent = bjCurrentBet.toLocaleString();
+            
+            audio.playSFX('click');
+            bjGameOver = false;
+
+            bjPlayerHand = [randomCard(), randomCard()];
+            bjDealerHand = [randomCard(), randomCard()];
+
+            updateBJDisplay(false);
+            document.getElementById('bj-bet-controls').style.display = 'none';
+            document.getElementById('bj-action-controls').style.display = 'flex';
+            document.getElementById('bj-status').textContent = "Hit or Stand?";
+
+            if(calcHandScore(bjPlayerHand) === 21) {
+                bjStand();
+            }
+        }
+
+        function randomCard() {
+            let val = Math.floor(Math.random() * 10) + 2;
+            let suits = ['♠️', '♥️', '♦️', '♣️'];
+            let suit = suits[Math.floor(Math.random() * suits.length)];
+            return { val, name: val === 10 ? ['10','J','Q','K'][Math.floor(Math.random()*4)] : val.toString(), suit };
+        }
+
+        function calcHandScore(hand) {
+            let score = hand.reduce((acc, c) => acc + c.val, 0);
+            return score;
+        }
+
+        function updateBJDisplay(showDealerHole) {
+            document.getElementById('bj-player-cards').textContent = bjPlayerHand.map(c => `${c.name}${c.suit}`).join(' ');
+            document.getElementById('bj-player-score').textContent = calcHandScore(bjPlayerHand);
+
+            if(showDealerHole) {
+                document.getElementById('bj-dealer-cards').textContent = bjDealerHand.map(c => `${c.name}${c.suit}`).join(' ');
+                document.getElementById('bj-dealer-score').textContent = calcHandScore(bjDealerHand);
+            } else {
+                document.getElementById('bj-dealer-cards').textContent = `${bjDealerHand[0].name}${bjDealerHand[0].suit} 🎴`;
+                document.getElementById('bj-dealer-score').textContent = bjDealerHand[0].val;
+            }
+        }
+
+        function bjHit() {
+            if(bjGameOver) return;
+            audio.playSFX('move');
+            bjPlayerHand.push(randomCard());
+            updateBJDisplay(false);
+
+            let score = calcHandScore(bjPlayerHand);
+            if(score > 21) {
+                audio.playSFX('gameover');
+                bjGameOver = true;
+                updateBJDisplay(true);
+                document.getElementById('bj-status').textContent = "Bust! You went over 21. 💀";
+                endBJRound();
+            }
+        }
+
+        function bjStand() {
+            if(bjGameOver) return;
+            audio.playSFX('click');
+            bjGameOver = true;
+            updateBJDisplay(true);
+
+            let dealerScore = calcHandScore(bjDealerHand);
+            while(dealerScore < 17) {
+                bjDealerHand.push(randomCard());
+                dealerScore = calcHandScore(bjDealerHand);
+                updateBJDisplay(true);
+            }
+
+            let playerScore = calcHandScore(bjPlayerHand);
+            let statusText = "";
+
+            if(dealerScore > 21 || playerScore > dealerScore) {
+                audio.playSFX('win');
+                let winnings = bjCurrentBet * 2;
+                bjBalance += winnings;
+                statusText = `🎉 You Win +${winnings.toLocaleString()} coins!`;
+            } else if(playerScore === dealerScore) {
+                audio.playSFX('move');
+                bjBalance += bjCurrentBet;
+                statusText = "Push! Bet returned. 🤝";
+            } else {
+                audio.playSFX('gameover');
+                statusText = "Dealer wins! Better luck next time. 💀";
+            }
+
+            document.getElementById('bj-status').textContent = statusText;
+            endBJRound();
+        }
+
+        function endBJRound() {
+            document.getElementById('bj-balance').textContent = bjBalance.toLocaleString();
+            localStorage.setItem('arcadehub_scatter_bal', bjBalance);
+            document.getElementById('bj-bet-controls').style.display = 'flex';
+            document.getElementById('bj-action-controls').style.display = 'none';
+        }
+
+        // ===================================================
+        // HIGH-LOW PREDICTOR ENGINE
+        // ===================================================
+        let hlBalance = 1000000;
+        let hlCurrentCard = 7;
+        let hlStreak = 0;
+
+        function initHighLowGame() {
+            let savedBal = localStorage.getItem('arcadehub_scatter_bal');
+            if(savedBal !== null) hlBalance = parseInt(savedBal);
+            document.getElementById('hl-balance').textContent = hlBalance.toLocaleString();
+            
+            hlCurrentCard = Math.floor(Math.random() * 11) + 2;
+            hlStreak = 0;
+            document.getElementById('hl-streak').textContent = hlStreak;
+            document.getElementById('hl-card-display').textContent = `🎴 ${hlCurrentCard}`;
+            document.getElementById('hl-status').textContent = "Will the next card be Higher or Lower?";
+        }
+
+        function guessHighLow(guess) {
+            audio.playSFX('click');
+            let nextCard = Math.floor(Math.random() * 11) + 2;
+            let success = (guess === 'higher' && nextCard >= hlCurrentCard) || (guess === 'lower' && nextCard <= hlCurrentCard);
+
+            if(success) {
+                audio.playSFX('win');
+                hlStreak++;
+                let reward = 500 * hlStreak;
+                hlBalance += reward;
+                document.getElementById('hl-status').textContent = `🎉 Correct! Next card was ${nextCard}. Won +${reward} coins!`;
+            } else {
+                audio.playSFX('gameover');
+                hlStreak = 0;
+                document.getElementById('hl-status').textContent = `💀 Wrong! Next card was ${nextCard}. Streak reset!`;
+            }
+
+            hlCurrentCard = nextCard;
+            document.getElementById('hl-card-display').textContent = `🎴 ${hlCurrentCard}`;
+            document.getElementById('hl-streak').textContent = hlStreak;
+            document.getElementById('hl-balance').textContent = hlBalance.toLocaleString();
+            localStorage.setItem('arcadehub_scatter_bal', hlBalance);
         }
 
         // ===================================================
@@ -1159,15 +1520,14 @@
         function triggerCarBoost() {
             if(!carRunning || carBoostActive > 0 || carBoostCharge < 100) return;
             audio.playSFX('powerup');
-            carBoostActive = 100; // Duration of boost
-            carBoostCharge = 0;   // Drain meter
+            carBoostActive = 100;
+            carBoostCharge = 0;
         }
 
         let carSpawnTimer = 0;
         function carLoop() {
             if(!carRunning) return;
 
-            // Recharge Boost meter over time if not active
             if(carBoostActive > 0) {
                 carBoostActive--;
             } else if(carBoostCharge < 100) {
@@ -1192,7 +1552,6 @@
             carScore += Math.floor(1 * speedMult);
             roadOffset = (roadOffset + (6 * speedMult)) % 40;
 
-            // Manage 5-second Shield Timer (60 frames per second approx -> 300 frames)
             if(playerCar.shieldTimer > 0) {
                 playerCar.shieldTimer--;
                 let secondsLeft = Math.ceil(playerCar.shieldTimer / 60);
@@ -1222,7 +1581,6 @@
 
             playerCar.x = lanes[playerCar.lane] - playerCar.width / 2;
 
-            // Collectibles check
             carCollectibles.forEach(c => {
                 let cx = lanes[c.lane];
                 if(playerCar.lane === c.lane && playerCar.y < c.y + 20 && playerCar.y + playerCar.height > c.y) {
@@ -1234,7 +1592,7 @@
                         document.getElementById('car-coins').textContent = carCoinsCollected;
                     } else if(c.type === 'shield') {
                         audio.playSFX('powerup');
-                        playerCar.shieldTimer = 300; // 5 seconds (60fps * 5)
+                        playerCar.shieldTimer = 300;
                         document.getElementById('car-shield-time').textContent = '5s';
                     } else if(c.type === 'nitro') {
                         audio.playSFX('powerup');
@@ -1244,7 +1602,6 @@
                 }
             });
 
-            // Accurate Collision Check with Traffic Cars
             trafficCars.forEach(tc => {
                 let tx = lanes[tc.lane] - playerCar.width / 2;
                 if(playerCar.lane === tc.lane && playerCar.y < tc.y + 56 && playerCar.y + playerCar.height > tc.y) {
@@ -1253,7 +1610,7 @@
                         audio.playSFX('score');
                         carScore += 100;
                     } else if(playerCar.shieldTimer > 0) {
-                        playerCar.shieldTimer = 0; // Shield absorbs crash
+                        playerCar.shieldTimer = 0;
                         document.getElementById('car-shield-time').textContent = 'OFF';
                         tc.y = 999;
                         audio.playSFX('gameover');
@@ -1269,7 +1626,6 @@
                 }
             });
 
-            // Draw road & graphics
             carCtx.fillStyle = '#1e293b';
             carCtx.fillRect(0, 0, 280, 360);
             carCtx.fillStyle = carBoostActive > 0 ? '#0284c7' : '#0f172a';
@@ -1378,12 +1734,11 @@
             pianoTiles.forEach(t=>{
                 t.y+=pianoSpeed;
                 if(!t.clicked){
-                    // WHITE TILE THEME
                     pianoCtx.fillStyle=t.isLong ? '#f8fafc' : '#ffffff';
                     pianoCtx.shadowColor = 'rgba(255, 255, 255, 0.4)';
                     pianoCtx.shadowBlur = 8;
                     pianoCtx.beginPath(); pianoCtx.roundRect(t.lane*laneWidth+4,t.y,laneWidth-8,t.height, 6); pianoCtx.fill();
-                    pianoCtx.shadowBlur = 0; // reset shadow
+                    pianoCtx.shadowBlur = 0;
                     
                     if(t.isLong) {
                         pianoCtx.fillStyle="#0f172a"; pianoCtx.font="bold 10px sans-serif"; pianoCtx.fillText("HOLD", t.lane*laneWidth + laneWidth/2 - 14, t.y + 20);
