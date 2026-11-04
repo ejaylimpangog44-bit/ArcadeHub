@@ -47,7 +47,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 12px 12px 80px 12px; /* Bottom padding for fixed nav bar */
+            padding: 12px 12px 80px 12px;
             overflow-x: hidden;
             transition: background-color 0.3s ease;
         }
@@ -90,7 +90,6 @@
         .header-settings-btn { background: rgba(139, 92, 246, 0.15); border: 1px solid var(--primary); color: var(--text-main); padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
         .header-settings-btn:hover { background-color: var(--primary); color: white; }
 
-        /* WELCOME BANNER */
         .welcome-banner { width: 100%; max-width: 600px; margin-bottom: 14px; padding: 0 4px; }
         .welcome-banner h2 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 2px; }
         .welcome-banner p { font-size: 13px; color: var(--text-muted); }
@@ -113,7 +112,6 @@
         .game-icon { font-size: 24px; }
         .game-name { font-size: 13px; font-weight: 500; color: #e5e7eb; }
         
-        /* CONTINUE PLAYING HERO CARD */
         .continue-card { 
             grid-column: 1 / -1; 
             flex-direction: row; 
@@ -134,7 +132,6 @@
         .continue-info p { font-size: 12px; color: var(--text-muted); }
         .play-pill-btn { background: #10b981; color: white; border: none; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
 
-        /* GAMING ACTIVITY STATS CARD */
         .activity-card {
             background: rgba(17, 24, 39, 0.8);
             border: 1px solid var(--border);
@@ -147,7 +144,6 @@
         .activity-stat-item h3 { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 2px; }
         .activity-stat-item p { font-size: 11px; color: var(--text-muted); }
 
-        /* FIXED BOTTOM NAVIGATION BAR */
         .bottom-nav-bar {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: rgba(11, 15, 25, 0.95);
@@ -237,24 +233,6 @@
         .score-box { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; flex: 1; text-align: center; }
         .score-box span { display: block; font-size: 0.95rem; font-weight: bold; color: var(--text-main); }
 
-        .rps-choices { display: flex; justify-content: space-around; gap: 10px; margin: 12px auto; max-width: 320px; width: 100%; }
-        .rps-btn { background: #111827; border: 2px solid var(--border); border-radius: 12px; padding: 14px; font-size: 1.8rem; cursor: pointer; flex: 1; transition: all 0.2s; }
-        .rps-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
-        .rps-display { display: flex; justify-content: space-around; align-items: center; font-size: 2.4rem; margin: 10px auto; max-width: 280px; min-height: 60px; width: 100%; }
-
-        .guess-input { width: 100%; max-width: 300px; background: #111827; border: 2px solid var(--border); color: white; padding: 12px; border-radius: 8px; font-size: 1.2rem; text-align: center; margin: 10px auto; display: block; outline: none; }
-        .guess-input:focus { border-color: var(--primary); }
-
-        .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 320px; width: 100%; margin: 0 auto 12px auto; }
-        .mole-hole { aspect-ratio: 1; background-color: #111827; border: 2px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; position: relative; overflow: hidden; user-select: none; }
-        .mole-hole.active span { transform: translateY(0); }
-        .mole-hole span { transform: translateY(60px); transition: transform 0.1s ease-in-out; }
-
-        .reaction-box { width: 100%; max-width: 340px; height: 140px; background-color: #334155; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; margin: 0 auto 12px auto; transition: background 0.2s; user-select: none; }
-        .reaction-box.waiting { background-color: #b91c1c; }
-        .reaction-box.ready { background-color: #15803d; }
-        .reaction-box.result { background-color: #1e293b; border: 2px solid var(--primary); }
-
         .arcade-canvas { background-color: #111827; border: 2px solid var(--border); border-radius: 10px; display: block; margin: 0 auto 6px auto; max-width: 100%; }
 
         .dir-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 220px; width: 100%; margin: 8px auto; }
@@ -308,7 +286,6 @@
         <button class="header-settings-btn" onclick="openSettingsModal()">⚙️ Settings</button>
     </header>
 
-    <!-- WELCOME HERO BANNER -->
     <div class="welcome-banner">
         <h2>Welcome, Player!</h2>
         <p>Ready for another gaming adventure?</p>
@@ -319,7 +296,6 @@
     </div>
 
     <div id="main-menu" class="view active">
-        <!-- CONTINUE PLAYING / FEATURED GAME CARD -->
         <div class="continue-card" onclick="openGame('stickman-container')">
             <div class="continue-left">
                 <img src="1000030580.png" alt="Stick Run Game Art" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'50\' height=\'50\'><rect width=\'100%\' height=\'100%\' fill=\'%238b5cf6\'/><text x=\'50%\' y=\'55%\' font-size=\'24\' text-anchor=\'middle\' dominant-baseline=\'middle\' fill=\'white\'>🏃</text></svg>'">
@@ -331,7 +307,6 @@
             <button class="play-pill-btn">Play</button>
         </div>
 
-        <!-- YOUR CATEGORIES SECTION -->
         <div class="category-section" data-category="card">
             <div class="category-title">Card Games</div>
             <div class="game-grid">
@@ -416,7 +391,6 @@
             </div>
         </div>
 
-        <!-- YOUR GAMING ACTIVITY CARD -->
         <div class="activity-card">
             <div class="activity-header">Your Gaming Activity</div>
             <div class="activity-stats-grid">
@@ -927,19 +901,15 @@
         </div>
     </div>
 
-    <!-- FIXED BOTTOM NAVIGATION BAR -->
+    <!-- CLEAN FIXED BOTTOM NAVIGATION BAR (Settings Removed) -->
     <nav class="bottom-nav-bar">
-        <button class="bottom-nav-bar bottom-nav-item active" onclick="backToHub()">
+        <button class="bottom-nav-item active" onclick="backToHub()">
             <span>🏠</span>
             Home
         </button>
-        <button class="bottom-nav-bar bottom-nav-item" onclick="openGame('stickman-container')">
+        <button class="bottom-nav-item" onclick="openGame('stickman-container')">
             <span>🏃</span>
             Play
-        </button>
-        <button class="bottom-nav-bar bottom-nav-item" onclick="openSettingsModal()">
-            <span>⚙️</span>
-            Settings
         </button>
     </nav>
 
