@@ -161,22 +161,22 @@
         }
         .game-container.active { display: flex; }
 
-        /* CUSTOM NON-OVERLAY WIN ALERT TOAST */
+        /* CUSTOM NON-OVERLAY WIN ALERT TOAST WITH NUMBER COUNTING ANIMATION */
         #custom-alert-toast {
-            position: fixed; bottom: 85px; right: 20px;
+            position: fixed; bottom: 85px; right: 20px; left: 20px; max-width: 420px; margin: 0 auto;
             background: linear-gradient(135deg, #111827, #1f2937);
-            border: 2px solid var(--primary); border-radius: 12px;
-            padding: 14px 20px; box-shadow: 0 10px 25px var(--accent-glow);
-            z-index: 1050; display: flex; align-items: center; gap: 12px;
-            transform: translateY(120px); opacity: 0; visibility: hidden;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease, visibility 0.3s ease;
+            border: 2px solid var(--primary); border-radius: 14px;
+            padding: 16px 20px; box-shadow: 0 15px 35px var(--accent-glow);
+            z-index: 1050; display: flex; align-items: center; gap: 14px;
+            transform: translateY(140px); opacity: 0; visibility: hidden;
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s ease, visibility 0.35s ease;
         }
         #custom-alert-toast.active {
             transform: translateY(0); opacity: 1; visibility: visible;
         }
-        .toast-icon { font-size: 26px; }
-        .toast-content h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); font-weight: 700; margin-bottom: 2px; }
-        .toast-content p { font-size: 14px; font-weight: 800; color: #fff; }
+        .toast-icon { font-size: 32px; }
+        .toast-content h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); font-weight: 800; margin-bottom: 3px; }
+        .toast-content p { font-size: 1.2rem; font-weight: 900; color: #facc15; }
 
         .game-nav-bar { width: 100%; max-width: 380px; display: flex; justify-content: flex-end; align-items: center; margin-bottom: 10px; }
         .nav-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: #fff; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: background 0.2s; }
@@ -314,12 +314,12 @@
 </head>
 <body>
 
-    <!-- CUSTOM NON-OVERLAY WIN ALERT TOAST -->
+    <!-- CUSTOM NON-OVERLAY WIN ALERT TOAST WITH NUMBER COUNTING ANIMATION -->
     <div id="custom-alert-toast">
         <div class="toast-icon">🪙</div>
         <div class="toast-content">
-            <h4 id="toast-title">Prize Alert</h4>
-            <p id="toast-message">+0 Coins Won!</p>
+            <h4 id="toast-title">Batch Spins Complete! 🎉</h4>
+            <p id="toast-message">+0 Coins</p>
         </div>
     </div>
 
@@ -514,7 +514,6 @@
             <div class="score-board" style="margin-top:4px; width:100%;">
                 <div class="score-box">Balance 🪙 <span id="scatter-balance">1,000,000</span></div>
                 <div class="score-box">Spins Left 🎲 <span id="scatter-spins-left">0</span></div>
-                <div class="score-box">Win 🏆 <span id="scatter-win">0</span></div>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:10px; width:100%; justify-content:center;">
@@ -884,7 +883,7 @@
         </div>
     </div>
 
-    <!-- CLEAN FIXED BOTTOM NAVIGATION BAR (REMAINS VISIBLE ALWAYS) -->
+    <!-- CLEAN FIXED BOTTOM NAVIGATION BAR -->
     <nav class="bottom-nav-bar">
         <button class="bottom-nav-item active" onclick="backToHub()">
             <span>🏠</span>
@@ -950,7 +949,6 @@
                         <button class="setting-toggle active" id="pref-instructions-toggle" onclick="toggleInstructionPreference()">ENABLED</button>
                     </div>
                 </div>
-                <!-- FULLSCREEN TOGGLE NOW PLACED INSIDE SETTINGS PREFERENCES -->
                 <div class="setting-row" style="margin-top: 16px;">
                     <span class="setting-label">⛶ Fullscreen Mode</span>
                     <div class="setting-control">
@@ -992,20 +990,36 @@
 
     <script>
         // ===================================================
-        // CUSTOM NON-OVERLAY ALERT TOAST SYSTEM
+        // CUSTOM NUMBER COUNTING WIN ALERT TOAST SYSTEM
         // ===================================================
         let alertTimeout = null;
-        function showCustomAlert(title, message) {
+        function showCountingAlert(title, targetAmount) {
             const toast = document.getElementById('custom-alert-toast');
             document.getElementById('toast-title').textContent = title;
-            document.getElementById('toast-message').textContent = message;
+            const msgEl = document.getElementById('toast-message');
 
             toast.classList.add('active');
             if(alertTimeout) clearTimeout(alertTimeout);
 
+            let currentVal = 0;
+            let steps = 30;
+            let increment = Math.max(1, Math.floor(targetAmount / steps));
+            let currentStep = 0;
+
+            let countInterval = setInterval(() => {
+                currentStep++;
+                if(currentStep >= steps || currentVal >= targetAmount) {
+                    currentVal = targetAmount;
+                    clearInterval(countInterval);
+                } else {
+                    currentVal += increment;
+                }
+                msgEl.textContent = `+${currentVal.toLocaleString()} Coins`;
+            }, 30);
+
             alertTimeout = setTimeout(() => {
                 toast.classList.remove('active');
-            }, 3500);
+            }, 4000);
         }
 
         // ===================================================
@@ -1239,7 +1253,6 @@
             else { btn.textContent = "DISABLED"; btn.classList.remove('active'); }
         }
 
-        // UNIVERSAL FULLSCREEN TOGGLE INSIDE SETTINGS PANEL
         function toggleAppFullscreen() {
             audio.playSFX('click');
             const docEl = document.documentElement;
@@ -1467,9 +1480,6 @@
                 document.getElementById('ws-score').textContent = wsScore;
                 document.getElementById('ws-found').textContent = `${wsFoundWords.length}/${lvl.words.length}`;
                 
-                // Show custom win toast alert
-                showCustomAlert("Wordscape Win!", `+${wsCurrentSelection.length * 50} Points Awarded!`);
-
                 lvl.words.forEach((w, wIdx) => {
                     if(w === wsCurrentSelection) {
                         for(let i=0; i<w.length; i++) {
@@ -1509,7 +1519,6 @@
                 if(solTime <= 0) {
                     clearInterval(solTimer); solRunning = false;
                     audio.playSFX('gameover');
-                    showCustomAlert("Solitaire Finished!", `Total Score: ${solScore}`);
                     ScoreManager.saveScore('solitaire', solScore);
                 }
             }, 1000);
@@ -1547,7 +1556,6 @@
                 solFoundationCard = card;
                 solTableauCards[index] = generateRandomCard();
                 document.getElementById('sol-score').textContent = solScore;
-                showCustomAlert("Card Match!", "+100 Score Points");
                 updateSolitaireDisplay();
                 ScoreManager.saveScore('solitaire', solScore);
             }
@@ -1561,19 +1569,15 @@
         }
 
         // ===================================================
-        // COIN SCATTER MULTIPLIER (DICE ROLL & TOTAL WINS TRACKER)
+        // COIN SCATTER MULTIPLIER (DICE ROLL & OVERALL BATCH WIN ALERT)
         // ===================================================
-        let scatterBalance = 1000000, scatterBet = 1000, scatterSpinsRemaining = 0, totalScatterWins = 0, isScatterActive = false;
+        let scatterBalance = 1000000, scatterBet = 1000, scatterSpinsRemaining = 0, currentBatchTotalWin = 0, isScatterActive = false;
 
         function initScatterGame() {
             let savedBal = localStorage.getItem('arcadehub_scatter_bal');
             if(savedBal !== null) scatterBalance = parseInt(savedBal);
-            let savedWins = localStorage.getItem('arcadehub_scatter_total_wins');
-            if(savedWins !== null) totalScatterWins = parseInt(savedWins);
-
             document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
             document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
-            document.getElementById('scatter-win').textContent = totalScatterWins.toLocaleString();
         }
 
         function setScatterBet(amt, btn) {
@@ -1587,16 +1591,19 @@
             if(isScatterActive) return;
             if(scatterSpinsRemaining <= 0) {
                 if(scatterBalance < scatterBet) {
-                    showCustomAlert("Low Balance", "Not enough coins in balance!");
+                    showCountingAlert("Low Balance", 0);
                     return;
                 }
                 scatterBalance -= scatterBet;
                 document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
                 scatterSpinsRemaining = [3, 5, 10][Math.floor(Math.random() * 3)];
+                currentBatchTotalWin = 0; // Reset batch win tally for new dice roll batch
+                
                 audio.playSFX('powerup');
                 document.getElementById('scatter-dice-display').textContent = `🎲 Rolled ${scatterSpinsRemaining} Spins!`;
                 document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
                 document.getElementById('scatter-spin-btn').textContent = "START SPINS (▶)";
+                document.getElementById('scatter-status').textContent = `You got x${scatterSpinsRemaining} spins! Tap to spin the reels.`;
                 return;
             }
             executeScatterSpin();
@@ -1608,6 +1615,7 @@
             document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
             document.getElementById('scatter-spin-btn').disabled = true;
             document.getElementById('scatter-spin-btn').style.opacity = '0.5';
+            document.getElementById('scatter-status').textContent = `🎰 Spinning reels (${scatterSpinsRemaining} left)...`;
 
             let gridCells = [];
             for(let i=0; i<9; i++) gridCells.push(document.getElementById(`sc-${i}`));
@@ -1643,30 +1651,29 @@
                 if(txt.startsWith('x')) roundWin += (scatterBet * parseInt(txt.substring(1)));
             }
 
-            isScatterActive = false;
-            document.getElementById('scatter-spin-btn').disabled = false;
-            document.getElementById('scatter-spin-btn').style.opacity = '1';
-
             if(roundWin > 0) {
-                audio.playSFX('win');
+                audio.playSFX('score');
                 scatterBalance += roundWin;
-                totalScatterWins += roundWin;
-                document.getElementById('scatter-win').textContent = totalScatterWins.toLocaleString();
-                
-                // CUSTOM NON-OVERLAY ALERT DISPLAYING USER WINS/TOTAL PRIZE
-                showCustomAlert("Jackpot Win! 🎉", `Won +${roundWin.toLocaleString()} Coins! (Total: ${totalScatterWins.toLocaleString()})`);
-                
+                currentBatchTotalWin += roundWin;
                 ScoreManager.saveScore('scatter', roundWin);
             }
 
+            isScatterActive = false;
+            document.getElementById('scatter-spin-btn').disabled = false;
+            document.getElementById('scatter-spin-btn').style.opacity = '1';
             document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
             localStorage.setItem('arcadehub_scatter_bal', scatterBalance);
-            localStorage.setItem('arcadehub_scatter_total_wins', totalScatterWins);
 
             if(scatterSpinsRemaining > 0) {
                 document.getElementById('scatter-spin-btn').textContent = `SPIN AGAIN (${scatterSpinsRemaining} left)`;
+                document.getElementById('scatter-status').textContent = roundWin > 0 ? `Won +${roundWin.toLocaleString()} in this spin!` : "No multipliers this spin.";
             } else {
+                // ALL SPINS FINISHED FOR THIS BATCH -> SHOW COUNTING ALERT FOR OVERALL WINNING PRIZE
+                audio.playSFX('win');
+                showCountingAlert("Batch Spins Complete! 🎉", currentBatchTotalWin);
+                
                 document.getElementById('scatter-spin-btn').textContent = "ROLL DICE & SPIN (🪙 Bet)";
+                document.getElementById('scatter-status').textContent = `Spins finished! Total batch won: +${currentBatchTotalWin.toLocaleString()} coins.`;
             }
         }
 
@@ -1678,7 +1685,7 @@
         function startBlackjack(betAmount) {
             let savedBal = localStorage.getItem('arcadehub_scatter_bal');
             if(savedBal !== null) bjBalance = parseInt(savedBal);
-            if(bjBalance < betAmount) { showCustomAlert("Low Balance", "Not enough coins!"); return; }
+            if(bjBalance < betAmount) { showCountingAlert("Low Balance", 0); return; }
 
             bjCurrentBet = betAmount; bjBalance -= bjCurrentBet;
             document.getElementById('bj-balance').textContent = bjBalance.toLocaleString();
@@ -1726,7 +1733,7 @@
                 let winnings = bjCurrentBet * 2;
                 bjBalance += winnings;
                 audio.playSFX('win');
-                showCustomAlert("Blackjack Win! 🃏", `Won +${winnings.toLocaleString()} Coins!`);
+                showCountingAlert("Blackjack Win! 🃏", winnings);
                 ScoreManager.saveScore('blackjack', winnings);
             }
             endBJRound();
@@ -1758,7 +1765,7 @@
             if(success) {
                 hlStreak++; let reward = 500 * hlStreak; hlBalance += reward;
                 audio.playSFX('win');
-                showCustomAlert("High-Low Streak!", `+${reward} Coins Won!`);
+                showCountingAlert("High-Low Streak!", reward);
                 ScoreManager.saveScore('highlow', hlStreak);
             } else { hlStreak = 0; audio.playSFX('gameover'); }
             hlCurrentCard = nextCard;
@@ -1768,7 +1775,7 @@
             localStorage.setItem('arcadehub_scatter_bal', hlBalance);
         }
 
-        // Additional Game Engine Stubs (Snake, Dino, Fruit, Car, etc.)
+        // Additional Game Engine Stubs
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
         function initSnakeCanvas() { snakeCanvas = document.getElementById('snake-canvas'); if(snakeCanvas) snakeCtx = snakeCanvas.getContext('2d'); }
         function startSnakeGame() {
@@ -1784,7 +1791,6 @@
                 if(head.x === snakeFood.x && head.y === snakeFood.y) {
                     snakeScore += 10;
                     document.getElementById('snake-score').textContent = snakeScore;
-                    showCustomAlert("Snake Food! 🐍", "+10 Points");
                     snakeFood = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
                 } else { snake.pop(); }
                 if(snakeCtx) {
@@ -1796,7 +1802,6 @@
         }
         function changeSnakeDir(dir) { if(dir==='UP'&&snakeDir!=='DOWN')nextSnakeDir='UP'; if(dir==='DOWN'&&snakeDir!=='UP')nextSnakeDir='DOWN'; if(dir==='LEFT'&&snakeDir!=='RIGHT')nextSnakeDir='LEFT'; if(dir==='RIGHT'&&snakeDir!=='LEFT')nextSnakeDir='RIGHT'; }
         
-        // Other Canvas Stubs
         function initDinoCanvas() {} function startDinoGame() {} function dinoJump() {} function dinoDuck() {}
         function initFrostCanvas() {} function startFrostGame() {}
         function initFruitCanvas() {} function startFruitGame() {}
