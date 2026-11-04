@@ -3113,7 +3113,7 @@ ctx.fillRect(x, 370 + 25, 35, 3);
 function gameLoop() {
 requestAnimationFrame(gameLoop);
 const activeContainer = document.getElementById('stickman-container');
-if(!activeContainer || !activeContainer.classList.get("active") && !activeContainer.classList.contains('active')) return;
+if(!activeContainer || !activeContainer.classList.contains('active')) return;
 
 drawBackground();
 
@@ -3180,7 +3180,10 @@ playSound(550, 0.15);
 }
 
 function endStickGame() {
-if (stickGameState !== "playing") return;
+if (stickGameState !== "playing") {
+  startStickGame();
+  return;
+}
 stickGameState = "over";
 const final = Math.floor(score);
 const newRecord = final > best;
