@@ -330,9 +330,9 @@
                     <span class="game-icon">🎴</span>
                     <span class="game-name">Speed Solitaire</span>
                 </div>
-                <div class="game-card" data-name="coin scatter multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter', '🎰', { objective: 'Place your bet and roll the dice to earn spins, then spin the reels to land multipliers and win big coins!', controls: 'Select bet, roll dice for spins, and hit spin.' })">
+                <div class="game-card" data-name="coin scatter v2 multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter v2', '🎰', { objective: 'Place your bet and roll the dice to earn spins, then spin the reels to land multipliers and win big coins!', controls: 'Select bet, roll dice for spins, and hit spin.' })">
                     <span class="game-icon">🎰</span>
-                    <span class="game-name">Coin Scatter</span>
+                    <span class="game-name">Coin Scatter v2</span>
                 </div>
                 <div class="game-card" data-name="blackjack 21 pro" onclick="showGameInstructions('blackjack-container', 'Blackjack 21', '🃏', { objective: 'Hit or stand to get as close to 21 as possible without busting. Beat the dealer\'s hand to win!', controls: 'Hit for another card or Stand to hold your hand.' })">
                     <span class="game-icon">🃏</span>
@@ -479,13 +479,12 @@
         </div>
     </div>
 
-    <!-- COIN SCATTER MULTIPLIER CARD GAME CONTAINER -->
+    <!-- COIN SCATTER v2 CONTAINER -->
     <div id="scattercard-container" class="game-container">
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
             <div class="score-board" style="margin-top:4px; width:100%;">
                 <div class="score-box">Balance 🪙 <span id="scatter-balance">1,000,000</span></div>
                 <div class="score-box">Spins Left 🎲 <span id="scatter-spins-left">0</span></div>
-                <div class="score-box">Win 🏆 <span id="scatter-win">0</span></div>
             </div>
 
             <div style="display:flex; gap:6px; margin-bottom:10px; width:100%; justify-content:center;">
@@ -1693,23 +1692,20 @@
         }
 
         // ===================================================
-        // COIN SCATTER MULTIPLIER (DICE ROLL & TOTAL WINS TRACKER)
+        // COIN SCATTER v2 ENGINE (NUMBER COUNTING & ALERT POPUP)
         // ===================================================
         let scatterBalance = 1000000;
         let scatterBet = 1000;
         let scatterSpinsRemaining = 0;
-        let totalScatterWins = 0;
+        let sessionTotalWins = 0;
         let isScatterActive = false;
 
         function initScatterGame() {
             let savedBal = localStorage.getItem('arcadehub_scatter_bal');
             if(savedBal !== null) scatterBalance = parseInt(savedBal);
-            let savedWins = localStorage.getItem('arcadehub_scatter_total_wins');
-            if(savedWins !== null) totalScatterWins = parseInt(savedWins);
 
             document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
             document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
-            document.getElementById('scatter-win').textContent = totalScatterWins.toLocaleString();
         }
 
         function setScatterBet(amt, btn) {
@@ -1734,6 +1730,7 @@
 
                 const spinOptions = [3, 5, 10];
                 scatterSpinsRemaining = spinOptions[Math.floor(Math.random() * spinOptions.length)];
+                sessionTotalWins = 0; // Reset session tracker for this batch of spins
                 
                 audio.playSFX('powerup');
                 document.getElementById('scatter-dice-display').textContent = `🎲 Rolled ${scatterSpinsRemaining} Spins!`;
@@ -1817,9 +1814,12 @@
 
             if(roundWin > 0) {
                 audio.playSFX('win');
+                sessionTotalWins += roundWin;
+                
+                // Number counting animation on balance display
+                animateBalanceCount(scatterBalance, scatterBalance + roundWin, 600);
                 scatterBalance += roundWin;
-                totalScatterWins += roundWin;
-                document.getElementById('scatter-win').textContent = totalScatterWins.toLocaleString();
+                
                 document.getElementById('scatter-status').textContent = `🎉 Win! Collected +${roundWin.toLocaleString()} coins!`;
                 ScoreManager.saveScore('scatter', roundWin);
             } else {
@@ -1827,16 +1827,34 @@
                 document.getElementById('scatter-status').textContent = "No multipliers this spin. Try again!";
             }
 
-            document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
             localStorage.setItem('arcadehub_scatter_bal', scatterBalance);
-            localStorage.setItem('arcadehub_scatter_total_wins', totalScatterWins);
 
             if(scatterSpinsRemaining > 0) {
                 document.getElementById('scatter-spin-btn').textContent = `SPIN AGAIN (${scatterSpinsRemaining} left)`;
             } else {
                 document.getElementById('scatter-spin-btn').textContent = "ROLL DICE & SPIN (🪙 Bet)";
                 document.getElementById('scatter-status').textContent = "Spins finished! Select bet to roll dice again.";
+                
+                // Trigger alert popup showing total amount won after all spins complete
+                setTimeout(() => {
+                    alert(`🎰 Coin Scatter v2 Session Complete!\n\nTotal Winnings: 🪙 ${sessionTotalWins.toLocaleString()} coins!`);
+                }, 300);
             }
+        }
+
+        function animateBalanceCount(startVal, endVal, duration) {
+            let startTimestamp = null;
+            const balanceEl = document.getElementById('scatter-balance');
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                let progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                let currentVal = Math.floor(progress * (endVal - startVal) + startVal);
+                balanceEl.textContent = currentVal.toLocaleString();
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
         }
 
         // ===================================================
