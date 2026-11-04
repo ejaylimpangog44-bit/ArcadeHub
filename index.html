@@ -259,8 +259,10 @@
         .ear { position: absolute; top: 50%; transform: translateY(-50%); width: 8px; height: 14px; border: 2px solid #00e5ff; background-color: #0a1128; }
         .ear.left { left: -9px; border-radius: 3px 0 0 3px; }
         .ear.right { right: -9px; border-radius: 0 3px 3px 0; }
+        
         .eye-socket { width: 22px; height: 22px; background-color: #020617; border: 2px solid #00e5ff; border-radius: 5px; position: relative; overflow: hidden; box-shadow: inset 0 0 5px rgba(0,229,255,0.6); }
-        .eye-pupil { width: 8px; height: 8px; background-color: #00e5ff; border-radius: 50%; position: absolute; top: 7px; left: 7px; box-shadow: 0 0 6px #00e5ff; transition: transform 0.05s ease-out; }
+        .eye-pupil { width: 8px; height: 8px; background-color: #00e5ff; border-radius: 50%; position: absolute; top: 5px; left: 5px; box-shadow: 0 0 6px #00e5ff; transition: transform 0.05s ease-out; }
+
         .robot-mouth { position: absolute; bottom: 8px; width: 36px; height: 11px; border: 2px solid #00e5ff; border-radius: 3px; display: flex; justify-content: space-around; align-items: center; background-color: #020617; }
         .robot-mouth span { width: 4px; height: 4px; background-color: #00e5ff; border-radius: 50%; box-shadow: 0 0 4px #00e5ff; }
         .robot-neck { width: 12px; height: 10px; background-color: #0a1128; border-left: 2px solid #00e5ff; border-right: 2px solid #00e5ff; z-index: -1; }
@@ -318,7 +320,7 @@
                     <span class="game-icon">🎴</span>
                     <span class="game-name">Speed Solitaire</span>
                 </div>
-                <div class="game-card" data-name="coin scatter multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter', '🎰', { objective: 'Place your bet and hit Spin to roll multipliers across the reel grid. Match special multipliers to win big coins!', controls: 'Select your bet and hit Spin.' })">
+                <div class="game-card" data-name="coin scatter multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter', '🎰', { objective: 'Place your bet and roll the dice to earn spins, then spin the reels to land multipliers and win big coins!', controls: 'Select bet, roll dice for spins, and hit spin.' })">
                     <span class="game-icon">🎰</span>
                     <span class="game-name">Coin Scatter</span>
                 </div>
@@ -362,7 +364,7 @@
                     <span class="game-icon">🍉</span>
                     <span class="game-name">Fruit Master</span>
                 </div>
-                <div class="game-card" data-name="whack a mole pro" onclick="showGameInstructions('molegame-container', 'Whack-a-Mole', '🔨', { objective: 'Tap the cheeky hamsters as they pop up out of their holes before the timer runs out!', controls: 'Tap moles instantly when they appear.' })">
+                <div class="game-card" data-name="whack a mole pro" onclick="showGameInstructions('molegame-container', 'Whack-a-Mole', '🔨', { objective: 'Tap the cheeky hamsters as they pop out of their holes before the timer runs out!', controls: 'Tap moles instantly when they appear.' })">
                     <span class="game-icon">🔨</span>
                     <span class="game-name">Whack-a-Mole</span>
                 </div>
@@ -484,6 +486,7 @@
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
             <div class="score-board" style="margin-top:4px; width:100%;">
                 <div class="score-box">Balance 🪙 <span id="scatter-balance">1,000,000</span></div>
+                <div class="score-box">Spins Left 🎲 <span id="scatter-spins-left">0</span></div>
                 <div class="score-box">Win 🏆 <span id="scatter-win">0</span></div>
             </div>
 
@@ -491,6 +494,12 @@
                 <button class="opt-btn active" id="bet-btn-1" onclick="setScatterBet(1000, this)">Bet 1K</button>
                 <button class="opt-btn" id="bet-btn-2" onclick="setScatterBet(5000, this)">Bet 5K</button>
                 <button class="opt-btn" id="bet-btn-3" onclick="setScatterBet(10000, this)">Bet 10K</button>
+            </div>
+
+            <!-- Dice Roll Status Box -->
+            <div id="scatter-dice-box" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:10px; width:100%; margin-bottom:10px; text-align:center;">
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">DICE ROLL SPINS GENERATOR</p>
+                <div id="scatter-dice-display" style="font-size:1.8rem; font-weight:bold; color:#38bdf8;">🎲 ⚀</div>
             </div>
 
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; width:100%; margin-bottom:12px;" id="scatter-card-grid">
@@ -505,9 +514,9 @@
                 <div class="ttt-cell" id="sc-8" style="font-size:1.6rem; background:#111827;">🎴</div>
             </div>
 
-            <p id="scatter-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-muted);">Hit Spin to roll the scatter reels!</p>
+            <p id="scatter-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-muted);">Choose your bet and roll the dice for spins!</p>
 
-            <button class="action-btn" style="width:100%; max-width:320px; margin:0 auto; padding:14px; font-size:1.1rem;" id="scatter-spin-btn" onclick="spinScatterCards()">SPIN / DEAL (🪙 Bet)</button>
+            <button class="action-btn" style="width:100%; max-width:320px; margin:0 auto; padding:14px; font-size:1.1rem;" id="scatter-spin-btn" onclick="rollDiceForSpins()">ROLL DICE & SPIN (🪙 Bet)</button>
         </div>
     </div>
 
@@ -1000,6 +1009,49 @@
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
         }
 
+        // ===================================================
+        // ROBOT COMPANION EYE TRACKING LOGIC
+        // ===================================================
+        window.addEventListener('mousemove', (e) => {
+            updateRobotEyes(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                updateRobotEyes(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        });
+
+        function updateRobotEyes(mouseX, mouseY) {
+            const robot = document.getElementById('robot-companion');
+            if (!robot || !robot.classList.contains('visible')) return;
+
+            const leftPupil = document.getElementById('left-pupil');
+            const rightPupil = document.getElementById('right-pupil');
+            if (!leftPupil || !rightPupil) return;
+
+            const leftRect = leftPupil.getBoundingClientRect();
+            const rightRect = rightPupil.getBoundingClientRect();
+
+            movePupil(leftPupil, leftRect, mouseX, mouseY);
+            movePupil(rightPupil, rightRect, mouseX, mouseY);
+        }
+
+        function movePupil(pupil, rect, mouseX, mouseY) {
+            const eyeCenterX = rect.left + rect.width / 2;
+            const eyeCenterY = rect.top + rect.height / 2;
+
+            const angle = Math.atan2(mouseY - eyeCenterY, mouseX - eyeCenterX);
+            const maxDist = 5; // Maximum offset distance inside the eye socket
+            
+            const distance = Math.min(maxDist, Math.hypot(mouseX - eyeCenterX, mouseY - eyeCenterY) / 15);
+            
+            const offsetX = Math.cos(angle) * distance;
+            const offsetY = Math.sin(angle) * distance;
+
+            pupil.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        }
+
         function filterGames(query) {
             const q = query.toLowerCase().trim();
             const sections = document.querySelectorAll('.category-section');
@@ -1153,7 +1205,7 @@
 
         const gameInstructionsMap = {
             'solitaire-container': { objective: "Match cards in your tableau that are 1 rank higher or lower than the foundation card.", controls: "Tap playable cards to match before time runs out." },
-            'scattercard-container': { objective: "Roll multipliers across reels to win big coin payouts.", controls: "Select your bet and hit Spin." },
+            'scattercard-container': { objective: "Place your bet and roll the dice to earn spins, then spin the reels to land multipliers and win big coins!", controls: "Select bet, roll dice for spins, and hit spin." },
             'blackjack-container': { objective: "Get as close to 21 as possible without busting.", controls: "Hit for another card or Stand to hold your hand." },
             'highlow-container': { objective: "Predict whether the next card will be higher or lower.", controls: "Tap Higher or Lower buttons based on current card." },
             'tictactoe-container': { objective: "Align 3 or 4 matching symbols in a row.", controls: "Tap empty cells on the grid." },
@@ -1654,40 +1706,67 @@
         }
 
         // ===================================================
-        // COIN SCATTER MULTIPLIER
+        // COIN SCATTER MULTIPLIER (DICE ROLL & RANDOM SPINS)
         // ===================================================
         let scatterBalance = 1000000;
         let scatterBet = 1000;
-        let isScatterSpinning = false;
+        let scatterSpinsRemaining = 0;
+        let isScatterActive = false;
 
         function initScatterGame() {
             let savedBal = localStorage.getItem('arcadehub_scatter_bal');
             if(savedBal !== null) scatterBalance = parseInt(savedBal);
             document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
+            document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
         }
 
         function setScatterBet(amt, btn) {
-            if(isScatterSpinning) return;
+            if(isScatterActive || scatterSpinsRemaining > 0) return;
             audio.playSFX('click');
             scatterBet = amt;
             document.querySelectorAll('#scattercard-container .opt-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
 
-        function spinScatterCards() {
-            if(isScatterSpinning) return;
-            if(scatterBalance < scatterBet) {
-                audio.playSFX('gameover');
-                document.getElementById('scatter-status').textContent = "Not enough coins in balance! 💀";
+        // Step 1: User bets and rolls dice to determine spins (x3, x5, or x10 spins)
+        function rollDiceForSpins() {
+            if(isScatterActive) return;
+
+            // If no spins remaining, deduct bet and roll for new spins
+            if(scatterSpinsRemaining <= 0) {
+                if(scatterBalance < scatterBet) {
+                    audio.playSFX('gameover');
+                    document.getElementById('scatter-status').textContent = "Not enough coins in balance! 💀";
+                    return;
+                }
+                scatterBalance -= scatterBet;
+                document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
+
+                // Randomly pick spin count options: x3, x5, or x10 spins
+                const spinOptions = [3, 5, 10];
+                scatterSpinsRemaining = spinOptions[Math.floor(Math.random() * spinOptions.length)];
+                
+                audio.playSFX('powerup');
+                document.getElementById('scatter-dice-display').textContent = `🎲 Rolled ${scatterSpinsRemaining} Spins!`;
+                document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
+                document.getElementById('scatter-spin-btn').textContent = "START SPINS (▶)";
+                document.getElementById('scatter-status').textContent = `You got x${scatterSpinsRemaining} spins! Tap to spin the reels.`;
                 return;
             }
 
-            scatterBalance -= scatterBet;
-            document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
-            isScatterSpinning = true;
+            // Step 2: Execute an active spin using remaining spins count
+            executeScatterSpin();
+        }
+
+        function executeScatterSpin() {
+            if(isScatterActive || scatterSpinsRemaining <= 0) return;
+
+            isScatterActive = true;
+            scatterSpinsRemaining--;
+            document.getElementById('scatter-spins-left').textContent = scatterSpinsRemaining;
             document.getElementById('scatter-spin-btn').disabled = true;
             document.getElementById('scatter-spin-btn').style.opacity = '0.5';
-            document.getElementById('scatter-status').textContent = "🎰 Rolling scatter reels...";
+            document.getElementById('scatter-status').textContent = `🎰 Spinning reels (${scatterSpinsRemaining} left)...`;
 
             let gridCells = [];
             for(let i=0; i<9; i++) {
@@ -1695,18 +1774,14 @@
                 gridCells[i].style.borderColor = "var(--border)";
             }
 
-            let rollingSymbols = ['🎴', '♠️', '♥️', '♦️', '♣️', '🪙', 'x2', 'x3', 'x5', 'x10'];
+            let rollingSymbols = ['🎴', '♠️', '♥️', '♦️', '♣️', '🪙', 'x3', 'x5', 'x10'];
             let rollIntervals = [];
 
             for(let i=0; i<9; i++) {
                 rollIntervals[i] = setInterval(() => {
                     let randSym = rollingSymbols[Math.floor(Math.random() * rollingSymbols.length)];
                     gridCells[i].textContent = randSym;
-                    if(randSym.startsWith('x')) {
-                        gridCells[i].style.color = '#facc15';
-                    } else {
-                        gridCells[i].style.color = 'var(--text-main)';
-                    }
+                    gridCells[i].style.color = randSym.includes('x') ? '#facc15' : 'var(--text-main)';
                     audio.playTone(300 + (i * 20), 0.04, 'triangle');
                 }, 75);
             }
@@ -1714,40 +1789,42 @@
             for(let i=0; i<9; i++) {
                 setTimeout(() => {
                     clearInterval(rollIntervals[i]);
-                    let multipliers = [1, 1, 2, 3, 3, 5, 10];
-                    let cardSymbols = ['🎴', '♠️', '♥️', '♦️', '♣️', '🪙'];
-                    let chosenMult = multipliers[Math.floor(Math.random() * multipliers.length)];
-                    let chosenSym = cardSymbols[Math.floor(Math.random() * cardSymbols.length)];
+                    
+                    // Random chance for multiplier (x3, x5, x10) or no multiplier at all
+                    let multiplierPool = ['x3', 'x5', 'x10', null, null]; 
+                    let chosenMultiplier = multiplierPool[Math.floor(Math.random() * multiplierPool.length)];
+                    let standardSymbols = ['🎴', '♠️', '♥️', '♦️', '🪙'];
 
-                    if(chosenMult > 1) {
-                        gridCells[i].textContent = `x${chosenMult}`;
+                    if(chosenMultiplier && (i === 1 || i === 4 || i === 7)) {
+                        gridCells[i].textContent = chosenMultiplier;
                         gridCells[i].style.color = '#facc15';
                         gridCells[i].style.borderColor = '#facc15';
                     } else {
-                        gridCells[i].textContent = chosenSym;
+                        let sym = standardSymbols[Math.floor(Math.random() * standardSymbols.length)];
+                        gridCells[i].textContent = sym;
                         gridCells[i].style.color = 'var(--text-main)';
                         gridCells[i].style.borderColor = 'var(--border)';
                     }
                     audio.playSFX('click');
 
                     if(i === 8) {
-                        finalizeScatterWin(gridCells);
+                        finalizeScatterSpinWin(gridCells);
                     }
                 }, 600 + (i * 180));
             }
         }
 
-        function finalizeScatterWin(gridCells) {
+        function finalizeScatterSpinWin(gridCells) {
             let roundWin = 0;
             for(let i=0; i<9; i++) {
                 let txt = gridCells[i].textContent;
                 if(txt.startsWith('x')) {
-                    let mult = parseInt(txt.substring(1));
-                    roundWin += (scatterBet * mult);
+                    let multVal = parseInt(txt.substring(1));
+                    roundWin += (scatterBet * multVal);
                 }
             }
 
-            isScatterSpinning = false;
+            isScatterActive = false;
             document.getElementById('scatter-spin-btn').disabled = false;
             document.getElementById('scatter-spin-btn').style.opacity = '1';
 
@@ -1755,16 +1832,23 @@
                 audio.playSFX('win');
                 scatterBalance += roundWin;
                 document.getElementById('scatter-win').textContent = roundWin.toLocaleString();
-                document.getElementById('scatter-status').textContent = `🎉 Scatter Hit! Won +${roundWin.toLocaleString()} coins!`;
+                document.getElementById('scatter-status').textContent = `🎉 Win! Collected +${roundWin.toLocaleString()} coins!`;
                 ScoreManager.saveScore('scatter', roundWin);
             } else {
                 audio.playSFX('gameover');
                 document.getElementById('scatter-win').textContent = "0";
-                document.getElementById('scatter-status').textContent = "No multipliers landed. Try again!";
+                document.getElementById('scatter-status').textContent = "No multipliers this spin. Try again!";
             }
 
             document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
             localStorage.setItem('arcadehub_scatter_bal', scatterBalance);
+
+            if(scatterSpinsRemaining > 0) {
+                document.getElementById('scatter-spin-btn').textContent = `SPIN AGAIN (${scatterSpinsRemaining} left)`;
+            } else {
+                document.getElementById('scatter-spin-btn').textContent = "ROLL DICE & SPIN (🪙 Bet)";
+                document.getElementById('scatter-status').textContent = "Spins finished! Select bet to roll dice again.";
+            }
         }
 
         // ===================================================
@@ -2293,7 +2377,6 @@
             document.getElementById('ttt-status').textContent=gameMode==='ai'&&currentPlayer==='O'?'AI\'s Turn...': `Player ${currentPlayer}'s Turn`;
         }
 
-        // --- Minimax Algorithm for True "Hard" AI ---
         function minimax(newBoard, player) {
             let res = checkWinCondition(newBoard, 3);
             if (res) {
