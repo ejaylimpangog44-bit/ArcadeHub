@@ -112,25 +112,10 @@
         .game-icon { font-size: 24px; }
         .game-name { font-size: 13px; font-weight: 500; color: #e5e7eb; }
         
-        .continue-card { 
-            grid-column: 1 / -1; 
-            flex-direction: row; 
-            justify-content: space-between; 
-            align-items: center;
-            padding: 14px 18px; 
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(236, 72, 153, 0.2)); 
-            border: 1px solid rgba(139, 92, 246, 0.4); 
-            border-radius: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 16px;
-        }
-        .continue-card:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 6px 20px var(--accent-glow); }
-        .continue-left { display: flex; align-items: center; gap: 14px; }
-        .continue-left img { width: 50px; height: 50px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); }
-        .continue-info h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; }
-        .continue-info p { font-size: 12px; color: var(--text-muted); }
-        .play-pill-btn { background: #10b981; color: white; border: none; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .recent-scroll-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+        .recent-scroll-row::-webkit-scrollbar { display: none; }
+        .recent-card { min-width: 110px; background: rgba(17, 24, 39, 0.85); border: 1px solid var(--border); border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .recent-card:hover { border-color: var(--primary); background: rgba(139, 92, 246, 0.15); transform: translateY(-2px); }
 
         .activity-card {
             background: rgba(17, 24, 39, 0.8);
@@ -296,33 +281,28 @@
     </div>
 
     <div id="main-menu" class="view active">
-        <div class="continue-card" onclick="openGame('stickman-container')">
-            <div class="continue-left">
-                <img src="1000030580.png" alt="Stick Run Game Art" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'50\' height=\'50\'><rect width=\'100%\' height=\'100%\' fill=\'%238b5cf6\'/><text x=\'50%\' y=\'55%\' font-size=\'24\' text-anchor=\'middle\' dominant-baseline=\'middle\' fill=\'white\'>🏃</text></svg>'">
-                <div class="continue-info">
-                    <h4>Stick Run</h4>
-                    <p>Continue your adventure</p>
-                </div>
-            </div>
-            <button class="play-pill-btn">Play</button>
+        <!-- Recently Played Row (Auto Updated) -->
+        <div class="category-section" id="recently-played-section" style="display:none;">
+            <div class="category-title">Recently Played</div>
+            <div class="recent-scroll-row" id="recent-scroll-container"></div>
         </div>
 
         <div class="category-section" data-category="card">
             <div class="category-title">Card Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="speed solitaire sprint" onclick="openGame('solitaire-container')">
+                <div class="game-card" data-name="speed solitaire sprint" onclick="launchGame('solitaire-container', 'Speed Solitaire', '🎴')">
                     <span class="game-icon">🎴</span>
                     <span class="game-name">Speed Solitaire</span>
                 </div>
-                <div class="game-card" data-name="coin scatter multiplier" onclick="openGame('scattercard-container')">
+                <div class="game-card" data-name="coin scatter multiplier" onclick="launchGame('scattercard-container', 'Coin Scatter', '🎰')">
                     <span class="game-icon">🎰</span>
                     <span class="game-name">Coin Scatter</span>
                 </div>
-                <div class="game-card" data-name="blackjack 21 pro" onclick="openGame('blackjack-container')">
+                <div class="game-card" data-name="blackjack 21 pro" onclick="launchGame('blackjack-container', 'Blackjack 21', '🃏')">
                     <span class="game-icon">🃏</span>
                     <span class="game-name">Blackjack 21</span>
                 </div>
-                <div class="game-card" data-name="high low predictor" onclick="openGame('highlow-container')">
+                <div class="game-card" data-name="high low predictor" onclick="launchGame('highlow-container', 'High-Low', '🔼')">
                     <span class="game-icon">🔼</span>
                     <span class="game-name">High-Low</span>
                 </div>
@@ -332,15 +312,15 @@
         <div class="category-section" data-category="puzzle">
             <div class="category-title">Puzzle Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="tic tac toe pro" onclick="openGame('tictactoe-container')">
+                <div class="game-card" data-name="tic tac toe pro" onclick="launchGame('tictactoe-container', 'Tic-Tac-Toe', '❌')">
                     <span class="game-icon">❌</span>
                     <span class="game-name">Tic-Tac-Toe</span>
                 </div>
-                <div class="game-card" data-name="number master" onclick="openGame('guessgame-container')">
+                <div class="game-card" data-name="number master" onclick="launchGame('guessgame-container', 'Number Master', '🔢')">
                     <span class="game-icon">🔢</span>
                     <span class="game-name">Number Master</span>
                 </div>
-                <div class="game-card" data-name="wordscape pro" onclick="openGame('wordscape-container')">
+                <div class="game-card" data-name="wordscape pro" onclick="launchGame('wordscape-container', 'Wordscape Pro', '📝')">
                     <span class="game-icon">📝</span>
                     <span class="game-name">Wordscape Pro</span>
                 </div>
@@ -350,27 +330,27 @@
         <div class="category-section" data-category="action">
             <div class="category-title">Action Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="piano tiles pro" onclick="openGame('piano-container')">
+                <div class="game-card" data-name="piano tiles pro" onclick="launchGame('piano-container', 'Piano Tiles', '🎹')">
                     <span class="game-icon">🎹</span>
                     <span class="game-name">Piano Tiles</span>
                 </div>
-                <div class="game-card" data-name="pac man dx" onclick="openGame('pacman-container')">
+                <div class="game-card" data-name="pac man dx" onclick="launchGame('pacman-container', 'Pac-Man DX', '🟡')">
                     <span class="game-icon">🟡</span>
                     <span class="game-name">Pac-Man DX</span>
                 </div>
-                <div class="game-card" data-name="fruit master" onclick="openGame('fruitslice-container')">
+                <div class="game-card" data-name="fruit master" onclick="launchGame('fruitslice-container', 'Fruit Master', '🍉')">
                     <span class="game-icon">🍉</span>
                     <span class="game-name">Fruit Master</span>
                 </div>
-                <div class="game-card" data-name="whack a mole pro" onclick="openGame('molegame-container')">
+                <div class="game-card" data-name="whack a mole pro" onclick="launchGame('molegame-container', 'Whack-a-Mole', '🔨')">
                     <span class="game-icon">🔨</span>
                     <span class="game-name">Whack-a-Mole</span>
                 </div>
-                <div class="game-card" data-name="snake evolution" onclick="openGame('snakegame-container')">
+                <div class="game-card" data-name="snake evolution" onclick="launchGame('snakegame-container', 'Snake Evolution', '🐍')">
                     <span class="game-icon">🐍</span>
                     <span class="game-name">Snake Evolution</span>
                 </div>
-                <div class="game-card" data-name="dino runner pro" onclick="openGame('dinogame-container')">
+                <div class="game-card" data-name="dino runner pro" onclick="launchGame('dinogame-container', 'Dino Runner', '🦖')">
                     <span class="game-icon">🦖</span>
                     <span class="game-name">Dino Runner</span>
                 </div>
@@ -380,13 +360,17 @@
         <div class="category-section" data-category="racing">
             <div class="category-title">Racing Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="turbo car racing" onclick="openGame('carracing-container')">
+                <div class="game-card" data-name="turbo car racing" onclick="launchGame('carracing-container', 'Car Racing', '🏎️')">
                     <span class="game-icon">🏎️</span>
                     <span class="game-name">Car Racing</span>
                 </div>
-                <div class="game-card" data-name="brick breaker" onclick="openGame('frostgame-container')">
+                <div class="game-card" data-name="brick breaker" onclick="launchGame('frostgame-container', 'Brick Breaker', '🧱')">
                     <span class="game-icon">🧱</span>
                     <span class="game-name">Brick Breaker</span>
+                </div>
+                <div class="game-card" data-name="stick run" onclick="launchGame('stickman-container', 'Stick Run', '🏃')">
+                    <span class="game-icon">🏃</span>
+                    <span class="game-name">Stick Run</span>
                 </div>
             </div>
         </div>
@@ -901,13 +885,13 @@
         </div>
     </div>
 
-    <!-- CLEAN FIXED BOTTOM NAVIGATION BAR (Settings Removed) -->
+    <!-- CLEAN FIXED BOTTOM NAVIGATION BAR -->
     <nav class="bottom-nav-bar">
         <button class="bottom-nav-item active" onclick="backToHub()">
             <span>🏠</span>
             Home
         </button>
-        <button class="bottom-nav-item" onclick="openGame('stickman-container')">
+        <button class="bottom-nav-item" onclick="launchGame('stickman-container', 'Stick Run', '🏃')">
             <span>🏃</span>
             Play
         </button>
@@ -998,6 +982,7 @@
             const sections = document.querySelectorAll('.category-section');
             
             sections.forEach(section => {
+                if(section.id === 'recently-played-section') return;
                 const cards = section.querySelectorAll('.game-card');
                 let hasVisibleCard = false;
 
@@ -1043,6 +1028,39 @@
 
             document.getElementById('stat-games-played').textContent = totalPlayed;
             document.getElementById('stat-achievements').textContent = totalHighScoresSet;
+        }
+
+        // ===================================================
+        // RECENTLY PLAYED LOGIC
+        // ===================================================
+        function recordRecentGame(containerId, gameName, icon) {
+            let recents = JSON.parse(localStorage.getItem('arcadehub_recent_games') || '[]');
+            recents = recents.filter(g => g.id !== containerId);
+            recents.unshift({ id: containerId, name: gameName, icon: icon });
+            if(recents.length > 5) recents.pop();
+            localStorage.setItem('arcadehub_recent_games', JSON.stringify(recents));
+            renderRecentGames();
+        }
+
+        function renderRecentGames() {
+            let recents = JSON.parse(localStorage.getItem('arcadehub_recent_games') || '[]');
+            const section = document.getElementById('recently-played-section');
+            const container = document.getElementById('recent-scroll-container');
+            container.innerHTML = '';
+
+            if(recents.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            recents.forEach(game => {
+                let card = document.createElement('div');
+                card.className = 'recent-card';
+                card.onclick = () => launchGame(game.id, game.name, game.icon);
+                card.innerHTML = `<span style="font-size:22px;">${game.icon}</span><span style="font-size:12px; font-weight:600; color:#e5e7eb;">${game.name}</span>`;
+                container.appendChild(card);
+            });
         }
 
         class ArcadeAudioManager {
@@ -1137,6 +1155,7 @@
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById('main-menu').classList.add('active');
             updateHubActivityStats();
+            renderRecentGames();
         }
 
         window.onload = function() {
@@ -1146,6 +1165,7 @@
             if (savedTheme) document.documentElement.className = savedTheme;
 
             updateHubActivityStats();
+            renderRecentGames();
 
             const bestGuessData = localStorage.getItem('arcadehub_guess');
             if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
@@ -1155,6 +1175,11 @@
             audio.initContext(); audio.playSFX('win');
             document.getElementById('splash-screen').classList.add('fade-out');
             document.getElementById('robot-companion').classList.add('visible');
+        }
+
+        function launchGame(containerId, gameName, icon) {
+            recordRecentGame(containerId, gameName, icon);
+            openGame(containerId);
         }
 
         function openGame(containerId) {
