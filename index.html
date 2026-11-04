@@ -257,7 +257,7 @@
             <div class="game-grid">
                 <div class="game-card featured" onclick="openGame('stickman-container')">
                     <span class="game-icon">🏃</span>
-                    <span class="game-name">Stick Run (Nostalgia Edition)</span>
+                    <span class="game-name">Stick Run (Endless Edition)</span>
                 </div>
             </div>
         </div>
@@ -872,31 +872,20 @@
         </div>
     </div>
 
-    <!-- Stick Run (Classic Nostalgia Edition) -->
+    <!-- Stick Run (Endless Edition) -->
     <div id="stickman-container" class="game-container">
         <div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠 HUB</button><button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶</button></div>
-        <div class="sr-main-menu" id="sr-main-menu" style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:420px; margin:0 auto; background: linear-gradient(135deg, #111827, #0b0f19); border:2px solid var(--primary); border-radius:16px; padding:20px; box-shadow:0 10px 30px var(--accent-glow);">
-            <div style="text-align:center; margin-bottom:15px;">
+        <div class="sr-main-menu" id="sr-main-menu" style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:420px; margin:0 auto; background: linear-gradient(135deg, #111827, #0b0f19); border:2px solid var(--primary); border-radius:16px; padding:25px; box-shadow:0 10px 30px var(--accent-glow);">
+            <div style="text-align:center; margin-bottom:20px;">
                 <h1 style="font-size:2rem; font-weight:900; letter-spacing:2px; color:#fff;">STICK <span style="color:#ef4444;">RUN</span></h1>
-                <p style="font-size:0.75rem; color:var(--text-muted); letter-spacing:1.5px; text-transform:uppercase;">Nostalgia Edition • Manuel Otto</p>
+                <p style="font-size:0.75rem; color:var(--text-muted); letter-spacing:1.5px; text-transform:uppercase;">Endless Edition • Manuel Otto</p>
             </div>
 
-            <div style="display:flex; gap:10px; width:100%; margin-bottom:12px;">
-                <button class="action-btn" style="flex:1; background:linear-gradient(135deg, #10b981, #059669); padding:14px; font-weight:bold;" onclick="startStickModeSelect('single')">▶ SINGLEPLAYER</button>
-                <button class="action-btn" style="flex:1; background:linear-gradient(135deg, #3b82f6, #1d4ed8); padding:14px; font-weight:bold;" onclick="alert('Multiplayer mode connecting to servers...')">🌐 MULTIPLAYER</button>
-            </div>
+            <button class="action-btn" style="width:100%; background:linear-gradient(135deg, #10b981, #059669); padding:16px; font-size:1.1rem; font-weight:bold; margin-bottom:15px;" onclick="startStickRunGame()">▶ START ENDLESS RUN</button>
 
-            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; width:100%; margin-bottom:15px;">
-                <button class="opt-btn" onclick="openSrMenu('challenges')">🏆 Challenges</button>
-                <button class="opt-btn" onclick="openSrMenu('achievements')">🎖️ Achievements</button>
-                <button class="opt-btn" onclick="openSrMenu('shop')">👕 Skins & Capes</button>
-                <button class="opt-btn" onclick="openSrMenu('top10')">👑 Leaderboards</button>
-            </div>
-
-            <div style="background:#0b0f19; border:1px solid var(--border); border-radius:10px; padding:10px; width:100%; display:flex; justify-content:space-around; text-align:center;">
-                <div><small style="color:var(--text-muted); font-size:10px;">LEVEL</small><strong id="sr-hub-lvl" style="display:block; color:#38bdf8;">1</strong></div>
-                <div><small style="color:var(--text-muted); font-size:10px;">COINS</small><strong id="sr-hub-coins" style="display:block; color:#facc15;">0</strong></div>
-                <div><small style="color:var(--text-muted); font-size:10px;">HIGHCORE</small><strong id="sr-hub-high" style="display:block; color:#fff;">0</strong></div>
+            <div style="background:#0b0f19; border:1px solid var(--border); border-radius:10px; padding:12px; width:100%; display:flex; justify-content:space-around; text-align:center;">
+                <div><small style="color:var(--text-muted); font-size:11px;">COINS</small><strong id="sr-hub-coins" style="display:block; color:#facc15; font-size:1.1rem;">0</strong></div>
+                <div><small style="color:var(--text-muted); font-size:11px;">HIGHCORE</small><strong id="sr-hub-high" style="display:block; color:#fff; font-size:1.1rem;">0</strong></div>
             </div>
         </div>
 
@@ -904,13 +893,13 @@
             <div class="sr-stats" style="display:flex; gap:8px; width:100%; margin-bottom:8px;">
                 <div class="sr-stat" style="background:#111827; padding:6px; border-radius:8px; flex:1; text-align:center; border:1px solid var(--border);"><small style="font-size:9px; color:var(--text-muted);">SCORE</small><strong id="sr-score" style="color:#fff;">0</strong></div>
                 <div class="sr-stat" style="background:#111827; padding:6px; border-radius:8px; flex:1; text-align:center; border:1px solid var(--border);"><small style="font-size:9px; color:var(--text-muted);">COINS</small><strong id="sr-coins-val" style="color:#facc15;">0</strong></div>
-                <div class="sr-stat" style="background:#111827; padding:6px; border-radius:8px; flex:1; text-align:center; border:1px solid var(--border);"><small style="font-size:9px; color:var(--text-muted);">GOAL</small><strong id="sr-goal" style="color:#38bdf8;">50</strong></div>
+                <div class="sr-stat" style="background:#111827; padding:6px; border-radius:8px; flex:1; text-align:center; border:1px solid var(--border);"><small style="font-size:9px; color:var(--text-muted);">BEST</small><strong id="sr-best-val" style="color:#38bdf8;">0</strong></div>
             </div>
-            <div class="sr-game-box" style="position:relative; width:100%; border-radius:12px; overflow:hidden; background:#fde047; border:2px solid var(--border); box-shadow:0 8px 20px rgba(0,0,0,0.3); margin-bottom:10px;">
+            <div class="sr-game-box" style="position:relative; width:100%; border-radius:12px; overflow:hidden; background:#ffaa33; border:2px solid var(--border); box-shadow:0 8px 20px rgba(0,0,0,0.3); margin-bottom:10px;">
                 <canvas id="sr-canvas" width="800" height="400" style="width:100%; height:auto; aspect-ratio:800/400; display:block; touch-action:none;"></canvas>
             </div>
             <div class="sr-mobile-controls" style="display:flex; gap:10px; width:100%;">
-                <button id="sr-jump-btn" style="flex:1; height:54px; background:#334155; color:#fff; font-weight:bold; border:none; border-radius:10px; font-size:1rem; cursor:pointer;">⬆ JUMP</button>
+                <button id="sr-jump-btn" style="flex:1; height:54px; background:#334155; color:#fff; font-weight:bold; border:none; border-radius:10px; font-size:1rem; cursor:pointer;">⬆ JUMP (DOUBLE TAP)</button>
                 <button id="sr-slide-btn" style="flex:1; height:54px; background:#334155; color:#fff; font-weight:bold; border:none; border-radius:10px; font-size:1rem; cursor:pointer;">⬇ SLIDE</button>
             </div>
             <button class="control-btn" style="margin-top:10px; width:100%;" onclick="returnToSrMenu()">⬅ Back to Menu</button>
@@ -2728,23 +2717,15 @@
         }
 
         // ===================================================
-        // STICK RUN - CLASSIC NOSTALGIA ENGINE
+        // STICK RUN - CLASSIC ENDLESS ENDLESS RUN ENGINE WITH DOUBLE JUMP
         // ===================================================
         let srCanvas, srCtx, srRunning = false, srAnimId;
-        let srScore = 0, srCoins = 0, srGoal = 50, srLevel = 1, srSpeed = 6, srHighScore = Number(localStorage.getItem('sr_high')) || 0;
-        let srPlayer = { x: 100, y: 310, w: 28, h: 56, vy: 0, grounded: true, sliding: false, slideTimer: 0, frame: 0 };
+        let srScore = 0, srCoins = 0, srSpeed = 6, srHighScore = Number(localStorage.getItem('sr_high')) || 0;
+        let srPlayer = { x: 100, y: 310, w: 28, h: 56, vy: 0, grounded: true, doubleJumpAvailable: true, sliding: false, slideTimer: 0, frame: 0 };
         let srObstacles = [], srCrates = [];
         let srBgMusicInterval = null;
 
-        function openSrMenu(menuName) {
-            audio.playSFX('click');
-            if(menuName === 'shop') alert("🛍️ Stick Run Store: Unlock Ninja Outfit, Cyber Suit & Golden Skates with coins!");
-            else if(menuName === 'challenges') alert("🏆 Daily Challenges: Jump over 50 crates without sliding!");
-            else if(menuName === 'achievements') alert("🎖️ Achievements Unlocked: First Run, Crate Jumper, Speed Demon!");
-            else if(menuName === 'top10') alert(`👑 Top 10 Highscores:\n1. FFCOW - ${srHighScore}\n2. StickMaster - 1,420\n3. NinjaRunner - 980`);
-        }
-
-        function startStickModeSelect(mode) {
+        function startStickRunGame() {
             audio.playSFX('click');
             document.getElementById('sr-main-menu').style.display = 'none';
             document.getElementById('sr-gameplay-screen').style.display = 'flex';
@@ -2774,11 +2755,12 @@
             srPlayer.y = 310;
             srPlayer.vy = 0;
             srPlayer.grounded = true;
+            srPlayer.doubleJumpAvailable = true;
             srPlayer.sliding = false;
 
             document.getElementById('sr-score').textContent = 0;
             document.getElementById('sr-coins-val').textContent = 0;
-            document.getElementById('sr-goal').textContent = srGoal;
+            document.getElementById('sr-best-val').textContent = srHighScore;
 
             playSrThemeMusic();
             cancelAnimationFrame(srAnimId);
@@ -2797,10 +2779,20 @@
         }
 
         function srJump() {
-            if(!srPlayer.grounded || srPlayer.sliding || !srRunning) return;
-            srPlayer.vy = -13.5;
-            srPlayer.grounded = false;
-            audio.playSFX('move');
+            if(!srRunning) return;
+            if(srPlayer.grounded) {
+                // First Jump
+                srPlayer.vy = -12.5;
+                srPlayer.grounded = false;
+                srPlayer.doubleJumpAvailable = true;
+                srPlayer.sliding = false;
+                audio.playSFX('move');
+            } else if(srPlayer.doubleJumpAvailable) {
+                // Double Jump (activated on second tap mid-air)
+                srPlayer.vy = -11.0;
+                srPlayer.doubleJumpAvailable = false;
+                audio.playSFX('powerup');
+            }
         }
 
         function srSlide() {
@@ -2823,29 +2815,31 @@
             if(!srRunning) return;
 
             spawnTimer++;
-            if(spawnTimer > Math.max(45, 90 - srSpeed * 3)) {
+            if(spawnTimer > Math.max(40, 85 - srSpeed * 2)) {
                 spawnTimer = 0;
-                let type = Math.random() < 0.5 ? 'crate' : 'spikes';
+                let type = Math.random() < 0.5 ? 'crate' : 'saw';
                 srObstacles.push({
                     x: 850,
                     y: type === 'crate' ? 310 : 330,
-                    w: type === 'crate' ? 45 : 35,
-                    h: type === 'crate' ? 56 : 35,
+                    w: type === 'crate' ? 45 : 36,
+                    h: type === 'crate' ? 56 : 36,
+                    rotation: 0,
                     type
                 });
                 if(Math.random() < 0.5) {
-                    srCrates.push({ x: 880, y: 230 });
+                    srCrates.push({ x: 880, y: 220 });
                 }
             }
 
             srPlayer.frame += 0.2;
             if(!srPlayer.grounded) {
-                srPlayer.vy += 0.7;
+                srPlayer.vy += 0.65;
                 srPlayer.y += srPlayer.vy;
                 if(srPlayer.y >= 310) {
                     srPlayer.y = 310;
                     srPlayer.vy = 0;
                     srPlayer.grounded = true;
+                    srPlayer.doubleJumpAvailable = true;
                 }
             }
             if(srPlayer.sliding) {
@@ -2853,12 +2847,15 @@
                 if(srPlayer.slideTimer <= 0) srPlayer.sliding = false;
             }
 
-            srScore += 0.1;
-            srSpeed = 6 + Math.floor(srScore / 100);
+            srScore += 0.15;
+            srSpeed = 6 + Math.floor(srScore / 120);
             let currentScoreInt = Math.floor(srScore);
             document.getElementById('sr-score').textContent = currentScoreInt;
 
-            srObstacles.forEach(o => { o.x -= srSpeed; });
+            srObstacles.forEach(o => { 
+                o.x -= srSpeed; 
+                if(o.type === 'saw') o.rotation += 0.2;
+            });
             srCrates.forEach(c => {
                 c.x -= srSpeed;
                 let px = srPlayer.x + srPlayer.w/2;
@@ -2878,34 +2875,39 @@
                 if(pBox.x < o.x + o.w - 5 && pBox.x + pBox.w > o.x + 5 && pBox.y < o.y + o.h && pBox.y + pBox.h > o.y) {
                     srRunning = false;
                     audio.playSFX('gameover');
-                    if(srScore > srHighScore) { srHighScore = Math.floor(srScore); localStorage.setItem('sr_high', srHighScore); }
+                    if(currentScoreInt > srHighScore) { 
+                        srHighScore = currentScoreInt; 
+                        localStorage.setItem('sr_high', srHighScore); 
+                    }
                     alert(`💥 CRASH! Final Score: ${currentScoreInt} | Coins: ${srCoins}`);
                     returnToSrMenu();
                     return;
                 }
             }
 
-            if(currentScoreInt >= srGoal) {
-                srRunning = false;
-                audio.playSFX('win');
-                alert(`🌟 LEVEL ${srLevel} COMPLETED!\nGoal of ${srGoal} reached successfully!`);
-                srLevel++;
-                srGoal += 50;
-                returnToSrMenu();
-                return;
-            }
-
+            // Classic Stick Run Gradient Background (Orange Sky)
             let grad = srCtx.createLinearGradient(0, 0, 0, 400);
-            grad.addColorStop(0, '#fde047');
-            grad.addColorStop(1, '#ea580c');
+            grad.addColorStop(0, '#ffbb44');
+            grad.addColorStop(0.7, '#ff8822');
+            grad.addColorStop(1, '#dd6611');
             srCtx.fillStyle = grad;
             srCtx.fillRect(0, 0, 800, 400);
 
-            srCtx.fillStyle = '#1e293b';
+            // Angled Striped Ground Floor
+            srCtx.fillStyle = '#b0b0b0';
             srCtx.fillRect(0, 366, 800, 34);
-            srCtx.fillStyle = '#10b981';
-            srCtx.fillRect(0, 366, 800, 5);
+            srCtx.fillStyle = '#888888';
+            for(let i = -40; i < 850; i += 40) {
+                srCtx.beginPath();
+                srCtx.moveTo(i + (srScore * srSpeed) % 40, 366);
+                srCtx.lineTo(i + 20 + (srScore * srSpeed) % 40, 366);
+                srCtx.lineTo(i - 15 + (srScore * srSpeed) % 40, 400);
+                srCtx.lineTo(i - 35 + (srScore * srSpeed) % 40, 400);
+                srCtx.closePath();
+                srCtx.fill();
+            }
 
+            // Draw Coins
             srCrates.forEach(c => {
                 srCtx.fillStyle = '#facc15';
                 srCtx.beginPath(); srCtx.arc(c.x, c.y, 11, 0, Math.PI*2); srCtx.fill();
@@ -2913,45 +2915,60 @@
                 srCtx.fillStyle = '#713f12'; srCtx.font = 'bold 12px sans-serif'; srCtx.fillText('$', c.x - 4, c.y + 4);
             });
 
+            // Draw Obstacles (Crates & Circular Saw Blades)
             srObstacles.forEach(o => {
                 if(o.type === 'crate') {
-                    srCtx.fillStyle = '#9a5a38';
+                    // Wooden Box with 'X'
+                    srCtx.fillStyle = '#b47535';
                     srCtx.fillRect(o.x, o.y, o.w, o.h);
-                    srCtx.strokeStyle = '#63391f'; srCtx.lineWidth = 3;
+                    srCtx.strokeStyle = '#6e441a'; srCtx.lineWidth = 3;
                     srCtx.strokeRect(o.x, o.y, o.w, o.h);
                     srCtx.beginPath();
                     srCtx.moveTo(o.x, o.y); srCtx.lineTo(o.x + o.w, o.y + o.h);
                     srCtx.moveTo(o.x + o.w, o.y); srCtx.lineTo(o.x, o.y + o.h);
                     srCtx.stroke();
                 } else {
-                    srCtx.fillStyle = '#e64c4c';
-                    srCtx.beginPath();
-                    srCtx.moveTo(o.x, 366);
-                    srCtx.lineTo(o.x + o.w/2, o.y);
-                    srCtx.lineTo(o.x + o.w, 366);
-                    srCtx.closePath();
-                    srCtx.fill();
+                    // Metal Saw Blade
+                    srCtx.save();
+                    srCtx.translate(o.x + o.w/2, o.y + o.h/2);
+                    srCtx.rotate(o.rotation);
+                    srCtx.fillStyle = '#94a3b8';
+                    srCtx.beginPath(); srCtx.arc(0, 0, 18, 0, Math.PI*2); srCtx.fill();
+                    srCtx.strokeStyle = '#334155'; srCtx.lineWidth = 3; srCtx.stroke();
+                    for(let s=0; s<8; s++) {
+                        srCtx.rotate(Math.PI / 4);
+                        srCtx.fillStyle = '#cbd5e1';
+                        srCtx.fillRect(-3, -24, 6, 8);
+                    }
+                    srCtx.restore();
                 }
             });
 
+            // Draw Stickman Runner
             srCtx.save();
             srCtx.translate(srPlayer.x, srPlayer.y);
-            srCtx.strokeStyle = '#0f172a';
+            srCtx.strokeStyle = '#000000';
             srCtx.lineWidth = 4;
             srCtx.lineCap = 'round';
 
             if(srPlayer.sliding) {
+                // Sliding Pose
                 srCtx.beginPath(); srCtx.arc(15, 20, 9, 0, Math.PI*2); srCtx.stroke();
                 srCtx.beginPath(); srCtx.moveTo(22, 28); srCtx.lineTo(45, 38); srCtx.stroke();
             } else {
-                srCtx.beginPath(); srCtx.arc(14, 12, 9, 0, Math.PI*2); srCtx.stroke();
+                // Running / Mid-Air Flip Pose
+                let isJumping = !srPlayer.grounded;
+                let headAngle = isJumping ? srPlayer.frame * 2 : 0;
+                
+                srCtx.beginPath(); srCtx.arc(14 + Math.cos(headAngle)*3, 12 + Math.sin(headAngle)*3, 9, 0, Math.PI*2); srCtx.stroke();
                 srCtx.beginPath(); srCtx.moveTo(14, 21); srCtx.lineTo(14, 42); srCtx.stroke();
-                let swing = Math.sin(srPlayer.frame) * 12;
+                
+                let swing = Math.sin(srPlayer.frame) * 14;
                 srCtx.beginPath();
-                srCtx.moveTo(14, 28); srCtx.lineTo(4 + swing, 38);
-                srCtx.moveTo(14, 28); srCtx.lineTo(24 - swing, 38);
-                srCtx.moveTo(14, 42); srCtx.lineTo(4 - swing, 56);
-                srCtx.moveTo(14, 42); srCtx.lineTo(24 + swing, 56);
+                srCtx.moveTo(14, 28); srCtx.lineTo(4 + swing, isJumping ? 22 : 38);
+                srCtx.moveTo(14, 28); srCtx.lineTo(24 - swing, isJumping ? 22 : 38);
+                srCtx.moveTo(14, 42); srCtx.lineTo(4 - swing, isJumping ? 52 : 56);
+                srCtx.moveTo(14, 42); srCtx.lineTo(24 + swing, isJumping ? 52 : 56);
                 srCtx.stroke();
             }
             srCtx.restore();
