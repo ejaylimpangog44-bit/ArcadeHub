@@ -426,7 +426,7 @@
         </div>
     </div>
 
-    <!-- COIN SCATTER MULTIPLIER CARD GAME CONTAINER -->
+    <!-- COIN SCATTER MULTIPLIER CARD GAME CONTAINER (3x3 Grid with Rolling Reels) -->
     <div id="scattercard-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -444,7 +444,7 @@
                 <button class="opt-btn" id="bet-btn-3" onclick="setScatterBet(10000, this)">Bet 10K</button>
             </div>
 
-            <!-- Card Scatter Grid Display -->
+            <!-- Card Scatter 3x3 Grid Display -->
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; width:100%; margin-bottom:12px;" id="scatter-card-grid">
                 <div class="ttt-cell" id="sc-0" style="font-size:1.6rem; background:#111827;">🎴</div>
                 <div class="ttt-cell" id="sc-1" style="font-size:1.6rem; background:#111827;">🎴</div>
@@ -452,9 +452,12 @@
                 <div class="ttt-cell" id="sc-3" style="font-size:1.6rem; background:#111827;">🎴</div>
                 <div class="ttt-cell" id="sc-4" style="font-size:1.6rem; background:#111827;">🎴</div>
                 <div class="ttt-cell" id="sc-5" style="font-size:1.6rem; background:#111827;">🎴</div>
+                <div class="ttt-cell" id="sc-6" style="font-size:1.6rem; background:#111827;">🎴</div>
+                <div class="ttt-cell" id="sc-7" style="font-size:1.6rem; background:#111827;">🎴</div>
+                <div class="ttt-cell" id="sc-8" style="font-size:1.6rem; background:#111827;">🎴</div>
             </div>
 
-            <p id="scatter-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-muted);">Hit Spin to scatter cards & multipliers!</p>
+            <p id="scatter-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-muted);">Hit Spin to roll the scatter reels!</p>
             
             <button class="action-btn" style="width:100%; max-width:320px; margin:0 auto; padding:14px; font-size:1.1rem;" id="scatter-spin-btn" onclick="spinScatterCards()">SPIN / DEAL (🪙 Bet)</button>
         </div>
@@ -551,7 +554,7 @@
         </div>
     </div>
 
-    <!-- Turbo Car Racing (Fixed Collision, 5s Shield Timer, Recharging Boost) -->
+    <!-- Turbo Car Racing -->
     <div id="carracing-container" class="game-container">
         <div class="game-nav-bar">
             <button class="nav-btn" onclick="backToHub()">← Back</button>
@@ -1237,10 +1240,11 @@
         }
 
         // ===================================================
-        // COIN SCATTER MULTIPLIER (CARD GAME) ENGINE
+        // COIN SCATTER MULTIPLIER (3x3 REEL ROLLING ENGINE)
         // ===================================================
         let scatterBalance = 1000000;
         let scatterBet = 1000;
+        let isScatterSpinning = false;
 
         function initScatterGame() {
             let savedBal = localStorage.getItem('arcadehub_scatter_bal');
@@ -1249,6 +1253,7 @@
         }
 
         function setScatterBet(amt, btn) {
+            if(isScatterSpinning) return;
             audio.playSFX('click');
             scatterBet = amt;
             document.querySelectorAll('#scattercard-container .opt-btn').forEach(b => b.classList.remove('active'));
@@ -1256,6 +1261,7 @@
         }
 
         function spinScatterCards() {
+            if(isScatterSpinning) return;
             if(scatterBalance < scatterBet) {
                 audio.playSFX('gameover');
                 document.getElementById('scatter-status').textContent = "Not enough coins in balance! 💀";
@@ -1264,51 +1270,91 @@
 
             scatterBalance -= scatterBet;
             document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
-            audio.playSFX('click');
-            document.getElementById('scatter-status').textContent = "Dealing & scattering cards... 🎴";
+            isScatterSpinning = true;
+            document.getElementById('scatter-spin-btn').disabled = true;
+            document.getElementById('scatter-spin-btn').style.opacity = '0.5';
+            document.getElementById('scatter-status').textContent = "🎰 Rolling scatter reels...";
 
             let gridCells = [];
-            for(let i=0; i<6; i++) {
+            for(let i=0; i<9; i++) {
                 gridCells.push(document.getElementById(`sc-${i}`));
-                gridCells[i].textContent = "🔄";
                 gridCells[i].style.borderColor = "var(--border)";
             }
 
-            setTimeout(() => {
-                let multipliers = [1, 1, 3, 3, 5, 10];
-                let cardSymbols = ['🎴', '♠️', '♥️', '♦️', '♣️', '🪙'];
-                let roundWin = 0;
-                let hitMultipliers = [];
+            let rollingSymbols = ['🎴', '♠️', '♥️', '♦️', '♣️', '🪙', 'x2', 'x3', 'x5', 'x10'];
+            let rollIntervals = [];
 
-                for(let i=0; i<6; i++) {
+            // Real rolling effect per cell with sequential lock-in
+            for(let i=0; i<9; i++) {
+                rollIntervals[i] = setInterval(() => {
+                    let randSym = rollingSymbols[Math.floor(Math.random() * rollingSymbols.length)];
+                    gridCells[i].textContent = randSym;
+                    if(randSym.startsWith('x')) {
+                        gridCells[i].style.color = '#facc15';
+                    } else {
+                        gridCells[i].style.color = 'var(--text-main)';
+                    }
+                    audio.playTone(300 + (i * 20), 0.04, 'triangle');
+                }, 75);
+            }
+
+            // Stop rolling sequentially from top-left to bottom-right (reels locking in)
+            for(let i=0; i<9; i++) {
+                setTimeout(() => {
+                    clearInterval(rollIntervals[i]);
+
+                    let multipliers = [1, 1, 2, 3, 3, 5, 10];
+                    let cardSymbols = ['🎴', '♠️', '♥️', '♦️', '♣️', '🪙'];
+                    
                     let chosenMult = multipliers[Math.floor(Math.random() * multipliers.length)];
                     let chosenSym = cardSymbols[Math.floor(Math.random() * cardSymbols.length)];
-                    
+
                     if(chosenMult > 1) {
-                        hitMultipliers.push(chosenMult);
-                        roundWin += (scatterBet * chosenMult);
                         gridCells[i].textContent = `x${chosenMult}`;
-                        gridCells[i].style.borderColor = "#facc15";
+                        gridCells[i].style.color = '#facc15';
+                        gridCells[i].style.borderColor = '#facc15';
                     } else {
                         gridCells[i].textContent = chosenSym;
-                        gridCells[i].style.borderColor = "var(--border)";
+                        gridCells[i].style.color = 'var(--text-main)';
+                        gridCells[i].style.borderColor = 'var(--border)';
                     }
-                }
+                    audio.playSFX('click');
 
-                if(roundWin > 0) {
-                    audio.playSFX('win');
-                    scatterBalance += roundWin;
-                    document.getElementById('scatter-win').textContent = roundWin.toLocaleString();
-                    document.getElementById('scatter-status').textContent = `🎉 Scatter Hit! Won +${roundWin.toLocaleString()} coins!`;
-                } else {
-                    audio.playSFX('gameover');
-                    document.getElementById('scatter-win').textContent = "0";
-                    document.getElementById('scatter-status').textContent = "No multipliers scattered. Try again!";
-                }
+                    // When last reel locks in, evaluate winnings
+                    if(i === 8) {
+                        finalizeScatterWin(gridCells);
+                    }
+                }, 600 + (i * 180));
+            }
+        }
 
-                document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
-                localStorage.setItem('arcadehub_scatter_bal', scatterBalance);
-            }, 400);
+        function finalizeScatterWin(gridCells) {
+            let roundWin = 0;
+            for(let i=0; i<9; i++) {
+                let txt = gridCells[i].textContent;
+                if(txt.startsWith('x')) {
+                    let mult = parseInt(txt.substring(1));
+                    roundWin += (scatterBet * mult);
+                }
+            }
+
+            isScatterSpinning = false;
+            document.getElementById('scatter-spin-btn').disabled = false;
+            document.getElementById('scatter-spin-btn').style.opacity = '1';
+
+            if(roundWin > 0) {
+                audio.playSFX('win');
+                scatterBalance += roundWin;
+                document.getElementById('scatter-win').textContent = roundWin.toLocaleString();
+                document.getElementById('scatter-status').textContent = `🎉 Scatter Hit! Won +${roundWin.toLocaleString()} coins!`;
+            } else {
+                audio.playSFX('gameover');
+                document.getElementById('scatter-win').textContent = "0";
+                document.getElementById('scatter-status').textContent = "No multipliers landed. Try again!";
+            }
+
+            document.getElementById('scatter-balance').textContent = scatterBalance.toLocaleString();
+            localStorage.setItem('arcadehub_scatter_bal', scatterBalance);
         }
 
         // ===================================================
@@ -1476,7 +1522,7 @@
         }
 
         // ===================================================
-        // 1. TURBO CAR RACING ENGINE (FIXED COIN HUD & CRASH)
+        // 1. TURBO CAR RACING ENGINE
         // ===================================================
         let carCanvas, carCtx, carRunning = false, carAnimId, carScore = 0, carCoinsCollected = 0;
         let playerCar = { lane: 1, x: 0, y: 280, width: 34, height: 56, shieldTimer: 0 };
@@ -1676,7 +1722,7 @@
         }
 
         // ===================================================
-        // 2. PIANO TILES PRO ENGINE (WHITE THEME TILES)
+        // 2. PIANO TILES PRO ENGINE
         // ===================================================
         const pianoSongs = { 
             odeToJoy: [330,330,349,392,392,349,330,294,262,262,294,330,330,294,294], 
