@@ -2715,7 +2715,7 @@
         }
 
         // ===================================================
-        // STICK RUN - CLASSIC ENDLESS ENDLESS RUN ENGINE WITH DOUBLE JUMP & DIVERSE OBSTACLES
+        // STICK RUN - CLASSIC ENDLESS RUN ENGINE (WITH ROOF LANDING & SLIDE FIX)
         // ===================================================
         let srCanvas, srCtx, srRunning = false, srAnimId;
         let srScore = 0, srCoins = 0, srSpeed = 6, srHighScore = Number(localStorage.getItem('sr_high')) || 0;
@@ -2779,14 +2779,12 @@
         function srJump() {
             if(!srRunning) return;
             if(srPlayer.grounded) {
-                // First Jump
                 srPlayer.vy = -12.5;
                 srPlayer.grounded = false;
                 srPlayer.doubleJumpAvailable = true;
                 srPlayer.sliding = false;
                 audio.playSFX('move');
             } else if(srPlayer.doubleJumpAvailable) {
-                // Double Jump (activated on second tap mid-air)
                 srPlayer.vy = -11.0;
                 srPlayer.doubleJumpAvailable = false;
                 audio.playSFX('powerup');
@@ -2818,16 +2816,12 @@
                 let patternRoll = Math.random();
 
                 if(patternRoll < 0.25) {
-                    // Two wooden crates stacked on the ground
                     srObstacles.push({ x: 850, y: 254, w: 45, h: 112, type: 'double_crate' });
                 } else if(patternRoll < 0.50) {
-                    // Single wooden crate
                     srObstacles.push({ x: 850, y: 310, w: 45, h: 56, type: 'crate' });
                 } else if(patternRoll < 0.75) {
-                    // Metal saw blade on the ground
                     srObstacles.push({ x: 850, y: 330, w: 36, h: 36, rotation: 0, type: 'ground_saw' });
                 } else {
-                    // Metal saw blades suspended above (requires slide or precise timing)
                     srObstacles.push({ x: 850, y: 260, w: 36, h: 36, rotation: 0, type: 'floating_saw' });
                 }
 
@@ -2837,16 +2831,39 @@
             }
 
             srPlayer.frame += 0.2;
-            if(!srPlayer.grounded) {
-                srPlayer.vy += 0.65;
-                srPlayer.y += srPlayer.vy;
-                if(srPlayer.y >= 310) {
-                    srPlayer.y = 310;
-                    srPlayer.vy = 0;
-                    srPlayer.grounded = true;
-                    srPlayer.doubleJumpAvailable = true;
-                }
+            
+            // Physics & Vertical Movement
+            srPlayer.vy += 0.65;
+            srPlayer.y += srPlayer.vy;
+
+            // Ground & Roof Crate Landing Logic
+            let targetGroundY = 310;
+            let landedOnCrate = false;
+
+            if(!srPlayer.sliding) {
+                srObstacles.forEach(o => {
+                    if(o.type === 'crate' || o.type === 'double_crate') {
+                        let crateSurfaceY = o.type === 'double_crate' ? 254 : 310;
+                        // Check if player is falling onto the top surface of the crate
+                        if(srPlayer.x + srPlayer.w > o.x + 4 && srPlayer.x < o.x + o.w - 4) {
+                            if(srPlayer.y + srPlayer.h >= crateSurfaceY && srPlayer.y + srPlayer.h - srPlayer.vy <= crateSurfaceY + 10 && srPlayer.vy >= 0) {
+                                targetGroundY = crateSurfaceY - srPlayer.h;
+                                landedOnCrate = true;
+                            }
+                        }
+                    }
+                });
             }
+
+            if(srPlayer.y >= targetGroundY) {
+                srPlayer.y = targetGroundY;
+                srPlayer.vy = 0;
+                srPlayer.grounded = true;
+                srPlayer.doubleJumpAvailable = true;
+            } else {
+                srPlayer.grounded = false;
+            }
+
             if(srPlayer.sliding) {
                 srPlayer.slideTimer--;
                 if(srPlayer.slideTimer <= 0) srPlayer.sliding = false;
@@ -2875,8 +2892,13 @@
             srCrates = srCrates.filter(c => c.x > -30 && !c.collected);
             srObstacles = srObstacles.filter(o => o.x > -50);
 
+            // Crash Collision Checking (front face or saws)
             let pBox = srPlayer.sliding ? {x: srPlayer.x, y: srPlayer.y + 26, w: srPlayer.w + 15, h: 30} : {x: srPlayer.x, y: srPlayer.y, w: srPlayer.w, h: srPlayer.h};
             for(let o of srObstacles) {
+                // If it's a crate and player landed on top, skip front crash check
+                if((o.type === 'crate' || o.type === 'double_crate') && landedOnCrate && pBox.y + pBox.h <= (o.type === 'double_crate' ? 254 : 310) + 4) {
+                    continue;
+                }
                 if(pBox.x < o.x + o.w - 5 && pBox.x + pBox.w > o.x + 5 && pBox.y < o.y + o.h && pBox.y + pBox.h > o.y) {
                     srRunning = false;
                     audio.playSFX('gameover');
@@ -2923,9 +2945,6 @@
             // Draw Obstacles (Crates, Double Crates & Saw Blades)
             srObstacles.forEach(o => {
                 if(o.type === 'crate' || o.type === 'double_crate') {
-                    let crateHeight = o.type === 'double_crate' ? 112 : 56;
-                    let crateY = o.type === 'double_crate' ? 254 : 310;
-                    
                     // Bottom Crate
                     srCtx.fillStyle = '#b47535';
                     srCtx.fillRect(o.x, 310, o.w, 56);
@@ -2963,7 +2982,7 @@
                 }
             });
 
-            // Draw Stickman Runner
+            // Draw Stickman Runner (With Complete Sliding Limbs & Running Poses)
             srCtx.save();
             srCtx.translate(srPlayer.x, srPlayer.y);
             srCtx.strokeStyle = '#000000';
@@ -2971,11 +2990,14 @@
             srCtx.lineCap = 'round';
 
             if(srPlayer.sliding) {
-                // Sliding Pose
-                srCtx.beginPath(); srCtx.arc(15, 20, 9, 0, Math.PI*2); srCtx.stroke();
-                srCtx.beginPath(); srCtx.moveTo(22, 28); srCtx.lineTo(45, 38); srCtx.stroke();
+                // Fixed Sliding Pose with Visible Head, Torso, Arms and Extended Legs
+                srCtx.beginPath(); srCtx.arc(15, 26, 8, 0, Math.PI*2); srCtx.stroke(); // Head
+                srCtx.beginPath(); srCtx.moveTo(15, 34); srCtx.lineTo(38, 44); srCtx.stroke(); // Torso
+                srCtx.beginPath(); srCtx.moveTo(32, 38); srCtx.lineTo(46, 32); srCtx.stroke(); // Arm outstretched
+                srCtx.beginPath(); srCtx.moveTo(22, 39); srCtx.lineTo(2, 50); srCtx.stroke(); // Extended front leg
+                srCtx.beginPath(); srCtx.moveTo(26, 41); srCtx.lineTo(8, 52); srCtx.stroke(); // Extended back leg
             } else {
-                // Running / Mid-Air Flip Pose
+                // Running / Mid-Air Pose
                 let isJumping = !srPlayer.grounded;
                 let headAngle = isJumping ? srPlayer.frame * 2 : 0;
                 
