@@ -878,7 +878,6 @@
         <div class="sr-main-menu" id="sr-main-menu" style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:420px; margin:0 auto; background: linear-gradient(135deg, #111827, #0b0f19); border:2px solid var(--primary); border-radius:16px; padding:25px; box-shadow:0 10px 30px var(--accent-glow);">
             <div style="text-align:center; margin-bottom:20px;">
                 <h1 style="font-size:2rem; font-weight:900; letter-spacing:2px; color:#fff;">STICK <span style="color:#ef4444;">RUN</span></h1>
-                <p style="font-size:0.75rem; color:var(--text-muted); letter-spacing:1.5px; text-transform:uppercase;">Endless Edition • Manuel Otto</p>
             </div>
 
             <button class="action-btn" style="width:100%; background:linear-gradient(135deg, #10b981, #059669); padding:16px; font-size:1.1rem; font-weight:bold; margin-bottom:15px;" onclick="startStickRunGame()">▶ START ENDLESS RUN</button>
@@ -902,7 +901,6 @@
                 <button id="sr-jump-btn" style="flex:1; height:54px; background:#334155; color:#fff; font-weight:bold; border:none; border-radius:10px; font-size:1rem; cursor:pointer;">⬆ JUMP (DOUBLE TAP)</button>
                 <button id="sr-slide-btn" style="flex:1; height:54px; background:#334155; color:#fff; font-weight:bold; border:none; border-radius:10px; font-size:1rem; cursor:pointer;">⬇ SLIDE</button>
             </div>
-            <button class="control-btn" style="margin-top:10px; width:100%;" onclick="returnToSrMenu()">⬅ Back to Menu</button>
         </div>
     </div>
 
@@ -2717,7 +2715,7 @@
         }
 
         // ===================================================
-        // STICK RUN - CLASSIC ENDLESS ENDLESS RUN ENGINE WITH DOUBLE JUMP
+        // STICK RUN - CLASSIC ENDLESS ENDLESS RUN ENGINE WITH DOUBLE JUMP & DIVERSE OBSTACLES
         // ===================================================
         let srCanvas, srCtx, srRunning = false, srAnimId;
         let srScore = 0, srCoins = 0, srSpeed = 6, srHighScore = Number(localStorage.getItem('sr_high')) || 0;
@@ -2815,19 +2813,26 @@
             if(!srRunning) return;
 
             spawnTimer++;
-            if(spawnTimer > Math.max(40, 85 - srSpeed * 2)) {
+            if(spawnTimer > Math.max(45, 90 - srSpeed * 2)) {
                 spawnTimer = 0;
-                let type = Math.random() < 0.5 ? 'crate' : 'saw';
-                srObstacles.push({
-                    x: 850,
-                    y: type === 'crate' ? 310 : 330,
-                    w: type === 'crate' ? 45 : 36,
-                    h: type === 'crate' ? 56 : 36,
-                    rotation: 0,
-                    type
-                });
-                if(Math.random() < 0.5) {
-                    srCrates.push({ x: 880, y: 220 });
+                let patternRoll = Math.random();
+
+                if(patternRoll < 0.25) {
+                    // Two wooden crates stacked on the ground
+                    srObstacles.push({ x: 850, y: 254, w: 45, h: 112, type: 'double_crate' });
+                } else if(patternRoll < 0.50) {
+                    // Single wooden crate
+                    srObstacles.push({ x: 850, y: 310, w: 45, h: 56, type: 'crate' });
+                } else if(patternRoll < 0.75) {
+                    // Metal saw blade on the ground
+                    srObstacles.push({ x: 850, y: 330, w: 36, h: 36, rotation: 0, type: 'ground_saw' });
+                } else {
+                    // Metal saw blades suspended above (requires slide or precise timing)
+                    srObstacles.push({ x: 850, y: 260, w: 36, h: 36, rotation: 0, type: 'floating_saw' });
+                }
+
+                if(Math.random() < 0.4) {
+                    srCrates.push({ x: 880, y: 190 });
                 }
             }
 
@@ -2854,7 +2859,7 @@
 
             srObstacles.forEach(o => { 
                 o.x -= srSpeed; 
-                if(o.type === 'saw') o.rotation += 0.2;
+                if(o.type.includes('saw')) o.rotation += 0.2;
             });
             srCrates.forEach(c => {
                 c.x -= srSpeed;
@@ -2915,20 +2920,34 @@
                 srCtx.fillStyle = '#713f12'; srCtx.font = 'bold 12px sans-serif'; srCtx.fillText('$', c.x - 4, c.y + 4);
             });
 
-            // Draw Obstacles (Crates & Circular Saw Blades)
+            // Draw Obstacles (Crates, Double Crates & Saw Blades)
             srObstacles.forEach(o => {
-                if(o.type === 'crate') {
-                    // Wooden Box with 'X'
+                if(o.type === 'crate' || o.type === 'double_crate') {
+                    let crateHeight = o.type === 'double_crate' ? 112 : 56;
+                    let crateY = o.type === 'double_crate' ? 254 : 310;
+                    
+                    // Bottom Crate
                     srCtx.fillStyle = '#b47535';
-                    srCtx.fillRect(o.x, o.y, o.w, o.h);
+                    srCtx.fillRect(o.x, 310, o.w, 56);
                     srCtx.strokeStyle = '#6e441a'; srCtx.lineWidth = 3;
-                    srCtx.strokeRect(o.x, o.y, o.w, o.h);
+                    srCtx.strokeRect(o.x, 310, o.w, 56);
                     srCtx.beginPath();
-                    srCtx.moveTo(o.x, o.y); srCtx.lineTo(o.x + o.w, o.y + o.h);
-                    srCtx.moveTo(o.x + o.w, o.y); srCtx.lineTo(o.x, o.y + o.h);
+                    srCtx.moveTo(o.x, 310); srCtx.lineTo(o.x + o.w, 366);
+                    srCtx.moveTo(o.x + o.w, 310); srCtx.lineTo(o.x, 366);
                     srCtx.stroke();
+
+                    if(o.type === 'double_crate') {
+                        // Top Crate
+                        srCtx.fillStyle = '#b47535';
+                        srCtx.fillRect(o.x, 254, o.w, 56);
+                        srCtx.strokeRect(o.x, 254, o.w, 56);
+                        srCtx.beginPath();
+                        srCtx.moveTo(o.x, 254); srCtx.lineTo(o.x + o.w, 310);
+                        srCtx.moveTo(o.x + o.w, 254); srCtx.lineTo(o.x, 310);
+                        srCtx.stroke();
+                    }
                 } else {
-                    // Metal Saw Blade
+                    // Metal Saw Blade (Ground or Floating)
                     srCtx.save();
                     srCtx.translate(o.x + o.w/2, o.y + o.h/2);
                     srCtx.rotate(o.rotation);
