@@ -200,6 +200,20 @@
         .settings-footer { padding: 12px 20px; background: rgba(11,15,25,0.9); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
         .settings-save-btn { background: #15803d; color: white; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
 
+        /* Smooth Sliding Settings Drawer */
+        #settings-drawer {
+            position: fixed; top: 0; right: -420px; width: 100%; max-width: 400px; height: 100vh;
+            background: linear-gradient(145deg, #111827, #0b0f19); border-left: 2px solid var(--primary);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.7); z-index: 1000; transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column;
+        }
+        #settings-drawer.active { right: 0; }
+        .drawer-backdrop {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px); z-index: 995; opacity: 0; visibility: hidden; transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+        .drawer-backdrop.active { opacity: 1; visibility: visible; }
+
         .ttt-status { font-size: 1.1rem; margin-bottom: 12px; font-weight: 500; }
         .ttt-board-wrapper { position: relative; width: 100%; max-width: 320px; margin: 0 auto 15px auto; }
         .ttt-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -290,19 +304,19 @@
         <div class="category-section" data-category="card">
             <div class="category-title">Card Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="speed solitaire sprint" onclick="launchGame('solitaire-container', 'Speed Solitaire', '🎴')">
+                <div class="game-card" data-name="speed solitaire sprint" onclick="showGameInstructions('solitaire-container', 'Speed Solitaire', '🎴', 'Match cards in your tableau that are 1 rank higher or lower than the foundation target card before time runs out!')">
                     <span class="game-icon">🎴</span>
                     <span class="game-name">Speed Solitaire</span>
                 </div>
-                <div class="game-card" data-name="coin scatter multiplier" onclick="launchGame('scattercard-container', 'Coin Scatter', '🎰')">
+                <div class="game-card" data-name="coin scatter multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter', '🎰', 'Place your bet and hit Spin to roll multipliers across the reel grid. Match special multipliers to win big coins!')">
                     <span class="game-icon">🎰</span>
                     <span class="game-name">Coin Scatter</span>
                 </div>
-                <div class="game-card" data-name="blackjack 21 pro" onclick="launchGame('blackjack-container', 'Blackjack 21', '🃏')">
+                <div class="game-card" data-name="blackjack 21 pro" onclick="showGameInstructions('blackjack-container', 'Blackjack 21', '🃏', 'Hit or stand to get as close to 21 as possible without busting. Beat the dealer\'s hand to win!')">
                     <span class="game-icon">🃏</span>
                     <span class="game-name">Blackjack 21</span>
                 </div>
-                <div class="game-card" data-name="high low predictor" onclick="launchGame('highlow-container', 'High-Low', '🔼')">
+                <div class="game-card" data-name="high low predictor" onclick="showGameInstructions('highlow-container', 'High-Low', '🔼', 'Predict whether the next card dealt will be Higher or Lower than your current card to build your streak!')">
                     <span class="game-icon">🔼</span>
                     <span class="game-name">High-Low</span>
                 </div>
@@ -312,15 +326,15 @@
         <div class="category-section" data-category="puzzle">
             <div class="category-title">Puzzle Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="tic tac toe pro" onclick="launchGame('tictactoe-container', 'Tic-Tac-Toe', '❌')">
+                <div class="game-card" data-name="tic tac toe pro" onclick="showGameInstructions('tictactoe-container', 'Tic-Tac-Toe', '❌', 'Configure your match settings and align 3 (or 4) symbols in a row horizontally, vertically, or diagonally to win!')">
                     <span class="game-icon">❌</span>
                     <span class="game-name">Tic-Tac-Toe</span>
                 </div>
-                <div class="game-card" data-name="number master" onclick="launchGame('guessgame-container', 'Number Master', '🔢')">
+                <div class="game-card" data-name="number master" onclick="showGameInstructions('guessgame-container', 'Number Master', '🔢', 'Take strategic guesses within the selected range and use the higher/lower hints to find the secret number!')">
                     <span class="game-icon">🔢</span>
                     <span class="game-name">Number Master</span>
                 </div>
-                <div class="game-card" data-name="wordscape pro" onclick="launchGame('wordscape-container', 'Wordscape Pro', '📝')">
+                <div class="game-card" data-name="wordscape pro" onclick="showGameInstructions('wordscape-container', 'Wordscape Pro', '📝', 'Swipe your finger across the letter wheel to connect letters and spell out all hidden target words!')">
                     <span class="game-icon">📝</span>
                     <span class="game-name">Wordscape Pro</span>
                 </div>
@@ -330,27 +344,27 @@
         <div class="category-section" data-category="action">
             <div class="category-title">Action Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="piano tiles pro" onclick="launchGame('piano-container', 'Piano Tiles', '🎹')">
+                <div class="game-card" data-name="piano tiles pro" onclick="showGameInstructions('piano-container', 'Piano Tiles', '🎹', 'Tap falling white tiles and hold long tiles precisely to the rhythm of classic songs without missing!')">
                     <span class="game-icon">🎹</span>
                     <span class="game-name">Piano Tiles</span>
                 </div>
-                <div class="game-card" data-name="pac man dx" onclick="launchGame('pacman-container', 'Pac-Man DX', '🟡')">
+                <div class="game-card" data-name="pac man dx" onclick="showGameInstructions('pacman-container', 'Pac-Man DX', '🟡', 'Navigate the maze, munch all glowing dots, and avoid the colorful ghosts to set a high score!')">
                     <span class="game-icon">🟡</span>
                     <span class="game-name">Pac-Man DX</span>
                 </div>
-                <div class="game-card" data-name="fruit master" onclick="launchGame('fruitslice-container', 'Fruit Master', '🍉')">
+                <div class="game-card" data-name="fruit master" onclick="showGameInstructions('fruitslice-container', 'Fruit Master', '🍉', 'Slice flying fruits across the screen to score points. Watch out and avoid slicing 💣 bombs!')">
                     <span class="game-icon">🍉</span>
                     <span class="game-name">Fruit Master</span>
                 </div>
-                <div class="game-card" data-name="whack a mole pro" onclick="launchGame('molegame-container', 'Whack-a-Mole', '🔨')">
+                <div class="game-card" data-name="whack a mole pro" onclick="showGameInstructions('molegame-container', 'Whack-a-Mole', '🔨', 'Tap the cheeky hamsters as they pop up out of their holes before the timer runs out!')">
                     <span class="game-icon">🔨</span>
                     <span class="game-name">Whack-a-Mole</span>
                 </div>
-                <div class="game-card" data-name="snake evolution" onclick="launchGame('snakegame-container', 'Snake Evolution', '🐍')">
+                <div class="game-card" data-name="snake evolution" onclick="showGameInstructions('snakegame-container', 'Snake Evolution', '🐍', 'Guide the growing snake to eat glowing food pellets without crashing into walls or your own tail!')">
                     <span class="game-icon">🐍</span>
                     <span class="game-name">Snake Evolution</span>
                 </div>
-                <div class="game-card" data-name="dino runner pro" onclick="launchGame('dinogame-container', 'Dino Runner', '🦖')">
+                <div class="game-card" data-name="dino runner pro" onclick="showGameInstructions('dinogame-container', 'Dino Runner', '🦖', 'Press Jump to clear cacti or Duck to dodge flying pterodactyls in this endless prehistoric sprint!')">
                     <span class="game-icon">🦖</span>
                     <span class="game-name">Dino Runner</span>
                 </div>
@@ -360,16 +374,16 @@
         <div class="category-section" data-category="racing">
             <div class="category-title">Racing Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="turbo car racing" onclick="launchGame('carracing-container', 'Car Racing', '🏎️')">
+                <div class="game-card" data-name="turbo car racing" onclick="showGameInstructions('carracing-container', 'Car Racing', '🏎️', 'Steer left or right to dodge traffic, pick up 🛡️ Shield power-ups, and trigger ⚡ Nitro boosts!')">
                     <span class="game-icon">🏎️</span>
                     <span class="game-name">Car Racing</span>
                 </div>
-                <div class="game-card" data-name="brick breaker" onclick="launchGame('frostgame-container', 'Brick Breaker', '🧱')">
+                <div class="game-card" data-name="brick breaker" onclick="showGameInstructions('frostgame-container', 'Brick Breaker', '🧱', 'Bounce the ball off your paddle to smash all glowing bricks and catch helpful power-up drops!')">
                     <span class="game-icon">🧱</span>
                     <span class="game-name">Brick Breaker</span>
                 </div>
-                <div class="game-card" data-name="stick run" onclick="launchGame('stickman-container', 'Stick Run', '🏃')">
-                    <span class="game-icon">🏃</span>
+                <div class="game-card" data-name="stick run" onclick="showGameInstructions('stickman-container', 'Stick Run', '', 'Double tap Jump to clear obstacles or press Slide to duck under barriers in this high-speed endless runner!')">
+                    <img src="1000030580_2.png" alt="Stick Run Logo" style="width: 28px; height: 28px; object-fit: cover; border-radius: 6px;">
                     <span class="game-name">Stick Run</span>
                 </div>
             </div>
@@ -578,7 +592,6 @@
                     <button class="action-btn" onclick="startPianoGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Tap falling white tiles & hold long tiles to play!</p>
         </div>
     </div>
 
@@ -607,7 +620,6 @@
                 <button class="dir-btn" id="car-boost-btn" style="background:linear-gradient(135deg, #10b981, #059669); font-size:0.8rem;" onclick="triggerCarBoost()">⚡ BOOST (100%)</button>
                 <button class="dir-btn" onclick="moveCar('RIGHT')">➡️</button>
             </div>
-            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Steer left/right, grab 🛡️ Shield (5s) & ⚡ Nitro packs!</p>
         </div>
     </div>
 
@@ -715,7 +727,6 @@
                     <button class="action-btn" onclick="startFruitGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Slice fruits for half-split animations! Avoid 💣 bombs (triggers vibration)!</p>
         </div>
     </div>
 
@@ -739,7 +750,6 @@
                     <button class="action-btn" onclick="startFrostGame()">PLAY AGAIN</button>
                 </div>
             </div>
-            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">Catch drops: 🟢 x3 Balls, 🔵 Long Pad, 🔴 Short Pad, 💀 -HP!</p>
         </div>
     </div>
 
@@ -849,7 +859,6 @@
                 <button class="dir-btn" onclick="dinoJump()">⬆️ JUMP</button>
                 <button class="dir-btn" onclick="dinoDuck()">⬇️ DUCK</button>
             </div>
-            <p style="font-size:0.72rem; color:var(--text-muted); margin-top:4px;">Jump over Cacti or Duck under Flying Pterodactyls!</p>
         </div>
     </div>
 
@@ -858,6 +867,7 @@
         <div class="game-nav-bar"><button class="nav-btn" onclick="backToHub()">🏠 HUB</button><button class="nav-btn" onclick="toggleFullscreen('stickman-container')">⛶</button></div>
         <div class="sr-main-menu" id="sr-main-menu" style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:420px; margin:0 auto; background: linear-gradient(135deg, #111827, #0b0f19); border:2px solid var(--primary); border-radius:16px; padding:25px; box-shadow:0 10px 30px var(--accent-glow);">
             <div style="text-align:center; margin-bottom:20px;">
+                <img src="1000030580_2.png" alt="Stick Run Logo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 14px; margin-bottom: 10px; box-shadow: 0 4px 15px var(--accent-glow);">
                 <h1 style="font-size:2rem; font-weight:900; letter-spacing:2px; color:#fff;">STICK <span style="color:#ef4444;">RUN</span></h1>
             </div>
 
@@ -885,69 +895,99 @@
         </div>
     </div>
 
+    <!-- HOW TO PLAY STRUCTURED INSTRUCTIONS MODAL -->
+    <div class="modal-overlay" id="instruction-modal">
+        <div class="settings-modal-box" style="text-align: center;">
+            <div class="settings-header">
+                <h3 id="inst-modal-title">🎮 How to Play</h3>
+                <button class="settings-close-x" onclick="closeInstructionModal()">✕</button>
+            </div>
+            <div class="settings-body">
+                <div style="font-size: 42px; margin-bottom: 12px;" id="inst-modal-icon">🕹️</div>
+                <div style="background: rgba(17,24,39,0.9); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 18px; text-align: left;" id="inst-modal-content">
+                    <!-- Dynamic structural instructions inserted here -->
+                </div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px; font-size: 0.85rem; color: var(--text-muted); cursor: pointer;" onclick="toggleDontShowAgain()">
+                    <input type="checkbox" id="dont-show-checkbox" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary);">
+                    <span>Don't show instructions again for this game</span>
+                </div>
+                <button class="start-game-btn" onclick="proceedToGame()">Let's Play! 🚀</button>
+            </div>
+        </div>
+    </div>
+
     <!-- CLEAN FIXED BOTTOM NAVIGATION BAR -->
     <nav class="bottom-nav-bar">
         <button class="bottom-nav-item active" onclick="backToHub()">
             <span>🏠</span>
             Home
         </button>
-        <button class="bottom-nav-item" onclick="launchGame('stickman-container', 'Stick Run', '🏃')">
-            <span>🏃</span>
-            Play
+        <button class="bottom-nav-item" onclick="openSettingsDrawer()">
+            <span>⚙️</span>
+            Settings
         </button>
     </nav>
 
-    <!-- Settings Modal -->
-    <div class="modal-overlay" id="settings-modal">
-        <div class="settings-modal-box">
-            <div class="settings-header">
-                <h3>⚙️ Settings Panel</h3>
-                <button class="settings-close-x" onclick="closeSettingsModal()">✕</button>
-            </div>
-            <div class="settings-tabs">
-                <button class="settings-tab-btn active" id="tab-audio" onclick="switchSettingsTab('audio')">Audio</button>
-                <button class="settings-tab-btn" id="tab-theme" onclick="switchSettingsTab('theme')">Appearance</button>
-                <button class="settings-tab-btn" id="tab-share" onclick="switchSettingsTab('share')">Share QR</button>
-            </div>
-            <div class="settings-body">
-                <div class="settings-panel active" id="panel-audio">
-                    <div class="setting-row">
-                        <span class="setting-label">🔊 Master Sound</span>
-                        <div class="setting-control">
-                            <button class="setting-toggle active" id="audio-toggle-switch" onclick="toggleAudioSetting()">ENABLED</button>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <span class="setting-label">🎵 SFX Volume</span>
-                        <div class="setting-control">
-                            <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
-                        </div>
+    <!-- Smooth Sliding Settings Drawer -->
+    <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeSettingsDrawer()"></div>
+    <div id="settings-drawer">
+        <div class="settings-header">
+            <h3>⚙️ Settings Panel</h3>
+            <button class="settings-close-x" onclick="closeSettingsDrawer()">✕</button>
+        </div>
+        <div class="settings-tabs">
+            <button class="settings-tab-btn active" id="tab-audio" onclick="switchSettingsTab('audio')">Audio</button>
+            <button class="settings-tab-btn" id="tab-theme" onclick="switchSettingsTab('theme')">Appearance</button>
+            <button class="settings-tab-btn" id="tab-prefs" onclick="switchSettingsTab('prefs')">Preferences</button>
+            <button class="settings-tab-btn" id="tab-share" onclick="switchSettingsTab('share')">Share QR</button>
+        </div>
+        <div class="settings-body" style="flex: 1; overflow-y: auto;">
+            <div class="settings-panel active" id="panel-audio">
+                <div class="setting-row">
+                    <span class="setting-label">🔊 Master Sound</span>
+                    <div class="setting-control">
+                        <button class="setting-toggle active" id="audio-toggle-switch" onclick="toggleAudioSetting()">ENABLED</button>
                     </div>
                 </div>
-                <div class="settings-panel" id="panel-theme">
-                    <div class="setting-row">
-                        <span class="setting-label">🎨 Accent Color</span>
-                        <div class="setting-control">
-                            <div class="theme-picker-grid">
-                                <button class="theme-swatch pink" onclick="setTheme('')" title="Neon Violet/Pink"></button>
-                                <button class="theme-swatch cyan" onclick="setTheme('theme-cyan')" title="Cyber Cyan"></button>
-                                <button class="theme-swatch emerald" onclick="setTheme('theme-emerald')" title="Emerald Green"></button>
-                            </div>
-                        </div>
-                    </div>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:10px;">Select your preferred UI neon accent theme.</p>
-                </div>
-                <div class="settings-panel" id="panel-share">
-                    <div class="settings-qr-container">
-                        <p style="font-size:0.8rem; color:var(--text-muted);">Scan to open Arcade Hub on your phone:</p>
-                        <div class="qr-box"><img id="qr-code-img" src="" alt="Game QR Code"></div>
-                        <div class="url-display" id="current-url-text">Loading URL...</div>
+                <div class="setting-row">
+                    <span class="setting-label">🎵 SFX Volume</span>
+                    <div class="setting-control">
+                        <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
                     </div>
                 </div>
             </div>
-            <div class="settings-footer">
-                <button class="settings-save-btn" onclick="closeSettingsModal()">Save & Close</button>
+            <div class="settings-panel" id="panel-theme">
+                <div class="setting-row">
+                    <span class="setting-label">🎨 Accent Color</span>
+                    <div class="setting-control">
+                        <div class="theme-picker-grid">
+                            <button class="theme-swatch pink" onclick="setTheme('')" title="Neon Violet/Pink"></button>
+                            <button class="theme-swatch cyan" onclick="setTheme('theme-cyan')" title="Cyber Cyan"></button>
+                            <button class="theme-swatch emerald" onclick="setTheme('theme-emerald')" title="Emerald Green"></button>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:10px;">Select your preferred UI neon accent theme.</p>
             </div>
+            <div class="settings-panel" id="panel-prefs">
+                <div class="setting-row">
+                    <span class="setting-label">📜 Show Game Instructions</span>
+                    <div class="setting-control">
+                        <button class="setting-toggle active" id="pref-instructions-toggle" onclick="toggleInstructionPreference()">ENABLED</button>
+                    </div>
+                </div>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:10px;">Reset or toggle how-to-play popups before launching games.</p>
+            </div>
+            <div class="settings-panel" id="panel-share">
+                <div class="settings-qr-container">
+                    <p style="font-size:0.8rem; color:var(--text-muted);">Scan to open Arcade Hub on your phone:</p>
+                    <div class="qr-box"><img id="qr-code-img" src="" alt="Game QR Code"></div>
+                    <div class="url-display" id="current-url-text">Loading URL...</div>
+                </div>
+            </div>
+        </div>
+        <div class="settings-footer">
+            <button class="settings-save-btn" onclick="closeSettingsDrawer()">Save & Close</button>
         </div>
     </div>
 
@@ -1031,8 +1071,70 @@
         }
 
         // ===================================================
-        // RECENTLY PLAYED LOGIC
+        // RECENTLY PLAYED & STRUCTURED INSTRUCTIONS POPUP
         // ===================================================
+        let pendingGameId = '';
+        let pendingGameName = '';
+        let pendingGameIcon = '';
+
+        function showGameInstructions(containerId, gameName, icon, instructionObj) {
+            audio.playSFX('click');
+            pendingGameId = containerId;
+            pendingGameName = gameName;
+            pendingGameIcon = icon;
+
+            // Check if user has "Don't Show Again" enabled for this game
+            let skippedGames = JSON.parse(localStorage.getItem('arcadehub_skipped_instructions') || '{}');
+            let globalEnabled = localStorage.getItem('arcadehub_global_instructions') !== 'false';
+
+            if (!globalEnabled || skippedGames[containerId]) {
+                recordRecentGame(containerId, gameName, icon);
+                openGame(containerId);
+                return;
+            }
+
+            document.getElementById('inst-modal-title').textContent = `🎮 ${gameName}`;
+            document.getElementById('inst-modal-icon').innerHTML = icon ? icon : `<img src="1000030580_2.png" style="width:48px;height:48px;object-fit:cover;border-radius:10px;">`;
+            
+            // Build structured instructional content blocks
+            let contentHTML = `
+                <div style="margin-bottom: 10px;">
+                    <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Objective</strong>
+                    <p style="font-size: 0.9rem; color: var(--text-main); margin-top: 2px;">${instructionObj.objective}</p>
+                </div>
+                <div>
+                    <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Controls & Rules</strong>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 2px;">${instructionObj.controls}</p>
+                </div>
+            `;
+            document.getElementById('inst-modal-content').innerHTML = contentHTML;
+            document.getElementById('dont-show-checkbox').checked = false;
+            document.getElementById('instruction-modal').classList.add('active');
+        }
+
+        function closeInstructionModal() {
+            audio.playSFX('click');
+            document.getElementById('instruction-modal').classList.remove('active');
+        }
+
+        function toggleDontShowAgain() {
+            let cb = document.getElementById('dont-show-checkbox');
+            cb.checked = !cb.checked;
+        }
+
+        function proceedToGame() {
+            audio.playSFX('click');
+            let cb = document.getElementById('dont-show-checkbox');
+            if(cb.checked) {
+                let skippedGames = JSON.parse(localStorage.getItem('arcadehub_skipped_instructions') || '{}');
+                skippedGames[pendingGameId] = true;
+                localStorage.setItem('arcadehub_skipped_instructions', JSON.stringify(skippedGames));
+            }
+            document.getElementById('instruction-modal').classList.remove('active');
+            recordRecentGame(pendingGameId, pendingGameName, pendingGameIcon);
+            openGame(pendingGameId);
+        }
+
         function recordRecentGame(containerId, gameName, icon) {
             let recents = JSON.parse(localStorage.getItem('arcadehub_recent_games') || '[]');
             recents = recents.filter(g => g.id !== containerId);
@@ -1057,11 +1159,34 @@
             recents.forEach(game => {
                 let card = document.createElement('div');
                 card.className = 'recent-card';
-                card.onclick = () => launchGame(game.id, game.name, game.icon);
-                card.innerHTML = `<span style="font-size:22px;">${game.icon}</span><span style="font-size:12px; font-weight:600; color:#e5e7eb;">${game.name}</span>`;
+                card.onclick = () => {
+                    let inst = gameInstructionsMap[game.id] || { objective: "Set a high score!", controls: "Tap controls to play." };
+                    showGameInstructions(game.id, game.name, game.icon, inst);
+                };
+                let iconHTML = game.icon ? game.icon : `<img src="1000030580_2.png" style="width:24px;height:24px;object-fit:cover;border-radius:4px;">`;
+                card.innerHTML = `<span style="font-size:22px; display:flex; align-items:center; justify-content:center;">${iconHTML}</span><span style="font-size:12px; font-weight:600; color:#e5e7eb;">${game.name}</span>`;
                 container.appendChild(card);
             });
         }
+
+        const gameInstructionsMap = {
+            'solitaire-container': { objective: "Match cards in your tableau that are 1 rank higher or lower than the foundation card.", controls: "Tap playable cards to match before time runs out." },
+            'scattercard-container': { objective: "Roll multipliers across reels to win big coin payouts.", controls: "Select your bet and hit Spin." },
+            'blackjack-container': { objective: "Get as close to 21 as possible without busting.", controls: "Hit for another card or Stand to hold your hand." },
+            'highlow-container': { objective: "Predict whether the next card will be higher or lower.", controls: "Tap Higher or Lower buttons based on current card." },
+            'tictactoe-container': { objective: "Align 3 or 4 matching symbols in a row.", controls: "Tap empty cells on the grid." },
+            'guessgame-container': { objective: "Find the secret target number within given attempts.", controls: "Input number guesses and follow higher/lower hints." },
+            'wordscape-container': { objective: "Connect letters to spell hidden target words.", controls: "Swipe your finger across the letter wheel." },
+            'piano-container': { objective: "Tap falling tiles to the rhythm of the music.", controls: "Tap tiles precisely without missing." },
+            'pacman-container': { objective: "Munch all glowing dots while avoiding colorful ghosts.", controls: "Use directional pad to navigate the maze." },
+            'fruitslice-container': { objective: "Slice flying fruits across the screen to score points.", controls: "Swipe across fruits with your finger. Avoid 💣 bombs!" },
+            'molegame-container': { objective: "Whack the cheeky hamsters as they pop out of holes.", controls: "Tap moles instantly when they appear." },
+            'snakegame-container': { objective: "Guide the growing snake to eat glowing food pellets.", controls: "Use directional pad to steer without hitting walls." },
+            'dinogame-container': { objective: "Sprint endlessly across the desert avoiding obstacles.", controls: "Press Jump to clear cacti and Duck for flying pterodactyls." },
+            'carracing-container': { objective: "Steer your car at high speeds and collect power-ups.", controls: "Tap left/right arrows to change lanes; trigger ⚡ Nitro boosts." },
+            'frostgame-container': { objective: "Bounce the ball off your paddle to smash glowing bricks.", controls: "Drag your finger or mouse across the screen to move paddle." },
+            'stickman-container': { objective: "Clear obstacles in this high-speed endless runner.", controls: "Double-tap Jump ⬆️ or press Slide ⬇️." }
+        };
 
         class ArcadeAudioManager {
             constructor() { this.audioCtx = null; this.isMuted = false; this.volume = 0.4; }
@@ -1109,11 +1234,32 @@
         }
         function updateVolume(val) { audio.volume = parseFloat(val); audio.playSFX('click'); }
         function setTheme(themeName) { audio.playSFX('click'); document.documentElement.className = themeName; localStorage.setItem("arcadehub_theme", themeName); }
-        function openSettingsModal() { audio.playSFX('click'); document.getElementById('settings-modal').classList.add('active'); }
-        function closeSettingsModal() { audio.playSFX('click'); document.getElementById('settings-modal').classList.remove('active'); }
+        
+        function openSettingsDrawer() {
+            audio.playSFX('click');
+            document.getElementById('settings-drawer').classList.add('active');
+            document.getElementById('drawer-backdrop').classList.add('active');
+        }
+        function closeSettingsDrawer() {
+            audio.playSFX('click');
+            document.getElementById('settings-drawer').classList.remove('active');
+            document.getElementById('drawer-backdrop').classList.remove('active');
+        }
+        function openSettingsModal() { openSettingsDrawer(); }
+
+        function toggleInstructionPreference() {
+            audio.playSFX('click');
+            let current = localStorage.getItem('arcadehub_global_instructions') !== 'false';
+            let next = !current;
+            localStorage.setItem('arcadehub_global_instructions', next);
+            const btn = document.getElementById('pref-instructions-toggle');
+            if(next) { btn.textContent = "ENABLED"; btn.classList.add('active'); }
+            else { btn.textContent = "DISABLED"; btn.classList.remove('active'); }
+        }
+
         function switchSettingsTab(tabName) {
             audio.playSFX('move');
-            ['audio','theme','share'].forEach(t => {
+            ['audio','theme','prefs','share'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('active', t===tabName);
                 document.getElementById(`panel-${t}`).classList.toggle('active', t===tabName);
             });
@@ -1164,6 +1310,11 @@
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
 
+            let globalInst = localStorage.getItem('arcadehub_global_instructions') !== 'false';
+            const prefBtn = document.getElementById('pref-instructions-toggle');
+            if(globalInst) { prefBtn.textContent = "ENABLED"; prefBtn.classList.add('active'); }
+            else { prefBtn.textContent = "DISABLED"; prefBtn.classList.remove('active'); }
+
             updateHubActivityStats();
             renderRecentGames();
 
@@ -1177,13 +1328,7 @@
             document.getElementById('robot-companion').classList.add('visible');
         }
 
-        function launchGame(containerId, gameName, icon) {
-            recordRecentGame(containerId, gameName, icon);
-            openGame(containerId);
-        }
-
         function openGame(containerId) {
-            audio.playSFX('click');
             document.getElementById('main-menu').classList.remove('active');
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
             document.getElementById(containerId).classList.add('active');
