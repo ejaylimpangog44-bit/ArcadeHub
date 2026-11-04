@@ -163,6 +163,9 @@
         .start-game-btn { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; width: 100%; max-width: 360px; padding: 12px; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: opacity 0.2s; margin-top: 10px; }
         .start-game-btn:hover { opacity: 0.9; }
 
+        .guess-input { width: 100%; max-width: 320px; background: rgba(17, 24, 39, 0.9); border: 1px solid var(--border); color: var(--text-main); padding: 12px 16px; border-radius: 12px; font-size: 1rem; text-align: center; outline: none; margin-bottom: 12px; }
+        .guess-input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--accent-glow); }
+
         .loading-spinner { width: 45px; height: 45px; border: 4px solid var(--border); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 25px auto 15px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -270,6 +273,11 @@
         .body-bolt { position: absolute; bottom: 5px; width: 6px; height: 6px; border: 2px solid #00e5ff; border-radius: 50%; }
         .left-bolt { left: 6px; }
         .right-bolt { right: 6px; }
+
+        .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 280px; width: 100%; margin: 0 auto 12px auto; }
+        .mole-hole { aspect-ratio: 1; background-color: #111827; border: 2px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; transition: background 0.2s; position: relative; overflow: hidden; }
+        .mole-hole span { transform: translateY(50px); transition: transform 0.15s ease; opacity: 0; }
+        .mole-hole.active span { transform: translateY(0); opacity: 1; }
     </style>
 </head>
 <body>
@@ -306,19 +314,19 @@
         <div class="category-section" data-category="card">
             <div class="category-title">Card Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="speed solitaire sprint" onclick="showGameInstructions('solitaire-container', 'Speed Solitaire', '🎴', 'Match cards in your tableau that are 1 rank higher or lower than the foundation target card before time runs out!')">
+                <div class="game-card" data-name="speed solitaire sprint" onclick="showGameInstructions('solitaire-container', 'Speed Solitaire', '🎴', { objective: 'Match cards in your tableau that are 1 rank higher or lower than the foundation target card before time runs out!', controls: 'Tap playable cards to match before time runs out.' })">
                     <span class="game-icon">🎴</span>
                     <span class="game-name">Speed Solitaire</span>
                 </div>
-                <div class="game-card" data-name="coin scatter multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter', '🎰', 'Place your bet and hit Spin to roll multipliers across the reel grid. Match special multipliers to win big coins!')">
+                <div class="game-card" data-name="coin scatter multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter', '🎰', { objective: 'Place your bet and hit Spin to roll multipliers across the reel grid. Match special multipliers to win big coins!', controls: 'Select your bet and hit Spin.' })">
                     <span class="game-icon">🎰</span>
                     <span class="game-name">Coin Scatter</span>
                 </div>
-                <div class="game-card" data-name="blackjack 21 pro" onclick="showGameInstructions('blackjack-container', 'Blackjack 21', '🃏', 'Hit or stand to get as close to 21 as possible without busting. Beat the dealer\'s hand to win!')">
+                <div class="game-card" data-name="blackjack 21 pro" onclick="showGameInstructions('blackjack-container', 'Blackjack 21', '🃏', { objective: 'Hit or stand to get as close to 21 as possible without busting. Beat the dealer\'s hand to win!', controls: 'Hit for another card or Stand to hold your hand.' })">
                     <span class="game-icon">🃏</span>
                     <span class="game-name">Blackjack 21</span>
                 </div>
-                <div class="game-card" data-name="high low predictor" onclick="showGameInstructions('highlow-container', 'High-Low', '🔼', 'Predict whether the next card dealt will be Higher or Lower than your current card to build your streak!')">
+                <div class="game-card" data-name="high low predictor" onclick="showGameInstructions('highlow-container', 'High-Low', '🔼', { objective: 'Predict whether the next card dealt will be Higher or Lower than your current card to build your streak!', controls: 'Tap Higher or Lower buttons based on current card.' })">
                     <span class="game-icon">🔼</span>
                     <span class="game-name">High-Low</span>
                 </div>
@@ -328,15 +336,15 @@
         <div class="category-section" data-category="puzzle">
             <div class="category-title">Puzzle Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="tic tac toe pro" onclick="showGameInstructions('tictactoe-container', 'Tic-Tac-Toe', '❌', 'Configure your match settings and align 3 (or 4) symbols in a row horizontally, vertically, or diagonally to win!')">
+                <div class="game-card" data-name="tic tac toe pro" onclick="showGameInstructions('tictactoe-container', 'Tic-Tac-Toe', '❌', { objective: 'Configure your match settings and align 3 (or 4) symbols in a row horizontally, vertically, or diagonally to win!', controls: 'Tap empty cells on the grid.' })">
                     <span class="game-icon">❌</span>
                     <span class="game-name">Tic-Tac-Toe</span>
                 </div>
-                <div class="game-card" data-name="number master" onclick="showGameInstructions('guessgame-container', 'Number Master', '🔢', 'Take strategic guesses within the selected range and use the higher/lower hints to find the secret number!')">
+                <div class="game-card" data-name="number master" onclick="showGameInstructions('guessgame-container', 'Number Master', '🔢', { objective: 'Take strategic guesses within the selected range and use the higher/lower hints to find the secret number!', controls: 'Input number guesses and follow higher/lower hints.' })">
                     <span class="game-icon">🔢</span>
                     <span class="game-name">Number Master</span>
                 </div>
-                <div class="game-card" data-name="wordscape pro" onclick="showGameInstructions('wordscape-container', 'Wordscape Pro', '📝', 'Swipe your finger across the letter wheel to connect letters and spell out all hidden target words!')">
+                <div class="game-card" data-name="wordscape pro" onclick="showGameInstructions('wordscape-container', 'Wordscape Pro', '📝', { objective: 'Swipe your finger across the letter wheel to connect letters and spell out all hidden target words!', controls: 'Swipe your finger across the letter wheel.' })">
                     <span class="game-icon">📝</span>
                     <span class="game-name">Wordscape Pro</span>
                 </div>
@@ -346,27 +354,23 @@
         <div class="category-section" data-category="action">
             <div class="category-title">Action Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="piano tiles pro" onclick="showGameInstructions('piano-container', 'Piano Tiles', '🎹', 'Tap falling white tiles and hold long tiles precisely to the rhythm of classic songs without missing!')">
+                <div class="game-card" data-name="piano tiles pro" onclick="showGameInstructions('piano-container', 'Piano Tiles', '🎹', { objective: 'Tap falling white tiles and hold long tiles precisely to the rhythm of classic songs without missing!', controls: 'Tap tiles precisely without missing.' })">
                     <span class="game-icon">🎹</span>
                     <span class="game-name">Piano Tiles</span>
                 </div>
-                <div class="game-card" data-name="pac man dx" onclick="showGameInstructions('pacman-container', 'Pac-Man DX', '🟡', 'Navigate the maze, munch all glowing dots, and avoid the colorful ghosts to set a high score!')">
-                    <span class="game-icon">🟡</span>
-                    <span class="game-name">Pac-Man DX</span>
-                </div>
-                <div class="game-card" data-name="fruit master" onclick="showGameInstructions('fruitslice-container', 'Fruit Master', '🍉', 'Slice flying fruits across the screen to score points. Watch out and avoid slicing 💣 bombs!')">
+                <div class="game-card" data-name="fruit master" onclick="showGameInstructions('fruitslice-container', 'Fruit Master', '🍉', { objective: 'Slice flying fruits across the screen to score points. Watch out and avoid slicing 💣 bombs!', controls: 'Swipe across fruits with your finger. Avoid 💣 bombs!' })">
                     <span class="game-icon">🍉</span>
                     <span class="game-name">Fruit Master</span>
                 </div>
-                <div class="game-card" data-name="whack a mole pro" onclick="showGameInstructions('molegame-container', 'Whack-a-Mole', '🔨', 'Tap the cheeky hamsters as they pop up out of their holes before the timer runs out!')">
+                <div class="game-card" data-name="whack a mole pro" onclick="showGameInstructions('molegame-container', 'Whack-a-Mole', '🔨', { objective: 'Tap the cheeky hamsters as they pop up out of their holes before the timer runs out!', controls: 'Tap moles instantly when they appear.' })">
                     <span class="game-icon">🔨</span>
                     <span class="game-name">Whack-a-Mole</span>
                 </div>
-                <div class="game-card" data-name="snake evolution" onclick="showGameInstructions('snakegame-container', 'Snake Evolution', '🐍', 'Guide the growing snake to eat glowing food pellets without crashing into walls or your own tail!')">
+                <div class="game-card" data-name="snake evolution" onclick="showGameInstructions('snakegame-container', 'Snake Evolution', '🐍', { objective: 'Guide the growing snake to eat glowing food pellets without crashing into walls or your own tail!', controls: 'Use directional pad to steer without hitting walls.' })">
                     <span class="game-icon">🐍</span>
                     <span class="game-name">Snake Evolution</span>
                 </div>
-                <div class="game-card" data-name="dino runner pro" onclick="showGameInstructions('dinogame-container', 'Dino Runner', '🦖', 'Press Jump to clear cacti or Duck to dodge flying pterodactyls in this endless prehistoric sprint!')">
+                <div class="game-card" data-name="dino runner pro" onclick="showGameInstructions('dinogame-container', 'Dino Runner', '🦖', { objective: 'Press Jump to clear cacti or Duck to dodge flying pterodactyls in this endless prehistoric sprint!', controls: 'Press Jump to clear cacti and Duck for flying pterodactyls.' })">
                     <span class="game-icon">🦖</span>
                     <span class="game-name">Dino Runner</span>
                 </div>
@@ -376,15 +380,15 @@
         <div class="category-section" data-category="racing">
             <div class="category-title">Racing Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="turbo car racing" onclick="showGameInstructions('carracing-container', 'Car Racing', '🏎️', 'Steer left or right to dodge traffic, pick up 🛡️ Shield power-ups, and trigger ⚡ Nitro boosts!')">
+                <div class="game-card" data-name="turbo car racing" onclick="showGameInstructions('carracing-container', 'Car Racing', '🏎️', { objective: 'Steer left or right to dodge traffic, pick up 🛡️ Shield power-ups, and trigger ⚡ Nitro boosts!', controls: 'Tap left/right arrows to change lanes; trigger ⚡ Nitro boosts.' })">
                     <span class="game-icon">🏎️</span>
                     <span class="game-name">Car Racing</span>
                 </div>
-                <div class="game-card" data-name="brick breaker" onclick="showGameInstructions('frostgame-container', 'Brick Breaker', '🧱', 'Bounce the ball off your paddle to smash all glowing bricks and catch helpful power-up drops!')">
+                <div class="game-card" data-name="brick breaker" onclick="showGameInstructions('frostgame-container', 'Brick Breaker', '🧱', { objective: 'Bounce the ball off your paddle to smash all glowing bricks and catch helpful power-up drops!', controls: 'Drag your finger or mouse across the screen to move paddle.' })">
                     <span class="game-icon">🧱</span>
                     <span class="game-name">Brick Breaker</span>
                 </div>
-                <div class="game-card" data-name="stick run" onclick="showGameInstructions('stickman-container', 'Stick Run', '', 'Double tap Jump to clear obstacles or press Slide to duck under barriers in this high-speed endless runner!')">
+                <div class="game-card" data-name="stick run" onclick="showGameInstructions('stickman-container', 'Stick Run', '🏃‍♂️', { objective: 'Clear obstacles in this high-speed endless runner.', controls: 'Double-tap Jump ⬆️ or press Slide ⬇️.' })">
                     <span style="font-size: 24px;">🏃‍♂️</span>
                     <span class="game-name">Stick Run</span>
                 </div>
@@ -680,35 +684,6 @@
         </div>
     </div>
 
-    <!-- Pac-Man DX -->
-    <div id="pacman-container" class="game-container">
-        <div class="game-nav-bar">
-            <button class="nav-btn" onclick="backToHub()">← Back</button>
-            <button class="nav-btn" onclick="toggleFullscreen('pacman-container')">⛶ Fullscreen</button>
-        </div>
-        <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
-            <div class="score-board" style="margin-top:4px; width:100%;">
-                <div class="score-box">Score <span id="pac-score">0</span></div>
-                <div class="score-box">High <span id="pac-high">0</span></div>
-                <div class="score-box">Lives ❤️ <span id="pac-lives">3</span></div>
-            </div>
-            <div style="position:relative; display:inline-block;">
-                <canvas id="pac-canvas" class="arcade-canvas" width="300" height="300"></canvas>
-                <div id="pac-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                    <h2 id="pac-over-title" style="color:#ef4444; margin-bottom:8px; font-size:1.1rem;">GAME OVER</h2>
-                    <p id="pac-final-score-txt" style="color:var(--text-muted); font-size:0.8rem; margin-bottom:12px;">Score: 0</p>
-                    <button class="action-btn" onclick="startPacManGame()">PLAY AGAIN</button>
-                </div>
-            </div>
-            <div class="dir-pad">
-                <div></div><button class="dir-btn" onclick="changePacDir('UP')">⬆️</button><div></div>
-                <button class="dir-btn" onclick="changePacDir('LEFT')">⬅️</button>
-                <button class="dir-btn" onclick="changePacDir('DOWN')">⬇️</button>
-                <button class="dir-btn" onclick="changePacDir('RIGHT')">➡️</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Fruit Master -->
     <div id="fruitslice-container" class="game-container">
         <div class="game-nav-bar">
@@ -762,7 +737,7 @@
             <button class="nav-btn" onclick="toggleFullscreen('guessgame-container')">⛶ Fullscreen</button>
         </div>
         <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
-            <div style="display:flex; gap:6px; margin-bottom:8px; width:100%;">
+            <div style="display:flex; gap:6px; margin-bottom:12px; width:100%;">
                 <button class="opt-btn active" id="guess-diff-1" onclick="setGuessDiff(100)">1-100</button>
                 <button class="opt-btn" id="guess-diff-2" onclick="setGuessDiff(500)">1-500</button>
                 <button class="opt-btn" id="guess-diff-3" onclick="setGuessDiff(1000)">1-1000</button>
@@ -1064,7 +1039,7 @@
         };
 
         function updateHubActivityStats() {
-            const allGameKeys = ['snake', 'mole', 'dino', 'pacman', 'carracing', 'brickbreaker', 'pianotiles', 'fruitslasher', 'sr'];
+            const allGameKeys = ['snake', 'mole', 'dino', 'carracing', 'brickbreaker', 'pianotiles', 'fruitslasher', 'sr'];
             let totalPlayed = 0;
             let totalHighScoresSet = 0;
 
@@ -1101,7 +1076,7 @@
             }
 
             document.getElementById('inst-modal-title').textContent = `🎮 ${gameName}`;
-            document.getElementById('inst-modal-icon').innerHTML = icon ? icon : `<img src="1000030580_2.png" style="width:48px;height:48px;object-fit:cover;border-radius:10px;">`;
+            document.getElementById('inst-modal-icon').innerHTML = icon || '🕹️';
             
             let contentHTML = `
                 <div style="margin-bottom: 10px;">
@@ -1170,7 +1145,7 @@
                     let inst = gameInstructionsMap[game.id] || { objective: "Set a high score!", controls: "Tap controls to play." };
                     showGameInstructions(game.id, game.name, game.icon, inst);
                 };
-                let iconHTML = game.icon ? game.icon : `<img src="1000030580_2.png" style="width:24px;height:24px;object-fit:cover;border-radius:4px;">`;
+                let iconHTML = game.icon || '🕹️';
                 card.innerHTML = `<span style="font-size:22px; display:flex; align-items:center; justify-content:center;">${iconHTML}</span><span style="font-size:12px; font-weight:600; color:#e5e7eb;">${game.name}</span>`;
                 container.appendChild(card);
             });
@@ -1185,7 +1160,6 @@
             'guessgame-container': { objective: "Find the secret target number within given attempts.", controls: "Input number guesses and follow higher/lower hints." },
             'wordscape-container': { objective: "Connect letters to spell hidden target words.", controls: "Swipe your finger across the letter wheel." },
             'piano-container': { objective: "Tap falling tiles to the rhythm of the music.", controls: "Tap tiles precisely without missing." },
-            'pacman-container': { objective: "Munch all glowing dots while avoiding colorful ghosts.", controls: "Use directional pad to navigate the maze." },
             'fruitslice-container': { objective: "Slice flying fruits across the screen to score points.", controls: "Swipe across fruits with your finger. Avoid 💣 bombs!" },
             'molegame-container': { objective: "Whack the cheeky hamsters as they pop out of holes.", controls: "Tap moles instantly when they appear." },
             'snakegame-container': { objective: "Guide the growing snake to eat glowing food pellets.", controls: "Use directional pad to steer without hitting walls." },
@@ -1288,7 +1262,6 @@
             if (typeof reactionTimeout !== 'undefined') clearTimeout(reactionTimeout);
             if (typeof solTimer !== 'undefined') clearInterval(solTimer);
 
-            if (typeof pacAnimId !== 'undefined') cancelAnimationFrame(pacAnimId);
             if (typeof frostAnimId !== 'undefined') cancelAnimationFrame(frostAnimId);
             if (typeof fruitAnimId !== 'undefined') cancelAnimationFrame(fruitAnimId);
             if (typeof pianoAnimId !== 'undefined') cancelAnimationFrame(pianoAnimId);
@@ -1296,7 +1269,6 @@
             if (typeof dinoAnimId !== 'undefined') cancelAnimationFrame(dinoAnimId);
             if (typeof srAnimId !== 'undefined') cancelAnimationFrame(srAnimId);
 
-            if (typeof pacRunning !== 'undefined') pacRunning = false;
             if (typeof frostRunning !== 'undefined') frostRunning = false;
             if (typeof fruitRunning !== 'undefined') fruitRunning = false;
             if (typeof pianoRunning !== 'undefined') pianoRunning = false;
@@ -1313,7 +1285,7 @@
 
         window.onload = function() {
             generateQRCode();
-            initSnakeCanvas(); initDinoCanvas(); initFrostCanvas(); initPacManCanvas(); initFruitCanvas(); initPianoCanvas(); initCarCanvas();
+            initSnakeCanvas(); initDinoCanvas(); initFrostCanvas(); initFruitCanvas(); initPianoCanvas(); initCarCanvas();
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
 
@@ -1342,7 +1314,6 @@
             setTimeout(() => {
                 if (containerId === 'snakegame-container') startSnakeGame();
                 if (containerId === 'dinogame-container') startDinoGame();
-                if (containerId === 'pacman-container') startPacManGame();
                 if (containerId === 'fruitslice-container') startFruitGame();
                 if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
                 if (containerId === 'piano-container') startPianoGame();
@@ -2338,76 +2309,6 @@
             document.getElementById('ttt-status').textContent="Player X's Turn"; 
             document.getElementById('win-line').style.display='none'; 
             renderBoardHTML();
-        }
-
-        // ===================================================
-        // PAC-MAN DX ENGINE
-        // ===================================================
-        let pacCanvas, pacCtx, pacRunning = false, pacScore = 0, pacLives = 3, pacAnimId;
-        let pacman = { x:1, y:1, dx:1, dy:0 }, pacDots = [], powerPellets = [], ghosts = [];
-        const pacGridSize = 13;
-
-        function initPacManCanvas() { pacCanvas=document.getElementById('pac-canvas'); if(pacCanvas)pacCtx=pacCanvas.getContext('2d'); }
-        function startPacManGame() {
-            audio.playSFX('click'); document.getElementById('pac-gameover-overlay').style.display='none'; initPacManCanvas(); if(!pacCtx)return;
-            pacRunning=true; pacScore=0; pacLives=3; pacman={x:1,y:1,dx:1,dy:0};
-            ghosts=[{x:11,y:1,color:'#ef4444',dx:-1,dy:0},{x:11,y:11,color:'#ec4899',dx:0,dy:-1}];
-            pacDots=[]; powerPellets = [{x:1,y:11},{x:11,y:1}];
-            for(let r=0;r<pacGridSize;r++)
-                for(let c=0;c<pacGridSize;c++)
-                    if((r>0&&r<pacGridSize-1)&&(c>0&&c<pacGridSize-1)) pacDots.push({x:c,y:r});
-
-            document.getElementById('pac-score').textContent=pacScore; document.getElementById('pac-lives').textContent=pacLives; document.getElementById('pac-high').textContent=ScoreManager.getStats('pacman').highScore;
-            cancelAnimationFrame(pacAnimId); pacLoop();
-        }
-        function changePacDir(dir) { audio.playSFX('move'); if(dir==='UP'){pacman.dx=0;pacman.dy=-1;}if(dir==='DOWN'){pacman.dx=0;pacman.dy=1;}if(dir==='LEFT'){pacman.dx=-1;pacman.dy=0;}if(dir==='RIGHT'){pacman.dx=1;pacman.dy=0;} }
-        let pacTick=0;
-        function pacLoop() {
-            if(!pacRunning)return; pacTick++;
-            if(pacTick%11===0){
-                pacman.x+=pacman.dx; pacman.y+=pacman.dy;
-                if(pacman.x<0)pacman.x=pacGridSize-1; if(pacman.x>=pacGridSize)pacman.x=0; if(pacman.y<0)pacman.y=pacGridSize-1; if(pacman.y>=pacGridSize)pacman.y=0;
-
-                pacDots=pacDots.filter(d=>{if(d.x===pacman.x&&d.y===pacman.y){audio.playSFX('score');pacScore+=10;document.getElementById('pac-score').textContent=pacScore;return false;}return true;});
-
-                ghosts.forEach(g=>{
-                    if(g.x===pacman.x&&g.y===pacman.y){
-                        audio.playSFX('gameover');
-                        pacLives--;
-                        document.getElementById('pac-lives').textContent=pacLives;
-                        pacman.x=1;pacman.y=1;pacman.dx=1;pacman.dy=0;
-                        if(pacLives<=0){
-                            pacRunning=false;
-                            document.getElementById('pac-over-title').textContent = "GAME OVER";
-                            document.getElementById('pac-final-score-txt').textContent = `Final Score: ${pacScore}`;
-                            document.getElementById('pac-gameover-overlay').style.display='flex';
-                            let stats=ScoreManager.saveScore('pacman',pacScore);
-                            document.getElementById('pac-high').textContent=stats.highScore;
-                        }
-                    }
-                });
-            }
-
-            pacCtx.fillStyle='#0b0f19'; pacCtx.fillRect(0,0,pacCanvas.width,pacCanvas.height); 
-            let tileSize=pacCanvas.width/pacGridSize;
-
-            pacCtx.fillStyle='#fbbf24'; 
-            pacDots.forEach(d=>{pacCtx.beginPath();pacCtx.arc(d.x*tileSize+tileSize/2,d.y*tileSize+tileSize/2,3,0,Math.PI*2);pacCtx.fill();});
-
-            ghosts.forEach(g=>{
-                pacCtx.fillStyle = g.color;
-                pacCtx.beginPath(); 
-                let gx=g.x*tileSize+tileSize/2,gy=g.y*tileSize+tileSize/2;
-                pacCtx.arc(gx,gy-2,tileSize/2-2,Math.PI,0,false);
-                pacCtx.fill();
-            });
-
-            pacCtx.fillStyle='#eab308'; pacCtx.beginPath(); 
-            let x=pacman.x*tileSize+tileSize/2,y=pacman.y*tileSize+tileSize/2,radius=tileSize/2-2;
-            pacCtx.arc(x,y,radius,0,Math.PI*2);
-            pacCtx.fill(); 
-
-            if(pacRunning) pacAnimId=requestAnimationFrame(pacLoop);
         }
 
         // ===================================================
