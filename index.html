@@ -335,9 +335,30 @@
     </header>
 
     <div class="welcome-banner">
-        <h2>Welcome, Player!</h2>
+        <h2 id="welcomeHeading">Welcome, Player!</h2>
         <p>Ready for another gaming adventure?</p>
     </div>
+
+      <!-- PLAYER SETUP UI -->
+    <div class="search-bar-container" style="margin-bottom: 12px;">
+        <div style="background: rgba(17, 24, 39, 0.9); border: 1px solid var(--border); border-radius: 14px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;">
+            <label for="usernameInput" style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Player Name</label>
+            <div style="display: flex; gap: 8px;">
+                <input 
+                    type="text" 
+                    id="usernameInput" 
+                    class="search-input" 
+                    placeholder="Enter your name..." 
+                    maxlength="16"
+                    style="margin-bottom: 0; flex: 1;"
+                />
+                <button type="button" id="diceBtn" class="action-btn" title="Generate Random Name" style="padding: 0 14px; font-size: 1.2rem;">🎲</button>
+                <button type="button" id="saveNameBtn" class="action-btn" style="background: #15803d; padding: 0 16px; font-size: 0.85rem;">Save</button>
+            </div>
+            <p id="nameErrorMsg" style="color: #f43f5e; font-size: 0.75rem; display: none; margin-top: 2px;"></p>
+        </div>
+    </div>
+
 
     <div class="search-bar-container">
         <input type="text" id="game-search-input" class="search-input" placeholder="🔍 Search your favorite games..." oninput="filterGames(this.value)">
@@ -994,6 +1015,75 @@
     </div>
 
     <script>
+        const BANNED_WORDS = ["badword1", "badword2", "hate", "spam"]; 
+        const ADJECTIVES = ["Shadow", "Cyber", "Pixel", "Nova", "Vortex", "Phantom", "Blaze", "Neon"];
+        const NOUNS = ["Knight", "Striker", "Runner", "Viper", "Echo", "Hunter", "Rider", "Titan"];
+        const SYMBOLS = ["_", "-", "X", "z", "v", "i", "~"];
+
+        function isAppropriate(name) {
+            const cleanInput = name.toLowerCase().trim();
+            if (cleanInput.length < 3 || cleanInput.length > 16) return false;
+            return !BANNED_WORDS.some(banned => cleanInput.includes(banned));
+        }
+
+        function generateRandomName() {
+            const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)];
+            const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)];
+            const symbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+            const num = Math.floor(Math.random() * 900) + 100;
+
+            const patterns = [
+                `${adj}${noun}_${num}`,
+                `${symbol}${adj}${noun}${num}`,
+                `${adj}_${symbol}_${num}`,
+                `xX_${noun}${num}_Xx`
+            ];
+            return patterns[Math.floor(Math.random() * patterns.length)];
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const nameInput = document.getElementById("usernameInput");
+            const diceBtn = document.getElementById("diceBtn");
+            const saveBtn = document.getElementById("saveNameBtn");
+            const errorMsg = document.getElementById("nameErrorMsg");
+            const welcomeHeading = document.getElementById("welcomeHeading");
+
+            if (nameInput) {
+                const savedName = localStorage.getItem("arcadehub_player_name");
+                if (savedName) {
+                    nameInput.value = savedName;
+                    if (welcomeHeading) welcomeHeading.textContent = `Welcome, ${savedName}!`;
+                } else {
+                    const randomName = generateRandomName();
+                    nameInput.value = randomName;
+                    localStorage.setItem("arcadehub_player_name", randomName);
+                    if (welcomeHeading) welcomeHeading.textContent = `Welcome, ${randomName}!`;
+                }
+
+                diceBtn.addEventListener("click", () => {
+                    audio.playSFX('click');
+                    nameInput.value = generateRandomName();
+                    errorMsg.style.display = "none";
+                });
+
+                saveBtn.addEventListener("click", () => {
+                    const chosenName = nameInput.value.trim();
+                    if (!isAppropriate(chosenName)) {
+                        audio.playSFX('gameover');
+                        errorMsg.textContent = "Invalid, too short, or inappropriate name!";
+                        errorMsg.style.display = "block";
+                        return;
+                    }
+                    audio.playSFX('win');
+                    localStorage.setItem("arcadehub_player_name", chosenName);
+                    if (welcomeHeading) welcomeHeading.textContent = `Welcome, ${chosenName}!`;
+                    errorMsg.style.display = "none";
+                    saveBtn.textContent = "Saved! ✔️";
+                    setTimeout(() => { saveBtn.textContent = "Save"; }, 1500);
+                });
+            }
+        });
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
         }
