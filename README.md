@@ -1,48 +1,30 @@
-ArcadeHub
+ 🕹️ Arcade Hub
 
-PLAY · THINK · WIN
+Arcade Hub is a feature-rich, responsive web-based gaming platform that brings classic arcade, puzzle, card, and action games directly to your browser[cite: 1]. Designed with a sleek dark-themed UI and optimized for both mobile and desktop experiences, it offers a seamless gaming experience complete with live gaming activity trackers and custom settings[cite: 1].
 
-A responsive, single-file frontend Arcade Hub built for GitHub Pages and Vercel hosting, containing a collection of lightweight, interactive mini-games. Designed with a sleek dark-themed UI, structured category navigation, customizable settings, and zero external backend requirements.
+---
 
 ✨ Features
 
-Single-File Architecture: Everything (HTML, CSS, and JS) is packaged into a clean, single index.html file for effortless deployment on GitHub Pages or Vercel.
+* Diverse Game Categories
+  * Card Games: Speed Solitaire, Coin Scatter v2, Blackjack 21, High-Low
+  * Puzzle Games: Tic-Tac-Toe, Number Master, Wordscape Pro
+  * Action Games: Piano Tiles, Fruit Master, Whack-a-Mole, Snake Evolution, Dino Runner
+  * Racing Games: Car Racing, Brick Breaker, Stick Run
+* Interactive Search Bar: Instantly find your favorite games with real-time filtering.
+* Player Activity Tracking:Keeps tabs on your engagement with built-in stats such as *Games Played* and *High Scores Set
+* Fully Responsive Design: Optimized layouts and smooth navigation tailored for mobile devices and wide screens
+* Customization & Settings: Easily toggle preferences via the integrated settings menu
 
-Categorized Grid Layout: Organized navigation divided into clear genres (Puzzle & Strategy, Action & Arcade, Quick Reflexes, and Featured Game).
 
-Settings & Customization: Dedicated Settings button in the header bar for user configuration and app preferences.
- 
-Interactive AI Assistant / Bot: Integrated floating bot icon providing interactive assistance across the app.
 
-Mobile Sharing QR Code: Built-in QR code generator accessible on game screens, allowing you to instantly scan and test the hub on mobile devices.
- 
-Smooth Animations & Game States: Features polished visual feedback including custom loading states, animated strike-throughs, and dynamic canvas mechanics.
+## 🚀 Live Preview
 
-🕹️ Game Library
+Check out the live deployment here: [Arcade Hub on Vercel](https://arcadehubgames-july12.vercel.app)
 
-🧩 PUZZLE & STRATEGY
- 
-❌⭕ Tic-Tac-Toe: Play 2-Player local PvP or challenge the AI across multiple difficulty tiers (Easy, Normal, Hard with Minimax algorithm). Features animated strike-through win lines.
+---
 
- 🔢 Number Guessing: Guess the hidden number between 1 and 100 with real-time "Too High" or "Too Low" visual hints and attempt tracking.
+## 🛠️ Built With
 
-🕹️ ACTION & ARCADE
- 
-🦾🧸 Claw Machine: Control the robotic arm left and right, drop it down with precise timing, and collect prizes into your personal inventory.
- 
-🔨 Whack-a-Mole: Test your reaction speed by tapping randomly appearing moles before time runs out.
- 
-🎯 Dart PvP: Precision target-throwing game where players compete head-to-head for high scores.
- 
-🐍🟢 Snake Game: Retro arcade snake canvas game—eat food items to grow longer while avoiding walls and self-collision.
- 
-🐦 Flappy Arcade: Dodge incoming obstacles and keep your bird airborne with rhythm-based taps.
-
-🦖 Dino Jump: Classic side-scrolling obstacle runner—jump over hazards and survive as long as possible as the speed ramps up.
-
-⚡ QUICK REFLEXES
- 👊📄✂️ RPS PvP (Rock, Paper, Scissors): Local 2-player showdown featuring secret pass-the-device turn selection and live round score tracking.
- ⚡⏱️ Reaction Timer: Measure your raw response speed in milliseconds when the screen switches from wait-state red to ready-state green.
-
-⭐ FEATURED GAME
- 🍬🍭 Candy Match-3: Swap adjacent colorful candies on a grid to line up 3 or more matching items and score big before moves run out!
+* HTML5 / CSS3 / JavaScript
+* Responsive Layouts
