@@ -18,13 +18,13 @@ Arcade Hub is a feature-rich, responsive web-based gaming platform that brings c
 
 
 
-## 🚀 Live Preview
+🚀 Live Preview
 
 Check out the live deployment here: [Arcade Hub on Vercel](https://arcadehubgames-july12.vercel.app)
 
 ---
 
-## 🛠️ Built With
+🛠️ Built With
 
 * HTML5 / CSS3 / JavaScript
 * Responsive Layouts
