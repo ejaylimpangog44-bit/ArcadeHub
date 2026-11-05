@@ -294,12 +294,10 @@
     </style>
 </head>
 <body>
-
 <script>
         const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+        
 async function submitScore(gameName, playerName, score) {
   const { data, error } = await supabase
     .from('high_scores')
