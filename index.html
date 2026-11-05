@@ -299,6 +299,26 @@
         const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+Async function submitScore(gameName, playerName, score) {
+  const { data, error } = await supabase
+    .from('high_scores')
+    .insert([
+      { game_name: gameName, player_name: playerName, score: score }
+    ]);
+
+  if (error) {
+    console.error('Error saving score:', error);
+  } else {
+    console.log('Score saved successfully!', data);
+  }
+}
+
+function handleScoreSubmit(gameName) {
+  const playerName = document.getElementById('player-name-input').value || 'Anonymous';
+  const score = currentScore; 
+  submitScore(gameName, playerName, score);
+}
     </script>
 
     <div id="splash-screen">
