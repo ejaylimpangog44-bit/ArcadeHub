@@ -7,6 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* ===================== HUB CORE STYLES ===================== */
         :root {
@@ -293,6 +294,12 @@
     </style>
 </head>
 <body>
+
+<script>
+        const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    </script>
 
     <div id="splash-screen">
         <div class="splash-logo-box">
