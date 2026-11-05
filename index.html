@@ -7,9 +7,6 @@
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<!-- Supabase JavaScript Client Library -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
         /* ===================== HUB CORE STYLES ===================== */
         :root {
@@ -980,37 +977,6 @@
     </div>
 
     <script>
-
-// ===================================================
-        // SUPABASE INITIALIZATION & FUNCTIONS
-        // ===================================================
-        const SUPABASE_URL ='https://nrlfudwhnncycjcyupgt.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        async function submitScoreToSupabase(playerName, scoreValue, gameTitle) {
-            if (!playerName || playerName.trim() === '') return;
-            try {
-                const { data, error } = await supabase
-                    .from('high_scores')
-                    .insert([
-                        { 
-                          player_name: playerName.trim(), 
-                          score: parseInt(scoreValue, 10), 
-                          game_name: gameTitle 
-                        }
-                    ]);
-                    
-                if (error) {
-                    console.error('Error saving score:', error.message);
-                } else {
-                    console.log('Score saved successfully!', data);
-                }
-            } catch (err) {
-                console.error('Unexpected error:', err);
-            }
-        }
-
         // ===================================================
         // HUB CORE & NAVIGATION SYSTEM
         // ===================================================
@@ -1355,41 +1321,24 @@
             updateHubActivityStats();
             renderRecentGames();
         }
+
         window.onload = function() {
             generateQRCode();
-            
-            if (typeof initSnakeCanvas === 'function') initSnakeCanvas();
-            if (typeof initDinoCanvas === 'function') initDinoCanvas();
-            if (typeof initFrostCanvas === 'function') initFrostCanvas();
-            if (typeof initFruitCanvas === 'function') initFruitCanvas();
-            if (typeof initPianoCanvas === 'function') initPianoCanvas();
-            if (typeof initCarCanvas === 'function') initCarCanvas();
-
+            initSnakeCanvas(); initDinoCanvas(); initFrostCanvas(); initFruitCanvas(); initPianoCanvas(); initCarCanvas();
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
 
             let globalInst = localStorage.getItem('arcadehub_global_instructions') !== 'false';
             const prefBtn = document.getElementById('pref-instructions-toggle');
-            if (prefBtn) {
-                if (globalInst) { 
-                    prefBtn.textContent = "ENABLED"; 
-                    prefBtn.classList.add('active'); 
-                } else { 
-                    prefBtn.textContent = "DISABLED"; 
-                    prefBtn.classList.remove('active'); 
-                }
-            }
+            if(globalInst) { prefBtn.textContent = "ENABLED"; prefBtn.classList.add('active'); }
+            else { prefBtn.textContent = "DISABLED"; prefBtn.classList.remove('active'); }
 
             updateHubActivityStats();
             renderRecentGames();
 
             const bestGuessData = localStorage.getItem('arcadehub_guess');
-            const guessBestEl = document.getElementById('guess-best');
-            if (bestGuessData && guessBestEl) {
-                guessBestEl.textContent = bestGuessData;
-            }
+            if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
         };
-    
 
         function enterHub() {
             try {
