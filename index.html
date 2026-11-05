@@ -300,9 +300,9 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-Async function submitScore(gameName, playerName, score) {
+async function submitScore(gameName, playerName, score) {
   const { data, error } = await supabase
-    .from('high_scores')
+    .from('high_score')
     .insert([
       { game_name: gameName, player_name: playerName, score: score }
     ]);
