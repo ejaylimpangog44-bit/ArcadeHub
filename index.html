@@ -7,7 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* ===================== HUB CORE STYLES ===================== */
         :root {
@@ -298,7 +298,6 @@
     const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
     
-    // I-initialize nang global sa window para ma-access ng lahat ng scripts
     window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function submitScore(gameName, playerName, score) {
@@ -400,11 +399,11 @@
                     <span class="game-icon">🔨</span>
                     <span class="game-name">Whack-a-Mole</span>
                 </div>
-                <div class="game-card" data-name="snake evolution" onclick="showGameInstructions('snakegame-container', 'Snake Evolution', '🐍', { objective: 'Guide the growing snake to eat glowing food pellets without crashing into walls or your own tail!', controls: 'Use directional pad to steer without hitting walls.' })">
+                <div class="game-card" data-name="snake evolution" onclick="showGameInstructions('snakegame-container', 'Snake Evolution', '🐍', { objective: 'Guide the growing snake to eat glowing food pellets without crashing into walls or your own tail!', controls: 'Use Arrow keys to steer.' })">
                     <span class="game-icon">🐍</span>
                     <span class="game-name">Snake Evolution</span>
                 </div>
-                <div class="game-card" data-name="dino runner pro" onclick="showGameInstructions('dinogame-container', 'Dino Runner', '🦖', { objective: 'Press Jump to clear cacti or Duck to dodge flying pterodactyls in this endless prehistoric sprint!', controls: 'Press Jump to clear cacti and Duck for flying pterodactyls.' })">
+                <div class="game-card" data-name="dino runner pro" onclick="showGameInstructions('dinogame-container', 'Dino Runner', '🦖', { objective: 'Press Jump to clear cacti or Duck to dodge flying pterodactyls in this endless prehistoric sprint!', controls: 'Press Space/Up Arrow to Jump, Down Arrow to Duck.' })">
                     <span class="game-icon">🦖</span>
                     <span class="game-name">Dino Runner</span>
                 </div>
@@ -414,15 +413,15 @@
         <div class="category-section" data-category="racing">
             <div class="category-title">Racing Games</div>
             <div class="game-grid">
-                <div class="game-card" data-name="turbo car racing" onclick="showGameInstructions('carracing-container', 'Car Racing', '🏎️', { objective: 'Steer left or right to dodge traffic, pick up 🛡️ Shield power-ups, and trigger ⚡ Nitro boosts!', controls: 'Tap left/right arrows to change lanes; trigger ⚡ Nitro boosts.' })">
+                <div class="game-card" data-name="turbo car racing" onclick="showGameInstructions('carracing-container', 'Car Racing', '🏎️', { objective: 'Steer left or right to dodge traffic, pick up 🛡️ Shield power-ups, and trigger ⚡ Nitro boosts!', controls: 'Use Left/Right arrows to steer, Space/Up arrow for Nitro boost.' })">
                     <span class="game-icon">🏎️</span>
                     <span class="game-name">Car Racing</span>
                 </div>
-                <div class="game-card" data-name="brick breaker" onclick="showGameInstructions('frostgame-container', 'Brick Breaker', '🧱', { objective: 'Bounce the ball off your paddle to smash all glowing bricks and catch helpful power-up drops!', controls: 'Drag your finger or mouse across the screen to move paddle.' })">
+                <div class="game-card" data-name="brick breaker" onclick="showGameInstructions('frostgame-container', 'Brick Breaker', '🧱', { objective: 'Bounce the ball off your paddle to smash all glowing bricks and catch helpful power-up drops!', controls: 'Drag your mouse or finger across the screen to move the paddle.' })">
                     <span class="game-icon">🧱</span>
                     <span class="game-name">Brick Breaker</span>
                 </div>
-                <div class="game-card" data-name="stick run" onclick="showGameInstructions('stickman-container', 'Stick Run', '🏃‍♂️', { objective: 'Clear obstacles in this high-speed endless runner.', controls: 'Double-tap Jump ⬆️ or press Slide ⬇️.' })">
+                <div class="game-card" data-name="stick run" onclick="showGameInstructions('stickman-container', 'Stick Run', '🏃‍♂️', { objective: 'Clear obstacles in this high-speed endless runner.', controls: 'Press Space/Up Arrow to Jump/Double Jump, Down Arrow to Slide.' })">
                     <span style="font-size: 24px;">🏃‍♂️</span>
                     <span class="game-name">Stick Run</span>
                 </div>
@@ -515,7 +514,6 @@
                 <button class="opt-btn" id="bet-btn-3" onclick="setScatterBet(10000, this)">Bet 10K</button>
             </div>
 
-            <!-- Dice Roll Status Box -->
             <div id="scatter-dice-box" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:10px; width:100%; margin-bottom:10px; text-align:center;">
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">DICE ROLL SPINS GENERATOR</p>
                 <div id="scatter-dice-display" style="font-size:1.8rem; font-weight:bold; color:#38bdf8;">🎲 ⚀</div>
@@ -539,7 +537,6 @@
         </div>
     </div>
 
-    <!-- COIN SCATTER V2 CUSTOM IN-APP WIN ALERT MODAL -->
     <div class="modal-overlay" id="scatter-win-modal" style="z-index: 1050;">
         <div class="settings-modal-box" style="text-align: center; max-width: 340px;">
             <div class="settings-header">
@@ -932,7 +929,6 @@
                     </div>
                 </div>
 
-                <!-- RECENTLY PLAYED SECTION INTEGRATED INSIDE AUDIO/SETTINGS PANEL -->
                 <div class="category-section" id="recently-played-section" style="margin-top: 20px; display:none;">
                     <div class="category-title" style="margin-bottom: 8px;">Recently Played</div>
                     <div class="recent-scroll-row" id="recent-scroll-container"></div>
@@ -958,7 +954,6 @@
                         <button class="setting-toggle active" id="pref-instructions-toggle" onclick="toggleInstructionPreference()">ENABLED</button>
                     </div>
                 </div>
-                <!-- FULLSCREEN BUTTON MOVED HERE INSIDE SETTINGS -->
                 <div class="setting-row" style="margin-top: 16px;">
                     <span class="setting-label">⛶ Toggle Fullscreen</span>
                     <div class="setting-control">
@@ -999,16 +994,10 @@
     </div>
 
     <script>
-        // ===================================================
-        // HUB CORE & NAVIGATION SYSTEM
-        // ===================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
         }
 
-        // ===================================================
-        // ROBOT COMPANION EYE TRACKING LOGIC
-        // ===================================================
         window.addEventListener('mousemove', (e) => {
             updateRobotEyes(e.clientX, e.clientY);
         });
@@ -1040,9 +1029,7 @@
 
             const angle = Math.atan2(mouseY - eyeCenterY, mouseX - eyeCenterX);
             const maxDist = 5;
-            
             const distance = Math.min(maxDist, Math.hypot(mouseX - eyeCenterX, mouseY - eyeCenterY) / 15);
-            
             const offsetX = Math.cos(angle) * distance;
             const offsetY = Math.sin(angle) * distance;
 
@@ -1102,9 +1089,6 @@
             document.getElementById('stat-achievements').textContent = totalHighScoresSet;
         }
 
-        // ===================================================
-        // RECENTLY PLAYED & STRUCTURED INSTRUCTIONS POPUP
-        // ===================================================
         let pendingGameId = '';
         let pendingGameName = '';
         let pendingGameIcon = '';
@@ -1211,11 +1195,11 @@
             'piano-container': { objective: "Tap falling tiles to the rhythm of the music.", controls: "Tap tiles precisely without missing." },
             'fruitslice-container': { objective: "Slice flying fruits across the screen to score points.", controls: "Swipe across fruits with your finger. Avoid 💣 bombs!" },
             'molegame-container': { objective: "Whack the cheeky hamsters as they pop out of holes.", controls: "Tap moles instantly when they appear." },
-            'snakegame-container': { objective: "Guide the growing snake to eat glowing food pellets.", controls: "Use directional pad to steer without hitting walls." },
-            'dinogame-container': { objective: "Sprint endlessly across the desert avoiding obstacles.", controls: "Press Jump to clear cacti and Duck for flying pterodactyls." },
-            'carracing-container': { objective: "Steer your car at high speeds and collect power-ups.", controls: "Tap left/right arrows to change lanes; trigger ⚡ Nitro boosts." },
-            'frostgame-container': { objective: "Bounce the ball off your paddle to smash glowing bricks.", controls: "Drag your finger or mouse across the screen to move paddle." },
-            'stickman-container': { objective: "Clear obstacles in this high-speed endless runner.", controls: "Double-tap Jump ⬆️ or press Slide ⬇️." }
+            'snakegame-container': { objective: "Guide the growing snake to eat glowing food pellets.", controls: "Use Arrow keys to steer." },
+            'dinogame-container': { objective: "Sprint endlessly across the desert avoiding obstacles.", controls: "Press Space/Up Arrow to Jump, Down Arrow to Duck." },
+            'carracing-container': { objective: "Steer your car at high speeds and collect power-ups.", controls: "Use Left/Right arrows to steer, Space/Up arrow for Nitro boost." },
+            'frostgame-container': { objective: "Bounce the ball off your paddle to smash glowing bricks.", controls: "Drag your mouse or finger across the screen to move the paddle." },
+            'stickman-container': { objective: "Clear obstacles in this high-speed endless runner.", controls: "Press Space/Up Arrow to Jump/Double Jump, Down Arrow to Slide." }
         };
 
         class ArcadeAudioManager {
@@ -1312,7 +1296,6 @@
             audio.playSFX('click');
             if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
 
-            // Restore hub global elements
             document.querySelector('header').style.display = 'flex';
             document.querySelector('.welcome-banner').style.display = 'block';
             document.querySelector('.search-bar-container').style.display = 'block';
@@ -1378,7 +1361,6 @@
         }
 
         function openGame(containerId) {
-            // Hide hub global elements
             document.querySelector('header').style.display = 'none';
             document.querySelector('.welcome-banner').style.display = 'none';
             document.querySelector('.search-bar-container').style.display = 'none';
@@ -1730,7 +1712,7 @@
         }
 
         // ===================================================
-        // COIN SCATTER v2 ENGINE (OVERLAY MODAL & COUNTING ANIMATION)
+        // COIN SCATTER v2 ENGINE
         // ===================================================
         let scatterBalance = 1000000;
         let scatterBet = 1000;
@@ -1872,7 +1854,6 @@
                 document.getElementById('scatter-spin-btn').textContent = "ROLL DICE & SPIN (🪙 Bet)";
                 document.getElementById('scatter-status').textContent = "Spins finished! Select bet to roll dice again.";
                 
-                // Show custom overlay modal with number counting animation
                 setTimeout(() => {
                     showScatterWinModal(sessionTotalWins);
                 }, 300);
@@ -1884,7 +1865,6 @@
             const amountEl = document.getElementById('scatter-animated-win-amount');
             modal.classList.add('active');
             
-            // Number counting animation
             let duration = 800;
             let startTimestamp = null;
             const step = (timestamp) => {
@@ -2087,7 +2067,7 @@
         }
 
         // ===================================================
-        // TURBO CAR RACING ENGINE
+        // TURBO CAR RACING ENGINE (WITH KEYBOARD CONTROLS)
         // ===================================================
         let carCanvas, carCtx, carRunning = false, carAnimId, carScore = 0, carCoinsCollected = 0;
         let playerCar = { lane: 1, x: 0, y: 280, width: 34, height: 56, shieldTimer: 0 };
@@ -2230,7 +2210,7 @@
                         document.getElementById('car-final-msg').textContent = `Final Score: ${finalSc} | Coins: ${carCoinsCollected}`;
                         document.getElementById('car-gameover-overlay').style.display = 'flex';
                         let stats = ScoreManager.saveScore('carracing', finalSc);
-                        submitScore('Car Racing', 'TestPlayer', finalSc); // Supabase submit
+                        submitScore('Car Racing', 'TestPlayer', finalSc);
                         document.getElementById('car-high').textContent = stats.highScore;
                     }
                 }
@@ -2357,12 +2337,12 @@
             document.getElementById('piano-final-msg').textContent = `Score: ${pianoScore} | Max Streak: ${pianoStreak}`;
             document.getElementById('piano-gameover-overlay').style.display='flex'; 
             let stats=ScoreManager.saveScore('pianotiles',pianoScore); 
-            submitScore('Piano Tiles', 'TestPlayer', pianoScore); // Supabase submit
+            submitScore('Piano Tiles', 'TestPlayer', pianoScore);
             document.getElementById('piano-high').textContent=stats.highScore; 
         }
 
         // ===================================================
-        // TIC-TAC-TOE PRO ENGINE (WITH HARD MINIMAX AI)
+        // TIC-TAC-TOE PRO ENGINE
         // ===================================================
         let tttBoard = [], tttGridSize = 3;
         let currentPlayer = 'X', isGameActive = true, selectedMode = 'pvp', selectedDiff = 'easy', gameMode = 'pvp', aiDifficulty = 'easy';
@@ -2660,7 +2640,7 @@
             document.getElementById('fruit-final-msg').textContent = `Final Score: ${fruitScore}`;
             document.getElementById('fruit-gameover-overlay').style.display = 'flex'; 
             ScoreManager.saveScore('fruitslasher', fruitScore); 
-            submitScore('Fruit Master', 'TestPlayer', fruitScore); // Supabase submit
+            submitScore('Fruit Master', 'TestPlayer', fruitScore);
         }
 
         // ===================================================
@@ -2703,6 +2683,18 @@
             }
         }
 
+        // Support Enter key submission on number input
+        document.addEventListener('DOMContentLoaded', () => {
+            const guessInputEl = document.getElementById('guess-input');
+            if(guessInputEl) {
+                guessInputEl.addEventListener('keydown', (e) => {
+                    if(e.key === 'Enter') {
+                        submitGuess();
+                    }
+                });
+            }
+        });
+
         function resetGuessGame() { 
             audio.playSFX('click'); 
             targetNumber=Math.floor(Math.random()*guessMaxRange)+1; 
@@ -2715,7 +2707,7 @@
         }
 
         // ===================================================
-        // WHACK-A-MOLE PRO ENGINE (UPGRADED TO 2X SPEED)
+        // WHACK-A-MOLE PRO ENGINE
         // ===================================================
         let moleActiveIdx = -1, moleScore = 0, moleTimer = null, isMolePlaying = false, moleTimeLeft = 20;
 
@@ -2741,7 +2733,7 @@
                     document.getElementById('mole-start-btn').textContent='Start Game (2x Speed)';
                     audio.playSFX('win');
                     let stats=ScoreManager.saveScore('mole',moleScore);
-                    submitScore('Whack-a-Mole', 'TestPlayer', moleScore); // Supabase submit
+                    submitScore('Whack-a-Mole', 'TestPlayer', moleScore);
                     document.getElementById('mole-high').textContent=stats.highScore;
                 }
             },325);
@@ -2758,7 +2750,7 @@
         }
 
         // ===================================================
-        // SNAKE EVOLUTION ENGINE
+        // SNAKE EVOLUTION ENGINE (WITH KEYBOARD CONTROLS)
         // ===================================================
         let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
 
@@ -2774,6 +2766,15 @@
         }
         function changeSnakeDir(dir) { audio.playSFX('move'); if(dir==='UP'&&snakeDir!=='DOWN')nextSnakeDir='UP'; if(dir==='DOWN'&&snakeDir!=='UP')nextSnakeDir='DOWN'; if(dir==='LEFT'&&snakeDir!=='RIGHT')nextSnakeDir='LEFT'; if(dir==='RIGHT'&&snakeDir!=='LEFT')nextSnakeDir='RIGHT'; }
 
+        // Keyboard listener for Snake
+        window.addEventListener('keydown', e => {
+            if(!document.getElementById('snakegame-container').classList.contains('active')) return;
+            if(e.code === 'ArrowUp') { e.preventDefault(); changeSnakeDir('UP'); }
+            if(e.code === 'ArrowDown') { e.preventDefault(); changeSnakeDir('DOWN'); }
+            if(e.code === 'ArrowLeft') { e.preventDefault(); changeSnakeDir('LEFT'); }
+            if(e.code === 'ArrowRight') { e.preventDefault(); changeSnakeDir('RIGHT'); }
+        });
+
         function updateRealSnake() {
             snakeDir=nextSnakeDir; let head={x:snake[0].x,y:snake[0].y};
             if(snakeDir==='UP')head.y--; if(snakeDir==='DOWN')head.y++; if(snakeDir==='LEFT')head.x--; if(snakeDir==='RIGHT')head.x++;
@@ -2784,7 +2785,7 @@
                 document.getElementById('snake-final-msg').textContent = `Final Score: ${snakeScore}`;
                 document.getElementById('snake-gameover-overlay').style.display='flex';
                 let stats=ScoreManager.saveScore('snake',snakeScore);
-                submitScore('Snake Evolution', 'TestPlayer', snakeScore); // Supabase submit
+                submitScore('Snake Evolution', 'TestPlayer', snakeScore);
                 document.getElementById('snake-high').textContent=stats.highScore;
                 return;
             }
@@ -2811,7 +2812,7 @@
         }
 
         // ===================================================
-        // DINO RUNNER PRO ENGINE
+        // DINO RUNNER PRO ENGINE (WITH KEYBOARD CONTROLS)
         // ===================================================
         let dinoCanvas, dinoCtx, dinoAnimId, dinoScore = 0, isDinoRunning = false, dinoBirdsDodged = 0;
         let dino = { x: 35, y: 125, width: 34, height: 36, isDucking: false, vy: 0, animFrame: 0 };
@@ -2852,6 +2853,13 @@
             dino.isDucking = true;
             setTimeout(() => { dino.isDucking = false; }, 650);
         }
+
+        // Keyboard listener for Dino Runner
+        window.addEventListener('keydown', e => {
+            if(!document.getElementById('dinogame-container').classList.contains('active')) return;
+            if(e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); dinoJump(); }
+            if(e.code === 'ArrowDown') { e.preventDefault(); dinoDuck(); }
+        });
 
         let dinoSpawnCounter = 0;
         function dinoLoop() {
@@ -2904,7 +2912,7 @@
             document.getElementById('dino-final-msg').textContent = `Final Score: ${dinoScore}`;
             document.getElementById('dino-gameover-overlay').style.display = 'flex'; 
             let stats = ScoreManager.saveScore('dino', dinoScore); 
-            submitScore('Dino Runner', 'TestPlayer', dinoScore); // Supabase submit
+            submitScore('Dino Runner', 'TestPlayer', dinoScore);
             document.getElementById('dino-high').textContent = stats.highScore; 
         }
 
@@ -2968,6 +2976,14 @@
                 }
             });
         }
+
+        // Keyboard listener for Car Racing (Left/Right steer, Space/Up for boost)
+        window.addEventListener('keydown', e => {
+            if(!document.getElementById('carracing-container').classList.contains('active')) return;
+            if(e.code === 'ArrowLeft') { e.preventDefault(); moveCar('LEFT'); }
+            if(e.code === 'ArrowRight') { e.preventDefault(); moveCar('RIGHT'); }
+            if(e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); triggerCarBoost(); }
+        });
 
         // ===================================================
         // BRICK BREAKER ENGINE
@@ -3142,7 +3158,7 @@
                     document.getElementById('final-frost-score').textContent = `Final Score: ${frostScore}`;
                     document.getElementById('frost-gameover-overlay').style.display = 'flex';
                     ScoreManager.saveScore('brickbreaker', frostScore);
-                    submitScore('Brick Breaker', 'TestPlayer', frostScore); // Supabase submit
+                    submitScore('Brick Breaker', 'TestPlayer', frostScore);
                     return;
                 } else {
                     initFrostBalls();
@@ -3442,7 +3458,7 @@
                         localStorage.setItem('sr_high', srHighScore); 
                     }
                     ScoreManager.saveScore('sr', currentScoreInt);
-                    submitScore('Stick Run', 'TestPlayer', currentScoreInt); // Supabase submit
+                    submitScore('Stick Run', 'TestPlayer', currentScoreInt);
 
                     if(o.type.includes('saw')) {
                         deathAnim = { type: 'saw_shred', x: srPlayer.x + 14, y: srPlayer.y + 25, timer: 0 };
