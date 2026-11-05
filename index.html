@@ -295,46 +295,41 @@
 </head>
 <body>
 <script>
+        
         const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
-        
-async function submitScore(gameName, playerName, score) {
-  const { data, error } = await supabase
-    .from('high_scores')
-    .insert([
-      { game_name: gameName, player_name: playerName, score: score }
-    ]);
+    
+        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  if (error) {
-    console.error('Error saving score:', error);
-  } else {
-    console.log('Score saved successfully!', data);
-  }
-}
+        async function submitScore(gameName, playerName, score) {
+          const { data, error } = await window.supabaseClient
+            .from('high_scores')
+            .insert([
+              { game_name: gameName, player_name: playerName, score: score }
+            ]);
 
-function oSnakeEvolution() {
-  console.log('Game over triggered');
-  submitScore('Snake Evolution', 'Player1', currentScore);
-}
+          if (error) {
+            console.error('Error saving score:', error);
+          } else {
+            console.log('Score saved successfully!', data);
+          }
+        }
 
-function onBrickBreakerGameOver() {
-  console.log('Game over triggered');
-  submitScore('Brick Breaker', 'Player1', scoreVariable);
-}
+        function oSnakeEvolution() {
+          console.log('Game over triggered');
+          submitScore('Snake Evolution', 'Player1', typeof snakeScore !== 'undefined' ? snakeScore : 0);
+        }
 
-function onCarCrash() {
-  console.log('Game over triggered');
-  submitScore('Car Racing', 'Player1', distanceScore);
-}
+        function onBrickBreakerGameOver() {
+          console.log('Game over triggered');
+          submitScore('Brick Breaker', 'Player1', typeof frostScore !== 'undefined' ? frostScore : 0);
+        }
 
-
-function handleScoreSubmit(gameName) {
-  const playerName = document.getElementById('player-name-input').value || 'Anonymous';
-  const score = currentScore; 
-  submitScore(gameName, playerName, score);
-}
+        function onCarCrash() {
+          console.log('Game over triggered');
+          submitScore('Car Racing', 'Player1', typeof carScore !== 'undefined' ? carScore : 0);
+        }
     </script>
-
     <div id="splash-screen">
         <div class="splash-logo-box">
             <div class="splash-icon">🎮</div>
