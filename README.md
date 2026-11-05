@@ -1,6 +1,6 @@
  🕹️ Arcade Hub
 
-Arcade Hub is a feature-rich, responsive web-based gaming platform that brings classic arcade, puzzle, card, and action games directly to your browser[cite: 1]. Designed with a sleek dark-themed UI and optimized for both mobile and desktop experiences, it offers a seamless gaming experience complete with live gaming activity trackers and custom settings[cite: 1].
+Arcade Hub is a feature-rich, responsive web-based gaming platform that brings classic arcade, puzzle, card, and action games directly to your browser. Designed with a sleek dark-themed UI and optimized for both mobile and desktop experiences, it offers a seamless gaming experience complete with live gaming activity trackers and custom settings.
 
 ---
 
