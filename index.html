@@ -7,6 +7,9 @@
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- Supabase JavaScript Client Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         /* ===================== HUB CORE STYLES ===================== */
         :root {
@@ -977,6 +980,37 @@
     </div>
 
     <script>
+
+// ===================================================
+        // SUPABASE INITIALIZATION & FUNCTIONS
+        // ===================================================
+        const SUPABASE_URL ='https://nrlfudwhnncycjcyupgt.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function submitScoreToSupabase(playerName, scoreValue, gameTitle) {
+            if (!playerName || playerName.trim() === '') return;
+            try {
+                const { data, error } = await supabase
+                    .from('high_scores')
+                    .insert([
+                        { 
+                          player_name: playerName.trim(), 
+                          score: parseInt(scoreValue, 10), 
+                          game_name: gameTitle 
+                        }
+                    ]);
+                    
+                if (error) {
+                    console.error('Error saving score:', error.message);
+                } else {
+                    console.log('Score saved successfully!', data);
+                }
+            } catch (err) {
+                console.error('Unexpected error:', err);
+            }
+        }
+
         // ===================================================
         // HUB CORE & NAVIGATION SYSTEM
         // ===================================================
