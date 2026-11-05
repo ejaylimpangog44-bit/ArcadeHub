@@ -126,56 +126,6 @@
         }
         .edit-name-btn:hover { background: rgba(139, 92, 246, 0.35); }
 
-        /* Featured & Trending Carousel Widget */
-        .hero-carousel-container { width: 100%; max-width: 600px; margin-bottom: 16px; padding: 0 4px; }
-        .carousel-track { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; scrollbar-width: none; }
-        .carousel-track::-webkit-scrollbar { display: none; }
-        .carousel-card {
-            min-width: 240px; height: 150px; flex: 0 0 auto; scroll-snap-align: center;
-            background: linear-gradient(145deg, #111827, #0b0f19); border: 2px solid var(--border);
-            border-radius: 16px; overflow: hidden; position: relative; cursor: pointer;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column; justify-content: flex-end; padding: 14px;
-        }
-        .carousel-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 12px 30px var(--accent-glow); }
-        .carousel-card-bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0.45; transition: transform 0.4s ease; }
-        .carousel-card:hover .carousel-card-bg { transform: scale(1.06); }
-        .carousel-card-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(7, 9, 19, 0.92) 90%); }
-        .carousel-card-content { position: relative; z-index: 2; }
-        .carousel-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 2px; }
-        .carousel-title { font-size: 15px; font-weight: 700; color: #fff; }
-
-        /* Realistic Handheld Phone Photo Mockup Widget */
-        .handheld-mockup-section { width: 100%; max-width: 600px; margin-bottom: 20px; padding: 0 4px; }
-        .handheld-card {
-            background: linear-gradient(145deg, rgba(17, 24, 39, 0.9), rgba(11, 15, 25, 0.95));
-            border: 1px solid var(--border); border-radius: 16px; padding: 16px;
-            display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            position: relative; overflow: hidden;
-        }
-        .handheld-card::before {
-            content: ''; position: absolute; top: 0; right: 0; width: 120px; height: 120px;
-            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); opacity: 0.6; pointer-events: none;
-        }
-        .handheld-graphic {
-            width: 80px; height: 105px; background: #020617; border: 3px solid #334155;
-            border-radius: 12px; position: relative; flex-shrink: 0; display: flex;
-            flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.6); transform: rotate(-3deg);
-        }
-        .handheld-graphic .screen-content { font-size: 10px; text-align: center; color: var(--accent); font-weight: 800; padding: 4px; }
-        .handheld-info h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-        .handheld-info p { font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px; }
-        .handheld-badge {
-            display: inline-block; background: rgba(16, 185, 129, 0.15); color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.3); font-size: 9px; font-weight: 800;
-            padding: 3px 8px; border-radius: 6px; letter-spacing: 0.5px; text-transform: uppercase;
-        }
-
-        .search-bar-container { width: 100%; max-width: 600px; margin-bottom: 16px; padding: 0 4px; }
-        .search-input { width: 100%; background: rgba(17, 24, 39, 0.8); border: 1px solid var(--border); color: var(--text-main); padding: 12px 16px; border-radius: 14px; font-size: 0.95rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
-        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--accent-glow); }
-
         .view { width: 100%; max-width: 600px; display: none; }
         .view.active { display: block; }
 
@@ -185,10 +135,134 @@
         .game-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         @media (min-width: 480px) { .game-grid { grid-template-columns: repeat(3, 1fr); } }
 
-        .game-card { background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border); border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-        .game-card:hover { background: rgba(139, 92, 246, 0.15); border-color: var(--border-hover); transform: translateY(-2px); }
-        .game-icon { font-size: 24px; }
-        .game-name { font-size: 13px; font-weight: 500; color: #e5e7eb; }
+        /* ===================== ENHANCED GAME CARDS ===================== */
+        .game-card {
+            --card-glow: var(--accent-glow);
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            min-height: 132px;
+            background: linear-gradient(145deg, rgba(22, 30, 48, 0.96), rgba(13, 19, 33, 0.96));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px 10px 18px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            box-shadow: 0 7px 18px rgba(0, 0, 0, 0.18);
+            transform: translateY(0) scale(1);
+            transition:
+                transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+                border-color 0.3s ease,
+                background 0.3s ease,
+                box-shadow 0.38s ease;
+            animation: gameCardEnter 0.65s both;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .game-card::before {
+            content: "READY";
+            position: absolute;
+            top: 9px;
+            left: 10px;
+            z-index: 2;
+            padding: 3px 7px;
+            border-radius: 20px;
+            color: #a7f3d0;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(52, 211, 153, 0.22);
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+        .game-card::after {
+            content: "TAP TO PLAY  ↗";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 2;
+            padding: 8px 4px;
+            color: #fff;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .game-card:hover,
+        .game-card:focus-visible {
+            background: linear-gradient(145deg, rgba(35, 31, 67, 0.98), rgba(17, 24, 39, 0.98));
+            border-color: var(--primary);
+            transform: translateY(-6px) scale(1.025);
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.32), 0 0 22px var(--card-glow);
+            outline: none;
+        }
+        .game-card:hover::before,
+        .game-card:focus-visible::before {
+            color: #fff;
+            background: rgba(16, 185, 129, 0.28);
+        }
+        .game-card:hover::after,
+        .game-card:focus-visible::after {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .game-card:active { transform: translateY(-1px) scale(0.975); }
+        .game-icon {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 31px;
+            line-height: 1.2;
+            filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.25));
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.3s ease;
+        }
+        .game-card:hover .game-icon,
+        .game-card:focus-visible .game-icon {
+            transform: translateY(-4px) rotate(-7deg) scale(1.16);
+            filter: drop-shadow(0 7px 12px var(--card-glow));
+        }
+        .game-name {
+            position: relative;
+            z-index: 1;
+            font-size: 13px;
+            font-weight: 700;
+            color: #e5e7eb;
+            transition: color 0.25s ease, letter-spacing 0.25s ease;
+        }
+        .game-card:hover .game-name,
+        .game-card:focus-visible .game-name {
+            color: #fff;
+            letter-spacing: 0.25px;
+        }
+        .game-grid .game-card:nth-child(1) { animation-delay: 0.04s; }
+        .game-grid .game-card:nth-child(2) { animation-delay: 0.09s; }
+        .game-grid .game-card:nth-child(3) { animation-delay: 0.14s; }
+        .game-grid .game-card:nth-child(4) { animation-delay: 0.19s; }
+        .game-grid .game-card:nth-child(5) { animation-delay: 0.24s; }
+        @keyframes gameCardEnter {
+            from { opacity: 0; transform: translateY(18px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @media (hover: none) {
+            .game-card::after { opacity: 1; transform: translateY(0); }
+            .game-card { padding-bottom: 34px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .game-card, .game-card::before, .game-card::after, .game-icon, .game-name {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
         
         .recent-scroll-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
         .recent-scroll-row::-webkit-scrollbar { display: none; }
@@ -417,64 +491,6 @@
             <p>Ready for another gaming adventure?</p>
         </div>
         <button class="edit-name-btn" onclick="openNamePromptModal()">Change Name</button>
-    </div>
-
-    <!-- Hero Carousel Showcase UI -->
-    <div class="hero-carousel-container">
-        <div class="category-title" style="margin-bottom: 8px;">Featured & Trending</div>
-        <div class="carousel-track">
-            <div class="carousel-card" onclick="showGameInstructions('solitaire-container', 'Speed Solitaire', '🎴', { objective: 'Match cards in your tableau that are 1 rank higher or lower than the foundation target card before time runs out!', controls: 'Tap playable cards to match before time runs out.' })">
-                <div class="carousel-card-bg" style="background-image: url('https://images.unsplash.com/photo-1511193311914-0346f16efe90?auto=format&fit=crop&w=600&q=80');"></div>
-                <div class="carousel-card-overlay"></div>
-                <div class="carousel-card-content">
-                    <span class="carousel-badge">Card Sprint</span>
-                    <h3 class="carousel-title">Speed Solitaire</h3>
-                </div>
-            </div>
-            <div class="carousel-card" onclick="showGameInstructions('scattercard-container', 'Coin Scatter v2', '🎰', { objective: 'Place your bet and roll the dice to earn spins, then spin the reels to land multipliers and win big coins!', controls: 'Select bet, roll dice for spins, and hit spin.' })">
-                <div class="carousel-card-bg" style="background-image: url('https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=600&q=80');"></div>
-                <div class="carousel-card-overlay"></div>
-                <div class="carousel-card-content">
-                    <span class="carousel-badge">Casino Hit</span>
-                    <h3 class="carousel-title">Coin Scatter v2</h3>
-                </div>
-            </div>
-            <div class="carousel-card" onclick="showGameInstructions('snakegame-container', 'Snake Evolution', '🐍', { objective: 'Guide the growing snake to eat glowing food pellets without crashing into walls or your own tail!', controls: 'Use Arrow keys or D-Pad to steer.' })">
-                <div class="carousel-card-bg" style="background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80');"></div>
-                <div class="carousel-card-overlay"></div>
-                <div class="carousel-card-content">
-                    <span class="carousel-badge">Classic Arcade</span>
-                    <h3 class="carousel-title">Snake Evolution</h3>
-                </div>
-            </div>
-            <div class="carousel-card" onclick="showGameInstructions('piano-container', 'Piano Tiles', '🎹', { objective: 'Tap falling white tiles and hold long tiles precisely to the rhythm of classic songs without missing!', controls: 'Tap tiles precisely without missing.' })">
-                <div class="carousel-card-bg" style="background-image: url('https://images.unsplash.com/photo-1520523839896-50a8a816a124?auto=format&fit=crop&w=600&q=80');"></div>
-                <div class="carousel-card-overlay"></div>
-                <div class="carousel-card-content">
-                    <span class="carousel-badge">Rhythm Master</span>
-                    <h3 class="carousel-title">Piano Tiles Pro</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Realistic Handheld Phone Photo Mockup Widget (Inspired by Photo 2) -->
-    <div class="handheld-mockup-section">
-        <div class="handheld-card">
-            <div class="handheld-graphic">
-                <div class="screen-content">ARCADE HUB v2</div>
-                <div style="font-size:22px; margin-top:6px;">🎮</div>
-            </div>
-            <div class="handheld-info">
-                <h4>Immersive Mobile Play</h4>
-                <p>Designed for lightning-fast touch gaming and optimized performance right in your browser.</p>
-                <span class="handheld-badge">Fully Responsive</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="search-bar-container">
-        <input type="text" id="game-search-input" class="search-input" placeholder="🔍 Search your favorite games..." oninput="filterGames(this.value)">
     </div>
 
     <div id="main-menu" class="view active">
@@ -1170,29 +1186,6 @@
             pupil.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
         }
 
-        function filterGames(query) {
-            const q = query.toLowerCase().trim();
-            const sections = document.querySelectorAll('.category-section');
-            
-            sections.forEach(section => {
-                if(section.id === 'recently-played-section') return;
-                const cards = section.querySelectorAll('.game-card');
-                let hasVisibleCard = false;
-
-                cards.forEach(card => {
-                    const name = card.getAttribute('data-name') || '';
-                    if (name.includes(q)) {
-                        card.style.display = 'flex';
-                        hasVisibleCard = true;
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-
-                section.style.display = hasVisibleCard ? 'block' : 'none';
-            });
-        }
-
         const ScoreManager = {
             getStats(gameKey) {
                 const data = localStorage.getItem(`arcadehub_${gameKey}`);
@@ -1501,9 +1494,6 @@
 
             document.querySelector('header').style.display = 'flex';
             document.querySelector('.welcome-banner').style.display = 'flex';
-            document.querySelector('.hero-carousel-container').style.display = 'block';
-            document.querySelector('.handheld-mockup-section').style.display = 'block';
-            document.querySelector('.search-bar-container').style.display = 'block';
 
             if (typeof snakeInterval !== 'undefined') clearInterval(snakeInterval);
             if (typeof dinoInterval !== 'undefined') clearInterval(dinoInterval);
@@ -1553,9 +1543,6 @@
         function openGame(containerId) {
             document.querySelector('header').style.display = 'none';
             document.querySelector('.welcome-banner').style.display = 'none';
-            document.querySelector('.hero-carousel-container').style.display = 'none';
-            document.querySelector('.handheld-mockup-section').style.display = 'none';
-            document.querySelector('.search-bar-container').style.display = 'none';
             
             document.getElementById('main-menu').classList.remove('active');
             document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
@@ -3688,6 +3675,23 @@
 
             if(srRunning) srAnimId = requestAnimationFrame(srGameLoop);
         }
+    </script>
+
+    <script>
+        // Make the existing clickable game cards usable with a keyboard.
+        document.querySelectorAll('.game-card').forEach((card) => {
+            card.setAttribute('role', 'button');
+            card.setAttribute('tabindex', '0');
+            if (!card.hasAttribute('aria-label')) {
+                card.setAttribute('aria-label', `Play ${card.querySelector('.game-name')?.textContent.trim() || 'game'}`);
+            }
+            card.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    card.click();
+                }
+            });
+        });
     </script>
 </body>
 </html>
