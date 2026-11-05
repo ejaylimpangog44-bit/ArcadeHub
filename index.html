@@ -314,6 +314,22 @@ Async function submitScore(gameName, playerName, score) {
   }
 }
 
+function oSnakeEvolution() {
+  console.log('Game over triggered');
+  submitScore('Snake Evolution', 'Player1', currentScore);
+}
+
+function onBrickBreakerGameOver() {
+  console.log('Game over triggered');
+  submitScore('Brick Breaker', 'Player1', scoreVariable);
+}
+
+function onCarCrash() {
+  console.log('Game over triggered');
+  submitScore('Car Racing', 'Player1', distanceScore);
+}
+
+
 function handleScoreSubmit(gameName) {
   const playerName = document.getElementById('player-name-input').value || 'Anonymous';
   const score = currentScore; 
