@@ -1355,24 +1355,41 @@
             updateHubActivityStats();
             renderRecentGames();
         }
-
         window.onload = function() {
             generateQRCode();
-            initSnakeCanvas(); initDinoCanvas(); initFrostCanvas(); initFruitCanvas(); initPianoCanvas(); initCarCanvas();
+            
+            if (typeof initSnakeCanvas === 'function') initSnakeCanvas();
+            if (typeof initDinoCanvas === 'function') initDinoCanvas();
+            if (typeof initFrostCanvas === 'function') initFrostCanvas();
+            if (typeof initFruitCanvas === 'function') initFruitCanvas();
+            if (typeof initPianoCanvas === 'function') initPianoCanvas();
+            if (typeof initCarCanvas === 'function') initCarCanvas();
+
             const savedTheme = localStorage.getItem("arcadehub_theme") || "";
             if (savedTheme) document.documentElement.className = savedTheme;
 
             let globalInst = localStorage.getItem('arcadehub_global_instructions') !== 'false';
             const prefBtn = document.getElementById('pref-instructions-toggle');
-            if(globalInst) { prefBtn.textContent = "ENABLED"; prefBtn.classList.add('active'); }
-            else { prefBtn.textContent = "DISABLED"; prefBtn.classList.remove('active'); }
+            if (prefBtn) {
+                if (globalInst) { 
+                    prefBtn.textContent = "ENABLED"; 
+                    prefBtn.classList.add('active'); 
+                } else { 
+                    prefBtn.textContent = "DISABLED"; 
+                    prefBtn.classList.remove('active'); 
+                }
+            }
 
             updateHubActivityStats();
             renderRecentGames();
 
             const bestGuessData = localStorage.getItem('arcadehub_guess');
-            if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
+            const guessBestEl = document.getElementById('guess-best');
+            if (bestGuessData && guessBestEl) {
+                guessBestEl.textContent = bestGuessData;
+            }
         };
+    
 
         function enterHub() {
             try {
