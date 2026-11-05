@@ -295,80 +295,27 @@
 </head>
 <body>
 <script>
-        
-        const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
+    const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
     
-        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // I-initialize nang global sa window para ma-access ng lahat ng scripts
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        async function submitScore(gameName, playerName, score) {
-          const { data, error } = await window.supabaseClient
-            .from('high_scores')
-            .insert([
-              { game_name: gameName, player_name: playerName, score: score }
-            ]);
+    async function submitScore(gameName, playerName, score) {
+      const { data, error } = await window.supabaseClient
+        .from('high_scores')
+        .insert([
+          { game_name: gameName, player_name: playerName, score: score }
+        ]);
 
-          if (error) {
-            console.error('Error saving score:', error);
-          } else {
-            console.log('Score saved successfully!', data);
-          }
-        }
+      if (error) {
+        console.error('Error saving score:', error);
+      } else {
+        console.log('Score saved successfully!', data);
+      }
+    }
+</script>
 
-        function oSnakeEvolution() {
-  console.log('Game over triggered');
-  
-  const finalScore = typeof snakeScore !== 'undefined' ? snakeScore : 0;
-  submitScore('Snake Evolution', 'TestPlayer', finalScore);
-}
-
-        function onBrickBreakerGameOver() {
-  console.log('Brick Breaker Game over triggered');
-  const finalScore = typeof frostScore !== 'undefined' ? frostScore : 0;
-  submitScore('Brick Breaker', 'TestPlayer', finalScore);
-}
-
-    function onCarRacingGameOver() {
-  console.log('Car Racing Game over triggered');
-  const finalScore = typeof carScore !== 'undefined' ? Math.floor(carScore / 5) : 0;
-  submitScore('Car Racing', 'TestPlayer', finalScore);
-}
-
-    function endDinoGame() { 
-  audio.playSFX('gameover'); 
-  isDinoRunning = false; 
-  cancelAnimationFrame(dinoAnimId);
-  
-  // Isama ito para sa Supabase
-  const finalScore = typeof dinoScore !== 'undefined' ? dinoScore : 0;
-  submitScore('Dino Runner', 'TestPlayer', finalScore);
-
-  document.getElementById('dino-final-msg').textContent = `Final Score: ${dinoScore}`;
-  document.getElementById('dino-gameover-overlay').style.display = 'flex'; 
-  let stats = ScoreManager.saveScore('dino', dinoScore); 
-  document.getElementById('dino-high').textContent = stats.highScore; 
-}
-
-    function endPianoGame() { 
-  pianoRunning = false; 
-  audio.playSFX('gameover'); 
-  
-  // Isama ito para sa Supabase
-  const finalScore = typeof pianoScore !== 'undefined' ? pianoScore : 0;
-  submitScore('Piano Tiles', 'TestPlayer', finalScore);
-
-  document.getElementById('piano-final-msg').textContent = `Score: ${pianoScore} | Max Streak: ${pianoStreak}`;
-  document.getElementById('piano-gameover-overlay').style.display = 'flex'; 
-  let stats = ScoreManager.saveScore('pianotiles', pianoScore); 
-  document.getElementById('piano-high').textContent = stats.highScore; 
-}
-    
-    submitScore('Whack-a-Mole', 'TestPlayer', moleScore);
-    let stats = ScoreManager.saveScore('mole', moleScore);
-    document.getElementById('mole-high').textContent = stats.highScore;
-
-        
-    </script>
     <div id="splash-screen">
         <div class="splash-logo-box">
             <div class="splash-icon">🎮</div>
@@ -2283,6 +2230,7 @@
                         document.getElementById('car-final-msg').textContent = `Final Score: ${finalSc} | Coins: ${carCoinsCollected}`;
                         document.getElementById('car-gameover-overlay').style.display = 'flex';
                         let stats = ScoreManager.saveScore('carracing', finalSc);
+                        submitScore('Car Racing', 'TestPlayer', finalSc); // Supabase submit
                         document.getElementById('car-high').textContent = stats.highScore;
                     }
                 }
@@ -2406,14 +2354,12 @@
         }
         function endPianoGame() { 
             pianoRunning=false; audio.playSFX('gameover'); 
-            const finalScore = typeof pianoScore !== 'undefined' ? pianoScore : 0;
-  submitScore('Piano Tiles', 'TestPlayer', finalScore);
-
-  document.getElementById('piano-final-msg').textContent = `Score: ${pianoScore} | Max Streak: ${pianoStreak}`;
-  document.getElementById('piano-gameover-overlay').style.display = 'flex'; 
-  let stats = ScoreManager.saveScore('pianotiles', pianoScore); 
-  document.getElementById('piano-high').textContent = stats.highScore; 
-}
+            document.getElementById('piano-final-msg').textContent = `Score: ${pianoScore} | Max Streak: ${pianoStreak}`;
+            document.getElementById('piano-gameover-overlay').style.display='flex'; 
+            let stats=ScoreManager.saveScore('pianotiles',pianoScore); 
+            submitScore('Piano Tiles', 'TestPlayer', pianoScore); // Supabase submit
+            document.getElementById('piano-high').textContent=stats.highScore; 
+        }
 
         // ===================================================
         // TIC-TAC-TOE PRO ENGINE (WITH HARD MINIMAX AI)
@@ -2714,6 +2660,7 @@
             document.getElementById('fruit-final-msg').textContent = `Final Score: ${fruitScore}`;
             document.getElementById('fruit-gameover-overlay').style.display = 'flex'; 
             ScoreManager.saveScore('fruitslasher', fruitScore); 
+            submitScore('Fruit Master', 'TestPlayer', fruitScore); // Supabase submit
         }
 
         // ===================================================
@@ -2794,6 +2741,7 @@
                     document.getElementById('mole-start-btn').textContent='Start Game (2x Speed)';
                     audio.playSFX('win');
                     let stats=ScoreManager.saveScore('mole',moleScore);
+                    submitScore('Whack-a-Mole', 'TestPlayer', moleScore); // Supabase submit
                     document.getElementById('mole-high').textContent=stats.highScore;
                 }
             },325);
@@ -2836,6 +2784,7 @@
                 document.getElementById('snake-final-msg').textContent = `Final Score: ${snakeScore}`;
                 document.getElementById('snake-gameover-overlay').style.display='flex';
                 let stats=ScoreManager.saveScore('snake',snakeScore);
+                submitScore('Snake Evolution', 'TestPlayer', snakeScore); // Supabase submit
                 document.getElementById('snake-high').textContent=stats.highScore;
                 return;
             }
@@ -2952,14 +2901,13 @@
             audio.playSFX('gameover'); 
             isDinoRunning = false; 
             cancelAnimationFrame(dinoAnimId);
-            const finalScore = typeof dinoScore !== 'undefined' ? dinoScore : 0;
-  submitScore('Dino Runner', 'TestPlayer', finalScore);
+            document.getElementById('dino-final-msg').textContent = `Final Score: ${dinoScore}`;
+            document.getElementById('dino-gameover-overlay').style.display = 'flex'; 
+            let stats = ScoreManager.saveScore('dino', dinoScore); 
+            submitScore('Dino Runner', 'TestPlayer', dinoScore); // Supabase submit
+            document.getElementById('dino-high').textContent = stats.highScore; 
+        }
 
-  document.getElementById('dino-final-msg').textContent = `Final Score: ${dinoScore}`;
-  document.getElementById('dino-gameover-overlay').style.display = 'flex'; 
-  let stats = ScoreManager.saveScore('dino', dinoScore); 
-  document.getElementById('dino-high').textContent = stats.highScore; 
-}
         function drawDinoScene() {
             dinoCtx.fillStyle = '#0b0f19'; 
             dinoCtx.fillRect(0, 0, 320, 180); 
@@ -3194,6 +3142,7 @@
                     document.getElementById('final-frost-score').textContent = `Final Score: ${frostScore}`;
                     document.getElementById('frost-gameover-overlay').style.display = 'flex';
                     ScoreManager.saveScore('brickbreaker', frostScore);
+                    submitScore('Brick Breaker', 'TestPlayer', frostScore); // Supabase submit
                     return;
                 } else {
                     initFrostBalls();
@@ -3488,16 +3437,12 @@
                 }
                 if(pBox.x < o.x + o.w - 5 && pBox.x + pBox.w > o.x + 5 && pBox.y < o.y + o.h && pBox.y + pBox.h > o.y) {
                     audio.playSFX('gameover');
-                   let currentScoreInt = Math.floor(srScore);
-            submitScore('Stick Run', 'TestPlayer', currentScoreInt);
-        
-                if(currentScoreInt > srHighScore) { 
-                srHighScore = currentScoreInt; 
-                localStorage.setItem('sr_high', srHighScore); 
-            }
-            ScoreManager.saveScore('sr', currentScoreInt);
-            // ... sunod na death animation code ...
-        }
+                    if(currentScoreInt > srHighScore) { 
+                        srHighScore = currentScoreInt; 
+                        localStorage.setItem('sr_high', srHighScore); 
+                    }
+                    ScoreManager.saveScore('sr', currentScoreInt);
+                    submitScore('Stick Run', 'TestPlayer', currentScoreInt); // Supabase submit
 
                     if(o.type.includes('saw')) {
                         deathAnim = { type: 'saw_shred', x: srPlayer.x + 14, y: srPlayer.y + 25, timer: 0 };
