@@ -302,7 +302,7 @@
 
 async function submitScore(gameName, playerName, score) {
   const { data, error } = await supabase
-    .from('high_score')
+    .from('high_scores')
     .insert([
       { game_name: gameName, player_name: playerName, score: score }
     ]);
