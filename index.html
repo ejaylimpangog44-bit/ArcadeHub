@@ -502,6 +502,120 @@
       }
     }
 
+   
+/* =========================================
+   ARCADE HUB - PLAYER SCORE MANAGEMENT
+========================================= */
+
+// Get active player name
+function getCurrentPlayer() {
+    const input = document.getElementById("usernameInput");
+
+    return input?.value.trim().toLowerCase() || "guest";
+}
+
+// Get local scores
+function loadPlayerScores() {
+    const player = getCurrentPlayer();
+    const savedScores = localStorage.getItem(`arcade_scores_${player}`);
+
+    try {
+        return savedScores ? JSON.parse(savedScores) : {};
+    } catch (error) {
+        console.error("Unable to load local scores:", error);
+        return {};
+    }
+}
+
+// Save a new local high score
+function savePlayerScore(gameName, score) {
+    const player = getCurrentPlayer();
+    const scores = loadPlayerScores();
+
+    const currentScore = Number(scores[gameName]) || 0;
+    const newScore = Number(score);
+
+    if (!Number.isFinite(newScore) || newScore < 0) return false;
+
+    if (newScore > currentScore) {
+        scores[gameName] = newScore;
+
+        localStorage.setItem(
+            `arcade_scores_${player}`,
+            JSON.stringify(scores)
+        );
+
+        return true;
+    }
+
+    return false;
+}
+
+// Save high score to Supabase
+async function savePlayerScoreToCloud(gameName, score) {
+    const player = getCurrentPlayer();
+
+    if (!Number.isFinite(Number(score)) || Number(score) < 0) {
+        return false;
+    }
+
+    const { error } = await supabase
+        .from("high_scores")
+        .upsert({
+            player_name: player,
+            game_name: gameName,
+            score: Number(score)
+        }, {
+            onConflict: "player_name,game_name"
+        });
+
+    if (error) {
+        console.error("Cloud score saving failed:", error);
+        return false;
+    }
+
+    return true;
+}
+
+// Fetch active player's cloud scores
+async function fetchPlayerTrophiesFromCloud(playerName = getCurrentPlayer()) {
+    const player = playerName.trim().toLowerCase();
+
+    const { data, error } = await supabase
+        .from("high_scores")
+        .select("player_name, game_name, score, created_at")
+        .eq("player_name", player)
+        .order("score", { ascending: false });
+
+    if (error) {
+        console.error("Unable to fetch trophies:", error);
+        return [];
+    }
+
+    renderTrophiesUI(data || []);
+    return data || [];
+}
+
+// Refresh trophy panel
+function refreshPlayerTrophies() {
+    updateTrophiesPanel();
+    fetchPlayerTrophiesFromCloud();
+}
+
+// Listen for username changes
+document.addEventListener("DOMContentLoaded", () => {
+    const usernameInput = document.getElementById("usernameInput");
+
+    if (usernameInput) {
+        usernameInput.addEventListener("input", () => {
+            refreshPlayerTrophies();
+        });
+    }
+
+    refreshPlayerTrophies();
+});
+
+
     function triggerLeaderboardRolloutBanner() {
         const banner = document.getElementById('leaderboard-rollout-banner');
         if (banner) {
@@ -534,7 +648,7 @@
         <div class="name-prompt-box">
             <div class="name-prompt-title">Choose Your Player Name</div>
             <div class="name-prompt-desc">Enter your gamer tag or roll a random one!</div>
-            <input type="text" id="customNameInput" class="name-prompt-input" placeholder="Gamer Tag..." maxlength="18" />
+            <input type="text" id="usernameInput" class="name-prompt-input" placeholder="Gamer Tag..." maxlength="18" />
             <div class="name-prompt-error" id="customNameError">Please choose an appropriate name (min 3 chars).</div>
             <div class="name-prompt-buttons">
                 <button class="enter-hub-btn" id="randomNameBtn" style="background:#334155; font-size:1.2rem; padding: 10px; max-width: 60px;" title="Random Name">🎲</button>
