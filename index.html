@@ -904,7 +904,6 @@
             <div class="score-board" style="margin-top:4px;">
                 <div class="score-box">Attempts Left <span id="guess-lives">7</span></div>
                 <div class="score-box">Attempts Used <span id="guess-attempts">0</span></div>
-                <div class="score-box">Best <span id="guess-best">-</span></div>
             </div>
             <input type="number" id="guess-input" class="guess-input" placeholder="Enter Guess" min="1" max="100">
             <p id="guess-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem;">Take a guess!</p>
@@ -1536,8 +1535,7 @@
             updateHubActivityStats();
             renderRecentGames();
 
-            const bestGuessData = localStorage.getItem('arcadehub_guess');
-            if (bestGuessData) document.getElementById('guess-best').textContent = bestGuessData;
+            
         };
 
         function openGame(containerId) {
