@@ -1,20 +1,18 @@
- 🕹️ Arcade Hub
+🕹️ ArcadeHub
 
-Arcade Hub is a feature-rich, responsive web-based gaming platform that brings classic arcade, puzzle, card, and action games directly to your browser. Designed with a sleek dark-themed UI and optimized for both mobile and desktop experiences, it offers a seamless gaming experience complete with live gaming activity trackers and custom settings.
-
----
+Welcome to ArcadeHub! A browser-based retro gaming and interactive entertainment hub built with vanilla web technologies and Progressive Web App (PWA) capabilities.
 
 ✨ Features
 
-* Diverse Game Categories
-  * Card Games: Speed Solitaire, Coin Scatter v2, Blackjack 21, High-Low
-  * Puzzle Games: Tic-Tac-Toe, Number Master, Wordscape Pro
-  * Action Games: Piano Tiles, Fruit Master, Whack-a-Mole, Snake Evolution, Dino Runner
-  * Racing Games: Car Racing, Brick Breaker, Stick Run
-* Interactive Search Bar: Instantly find your favorite games with real-time filtering.
-* Player Activity Tracking:Keeps tabs on your engagement with built-in stats such as *Games Played* and *High Scores Set
-* Fully Responsive Design: Optimized layouts and smooth navigation tailored for mobile devices and wide screens
-* Customization & Settings: Easily toggle preferences via the integrated settings menu
+Centralized Game Hub (hub.js): Seamless navigation between multiple mini-games and interactive tools.
+
+Built-in Mini-Games (games.js): A collection of fast-paced, lightweight browser games ready to play instantly.
+
+Interactive Virtual Piano (piano.js): Playable web-based piano right inside the hub.
+
+Progressive Web App (PWA) Support: Includes manifest.json and a Service Worker (sw.js) for offline capabilities and an app-like experience on mobile and desktop devices.
+
+Responsive Design (styles.css): Styled for clean, modern, and responsive gameplay across different screen sizes.
 
 
 
@@ -27,4 +25,4 @@ Check out the live deployment here: [Arcade Hub on Vercel](https://arcadehubgame
 🛠️ Built With
 
 * HTML5 / CSS3 / JavaScript
-* Responsive Layouts
+
