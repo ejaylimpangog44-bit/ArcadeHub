@@ -110,7 +110,7 @@
             <div class="category-title">Puzzle Games</div>
             <div class="game-grid">
                 <!-- Connect Four Game Card -->
-                <div class="game-card" data-name="connect four tactical" data-category="puzzle" onclick="showGameInstructions('connectfour-container', 'Connect Four', '🔴', { objective: 'Drop colored discs into the grid to connect 4 in a row horizontally, vertically, or diagonally!', controls: 'Tap column headers to drop your disc.' })">
+                <div class="game-card" data-name="connect four tactical" data-category="puzzle" onclick="showGameInstructions('connectfour-container', 'Connect Four', '🔴', { objective: 'Configure match settings and drop colored discs into the grid to connect 4 in a row horizontally, vertically, or diagonally!', controls: 'Tap column headers to drop your disc.' })">
                     <span class="game-icon">🔴</span>
                     <span class="game-name">Connect Four</span>
                 </div>
@@ -475,19 +475,50 @@
         </div>
     </div>
 
-    <!-- CONNECT FOUR CONTAINER -->
+    <!-- CONNECT FOUR CONTAINER WITH SETUP & GAME SCREENS -->
     <div id="connectfour-container" class="game-container">
         <div class="game-top-bar">
-            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Connect Four</span>
             <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
+            <span style="font-size: 13px; font-weight: 800; color: var(--primary);">CONNECT FOUR PRO</span>
         </div>
-        <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
-            <div class="score-board" style="margin-top:4px; width:100%;">
-                <div class="score-box">Status <span id="c4-status-text">Your Turn (🔴)</span></div>
-                <div class="score-box">Wins 🏆 <span id="c4-wins">0</span></div>
+
+        <!-- SETUP SCREEN -->
+        <div id="c4-setup-screen" class="screen active" style="align-items: center; width: 100%;">
+            <div class="setup-group">
+                <label class="setup-label">Select Game Mode</label>
+                <div class="setup-options-2">
+                    <button id="c4-setup-pvp" class="opt-btn active" onclick="selectC4Mode('pvp')">👥 Player vs Player</button>
+                    <button id="c4-setup-ai" class="opt-btn" onclick="selectC4Mode('ai')">🤖 Player vs AI</button>
+                </div>
             </div>
-            <div id="c4-board" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; background:#1e293b; padding:10px; border-radius:12px; border:2px solid var(--border); margin-bottom:14px; width:100%;"></div>
-            <button class="action-btn" style="width:100%;" onclick="startConnectFourGame()">Reset Game</button>
+
+            <div id="c4-setup-diff-group" class="setup-group" style="display: none;">
+                <label class="setup-label">AI Difficulty</label>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+                    <button id="c4-diff-easy" class="opt-btn active" onclick="selectC4Diff('easy')">Easy</button>
+                    <button id="c4-diff-normal" class="opt-btn" onclick="selectC4Diff('normal')">Normal</button>
+                    <button id="c4-diff-hard" class="opt-btn" onclick="selectC4Diff('hard')">Hard</button>
+                </div>
+            </div>
+
+            <button class="start-game-btn" onclick="startC4GameFromSetup()">START GAME</button>
+        </div>
+
+        <!-- GAMEPLAY SCREEN -->
+        <div id="c4-game-screen" class="screen" style="align-items: center; width: 100%;">
+            <div class="score-board">
+                <div class="score-box">Status <span id="c4-status-text">Your Turn (🔴)</span></div>
+                <div class="score-box">Wins 🏆 <span id="c4-wins-val">0</span></div>
+            </div>
+
+            <div style="position: relative; width: 100%; max-width: 340px; margin: 0 auto 15px auto;">
+                <div id="c4-board" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; background: #0b0f19; padding: 10px; border-radius: 14px; border: 2px solid var(--border);"></div>
+            </div>
+
+            <div style="display: flex; gap: 10px; width: 100%; max-width: 340px;">
+                <button class="action-btn" style="flex: 1;" onclick="startConnectFourGame()">Reset Game</button>
+                <button class="control-btn" onclick="backToC4Setup()">Change Mode</button>
+            </div>
         </div>
     </div>
 
