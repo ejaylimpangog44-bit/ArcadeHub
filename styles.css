@@ -552,3 +552,221 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 .mole-hole { aspect-ratio: 1; background-color: #111827; border: 2px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; transition: background 0.2s; position: relative; overflow: hidden; }
 .mole-hole span { transform: translateY(50px); transition: transform 0.15s ease; opacity: 0; }
 .mole-hole.active span { transform: translateY(0); opacity: 1; }
+
+/* === Magic Tiles 3 Visual Overhaul (Fixed & Optimized) === */
+#mt3-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  height: 100%;
+  min-height: 480px;
+  margin: 0 auto;
+  overflow: hidden;
+  user-select: none;
+  font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+  transition: background 1.2s ease;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  border-radius: 14px;
+}
+
+/* Geometric Emerald Green Theme (0:00 - 0:13 in video) */
+.mt3-theme-green {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.08) 25%, transparent 25%) -40px 0,
+    linear-gradient(225deg, rgba(255,255,255,0.08) 25%, transparent 25%) -40px 0,
+    linear-gradient(315deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+    linear-gradient(180deg, #16a34a 0%, #4ade80 50%, #22c55e 100%);
+  background-size: 80px 80px, 80px 80px, 80px 80px, 80px 80px, 100% 100%;
+}
+
+/* Golden Amber Theme (0:14+ in video) */
+.mt3-theme-gold {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.12) 25%, transparent 25%) -40px 0,
+    linear-gradient(225deg, rgba(255,255,255,0.12) 25%, transparent 25%) -40px 0,
+    linear-gradient(315deg, rgba(255,255,255,0.12) 25%, transparent 25%),
+    linear-gradient(45deg, rgba(255,255,255,0.12) 25%, transparent 25%),
+    linear-gradient(180deg, #d97706 0%, #fbbf24 55%, #f59e0b 100%);
+  background-size: 80px 80px, 80px 80px, 80px 80px, 80px 80px, 100% 100%;
+}
+
+#mt3-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* Top HUD */
+.mt3-hud {
+  position: absolute;
+  top: 18px;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+/* Star & Crown Progress Track */
+.mt3-progress-track {
+  position: relative;
+  width: 82%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  margin-bottom: 18px;
+}
+
+.mt3-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 0 10px #ffffff;
+  transition: width 0.15s ease-out;
+}
+
+.mt3-milestones {
+  position: absolute;
+  top: -11px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  font-size: 16px;
+}
+
+.mt3-milestones span {
+  opacity: 0.45;
+  filter: grayscale(1);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.mt3-milestones span.active {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px #fde047);
+  transform: scale(1.25);
+}
+
+/* Score Counter */
+.mt3-score-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 40px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.mt3-coin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fde047, #f97316);
+  border: 2px solid #ffffff;
+  font-size: 16px;
+  color: #ffffff;
+}
+
+/* PERFECT / GREAT Judgment Text */
+.mt3-judgment {
+  margin-top: 4px;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  background: linear-gradient(180deg, #ffffff 10%, #f472b6 60%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  opacity: 0;
+}
+
+.mt3-judgment.pop {
+  animation: mt3Pop 0.45s ease-out forwards;
+}
+
+@keyframes mt3Pop {
+  0% { opacity: 1; transform: scale(0.75); }
+  40% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 0.9; transform: scale(1); }
+}
+
+.mt3-pill-btn {
+  pointer-events: auto;
+  margin-top: 8px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mt3-pill-btn.active {
+  background: #ffffff;
+  color: #15803d;
+}
+
+/* Start / Game Over Overlay */
+.mt3-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgba(9, 13, 22, 0.82);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  text-align: center;
+  padding: 20px;
+}
+
+.mt3-overlay.hidden {
+  display: none;
+}
+
+.mt3-overlay h1 {
+  font-size: 36px;
+  font-weight: 900;
+  margin: 0 0 6px;
+  letter-spacing: 2px;
+}
+
+.mt3-overlay p {
+  font-size: 16px;
+  opacity: 0.85;
+  margin: 0 0 24px;
+}
+
+.mt3-play-btn {
+  padding: 14px 36px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #090d16;
+  background: linear-gradient(135deg, #4ade80, #38bdf8);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(56, 189, 248, 0.45);
+}
+
+.mt3-controls-hint {
+  margin-top: 20px;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+#piano-container { width: 100%; height: 100%; flex: 1; display: flex; }
