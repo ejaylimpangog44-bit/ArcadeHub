@@ -42,6 +42,148 @@ function openSettingsToTrophies() {
 }
 
 // ===================================================
+// SEARCH & CATEGORY FILTER
+// ===================================================
+function filterGames() {
+    const query = document.getElementById('gameSearchInput').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.game-card');
+    cards.forEach(card => {
+        const name = card.dataset.name || '';
+        if(name.includes(query)) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterCategory(category, btn) {
+    audio.playSFX('click');
+    document.querySelectorAll('.filter-pills-row .filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const sections = document.querySelectorAll('.category-section[data-category]');
+    sections.forEach(sec => {
+        if(category === 'all' || sec.dataset.category === category) {
+            sec.style.display = 'block';
+        } else {
+            sec.style.display = 'none';
+        }
+    });
+}
+
+// ===================================================
+// XP, LEVELING & PROFILE SYSTEM
+// ===================================================
+function getLevelDetails(totalXP) {
+    if(totalXP >= 3000) return { title: 'Arcade Legend 👑', level: 4, nextXP: 5000 };
+    if(totalXP >= 1500) return { title: 'Pro Gamer 🚀', level: 3, nextXP: 3000 };
+    if(totalXP >= 500) return { title: 'Arcade Enthusiast 🦊', level: 2, nextXP: 1500 };
+    return { title: 'Novice Gamer 🤖', level: 1, nextXP: 500 };
+}
+
+function updateHubActivityStats() {
+    const allGameKeys = ['snake', 'mole', 'dino', 'carracing', 'brickbreaker', 'pianotiles', 'fruitslasher', 'sr', 'solitaire', 'scatter', 'blackjack', 'highlow', 'tictactoe', 'guess', 'wordscape'];
+    let totalPlayed = 0;
+    let totalHighScoresSet = 0;
+    let totalXP = 0;
+
+    allGameKeys.forEach(k => {
+        const st = ScoreManager.getStats(k);
+        totalPlayed += st.gamesPlayed;
+        if(st.highScore > 0) {
+            totalHighScoresSet++;
+            totalXP += Math.floor(st.highScore / 2);
+        }
+        totalXP += st.gamesPlayed * 25; // 25 XP per play session
+    });
+
+    document.getElementById('stat-games-played').textContent = totalPlayed;
+    document.getElementById('stat-achievements').textContent = totalHighScoresSet;
+    document.getElementById('stat-total-xp').textContent = totalXP.toLocaleString();
+
+    let details = getLevelDetails(totalXP);
+    document.getElementById('profile-rank-title').textContent = `${details.title} (Level ${details.level})`;
+    document.getElementById('header-level-subtitle').textContent = details.title;
+    document.getElementById('profile-xp-text').textContent = `${totalXP} / ${details.nextXP} XP`;
+    let pct = Math.min(100, (totalXP / details.nextXP) * 100);
+    document.getElementById('profile-xp-bar').style.width = `${pct}%`;
+
+    renderTrophiesPanel();
+}
+
+function openProfileModal() {
+    audio.playSFX('click');
+    document.getElementById('profile-username').textContent = localStorage.getItem("arcadehub_player_name") || "Player";
+    document.getElementById('profile-modal').classList.add('active');
+}
+
+function closeProfileModal() {
+    audio.playSFX('click');
+    document.getElementById('profile-modal').classList.remove('active');
+}
+
+function selectAvatar(emoji) {
+    audio.playSFX('click');
+    localStorage.setItem("arcadehub_avatar", emoji);
+    document.getElementById('header-avatar').textContent = emoji;
+    document.getElementById('profile-avatar-display').textContent = emoji;
+}
+
+// ===================================================
+// SHARE SCORE MODAL
+// ===================================================
+let lastShareText = '';
+function showShareModal(gameName, score) {
+    lastShareText = `🎮 I just scored ${score.toLocaleString()} points in ${gameName} on Arcade Hub Pro! Can you beat my score? 🔥`;
+    document.getElementById('share-game-title').textContent = gameName;
+    document.getElementById('share-score-text').textContent = lastShareText;
+    document.getElementById('share-score-modal').classList.add('active');
+}
+
+function closeShareModal() {
+    audio.playSFX('click');
+    document.getElementById('share-score-modal').classList.remove('active');
+}
+
+function copyScoreToClipboard() {
+    audio.playSFX('click');
+    navigator.clipboard.writeText(lastShareText).then(() => {
+        alert("📋 Score card copied to clipboard!");
+        closeShareModal();
+    });
+}
+
+// ===================================================
+// AMBIENT SYNTHWAVE / LO-FI AUDIO PLAYER
+// ===================================================
+let ambientInterval = null;
+function toggleAmbientAudio() {
+    const btn = document.getElementById('ambient-audio-toggle');
+    if(ambientInterval) {
+        clearInterval(ambientInterval);
+        ambientInterval = null;
+        btn.textContent = "OFF";
+        btn.classList.remove('active');
+        audio.playSFX('click');
+    } else {
+        audio.initContext();
+        btn.textContent = "PLAYING 🎵";
+        btn.classList.add('active');
+        audio.playSFX('powerup');
+        
+        const chords = [220, 261.63, 329.63, 392.00];
+        let chordIdx = 0;
+        ambientInterval = setInterval(() => {
+            if(audio.isMuted) return;
+            let freq = chords[chordIdx % chords.length];
+            chordIdx++;
+            audio.playTone(freq, 1.2, 'sine');
+        }, 1400);
+    }
+}
+
+// ===================================================
 // SERVICE WORKER & ROBOT COMPANION
 // ===================================================
 if ('serviceWorker' in navigator) {
