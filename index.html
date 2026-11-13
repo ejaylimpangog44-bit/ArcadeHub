@@ -64,8 +64,9 @@
         </div>
     </header>
 
-    <!-- GAME OF THE DAY / FEATURED HERO BANNER -->
-    <div class="gotd-hero-banner" id="gotd-hero-banner" style="display: flex !important;">
+        <!-- GAME OF THE DAY / FEATURED HERO BANNER -->
+    <div class="gotd-hero-banner" id="gotd-hero-banner">
+        <button class="gotd-close-btn" onclick="closeGotdBanner()">✕</button>
         <div style="flex:1; width: 100%;">
             <div class="gotd-badges">
                 <span class="gotd-badge-2x">⚡ 2X XP TODAY</span>
@@ -81,6 +82,7 @@
         </div>
         <button class="gotd-play-btn" id="gotd-play-btn">PLAY 2X XP ▶</button>
     </div>
+
 
     <!-- CLICKABLE DAILY QUESTS GAME CARD -->
     <div class="daily-game-card" onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(145deg, rgba(22, 30, 48, 0.95), rgba(13, 19, 33, 0.95)); border: 1.5px solid var(--primary); border-radius: 16px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 6px 20px var(--accent-glow); transition: transform 0.2s;">
