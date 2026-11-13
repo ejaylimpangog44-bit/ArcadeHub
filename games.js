@@ -2698,3 +2698,111 @@ function endAirHockey(playerWon) {
         submitScore('Air Hockey', 'Player', ahPlayerScore * 25);
     }
 }
+
+// ===================================================
+// CONNECT FOUR GAME LOGIC
+// ===================================================
+let c4Board = [];
+let c4CurrentPlayer = 'red'; // 'red' (🔴) or 'yellow' (🟡)
+let c4GameOver = false;
+let c4WinsCount = 0;
+
+function startConnectFourGame() {
+    c4Board = Array(6).fill(null).map(() => Array(7).fill(null));
+    c4CurrentPlayer = 'red';
+    c4GameOver = false;
+    renderConnectFourBoard();
+    const statusText = document.getElementById('c4-status-text');
+    if (statusText) statusText.textContent = "Your Turn (🔴)";
+}
+
+function renderConnectFourBoard() {
+    const boardEl = document.getElementById('c4-board');
+    if (!boardEl) return;
+    boardEl.innerHTML = '';
+
+    for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 7; c++) {
+            const cell = document.createElement('div');
+            cell.style.cssText = 'aspect-ratio:1; background:#0f172a; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.4rem; border:2px solid rgba(255,255,255,0.08);';
+            
+            const val = c4Board[r][c];
+            if (val === 'red') cell.textContent = '🔴';
+            else if (val === 'yellow') cell.textContent = '🟡';
+            else cell.textContent = '⚪';
+
+            cell.onclick = () => dropConnectFourDisc(c);
+            boardEl.appendChild(cell);
+        }
+    }
+}
+
+function dropConnectFourDisc(col) {
+    if (c4GameOver) return;
+    
+    // Find lowest empty row in column
+    let targetRow = -1;
+    for (let r = 5; r >= 0; r--) {
+        if (!c4Board[r][col]) {
+            targetRow = r;
+            break;
+        }
+    }
+    if (targetRow === -1) return; // Column full
+
+    c4Board[targetRow][col] = c4CurrentPlayer;
+    if (typeof audio !== 'undefined') audio.playSFX('score');
+    renderConnectFourBoard();
+
+    // Check for a Win
+    if (checkConnectFourWin(targetRow, col, c4CurrentPlayer)) {
+        c4GameOver = true;
+        const statusText = document.getElementById('c4-status-text');
+        if (statusText) statusText.textContent = c4CurrentPlayer === 'red' ? "You Win! 🎉" : "AI Wins! 🤖";
+        if (typeof audio !== 'undefined') audio.playSFX('win');
+        
+        if (c4CurrentPlayer === 'red') {
+            c4WinsCount++;
+            const winsEl = document.getElementById('c4-wins-val');
+            if (winsEl) winsEl.textContent = c4WinsCount;
+            if (typeof ScoreManager !== 'undefined') {
+                ScoreManager.saveScore('connectfour', c4WinsCount * 100);
+            }
+        }
+        return;
+    }
+
+    // Switch turn
+    c4CurrentPlayer = c4CurrentPlayer === 'red' ? 'yellow' : 'red';
+    const statusText = document.getElementById('c4-status-text');
+    if (statusText) statusText.textContent = c4CurrentPlayer === 'red' ? "Your Turn (🔴)" : "AI Turn (🟡)";
+}
+
+function checkConnectFourWin(row, col, player) {
+    const directions = [
+        [0, 1],  // Horizontal
+        [1, 0],  // Vertical
+        [1, 1],  // Diagonal down-right
+        [1, -1]  // Diagonal down-left
+    ];
+
+    for (let [dr, dc] of directions) {
+        let count = 1;
+        // Check forward direction
+        let r = row + dr, c = col + dc;
+        while (r >= 0 && r < 6 && c >= 0 && c < 7 && c4Board[r][c] === player) {
+            count++;
+            r += dr;
+            c += dc;
+        }
+        // Check backward direction
+        r = row - dr; c = col - dc;
+        while (r >= 0 && r < 6 && c >= 0 && c < 7 && c4Board[r][c] === player) {
+            count++;
+            r -= dr;
+            c -= dc;
+        }
+        if (count >= 4) return true;
+    }
+    return false;
+}
