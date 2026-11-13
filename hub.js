@@ -553,46 +553,55 @@ function generateQRCode() {
     document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
 }
 
+// ===================================================
+// BACKGROUND MUSIC (BGM) MANAGER - FIXED & PERSISTENT
+// ===================================================
 document.addEventListener("DOMContentLoaded", () => {
     let bgm = document.getElementById("background-audio");
 
-    // 
+    // If the audio element doesn't exist yet in the DOM, create it dynamically
     if (!bgm) {
         bgm = document.createElement("audio");
         bgm.id = "background-audio";
-        bgm.src = "bgm.mp3"; 
+        bgm.src = "bgm.mp3";
         bgm.loop = true;
-        bgm.volume = 0.5; 
+        bgm.volume = 0.5;
         document.body.appendChild(bgm);
     }
 
-    
+    // Restore previous playback position if transitioning between screens
     const savedTime = localStorage.getItem("bgm_current_time");
     if (savedTime) {
         bgm.currentTime = parseFloat(savedTime);
     }
 
-    
-    let playPromise = bgm.play();
+    // Function to safely trigger playback
+    const startBGM = () => {
+        if (bgm.paused) {
+            bgm.play().then(() => {
+                console.log("BGM started successfully.");
+            }).catch(err => {
+                console.log("BGM play prevented:", err);
+            });
+        }
+    };
 
-    if (playPromise !== undefined) {
-        playPromise.then(() => {
-            
-            console.log("BGM playing automatically.");
-        }).catch((error) => {
-            
-            console.log("Autoplay blocked. Waiting for user interaction.");
-            const unlockAudio = () => {
-                bgm.play();
-                document.removeEventListener("click", unlockAudio);
-                document.removeEventListener("keydown", unlockAudio);
-            };
-            document.addEventListener("click", unlockAudio);
-            document.addEventListener("keydown", unlockAudio);
-        });
-    }
+    // Try playing immediately
+    startBGM();
 
-   
+    // Fallback: Bind to any click, touch, or keydown on the entire document to unlock audio instantly
+    const unlockAudio = () => {
+        startBGM();
+        document.removeEventListener("click", unlockAudio);
+        document.removeEventListener("touchstart", unlockAudio);
+        document.removeEventListener("keydown", unlockAudio);
+    };
+
+    document.addEventListener("click", unlockAudio);
+    document.addEventListener("touchstart", unlockAudio);
+    document.addEventListener("keydown", unlockAudio);
+
+    // Save playback position continuously so it stays synced across navigation
     setInterval(() => {
         if (!bgm.paused) {
             localStorage.setItem("bgm_current_time", bgm.currentTime);
