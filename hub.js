@@ -358,6 +358,78 @@ const gameInstructionsMap = {
 };
 
 // ===================================================
+// SEARCH BAR & CATEGORY FILTERING
+// ===================================================
+function filterArcadeGames(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.game-card').forEach(card => {
+        const name = card.getAttribute('data-name') || '';
+        if(name.includes(q)) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterCategory(category, btn) {
+    audio.playSFX('click');
+    document.querySelectorAll('#category-filter-bar .opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.category-section').forEach(sec => {
+        if(category === 'all' || sec.getAttribute('data-category') === category) {
+            sec.style.display = 'block';
+        } else {
+            sec.style.display = 'none';
+        }
+    });
+}
+
+// ===================================================
+// DAILY LUCKY SPIN WHEEL
+// ===================================================
+function openLuckySpinModal() {
+    audio.playSFX('click');
+    document.getElementById('lucky-spin-modal').classList.add('active');
+}
+
+function closeLuckySpinModal() {
+    audio.playSFX('click');
+    document.getElementById('lucky-spin-modal').classList.remove('active');
+}
+
+function executeLuckySpin() {
+    audio.playSFX('powerup');
+    const rewards = [
+        { label: "+250 XP", xp: 250, icon: "⚡" },
+        { label: "+500 XP", xp: 500, icon: "🔥" },
+        { label: "+1,000 XP", xp: 1000, icon: "💎" },
+        { label: "+150 XP", xp: 150, icon: "🎁" }
+    ];
+    let won = rewards[Math.floor(Math.random() * rewards.length)];
+    document.getElementById('wheel-display').textContent = won.icon;
+    document.getElementById('wheel-status').textContent = `🎉 You won ${won.label}!`;
+    document.getElementById('spin-wheel-btn').disabled = true;
+    document.getElementById('spin-wheel-btn').style.opacity = '0.5';
+    ProgressionManager.addXP(won.xp);
+}
+
+// ===================================================
+// LEADERBOARD & SHOP TABS NAVIGATION
+// ===================================================
+function openLeaderboardTab() {
+    audio.playSFX('click');
+    openSettingsDrawer();
+    switchSettingsTab('trophies');
+}
+
+function openShopTab() {
+    audio.playSFX('click');
+    openCustomizeModal();
+}
+
+// ===================================================
 // AUDIO MANAGER & SETTINGS DRAWER
 // ===================================================
 class ArcadeAudioManager {
