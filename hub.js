@@ -73,7 +73,25 @@ function filterCategory(category, btn) {
 }
 
 // ===================================================
-// XP, LEVELING & PROFILE SYSTEM
+// SCORE MANAGER
+// ===================================================
+const ScoreManager = {
+    getStats(gameKey) {
+        const data = localStorage.getItem(`arcadehub_${gameKey}`);
+        return data ? JSON.parse(data) : { highScore: 0, gamesPlayed: 0 };
+    },
+    saveScore(gameKey, score) {
+        const stats = this.getStats(gameKey);
+        stats.gamesPlayed += 1;
+        if (score > stats.highScore) stats.highScore = score;
+        localStorage.setItem(`arcadehub_${gameKey}`, JSON.stringify(stats));
+        updateHubActivityStats();
+        return stats;
+    }
+};
+
+// ===================================================
+// XP, LEVELING, STATS & TROPHIES (Unified)
 // ===================================================
 function getLevelDetails(totalXP) {
     if(totalXP >= 3000) return { title: 'Arcade Legend 👑', level: 4, nextXP: 5000 };
@@ -98,36 +116,95 @@ function updateHubActivityStats() {
         totalXP += st.gamesPlayed * 25; // 25 XP per play session
     });
 
-    document.getElementById('stat-games-played').textContent = totalPlayed;
-    document.getElementById('stat-achievements').textContent = totalHighScoresSet;
-    document.getElementById('stat-total-xp').textContent = totalXP.toLocaleString();
+    const statGames = document.getElementById('stat-games-played');
+    const statAchievements = document.getElementById('stat-achievements');
+    const statXp = document.getElementById('stat-total-xp');
+
+    if (statGames) statGames.textContent = totalPlayed;
+    if (statAchievements) statAchievements.textContent = totalHighScoresSet;
+    if (statXp) statXp.textContent = totalXP.toLocaleString();
 
     let details = getLevelDetails(totalXP);
-    document.getElementById('profile-rank-title').textContent = `${details.title} (Level ${details.level})`;
-    document.getElementById('header-level-subtitle').textContent = details.title;
-    document.getElementById('profile-xp-text').textContent = `${totalXP} / ${details.nextXP} XP`;
-    let pct = Math.min(100, (totalXP / details.nextXP) * 100);
-    document.getElementById('profile-xp-bar').style.width = `${pct}%`;
+    const rankTitle = document.getElementById('profile-rank-title');
+    const headerSub = document.getElementById('header-level-subtitle');
+    const xpText = document.getElementById('profile-xp-text');
+    const xpBar = document.getElementById('profile-xp-bar');
+
+    if (rankTitle) rankTitle.textContent = `${details.title} (Level ${details.level})`;
+    if (headerSub) headerSub.textContent = details.title;
+    if (xpText) xpText.textContent = `${totalXP} / ${details.nextXP} XP`;
+    if (xpBar) {
+        let pct = Math.min(100, (totalXP / details.nextXP) * 100);
+        xpBar.style.width = `${pct}%`;
+    }
 
     renderTrophiesPanel();
 }
 
+function renderTrophiesPanel() {
+    const container = document.getElementById('trophies-list-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const games = [
+        { key: 'snake', name: 'Snake Evolution', icon: '🐍' },
+        { key: 'dino', name: 'Dino Runner', icon: '🦖' },
+        { key: 'carracing', name: 'Car Racing', icon: '🏎️' },
+        { key: 'brickbreaker', name: 'Brick Breaker', icon: '🧱' },
+        { key: 'pianotiles', name: 'Piano Tiles', icon: '🎹' },
+        { key: 'fruitslasher', name: 'Fruit Master', icon: '🍉' },
+        { key: 'sr', name: 'Stick Run', icon: '🏃‍♂️' },
+        { key: 'solitaire', name: 'Speed Solitaire', icon: '🎴' },
+        { key: 'blackjack', name: 'Blackjack 21', icon: '🃏' },
+        { key: 'highlow', name: 'High-Low', icon: '🔼' },
+        { key: 'tictactoe', name: 'Tic-Tac-Toe', icon: '❌' },
+        { key: 'guess', name: 'Number Master', icon: '🔢' },
+        { key: 'wordscape', name: 'Wordscape Pro', icon: '📝' },
+        { key: 'mole', name: 'Whack-a-Mole', icon: '🔨' }
+    ];
+
+    games.forEach(g => {
+        const st = ScoreManager.getStats(g.key);
+        const item = document.createElement('div');
+        item.style.cssText = 'background: rgba(17,24,39,0.9); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;';
+        item.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">${g.icon}</span>
+                <div>
+                    <strong style="font-size: 12px; color: #fff; display: block;">${g.name}</strong>
+                    <small style="font-size: 10px; color: var(--text-muted);">Played: ${st.gamesPlayed} times</small>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 13px; font-weight: 800; color: #facc15;">${st.highScore.toLocaleString()}</span>
+                <small style="font-size: 9px; color: var(--text-muted); display: block;">Best Score</small>
+            </div>
+        `;
+        container.appendChild(item);
+    });
+}
+
 function openProfileModal() {
     audio.playSFX('click');
-    document.getElementById('profile-username').textContent = localStorage.getItem("arcadehub_player_name") || "Player";
-    document.getElementById('profile-modal').classList.add('active');
+    const uName = document.getElementById('profile-username');
+    if (uName) uName.textContent = localStorage.getItem("arcadehub_player_name") || "Player";
+    const pModal = document.getElementById('profile-modal');
+    if (pModal) pModal.classList.add('active');
 }
 
 function closeProfileModal() {
     audio.playSFX('click');
-    document.getElementById('profile-modal').classList.remove('active');
+    const pModal = document.getElementById('profile-modal');
+    if (pModal) pModal.classList.remove('active');
 }
 
 function selectAvatar(emoji) {
     audio.playSFX('click');
     localStorage.setItem("arcadehub_avatar", emoji);
-    document.getElementById('header-avatar').textContent = emoji;
-    document.getElementById('profile-avatar-display').textContent = emoji;
+    const hAvatar = document.getElementById('header-avatar');
+    const pAvatar = document.getElementById('profile-avatar-display');
+    if (hAvatar) hAvatar.textContent = emoji;
+    if (pAvatar) pAvatar.textContent = emoji;
 }
 
 // ===================================================
@@ -136,14 +213,18 @@ function selectAvatar(emoji) {
 let lastShareText = '';
 function showShareModal(gameName, score) {
     lastShareText = `🎮 I just scored ${score.toLocaleString()} points in ${gameName} on Arcade Hub Pro! Can you beat my score? 🔥`;
-    document.getElementById('share-game-title').textContent = gameName;
-    document.getElementById('share-score-text').textContent = lastShareText;
-    document.getElementById('share-score-modal').classList.add('active');
+    const gTitle = document.getElementById('share-game-title');
+    const sText = document.getElementById('share-score-text');
+    if (gTitle) gTitle.textContent = gameName;
+    if (sText) sText.textContent = lastShareText;
+    const sModal = document.getElementById('share-score-modal');
+    if (sModal) sModal.classList.add('active');
 }
 
 function closeShareModal() {
     audio.playSFX('click');
-    document.getElementById('share-score-modal').classList.remove('active');
+    const sModal = document.getElementById('share-score-modal');
+    if (sModal) sModal.classList.remove('active');
 }
 
 function copyScoreToClipboard() {
@@ -163,13 +244,17 @@ function toggleAmbientAudio() {
     if(ambientInterval) {
         clearInterval(ambientInterval);
         ambientInterval = null;
-        btn.textContent = "OFF";
-        btn.classList.remove('active');
+        if(btn) {
+            btn.textContent = "OFF";
+            btn.classList.remove('active');
+        }
         audio.playSFX('click');
     } else {
         audio.initContext();
-        btn.textContent = "PLAYING 🎵";
-        btn.classList.add('active');
+        if(btn) {
+            btn.textContent = "PLAYING 🎵";
+            btn.classList.add('active');
+        }
         audio.playSFX('powerup');
         
         const chords = [220, 261.63, 329.63, 392.00];
@@ -229,83 +314,6 @@ function movePupil(pupil, rect, mouseX, mouseY) {
 }
 
 // ===================================================
-// SCORE MANAGER & HUB STATS
-// ===================================================
-const ScoreManager = {
-    getStats(gameKey) {
-        const data = localStorage.getItem(`arcadehub_${gameKey}`);
-        return data ? JSON.parse(data) : { highScore: 0, gamesPlayed: 0 };
-    },
-    saveScore(gameKey, score) {
-        const stats = this.getStats(gameKey);
-        stats.gamesPlayed += 1;
-        if (score > stats.highScore) stats.highScore = score;
-        localStorage.setItem(`arcadehub_${gameKey}`, JSON.stringify(stats));
-        updateHubActivityStats();
-        return stats;
-    }
-};
-
-function updateHubActivityStats() {
-    const allGameKeys = ['snake', 'mole', 'dino', 'carracing', 'brickbreaker', 'pianotiles', 'fruitslasher', 'sr', 'solitaire', 'scatter', 'blackjack', 'highlow', 'tictactoe', 'guess', 'wordscape'];
-    let totalPlayed = 0;
-    let totalHighScoresSet = 0;
-
-    allGameKeys.forEach(k => {
-        const st = ScoreManager.getStats(k);
-        totalPlayed += st.gamesPlayed;
-        if(st.highScore > 0) totalHighScoresSet++;
-    });
-
-    document.getElementById('stat-games-played').textContent = totalPlayed;
-    document.getElementById('stat-achievements').textContent = totalHighScoresSet;
-    renderTrophiesPanel();
-}
-
-function renderTrophiesPanel() {
-    const container = document.getElementById('trophies-list-container');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const games = [
-        { key: 'snake', name: 'Snake Evolution', icon: '🐍' },
-        { key: 'dino', name: 'Dino Runner', icon: '🦖' },
-        { key: 'carracing', name: 'Car Racing', icon: '🏎️' },
-        { key: 'brickbreaker', name: 'Brick Breaker', icon: '🧱' },
-        { key: 'pianotiles', name: 'Piano Tiles', icon: '🎹' },
-        { key: 'fruitslasher', name: 'Fruit Master', icon: '🍉' },
-        { key: 'sr', name: 'Stick Run', icon: '🏃‍♂️' },
-        { key: 'solitaire', name: 'Speed Solitaire', icon: '🎴' },
-        { key: 'blackjack', name: 'Blackjack 21', icon: '🃏' },
-        { key: 'highlow', name: 'High-Low', icon: '🔼' },
-        { key: 'tictactoe', name: 'Tic-Tac-Toe', icon: '❌' },
-        { key: 'guess', name: 'Number Master', icon: '🔢' },
-        { key: 'wordscape', name: 'Wordscape Pro', icon: '📝' },
-        { key: 'mole', name: 'Whack-a-Mole', icon: '🔨' }
-    ];
-
-    games.forEach(g => {
-        const st = ScoreManager.getStats(g.key);
-        const item = document.createElement('div');
-        item.style.cssText = 'background: rgba(17,24,39,0.9); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;';
-        item.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 20px;">${g.icon}</span>
-                <div>
-                    <strong style="font-size: 12px; color: #fff; display: block;">${g.name}</strong>
-                    <small style="font-size: 10px; color: var(--text-muted);">Played: ${st.gamesPlayed} times</small>
-                </div>
-            </div>
-            <div style="text-align: right;">
-                <span style="font-size: 13px; font-weight: 800; color: #facc15;">${st.highScore.toLocaleString()}</span>
-                <small style="font-size: 9px; color: var(--text-muted); display: block;">Best Score</small>
-            </div>
-        `;
-        container.appendChild(item);
-    });
-}
-
-// ===================================================
 // PLAYER NAME GENERATOR & VALIDATION
 // ===================================================
 const ADJECTIVES = ["Shadow", "Cyber", "Pixel", "Nova", "Vortex", "Phantom", "Blaze", "Neon", "Hyper", "Alpha", "Apex", "Turbo"];
@@ -326,31 +334,45 @@ function checkInappropriate(name) {
 
 document.addEventListener("DOMContentLoaded", () => {
     const saved = localStorage.getItem("arcadehub_player_name");
-    if (saved) {
-        document.getElementById("welcomeHeading").textContent = `Welcome, ${saved}!`;
-    } else {
-        document.getElementById("customNameInput").value = generateRandomName();
+    const welcomeH = document.getElementById("welcomeHeading");
+    const nameInput = document.getElementById("customNameInput");
+    
+    if (saved && welcomeH) {
+        welcomeH.textContent = `Welcome, ${saved}!`;
+    } else if (nameInput) {
+        nameInput.value = generateRandomName();
     }
 
-    document.getElementById("randomNameBtn").addEventListener("click", () => {
-        audio.playSFX('click');
-        document.getElementById("customNameInput").value = generateRandomName();
-        document.getElementById("customNameError").style.display = 'none';
-    });
+    const randBtn = document.getElementById("randomNameBtn");
+    if (randBtn) {
+        randBtn.addEventListener("click", () => {
+            audio.playSFX('click');
+            if (nameInput) nameInput.value = generateRandomName();
+            const errEl = document.getElementById("customNameError");
+            if (errEl) errEl.style.display = 'none';
+        });
+    }
 });
 
 function openNamePromptModal() {
     audio.playSFX('click');
     const saved = localStorage.getItem("arcadehub_player_name") || generateRandomName();
-    document.getElementById("customNameInput").value = saved;
-    document.getElementById("customNameError").style.display = 'none';
-    document.getElementById("name-prompt-modal").classList.add('active');
+    const nameInput = document.getElementById("customNameInput");
+    const errEl = document.getElementById("customNameError");
+    const nModal = document.getElementById("name-prompt-modal");
+
+    if (nameInput) nameInput.value = saved;
+    if (errEl) errEl.style.display = 'none';
+    if (nModal) nModal.classList.add('active');
 }
 
 function saveCustomNameAndEnter() {
     audio.playSFX('click');
-    const inputVal = document.getElementById("customNameInput").value.trim();
+    const nameInput = document.getElementById("customNameInput");
     const errorEl = document.getElementById("customNameError");
+    if (!nameInput || !errorEl) return;
+
+    const inputVal = nameInput.value.trim();
 
     if (inputVal.length < 3) {
         errorEl.textContent = "Name must be at least 3 characters long.";
@@ -365,14 +387,18 @@ function saveCustomNameAndEnter() {
     }
 
     localStorage.setItem("arcadehub_player_name", inputVal);
-    document.getElementById("welcomeHeading").textContent = `Welcome, ${inputVal}!`;
-    document.getElementById("name-prompt-modal").classList.remove('active');
+    const welcomeH = document.getElementById("welcomeHeading");
+    if (welcomeH) welcomeH.textContent = `Welcome, ${inputVal}!`;
+    
+    const nModal = document.getElementById("name-prompt-modal");
+    if (nModal) nModal.classList.remove('active');
 
     const splash = document.getElementById('splash-screen');
     if (splash && !splash.classList.contains('fade-out')) {
         splash.classList.add('fade-out');
         audio.playSFX('win');
-        document.getElementById('robot-companion').classList.add('visible');
+        const robotComp = document.getElementById('robot-companion');
+        if (robotComp) robotComp.classList.add('visible');
     }
 }
 
@@ -398,43 +424,51 @@ function showGameInstructions(containerId, gameName, icon, instructionObj) {
         return;
     }
 
-    document.getElementById('inst-modal-title').textContent = `🎮 ${gameName}`;
-    document.getElementById('inst-modal-icon').innerHTML = icon || '🕹️';
-    
-    let contentHTML = `
-        <div style="margin-bottom: 10px;">
-            <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Objective</strong>
-            <p style="font-size: 0.9rem; color: var(--text-main); margin-top: 2px;">${instructionObj.objective}</p>
-        </div>
-        <div>
-            <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Controls & Rules</strong>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 2px;">${instructionObj.controls}</p>
-        </div>
-    `;
-    document.getElementById('inst-modal-content').innerHTML = contentHTML;
-    document.getElementById('dont-show-checkbox').checked = false;
-    document.getElementById('instruction-modal').classList.add('active');
+    const tEl = document.getElementById('inst-modal-title');
+    const iEl = document.getElementById('inst-modal-icon');
+    const cEl = document.getElementById('inst-modal-content');
+    const cb = document.getElementById('dont-show-checkbox');
+    const iModal = document.getElementById('instruction-modal');
+
+    if (tEl) tEl.textContent = `🎮 ${gameName}`;
+    if (iEl) iEl.innerHTML = icon || '🕹️';
+    if (cEl) {
+        cEl.innerHTML = `
+            <div style="margin-bottom: 10px;">
+                <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Objective</strong>
+                <p style="font-size: 0.9rem; color: var(--text-main); margin-top: 2px;">${instructionObj.objective}</p>
+            </div>
+            <div>
+                <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Controls & Rules</strong>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 2px;">${instructionObj.controls}</p>
+            </div>
+        `;
+    }
+    if (cb) cb.checked = false;
+    if (iModal) iModal.classList.add('active');
 }
 
 function closeInstructionModal() {
     audio.playSFX('click');
-    document.getElementById('instruction-modal').classList.remove('active');
+    const iModal = document.getElementById('instruction-modal');
+    if (iModal) iModal.classList.remove('active');
 }
 
 function toggleDontShowAgain() {
     let cb = document.getElementById('dont-show-checkbox');
-    cb.checked = !cb.checked;
+    if (cb) cb.checked = !cb.checked;
 }
 
 function proceedToGame() {
     audio.playSFX('click');
     let cb = document.getElementById('dont-show-checkbox');
-    if(cb.checked) {
+    if(cb && cb.checked) {
         let skippedGames = JSON.parse(localStorage.getItem('arcadehub_skipped_instructions') || '{}');
         skippedGames[pendingGameId] = true;
         localStorage.setItem('arcadehub_skipped_instructions', JSON.stringify(skippedGames));
     }
-    document.getElementById('instruction-modal').classList.remove('active');
+    const iModal = document.getElementById('instruction-modal');
+    if (iModal) iModal.classList.remove('active');
     recordRecentGame(pendingGameId, pendingGameName, pendingGameIcon);
     openGame(pendingGameId);
 }
@@ -545,15 +579,19 @@ function setTheme(themeName) { audio.playSFX('click'); document.documentElement.
 
 function openSettingsDrawer() {
     audio.playSFX('click');
-    document.getElementById('settings-drawer').classList.add('active');
-    document.getElementById('drawer-backdrop').classList.add('active');
+    const sDrawer = document.getElementById('settings-drawer');
+    const dBackdrop = document.getElementById('drawer-backdrop');
+    if (sDrawer) sDrawer.classList.add('active');
+    if (dBackdrop) dBackdrop.classList.add('active');
     renderRecentGames();
     renderTrophiesPanel();
 }
 function closeSettingsDrawer() {
     audio.playSFX('click');
-    document.getElementById('settings-drawer').classList.remove('active');
-    document.getElementById('drawer-backdrop').classList.remove('active');
+    const sDrawer = document.getElementById('settings-drawer');
+    const dBackdrop = document.getElementById('drawer-backdrop');
+    if (sDrawer) sDrawer.classList.remove('active');
+    if (dBackdrop) dBackdrop.classList.remove('active');
 }
 
 function toggleInstructionPreference() {
@@ -562,8 +600,10 @@ function toggleInstructionPreference() {
     let next = !current;
     localStorage.setItem('arcadehub_global_instructions', next);
     const btn = document.getElementById('pref-instructions-toggle');
-    if(next) { btn.textContent = "ENABLED"; btn.classList.add('active'); }
-    else { btn.textContent = "DISABLED"; btn.classList.remove('active'); }
+    if(btn) {
+        if(next) { btn.textContent = "ENABLED"; btn.classList.add('active'); }
+        else { btn.textContent = "DISABLED"; btn.classList.remove('active'); }
+    }
 }
 
 function switchSettingsTab(tabName) {
@@ -591,21 +631,24 @@ function toggleHubFullscreen() {
 }
 
 // ===================================================
-// PAUSE & NAVIGATION SYSTEM
+// PAUSE & NAVIGATION SYSTEM (Fixed missing element checks)
 // ===================================================
 let isGamePaused = false;
 function openPauseModal() {
     audio.playSFX('click');
     isGamePaused = true;
-    document.getElementById('pause-modal').classList.add('active');
+    const pModal = document.getElementById('pause-modal');
+    if (pModal) pModal.classList.add('active');
 }
 function resumeGame() {
     audio.playSFX('click');
     isGamePaused = false;
-    document.getElementById('pause-modal').classList.remove('active');
+    const pModal = document.getElementById('pause-modal');
+    if (pModal) pModal.classList.remove('active');
 }
 function backToHubFromPause() {
-    document.getElementById('pause-modal').classList.remove('active');
+    const pModal = document.getElementById('pause-modal');
+    if (pModal) pModal.classList.remove('active');
     isGamePaused = false;
     backToHub();
 }
@@ -614,8 +657,8 @@ function backToHub() {
     audio.playSFX('click');
     if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
 
-    document.querySelector('header').style.display = 'flex';
-    document.querySelector('.welcome-banner').style.display = 'flex';
+    const header = document.querySelector('header');
+    if (header) header.style.display = 'flex';
 
     if (typeof snakeInterval !== 'undefined') clearInterval(snakeInterval);
     if (typeof dinoInterval !== 'undefined') clearInterval(dinoInterval);
@@ -640,21 +683,31 @@ function backToHub() {
     if (typeof srRunning !== 'undefined') { srRunning = false; if(srBgMusicInterval) clearInterval(srBgMusicInterval); }
 
     document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
-    document.getElementById('main-menu').classList.add('active');
+    const mainMenu = document.getElementById('main-menu');
+    if (mainMenu) mainMenu.classList.add('active');
+    
     updateHubActivityStats();
     renderRecentGames();
 }
 
 window.onload = function() {
     generateQRCode();
-    initSnakeCanvas(); initDinoCanvas(); initFrostCanvas(); initFruitCanvas(); initPianoCanvas(); initCarCanvas();
+    if (typeof initSnakeCanvas === 'function') initSnakeCanvas();
+    if (typeof initDinoCanvas === 'function') initDinoCanvas();
+    if (typeof initFrostCanvas === 'function') initFrostCanvas();
+    if (typeof initFruitCanvas === 'function') initFruitCanvas();
+    if (typeof initPianoCanvas === 'function') initPianoCanvas();
+    if (typeof initCarCanvas === 'function') initCarCanvas();
+
     const savedTheme = localStorage.getItem("arcadehub_theme") || "";
     if (savedTheme) document.documentElement.className = savedTheme;
 
     let globalInst = localStorage.getItem('arcadehub_global_instructions') !== 'false';
     const prefBtn = document.getElementById('pref-instructions-toggle');
-    if(globalInst) { prefBtn.textContent = "ENABLED"; prefBtn.classList.add('active'); }
-    else { prefBtn.textContent = "DISABLED"; prefBtn.classList.remove('active'); }
+    if(prefBtn) {
+        if(globalInst) { prefBtn.textContent = "ENABLED"; prefBtn.classList.add('active'); }
+        else { prefBtn.textContent = "DISABLED"; prefBtn.classList.remove('active'); }
+    }
 
     updateHubActivityStats();
     renderRecentGames();
@@ -662,35 +715,41 @@ window.onload = function() {
 };
 
 function openGame(containerId) {
-    document.querySelector('header').style.display = 'none';
-    document.querySelector('.welcome-banner').style.display = 'none';
+    const header = document.querySelector('header');
+    if (header) header.style.display = 'none';
     
-    document.getElementById('main-menu').classList.remove('active');
+    const mainMenu = document.getElementById('main-menu');
+    if (mainMenu) mainMenu.classList.remove('active');
+
     document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
-    document.getElementById(containerId).classList.add('active');
+    const targetContainer = document.getElementById(containerId);
+    if (targetContainer) targetContainer.classList.add('active');
     
     setTimeout(() => {
-        if (containerId === 'snakegame-container') startSnakeGame();
-        if (containerId === 'dinogame-container') startDinoGame();
-        if (containerId === 'fruitslice-container') startFruitGame();
-        if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
-        if (containerId === 'piano-container') { renderPianoAlbumCarousel(); startPianoGame(); }
-        if (containerId === 'carracing-container') startCarGame();
-        if (containerId === 'stickman-container') returnToSrMenu();
-        if (containerId === 'solitaire-container') startSolitaireGame();
-        if (containerId === 'scattercard-container') initScatterGame();
+        if (containerId === 'snakegame-container' && typeof startSnakeGame === 'function') startSnakeGame();
+        if (containerId === 'dinogame-container' && typeof startDinoGame === 'function') startDinoGame();
+        if (containerId === 'fruitslice-container' && typeof startFruitGame === 'function') startFruitGame();
+        if (containerId === 'frostgame-container' && typeof startFrostGame === 'function') { initFrostCanvas(); startFrostGame(); }
+        if (containerId === 'piano-container' && typeof startPianoGame === 'function') { renderPianoAlbumCarousel(); startPianoGame(); }
+        if (containerId === 'carracing-container' && typeof startCarGame === 'function') startCarGame();
+        if (containerId === 'stickman-container' && typeof returnToSrMenu === 'function') returnToSrMenu();
+        if (containerId === 'solitaire-container' && typeof startSolitaireGame === 'function') startSolitaireGame();
+        if (containerId === 'scattercard-container' && typeof initScatterGame === 'function') initScatterGame();
         if (containerId === 'blackjack-container') {
             let savedBal = localStorage.getItem('arcadehub_scatter_bal');
-            if(savedBal !== null) bjBalance = parseInt(savedBal);
-            document.getElementById('bj-balance').textContent = bjBalance.toLocaleString();
+            if(savedBal !== null && typeof bjBalance !== 'undefined') bjBalance = parseInt(savedBal);
+            const bjBalEl = document.getElementById('bj-balance');
+            if(bjBalEl && typeof bjBalance !== 'undefined') bjBalEl.textContent = bjBalance.toLocaleString();
         }
-        if (containerId === 'highlow-container') initHighLowGame();
-        if (containerId === 'wordscape-container') startWordscapeGame();
+        if (containerId === 'highlow-container' && typeof initHighLowGame === 'function') initHighLowGame();
+        if (containerId === 'wordscape-container' && typeof startWordscapeGame === 'function') startWordscapeGame();
     }, 50);
 }
 
 function generateQRCode() {
     const targetUrl = window.location.href || "https://arcadehubgames-july12.vercel.app/";
-    document.getElementById('current-url-text').textContent = targetUrl;
-    document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
-}
+    const urlText = document.getElementById('current-url-text');
+    const qrImg = document.getElementById('qr-code-img');
+    if (urlText) urlText.textContent = targetUrl;
+    if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
+}
