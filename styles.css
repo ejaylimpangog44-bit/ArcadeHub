@@ -1347,3 +1347,21 @@ html.theme-coffee {
     max-width: 480px;
     width: 92vw;
 }
+
+/* ===================================================
+   SETTINGS SLIDER STYLING
+   ================================================   */
+.setting-slider {
+    width: 120px;
+    height: 6px;
+    background: #1e293b;
+    border-radius: 999px;
+    outline: none;
+    accent-color: var(--primary);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.setting-slider:hover {
+    opacity: 0.9;
+}
