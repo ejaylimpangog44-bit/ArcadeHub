@@ -433,10 +433,22 @@ function openShopTab() {
 // AUDIO MANAGER & SETTINGS DRAWER
 // ===================================================
 class ArcadeAudioManager {
-    constructor() { this.audioCtx = null; this.isMuted = false; this.volume = 0.4; }
+    constructor() { 
+        this.audioCtx = null; 
+        this.isMuted = false; 
+        this.masterVolume = 0.5;
+        this.bgmVolume = 0.4;
+        this.sfxVolume = 0.4; 
+    }
     initContext() {
         if (!this.audioCtx) { const AC = window.AudioContext || window.webkitAudioContext; this.audioCtx = new AC(); }
         if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+    }
+    updateBgmElement() {
+        const bgm = document.getElementById('bgm');
+        if (bgm) {
+            bgm.volume = this.isMuted ? 0 : (this.masterVolume * this.bgmVolume);
+        }
     }
     playTone(freq, duration = 0.1, type='triangle') {
         if (this.isMuted) return;
@@ -446,7 +458,8 @@ class ArcadeAudioManager {
         const gain = this.audioCtx.createGain();
         osc.connect(gain); gain.connect(this.audioCtx.destination);
         osc.type = type; osc.frequency.setValueAtTime(freq, now);
-        gain.gain.setValueAtTime(this.volume * 0.25, now);
+        const effectiveVol = this.masterVolume * this.sfxVolume;
+        gain.gain.setValueAtTime(effectiveVol * 0.25, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
         osc.start(now); osc.stop(now + duration);
     }
@@ -457,13 +470,14 @@ class ArcadeAudioManager {
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
         osc.connect(gain); gain.connect(this.audioCtx.destination);
+        const eff = this.masterVolume * this.sfxVolume;
         switch (type) {
-            case 'click': osc.type='square'; osc.frequency.setValueAtTime(400,now); gain.gain.setValueAtTime(this.volume*.15,now); gain.gain.exponentialRampToValueAtTime(.001,now+.04); osc.start(now); osc.stop(now+.04); break;
-            case 'move': osc.type='triangle'; osc.frequency.setValueAtTime(300,now); osc.frequency.exponentialRampToValueAtTime(500,now+.06); gain.gain.setValueAtTime(this.volume*.2,now); gain.gain.exponentialRampToValueAtTime(.001,now+.06); osc.start(now); osc.stop(now+.06); break;
-            case 'score': osc.type='sine'; osc.frequency.setValueAtTime(587.33,now); osc.frequency.setValueAtTime(880,now+.08); gain.gain.setValueAtTime(this.volume*.3,now); gain.gain.exponentialRampToValueAtTime(.001,now+.2); osc.start(now); osc.stop(now+.2); break;
-            case 'powerup': osc.type='sine'; osc.frequency.setValueAtTime(400,now); osc.frequency.exponentialRampToValueAtTime(1200,now+.2); gain.gain.setValueAtTime(this.volume*.3,now); gain.gain.exponentialRampToValueAtTime(.001,now+.25); osc.start(now); osc.stop(now+.25); break;
-            case 'win': osc.type='triangle'; osc.frequency.setValueAtTime(523.25,now); osc.frequency.setValueAtTime(659.25,now+.1); osc.frequency.setValueAtTime(783.99,now+.2); osc.frequency.setValueAtTime(1046.50,now+.3); gain.gain.setValueAtTime(this.volume*.4,now); gain.gain.exponentialRampToValueAtTime(.001,now+.5); osc.start(now); osc.stop(now+.5); break;
-            case 'gameover': osc.type='sawtooth'; osc.frequency.setValueAtTime(250,now); osc.frequency.exponentialRampToValueAtTime(70,now+.35); gain.gain.setValueAtTime(this.volume*.35,now); gain.gain.exponentialRampToValueAtTime(.001,now+.35); osc.start(now); osc.stop(now+.35); break;
+            case 'click': osc.type='square'; osc.frequency.setValueAtTime(400,now); gain.gain.setValueAtTime(eff*.15,now); gain.gain.exponentialRampToValueAtTime(.001,now+.04); osc.start(now); osc.stop(now+.04); break;
+            case 'move': osc.type='triangle'; osc.frequency.setValueAtTime(300,now); osc.frequency.exponentialRampToValueAtTime(500,now+.06); gain.gain.setValueAtTime(eff*.2,now); gain.gain.exponentialRampToValueAtTime(.001,now+.06); osc.start(now); osc.stop(now+.06); break;
+            case 'score': osc.type='sine'; osc.frequency.setValueAtTime(587.33,now); osc.frequency.setValueAtTime(880,now+.08); gain.gain.setValueAtTime(eff*.3,now); gain.gain.exponentialRampToValueAtTime(.001,now+.2); osc.start(now); osc.stop(now+.2); break;
+            case 'powerup': osc.type='sine'; osc.frequency.setValueAtTime(400,now); osc.frequency.exponentialRampToValueAtTime(1200,now+.2); gain.gain.setValueAtTime(eff*.3,now); gain.gain.exponentialRampToValueAtTime(.001,now+.25); osc.start(now); osc.stop(now+.25); break;
+            case 'win': osc.type='triangle'; osc.frequency.setValueAtTime(523.25,now); osc.frequency.setValueAtTime(659.25,now+.1); osc.frequency.setValueAtTime(783.99,now+.2); osc.frequency.setValueAtTime(1046.50,now+.3); gain.gain.setValueAtTime(eff*.4,now); gain.gain.exponentialRampToValueAtTime(.001,now+.5); osc.start(now); osc.stop(now+.5); break;
+            case 'gameover': osc.type='sawtooth'; osc.frequency.setValueAtTime(250,now); osc.frequency.exponentialRampToValueAtTime(70,now+.35); gain.gain.setValueAtTime(eff*.35,now); gain.gain.exponentialRampToValueAtTime(.001,now+.35); osc.start(now); osc.stop(now+.35); break;
         }
     }
 }
@@ -472,11 +486,28 @@ const audio = new ArcadeAudioManager();
 
 function toggleAudioSetting() {
     audio.isMuted = !audio.isMuted;
+    audio.updateBgmElement();
     const btn = document.getElementById('audio-toggle-switch');
     if (audio.isMuted) { btn.textContent = "MUTED"; btn.classList.remove('active'); }
     else { btn.textContent = "ENABLED"; btn.classList.add('active'); audio.playSFX('click'); }
 }
-function updateVolume(val) { audio.volume = parseFloat(val); audio.playSFX('click'); }
+
+function updateMasterVolume(val) {
+    audio.masterVolume = parseFloat(val);
+    audio.updateBgmElement();
+    audio.playSFX('click');
+}
+
+function updateBgmVolume(val) {
+    audio.bgmVolume = parseFloat(val);
+    audio.updateBgmElement();
+}
+
+function updateVolume(val) { 
+    audio.sfxVolume = parseFloat(val); 
+    audio.playSFX('click'); 
+}
+
 function setTheme(themeName) { audio.playSFX('click'); document.documentElement.className = themeName; localStorage.setItem("arcadehub_theme", themeName); }
 
 function openSettingsDrawer() {
