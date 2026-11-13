@@ -789,7 +789,6 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
   opacity: 0.75;
 }
 
-
 #piano-mount {
   width: 100%;
   flex: 1;
@@ -797,3 +796,151 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
   flex-direction: column;
 }
 
+/* Song Album Button & Grid Modal */
+.mt3-album-trigger-btn {
+  background: rgba(139, 92, 246, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.mt3-album-trigger-btn:hover {
+  background: var(--primary, #8b5cf6);
+  transform: translateY(-2px);
+}
+
+.mt3-song-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: rgba(9, 13, 22, 0.92);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.mt3-song-modal.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mt3-song-modal-content {
+  background: linear-gradient(145deg, #111827, #0b0f19);
+  border: 2px solid var(--primary, #8b5cf6);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 360px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+}
+
+.mt3-modal-header {
+  background: rgba(139, 92, 246, 0.2);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mt3-modal-header h3 {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.mt3-modal-close-btn {
+  background: var(--accent, #ec4899);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.mt3-song-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 16px;
+  overflow-y: auto;
+  max-height: 320px;
+}
+
+.mt3-grid-card {
+  background: rgba(17, 24, 39, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.mt3-grid-card:hover {
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+}
+
+.mt3-grid-card.active {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(56, 189, 248, 0.3));
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.mt3-grid-cover {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.mt3-grid-meta {
+  width: 100%;
+  overflow: hidden;
+}
+
+.mt3-grid-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mt3-grid-artist {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
