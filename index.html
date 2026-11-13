@@ -84,7 +84,7 @@
 
     <div id="main-menu" class="view active">
         <div class="category-section" data-category="card">
-            <div class="category-title">Card Games</div>
+            <div class="category-title">Card & Board Games</div>
             <div class="game-grid">
                 <div class="game-card" data-name="speed solitaire sprint" onclick="showGameInstructions('solitaire-container', 'Speed Solitaire', '🎴', { objective: 'Match cards in your tableau that are 1 rank higher or lower than the foundation target card before time runs out!', controls: 'Tap playable cards to match before time runs out.' })">
                     <span class="game-icon">🎴</span>
@@ -102,9 +102,17 @@
                     <span class="game-icon">🔼</span>
                     <span class="game-name">High-Low</span>
                 </div>
-                <div class="game-card" data-name="uno card game" onclick="showGameInstructions('uno-container', 'UNO Battle', '🌈', { objective: 'Be the first to empty your hand by matching colors, numbers, or action cards against the AI!', controls: 'Tap a matching card in your hand or tap the Deck to draw.' })">
-                    <span class="game-icon">🌈</span>
-                    <span class="game-name">UNO Battle</span>
+                <!-- Chess Pro Card -->
+                <div class="game-card" data-name="chess" onclick="showGameInstructions('chess-container', 'Chess Pro', '♟️', gameInstructionsMap['chess-container'])">
+                    <div style="font-size: 32px;">♟️</div>
+                    <div style="font-weight: 700; font-size: 14px; margin-top: 4px;">Chess Pro</div>
+                    <div style="font-size: 10px; color: var(--text-muted);">Strategy & Tactics</div>
+                </div>
+                <!-- Pinoy Dama Card -->
+                <div class="game-card" data-name="dama" onclick="showGameInstructions('dama-container', 'Pinoy Dama', '🔴', gameInstructionsMap['dama-container'])">
+                    <div style="font-size: 32px;">🔴</div>
+                    <div style="font-weight: 700; font-size: 14px; margin-top: 4px;">Pinoy Dama</div>
+                    <div style="font-size: 10px; color: var(--text-muted);">Classic Board Game</div>
                 </div>
             </div>
         </div>
@@ -383,6 +391,52 @@
                 <button class="action-btn" style="flex:1; background:#b91c1c;" onclick="guessHighLow('lower')">🔽 LOWER</button>
             </div>
             <button class="control-btn" style="width:100%; margin-top:8px;" onclick="initHighLowGame()">Reset Game</button>
+        </div>
+    </div>
+
+    <!-- CHESS PRO GAME CONTAINER -->
+    <div id="chess-container" class="game-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 360px; margin-bottom: 10px;">
+            <button class="opt-btn" onclick="backToHub()">◀ HUB</button>
+            <div style="font-weight: 800; font-size: 14px; color: #fff;">♟️ CHESS PRO</div>
+            <button class="opt-btn" onclick="openPauseModal()">⏸</button>
+        </div>
+        
+        <!-- Mode Selector -->
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <button id="chess-mode-ai" class="opt-btn active" onclick="setChessMode('ai')">🤖 VS AI</button>
+            <button id="chess-mode-pvp" class="opt-btn" onclick="setChessMode('pvp')">👥 2P LOCAL</button>
+        </div>
+
+        <div style="background: rgba(17,24,39,0.9); padding: 10px; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
+            <div id="chess-turn-indicator" style="font-size: 12px; font-weight: 700; color: #38bdf8; margin-bottom: 8px;">White's Turn</div>
+            <canvas id="chess-canvas" width="320" height="320" style="border-radius: 6px; cursor: pointer; display: block; margin: 0 auto;"></canvas>
+            <div style="margin-top: 10px;">
+                <button class="opt-btn" style="width: 100%;" onclick="startChessGame()">🔄 Restart Game</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PINOY DAMA GAME CONTAINER -->
+    <div id="dama-container" class="game-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 360px; margin-bottom: 10px;">
+            <button class="opt-btn" onclick="backToHub()">◀ HUB</button>
+            <div style="font-weight: 800; font-size: 14px; color: #fff;">🔴 PINOY DAMA</div>
+            <button class="opt-btn" onclick="openPauseModal()">⏸</button>
+        </div>
+        
+        <!-- Mode Selector -->
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <button id="dama-mode-ai" class="opt-btn active" onclick="setDamaMode('ai')">🤖 VS AI</button>
+            <button id="dama-mode-pvp" class="opt-btn" onclick="setDamaMode('pvp')">👥 2P LOCAL</button>
+        </div>
+
+        <div style="background: rgba(17,24,39,0.9); padding: 10px; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
+            <div id="dama-turn-indicator" style="font-size: 12px; font-weight: 700; color: #facc15; margin-bottom: 8px;">White's Turn</div>
+            <canvas id="dama-canvas" width="320" height="320" style="border-radius: 6px; cursor: pointer; display: block; margin: 0 auto;"></canvas>
+            <div style="margin-top: 10px;">
+                <button class="opt-btn" style="width: 100%;" onclick="startDamaGame()">🔄 Restart Game</button>
+            </div>
         </div>
     </div>
 
@@ -737,48 +791,6 @@
                 </div>
             </div>
             <p style="font-size:0.78rem; color:var(--text-muted); margin-top:6px;">Tap canvas or press SPACE to drop block</p>
-        </div>
-    </div>
-
-    <!-- UNO CARD BATTLE CONTAINER -->
-    <div id="uno-container" class="game-container">
-        <div class="game-top-bar">
-            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">UNO Battle</span>
-            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
-        </div>
-        <div style="width:100%; max-width:360px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
-            <div class="score-board" style="margin-top:4px; width:100%;">
-                <div class="score-box">AI Cards 🤖 <span id="uno-ai-count">7</span></div>
-                <div class="score-box">Active Color <span id="uno-active-color" style="color:#38bdf8;">BLUE</span></div>
-                <div class="score-box">Wins 🏆 <span id="uno-wins">0</span></div>
-            </div>
-
-            <!-- AI Hand Backs -->
-            <div id="uno-ai-hand" style="display:flex; justify-content:center; gap:4px; margin-bottom:12px; min-height:36px; flex-wrap:wrap;"></div>
-
-            <!-- Center Deck & Discard Pile -->
-            <div style="display:flex; align-items:center; justify-content:center; gap:20px; background:#111827; border:1px solid var(--border); border-radius:14px; padding:16px; width:100%; margin-bottom:12px;">
-                <div class="uno-card" style="background:linear-gradient(135deg, #1e293b, #0f172a); border-color:#8b5cf6;" onclick="unoDrawCard()">
-                    <span style="font-size:0.75rem;">DRAW</span>
-                    <span>🃏</span>
-                </div>
-                <div id="uno-discard-pile" class="uno-card uno-blue">7</div>
-            </div>
-
-            <p id="uno-status" style="margin-bottom:10px; font-weight:700; font-size:0.85rem; color:var(--text-main); text-align:center;">Your Turn! Match color or number.</p>
-
-            <!-- Wild Color Picker -->
-            <div id="uno-color-picker" style="display:none; gap:8px; margin-bottom:10px;">
-                <button class="action-btn" style="background:#ef4444; padding:8px 12px;" onclick="chooseUnoWildColor('red')">Red</button>
-                <button class="action-btn" style="background:#3b82f6; padding:8px 12px;" onclick="chooseUnoWildColor('blue')">Blue</button>
-                <button class="action-btn" style="background:#22c55e; padding:8px 12px;" onclick="chooseUnoWildColor('green')">Green</button>
-                <button class="action-btn" style="background:#eab308; color:#000; padding:8px 12px;" onclick="chooseUnoWildColor('yellow')">Yellow</button>
-            </div>
-
-            <!-- Player Hand -->
-            <div id="uno-player-hand" style="display:flex; gap:6px; overflow-x:auto; width:100%; padding:8px 4px; justify-content:flex-start;"></div>
-
-            <button class="control-btn" style="width:100%; margin-top:10px;" onclick="startUnoGame()">New UNO Match</button>
         </div>
     </div>
 
