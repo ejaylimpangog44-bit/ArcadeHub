@@ -443,10 +443,12 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 @media (min-width: 768px) {
     #settings-drawer {
         top: 0; left: auto; right: -420px; transform: none;
-        height: 100vh; max-height: 100vh; border-radius: 0; border-y: none; border-right: none;
+        height: 100vh; max-height: 100vh; border-radius: 0; 
+        border-top: none; border-bottom: none; border-right: none;
     }
     #settings-drawer.active { right: 0; transform: none; }
 }
+
 .drawer-backdrop {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6);
     backdrop-filter: blur(4px); z-index: 995; opacity: 0; visibility: hidden; transition: opacity 0.35s ease, visibility 0.35s ease;
