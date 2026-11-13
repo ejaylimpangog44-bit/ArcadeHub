@@ -1297,3 +1297,53 @@ html.theme-coffee {
     border-color: #38bdf8;
     color: #38bdf8;
 }
+
+/* ===================================================
+   WELCOME DAILY MODAL & GOTD BADGES
+   =================================================== */
+.gotd-badge-2x {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gotd-badge-featured {
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    color: #a78bfa;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gotd-play-btn {
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
+    box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.gotd-play-btn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.landscape-modal-box {
+    max-width: 480px;
+    width: 92vw;
+}
