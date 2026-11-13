@@ -828,6 +828,22 @@
         </div>
     </div>
 
+    <!-- LEVEL UP CELEBRATION MODAL -->
+    <div class="modal-overlay" id="level-up-modal" style="z-index: 10700;">
+        <div class="settings-modal-box" style="text-align: center; max-width: 340px; border: 2px solid var(--primary); box-shadow: 0 10px 30px var(--accent-glow);">
+            <div class="settings-header">
+                <h3>🎉 LEVEL UP!</h3>
+                <button class="settings-close-x" onclick="closeLevelUpModal()">✕</button>
+            </div>
+            <div class="settings-body" style="padding: 24px 20px;">
+                <div style="font-size: 48px; margin-bottom: 12px;">🏆</div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">New Rank Achieved</p>
+                <div id="level-up-title-text" style="font-size: 1.2rem; font-weight: 900; color: #fff; margin-bottom: 20px;">Level 2: Button Masher</div>
+                <button class="start-game-btn" onclick="closeLevelUpModal()" style="width: 100%;">AWESOME! 🚀</button>
+            </div>
+        </div>
+    </div>
+
     <!-- HOW TO PLAY STRUCTURED INSTRUCTIONS MODAL -->
     <div class="modal-overlay" id="instruction-modal">
         <div class="settings-modal-box" style="text-align: center;">
