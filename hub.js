@@ -1,4 +1,3 @@
-
 // ===================================================
 // SUPABASE & LEADERBOARD INTEGRATION
 // ===================================================
@@ -554,10 +553,6 @@ function backToHub() {
     document.querySelector('header').style.display = 'flex';
     const pCard = document.getElementById('player-profile-card');
     if (pCard) pCard.style.display = 'flex';
-    const dCard = document.getElementById('daily-hub-card');
-    if (dCard) dCard.style.display = 'block';
-    const gBanner = document.getElementById('gotd-hero-banner');
-    if (gBanner && sessionStorage.getItem('gotd_dismissed') !== 'true') gBanner.classList.add('visible');
 
     if (typeof snakeInterval !== 'undefined') clearInterval(snakeInterval);
     if (typeof dinoInterval !== 'undefined') clearInterval(dinoInterval);
@@ -611,10 +606,6 @@ function openGame(containerId) {
     document.querySelector('header').style.display = 'none';
     const pCard = document.getElementById('player-profile-card');
     if (pCard) pCard.style.display = 'none';
-    const dCard = document.getElementById('daily-hub-card');
-    if (dCard) dCard.style.display = 'none';
-    const gBanner = document.getElementById('gotd-hero-banner');
-    if (gBanner) gBanner.classList.remove('visible');
     
     document.getElementById('main-menu').classList.remove('active');
     document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
@@ -770,15 +761,12 @@ const ProgressionManager = {
 };
 
 function triggerLevelUpModal(levelText) {
-    // Set the dynamic text
     const titleEl = document.getElementById('level-up-title-text');
     if (titleEl) titleEl.innerText = levelText;
 
-    // Show the custom modal overlay with flex layout
     const modal = document.getElementById('level-up-modal');
     if (modal) modal.style.display = 'flex';
 
-    // Play level up SFX (using your hub's built-in sound system)
     if (typeof audio !== 'undefined' && typeof audio.playSFX === 'function') {
         audio.playSFX('win');
     }
@@ -797,7 +785,7 @@ ScoreManager.saveScore = function(gameKey, score) {
 };
 
 // ===================================================
-// GAME OF THE DAY (2X XP HERO BANNER)
+// GAME OF THE DAY (2X XP DATA POOL)
 // ===================================================
 const GOTD_POOL = [
     { key: "towerstack", id: "towerstack-container", name: "Tower Stack", icon: "🏗️", desc: "Stack blocks to the sky for 2X XP today!" },
@@ -810,27 +798,6 @@ const GOTD_POOL = [
 function getGameOfTheDay() {
     const dayIndex = Math.floor(Date.now() / 86400000);
     return GOTD_POOL[dayIndex % GOTD_POOL.length];
-}
-
-function showGotdBanner() {
-    if (sessionStorage.getItem("gotd_dismissed") === "true") return;
-    const gotd = getGameOfTheDay();
-    const banner = document.getElementById("gotd-hero-banner");
-    if (!banner) return;
-    document.getElementById("gotd-icon").textContent = gotd.icon;
-    document.getElementById("gotd-title").textContent = gotd.name;
-    document.getElementById("gotd-desc").textContent = gotd.desc;
-    document.getElementById("gotd-play-btn").onclick = () => {
-        const inst = gameInstructionsMap[gotd.id] || { objective: gotd.desc, controls: "Tap controls to play." };
-        showGameInstructions(gotd.id, gotd.name, gotd.icon, inst);
-    };
-    banner.classList.add("visible");
-}
-
-function closeGotdBanner() {
-    audio.playSFX('click');
-    sessionStorage.setItem("gotd_dismissed", "true");
-    document.getElementById("gotd-hero-banner").classList.remove("visible");
 }
 
 // ===================================================
@@ -860,9 +827,6 @@ const DailyChallengeManager = {
             const dailyData = shuffled.map(c => ({ ...c, progress: 0, done: false }));
             localStorage.setItem("arcadehub_daily_quests", JSON.stringify(dailyData));
         }
-
-        const pill = document.getElementById("hub-streak-pill");
-        if (pill) pill.textContent = `🔥 ${streak} Day Streak`;
         this.render();
     },
     trackProgress(gameKey, score) {
@@ -888,30 +852,76 @@ const DailyChallengeManager = {
         this.render();
     },
     render() {
-        const list = document.getElementById("daily-challenges-list");
-        const listModal = document.getElementById("daily-challenges-list-modal");
-        const subtitle = document.getElementById("daily-card-subtitle");
+        const listModal = document.getElementById("modal-daily-challenges-list");
         let streak = localStorage.getItem("arcadehub_streak") || "1";
 
         const quests = JSON.parse(localStorage.getItem("arcadehub_daily_quests") || "[]");
         const html = quests.map(q => `
-            <div class="challenge-item ${q.done ? 'completed' : ''}" style="display: flex; justify-content: space-between; align-items: center; background: rgba(17,24,39,0.8); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(17,24,39,0.85); border: 1px solid var(--border); padding: 8px 10px; border-radius: 8px;">
                 <div>
-                    <div style="font-size:12px; font-weight:700; color:#fff;">${q.done ? '✅' : '🎯'} ${q.text}</div>
-                    <div style="font-size:10px; color:var(--text-muted);">Progress: ${Math.min(q.progress, q.target)}/${q.target}</div>
+                    <div style="font-size:11px; font-weight:700; color:#fff;">${q.done ? '✅' : '🎯'} ${q.text}</div>
+                    <div style="font-size:9px; color:var(--text-muted);">Progress: ${Math.min(q.progress, q.target)}/${q.target}</div>
                 </div>
-                <span class="challenge-reward-tag" style="font-size: 10px; font-weight: 800; color: #facc15;">${q.done ? 'CLAIMED' : `+${q.rewardXP} XP${q.unlockBorder ? ' + Border' : ''}`}</span>
+                <span style="font-size: 10px; font-weight: 800; color: #facc15;">${q.done ? 'CLAIMED' : `+${q.rewardXP} XP${q.unlockBorder ? ' + Border' : ''}`}</span>
             </div>
         `).join('');
 
-        if (list) list.innerHTML = html;
         if (listModal) listModal.innerHTML = html;
-        if (subtitle) subtitle.textContent = `${streak} Day Streak • Tap to view active quests`;
-        
-        const modalStreakPill = document.getElementById("hub-streak-pill-modal");
+        const modalStreakPill = document.getElementById("modal-hub-streak-pill");
         if (modalStreakPill) modalStreakPill.textContent = `🔥 ${streak} Day Streak`;
     }
 };
+
+// ===================================================
+// WELCOME DAILY REWARDS POPUP MODAL & ENTRY TRIGGERS
+// ===================================================
+function openWelcomeDailyModal() {
+    audio.playSFX('click');
+    
+    // Populate Game of the Day inside modal
+    const gotd = getGameOfTheDay();
+    const iconEl = document.getElementById("modal-gotd-icon");
+    const titleEl = document.getElementById("modal-gotd-title");
+    const descEl = document.getElementById("modal-gotd-desc");
+    const playBtn = document.getElementById("modal-gotd-play-btn");
+
+    if (iconEl) iconEl.textContent = gotd.icon;
+    if (titleEl) titleEl.textContent = gotd.name;
+    if (descEl) descEl.textContent = gotd.desc;
+    if (playBtn) {
+        playBtn.onclick = () => {
+            closeWelcomeDailyModal();
+            const inst = gameInstructionsMap[gotd.id] || { objective: gotd.desc, controls: "Tap controls to play." };
+            showGameInstructions(gotd.id, gotd.name, gotd.icon, inst);
+        };
+    }
+
+    DailyChallengeManager.render();
+
+    // Open Modal automatically upon entering main UI
+    document.getElementById('welcome-daily-modal').classList.add('active');
+}
+
+function closeWelcomeDailyModal() {
+    audio.playSFX('click');
+    document.getElementById('welcome-daily-modal').classList.remove('active');
+}
+
+function executeModalLuckySpin() {
+    audio.playSFX('powerup');
+    const rewards = [
+        { label: "+250 XP", xp: 250, icon: "⚡" },
+        { label: "+500 XP", xp: 500, icon: "🔥" },
+        { label: "+1,000 XP", xp: 1000, icon: "💎" },
+        { label: "+150 XP", xp: 150, icon: "🎁" }
+    ];
+    let won = rewards[Math.floor(Math.random() * rewards.length)];
+    document.getElementById('modal-wheel-display').textContent = won.icon;
+    document.getElementById('modal-wheel-status').textContent = `🎉 You won ${won.label}!`;
+    document.getElementById('modal-spin-wheel-btn').disabled = true;
+    document.getElementById('modal-spin-wheel-btn').style.opacity = '0.5';
+    ProgressionManager.addXP(won.xp);
+}
 
 function openCustomizeModal() {
     audio.playSFX('click');
@@ -945,7 +955,7 @@ function openCustomizeModal() {
 
 function openDailyQuestsModal() {
     audio.playSFX('click');
-    document.getElementById('daily-quests-modal').classList.add('active');
+    openWelcomeDailyModal(); // Opens the unified modal
 }
 
 function closeDailyQuestsModal() {
@@ -978,7 +988,7 @@ saveCustomNameAndEnter = function() {
     if (success !== false) {
         ProgressionManager.updateUI();
         DailyChallengeManager.init();
-        setTimeout(showGotdBanner, 350);
+        setTimeout(openWelcomeDailyModal, 400); // Pops up right when entering main UI
     }
 };
 
