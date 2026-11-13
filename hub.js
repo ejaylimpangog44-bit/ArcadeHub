@@ -387,10 +387,98 @@ function filterCategory(category, btn) {
 }
 
 // ===================================================
-// DAILY LUCKY SPIN WHEEL
+// LUCKY SPIN COOLDOWN MANAGER (PHT TIMEZONE)
 // ===================================================
+const LuckySpinManager = {
+    isAvailable() {
+        const lastSpinDate = localStorage.getItem("arcadehub_last_spin_pht");
+        const todayPHT = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+        return lastSpinDate !== todayPHT;
+    },
+    recordSpin() {
+        const todayPHT = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+        localStorage.setItem("arcadehub_last_spin_pht", todayPHT);
+        this.updateUIState();
+    },
+    updateUIState() {
+        const btn1 = document.getElementById('modal-spin-wheel-btn');
+        const btn2 = document.getElementById('spin-wheel-btn');
+        const status1 = document.getElementById('modal-wheel-status');
+        const status2 = document.getElementById('wheel-status');
+
+        if (!this.isAvailable()) {
+            const msLeft = getPHTTimeRemainingToMidnight();
+            if (msLeft <= 0) {
+                localStorage.removeItem("arcadehub_last_spin_pht");
+                this.updateUIState();
+                return;
+            }
+            
+            const hours = Math.floor(msLeft / 3600000);
+            const minutes = Math.floor((msLeft % 3600000) / 60000);
+            const seconds = Math.floor((msLeft % 60000) / 1000);
+            const timeStr = `${hours}h ${minutes}m ${seconds}s`;
+
+            if (btn1) {
+                btn1.disabled = true;
+                btn1.style.opacity = '0.6';
+                btn1.textContent = `COOLDOWN: ${timeStr}`;
+            }
+            if (btn2) {
+                btn2.disabled = true;
+                btn2.style.opacity = '0.6';
+                btn2.textContent = `COOLDOWN: ${timeStr}`;
+            }
+            if (status1) status1.textContent = `Next spin available tomorrow at midnight (PHT)`;
+            if (status2) status2.textContent = `Next spin available tomorrow at midnight (PHT)`;
+        } else {
+            if (btn1) {
+                btn1.disabled = false;
+                btn1.style.opacity = '1';
+                btn1.textContent = 'SPIN LUCKY WHEEL ▶';
+            }
+            if (btn2) {
+                btn2.disabled = false;
+                btn2.style.opacity = '1';
+                btn2.textContent = 'SPIN WHEEL ▶';
+            }
+            if (status1) status1.textContent = 'Spin for bonus XP & coins today!';
+            if (status2) status2.textContent = 'Spin to win random XP or Coin bonuses!';
+        }
+    }
+};
+
+function getPHTTimeRemainingToMidnight() {
+    const now = new Date();
+    const options = { timeZone: 'Asia/Manila', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false };
+    const formatter = new Intl.DateTimeFormat('en-US', options);
+    const parts = formatter.formatToParts(now);
+    let year, month, day, hour, minute, second;
+    for (let p of parts) {
+        if (p.type === 'year') year = parseInt(p.value);
+        if (p.type === 'month') month = parseInt(p.value) - 1;
+        if (p.type === 'day') day = parseInt(p.value);
+        if (p.type === 'hour') hour = parseInt(p.value);
+        if (p.type === 'minute') minute = parseInt(p.value);
+        if (p.type === 'second') second = parseInt(p.value);
+    }
+    const currentPHTMs = Date.UTC(year, month, day, hour, minute, second);
+    const nextMidnightPHTMs = Date.UTC(year, month, day + 1, 0, 0, 0);
+    return nextMidnightPHTMs - currentPHTMs;
+}
+
+let luckySpinInterval = null;
+function initLuckySpinTimer() {
+    if (luckySpinInterval) clearInterval(luckySpinInterval);
+    LuckySpinManager.updateUIState();
+    luckySpinInterval = setInterval(() => {
+        LuckySpinManager.updateUIState();
+    }, 1000);
+}
+
 function openLuckySpinModal() {
     audio.playSFX('click');
+    LuckySpinManager.updateUIState();
     document.getElementById('lucky-spin-modal').classList.add('active');
 }
 
@@ -400,6 +488,7 @@ function closeLuckySpinModal() {
 }
 
 function executeLuckySpin() {
+    if (!LuckySpinManager.isAvailable()) return;
     audio.playSFX('powerup');
     const rewards = [
         { label: "+250 XP", xp: 250, icon: "⚡" },
@@ -410,8 +499,23 @@ function executeLuckySpin() {
     let won = rewards[Math.floor(Math.random() * rewards.length)];
     document.getElementById('wheel-display').textContent = won.icon;
     document.getElementById('wheel-status').textContent = `🎉 You won ${won.label}!`;
-    document.getElementById('spin-wheel-btn').disabled = true;
-    document.getElementById('spin-wheel-btn').style.opacity = '0.5';
+    LuckySpinManager.recordSpin();
+    ProgressionManager.addXP(won.xp);
+}
+
+function executeModalLuckySpin() {
+    if (!LuckySpinManager.isAvailable()) return;
+    audio.playSFX('powerup');
+    const rewards = [
+        { label: "+250 XP", xp: 250, icon: "⚡" },
+        { label: "+500 XP", xp: 500, icon: "🔥" },
+        { label: "+1,000 XP", xp: 1000, icon: "💎" },
+        { label: "+150 XP", xp: 150, icon: "🎁" }
+    ];
+    let won = rewards[Math.floor(Math.random() * rewards.length)];
+    document.getElementById('modal-wheel-display').textContent = won.icon;
+    document.getElementById('modal-wheel-status').textContent = `🎉 You won ${won.label}!`;
+    LuckySpinManager.recordSpin();
     ProgressionManager.addXP(won.xp);
 }
 
@@ -631,6 +735,7 @@ window.onload = function() {
     updateHubActivityStats();
     renderRecentGames();
     renderTrophiesPanel();
+    initLuckySpinTimer();
 };
 
 function openGame(containerId) {
@@ -929,6 +1034,7 @@ function openWelcomeDailyModal() {
     }
 
     DailyChallengeManager.render();
+    LuckySpinManager.updateUIState();
 
     // Open Modal automatically upon entering main UI
     document.getElementById('welcome-daily-modal').classList.add('active');
@@ -937,22 +1043,6 @@ function openWelcomeDailyModal() {
 function closeWelcomeDailyModal() {
     audio.playSFX('click');
     document.getElementById('welcome-daily-modal').classList.remove('active');
-}
-
-function executeModalLuckySpin() {
-    audio.playSFX('powerup');
-    const rewards = [
-        { label: "+250 XP", xp: 250, icon: "⚡" },
-        { label: "+500 XP", xp: 500, icon: "🔥" },
-        { label: "+1,000 XP", xp: 1000, icon: "💎" },
-        { label: "+150 XP", xp: 150, icon: "🎁" }
-    ];
-    let won = rewards[Math.floor(Math.random() * rewards.length)];
-    document.getElementById('modal-wheel-display').textContent = won.icon;
-    document.getElementById('modal-wheel-status').textContent = `🎉 You won ${won.label}!`;
-    document.getElementById('modal-spin-wheel-btn').disabled = true;
-    document.getElementById('modal-spin-wheel-btn').style.opacity = '0.5';
-    ProgressionManager.addXP(won.xp);
 }
 
 function openCustomizeModal() {
@@ -1022,11 +1112,6 @@ saveCustomNameAndEnter = function() {
         DailyChallengeManager.init();
         setTimeout(openWelcomeDailyModal, 400); // Pops up right when entering main UI
     }
-};
-
-window.onload = function() {
-    ProgressionManager.updateUI();
-    DailyChallengeManager.init();
 };
 
 document.addEventListener('DOMContentLoaded', () => {
