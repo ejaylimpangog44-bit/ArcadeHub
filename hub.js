@@ -218,13 +218,13 @@ function saveCustomNameAndEnter() {
     if (inputVal.length < 3) {
         errorEl.textContent = "Name must be at least 3 characters long.";
         errorEl.style.display = 'block';
-        return;
+        return false;
     }
 
     if (checkInappropriate(inputVal)) {
         errorEl.textContent = "This name contains inappropriate words. Please choose another.";
         errorEl.style.display = 'block';
-        return;
+        return false;
     }
 
     localStorage.setItem("arcadehub_player_name", inputVal);
@@ -237,6 +237,7 @@ function saveCustomNameAndEnter() {
         audio.playSFX('win');
         document.getElementById('robot-companion').classList.add('visible');
     }
+    return true;
 }
 
 // ===================================================
@@ -694,7 +695,7 @@ const ProgressionManager = {
         if (avEl) avEl.textContent = equippedAvatar;
         if (frameEl) frameEl.className = `avatar-frame ${equippedBorder}`;
     }
-}; // <--- FIXED: Added missing closing brace for ProgressionManager
+};
 
 const _origSaveScore = ScoreManager.saveScore.bind(ScoreManager);
 ScoreManager.saveScore = function(gameKey, score) {
@@ -818,7 +819,7 @@ const DailyChallengeManager = {
         const modalStreakPill = document.getElementById("hub-streak-pill-modal");
         if (modalStreakPill) modalStreakPill.textContent = `🔥 ${streak} Day Streak`;
     }
-}; // <--- FIXED: Added missing closing brace for DailyChallengeManager
+};
 
 function openCustomizeModal() {
     audio.playSFX('click');
@@ -881,10 +882,12 @@ function equipBorder(borderId) {
 
 const _origSaveCustomNameAndEnter = saveCustomNameAndEnter;
 saveCustomNameAndEnter = function() {
-    _origSaveCustomNameAndEnter();
-    ProgressionManager.updateUI();
-    DailyChallengeManager.init();
-    setTimeout(showGotdBanner, 350);
+    const success = _origSaveCustomNameAndEnter();
+    if (success !== false) {
+        ProgressionManager.updateUI();
+        DailyChallengeManager.init();
+        setTimeout(showGotdBanner, 350);
+    }
 };
 
 window.addEventListener("load", () => {
