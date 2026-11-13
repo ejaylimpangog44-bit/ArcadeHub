@@ -43,7 +43,8 @@
         </div>
     </div>
 
-    <header>
+    <!-- HEADER WITH COMPACT PROFILE HERO ICON -->
+    <header style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 14px; padding: 0 4px;">
         <div class="logo-area">
             <div class="logo-icon">🎮</div>
             <div class="logo-text">
@@ -51,34 +52,20 @@
                 <p>Play • Think • Win</p>
             </div>
         </div>
+        <!-- Compact Header Profile Hero Icon -->
+        <div class="header-profile-icon" onclick="openCustomizeModal()" style="display: flex; align-items: center; gap: 8px; background: rgba(17,24,39,0.85); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px 4px 4px; cursor: pointer;" title="Customize Profile">
+            <div class="avatar-frame border-rookie" id="hub-avatar-frame" style="width: 36px; height: 36px; font-size: 18px; border-radius: 50%;">
+                <span id="hub-avatar-icon">🕹️</span>
+            </div>
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                <span class="profile-name" id="welcomeHeading" style="font-size: 11px; font-weight: 800; max-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Player</span>
+                <span style="font-size: 9px; color: var(--primary); font-weight: 700;" id="hub-level-mini">LVL 1</span>
+            </div>
+        </div>
     </header>
 
-    <!-- PLAYER PROFILE CARD (Level 1-50, Avatar + Flashy Side Border + Title + XP Bar) -->
-    <div class="player-profile-card" id="player-profile-card">
-        <div class="avatar-frame border-rookie" id="hub-avatar-frame" onclick="openCustomizeModal()" style="cursor:pointer;" title="Customize Avatar & Border">
-            <span id="hub-avatar-icon">🕹️</span>
-        </div>
-        <div class="profile-info">
-            <div class="profile-top-row">
-                <div class="profile-name-wrap">
-                    <span class="profile-name" id="welcomeHeading">Player</span>
-                    <span class="profile-title-badge" id="hub-player-title">LVL 1 • Arcade Newcomer</span>
-                </div>
-                <button class="edit-name-btn" onclick="openCustomizeModal()">Customize</button>
-            </div>
-            <div class="xp-bar-container">
-                <div class="xp-bar-fill" id="hub-xp-fill"></div>
-            </div>
-            <div class="xp-meta-row">
-                <span id="hub-level-label">Level 1 / 50</span>
-                <span id="hub-xp-text">0 / 12 XP</span>
-            </div>
-        </div>
-    </div>
-
-        <!-- GAME OF THE DAY / FEATURED HERO BANNER -->
-    <div class="gotd-hero-banner" id="gotd-hero-banner">
-        <button class="gotd-close-btn" onclick="closeGotdBanner()" title="Dismiss Banner" aria-label="Dismiss Banner">✕</button>
+    <!-- GAME OF THE DAY / FEATURED HERO BANNER -->
+    <div class="gotd-hero-banner" id="gotd-hero-banner" style="display: flex !important;">
         <div style="flex:1; width: 100%;">
             <div class="gotd-badges">
                 <span class="gotd-badge-2x">⚡ 2X XP TODAY</span>
@@ -95,13 +82,16 @@
         <button class="gotd-play-btn" id="gotd-play-btn">PLAY 2X XP ▶</button>
     </div>
 
-    <!-- DAILY CHALLENGES & LOGIN STREAK -->
-    <div class="daily-hub-card" id="daily-hub-card">
-        <div class="daily-header">
-            <div class="category-title" style="margin-bottom:0;">Daily Quests & Streak</div>
-            <span class="streak-pill" id="hub-streak-pill">🔥 1 Day Streak</span>
+    <!-- CLICKABLE DAILY QUESTS GAME CARD -->
+    <div class="daily-game-card" onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(145deg, rgba(22, 30, 48, 0.95), rgba(13, 19, 33, 0.95)); border: 1.5px solid var(--primary); border-radius: 16px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 6px 20px var(--accent-glow); transition: transform 0.2s;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="font-size: 28px; background: rgba(250, 204, 21, 0.15); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(250, 204, 21, 0.3);">🔥</div>
+            <div>
+                <h3 style="font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 2px;">Daily Quests & Streak</h3>
+                <p style="font-size: 11px; color: var(--text-muted);" id="daily-card-subtitle">1 Day Streak • Tap to view active quests</p>
+            </div>
         </div>
-        <div id="daily-challenges-list"></div>
+        <span style="font-size: 12px; font-weight: 800; color: var(--primary); background: rgba(139,92,246,0.2); padding: 6px 12px; border-radius: 8px;">VIEW ➔</span>
     </div>
 
     <div id="main-menu" class="view active">
@@ -403,15 +393,14 @@
         </div>
     </div>
 
-       <!-- Piano Tiles Pro (Magic Tiles 3 Style) -->
-<div id="piano-container" class="game-container">
-    <div class="game-top-bar">
-        <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Piano Tiles</span>
-        <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
+    <!-- Piano Tiles Pro -->
+    <div id="piano-container" class="game-container">
+        <div class="game-top-bar">
+            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Piano Tiles</span>
+            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
+        </div>
+        <div id="piano-mount"></div>
     </div>
-    <div id="piano-mount"></div>
-</div>
-
 
     <!-- Turbo Car Racing -->
     <div id="carracing-container" class="game-container">
@@ -776,23 +765,52 @@
         </div>
     </div>
 
-    <!-- AVATAR, FLASHY BORDER & TITLE CUSTOMIZER MODAL -->
+    <!-- DAILY QUESTS MODAL -->
+    <div class="modal-overlay" id="daily-quests-modal" style="z-index: 10550;">
+        <div class="settings-modal-box landscape-modal-box" style="max-width: 440px;">
+            <div class="settings-header">
+                <h3>🔥 Daily Quests & Streak</h3>
+                <button class="settings-close-x" onclick="closeDailyQuestsModal()">✕</button>
+            </div>
+            <div class="settings-body" style="padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(250,204,21,0.1); border: 1px solid rgba(250,204,21,0.3); padding: 10px 14px; border-radius: 10px;">
+                    <span style="font-size: 12px; font-weight: 800; color: #facc15;">Login Streak</span>
+                    <span class="streak-pill" id="hub-streak-pill-modal" style="font-size: 11px;">🔥 1 Day Streak</span>
+                </div>
+                <p style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 8px;">Today's Quests</p>
+                <div id="daily-challenges-list-modal" style="display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AVATAR, FLASHY BORDER & TITLE CUSTOMIZER MODAL (Landscape Layout) -->
     <div class="modal-overlay" id="customize-modal" style="z-index: 10550;">
-        <div class="settings-modal-box" style="max-width: 400px;">
+        <div class="settings-modal-box landscape-modal-box">
             <div class="settings-header">
                 <h3>✨ Profile & Unlocks (Lv. 1–50)</h3>
                 <button class="settings-close-x" onclick="closeCustomizeModal()">✕</button>
             </div>
             <div class="settings-body">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <span style="font-size:12px; color:var(--text-muted);">Player Name</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; background: rgba(17,24,39,0.8); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: var(--text-muted);">Player Name:</span>
+                        <span id="customize-name-display" style="font-size: 13px; font-weight: 800; color: #fff;">Player</span>
+                    </div>
                     <button class="edit-name-btn" onclick="closeCustomizeModal(); openNamePromptModal();">Edit Name ✏️</button>
                 </div>
-                <p style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:6px;">Unlocked Avatars</p>
-                <div class="unlock-grid" id="avatar-unlock-grid" style="margin-bottom:14px;"></div>
 
-                <p style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:6px;">Flashy Side Borders</p>
-                <div class="unlock-grid" id="border-unlock-grid"></div>
+                <div class="landscape-modal-grid">
+                    <div>
+                        <p style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:6px;">Unlocked Avatars</p>
+                        <div class="unlock-grid" id="avatar-unlock-grid" style="max-height: 200px; grid-template-columns: repeat(3, 1fr);"></div>
+                    </div>
+                    <div>
+                        <p style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:6px;">Flashy Side Borders</p>
+                        <div class="unlock-grid" id="border-unlock-grid" style="max-height: 200px; grid-template-columns: repeat(3, 1fr);"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
