@@ -11,10 +11,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <!-- LEADERBOARD ROLL-OUT BANNER (Triggers on 1K+ score) -->
+
+  <audio id="bgm" src="bgm.mp3" preload="auto" loop></audio>
+
+    <!-- LEADERBOARD ROLL-OUT BANNER -->
     <div id="leaderboard-rollout-banner">
         <div class="lb-banner-info">
-            <h4>🏆 Epic Score Reached (1K+)</h4>
+            <h4>🏆 Epic Score Reached</h4>
             <p>You cracked the leaderboard! Check out top ranks.</p>
         </div>
         <button class="lb-banner-btn" onclick="openSettingsToTrophies()">View Ranks</button>
