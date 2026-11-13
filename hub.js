@@ -42,233 +42,6 @@ function openSettingsToTrophies() {
 }
 
 // ===================================================
-// SEARCH & CATEGORY FILTER
-// ===================================================
-function filterGames() {
-    const query = document.getElementById('gameSearchInput').value.toLowerCase().trim();
-    const cards = document.querySelectorAll('.game-card');
-    cards.forEach(card => {
-        const name = card.dataset.name || '';
-        if(name.includes(query)) {
-            card.style.display = 'flex';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-function filterCategory(category, btn) {
-    audio.playSFX('click');
-    document.querySelectorAll('.filter-pills-row .filter-pill').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const sections = document.querySelectorAll('.category-section[data-category]');
-    sections.forEach(sec => {
-        if(category === 'all' || sec.dataset.category === category) {
-            sec.style.display = 'block';
-        } else {
-            sec.style.display = 'none';
-        }
-    });
-}
-
-// ===================================================
-// SCORE MANAGER
-// ===================================================
-const ScoreManager = {
-    getStats(gameKey) {
-        const data = localStorage.getItem(`arcadehub_${gameKey}`);
-        return data ? JSON.parse(data) : { highScore: 0, gamesPlayed: 0 };
-    },
-    saveScore(gameKey, score) {
-        const stats = this.getStats(gameKey);
-        stats.gamesPlayed += 1;
-        if (score > stats.highScore) stats.highScore = score;
-        localStorage.setItem(`arcadehub_${gameKey}`, JSON.stringify(stats));
-        updateHubActivityStats();
-        return stats;
-    }
-};
-
-// ===================================================
-// XP, LEVELING, STATS & TROPHIES (Unified)
-// ===================================================
-function getLevelDetails(totalXP) {
-    if(totalXP >= 3000) return { title: 'Arcade Legend 👑', level: 4, nextXP: 5000 };
-    if(totalXP >= 1500) return { title: 'Pro Gamer 🚀', level: 3, nextXP: 3000 };
-    if(totalXP >= 500) return { title: 'Arcade Enthusiast 🦊', level: 2, nextXP: 1500 };
-    return { title: 'Novice Gamer 🤖', level: 1, nextXP: 500 };
-}
-
-function updateHubActivityStats() {
-    const allGameKeys = ['snake', 'mole', 'dino', 'carracing', 'brickbreaker', 'pianotiles', 'fruitslasher', 'sr', 'solitaire', 'scatter', 'blackjack', 'highlow', 'tictactoe', 'guess', 'wordscape'];
-    let totalPlayed = 0;
-    let totalHighScoresSet = 0;
-    let totalXP = 0;
-
-    allGameKeys.forEach(k => {
-        const st = ScoreManager.getStats(k);
-        totalPlayed += st.gamesPlayed;
-        if(st.highScore > 0) {
-            totalHighScoresSet++;
-            totalXP += Math.floor(st.highScore / 2);
-        }
-        totalXP += st.gamesPlayed * 25; // 25 XP per play session
-    });
-
-    const statGames = document.getElementById('stat-games-played');
-    const statAchievements = document.getElementById('stat-achievements');
-    const statXp = document.getElementById('stat-total-xp');
-
-    if (statGames) statGames.textContent = totalPlayed;
-    if (statAchievements) statAchievements.textContent = totalHighScoresSet;
-    if (statXp) statXp.textContent = totalXP.toLocaleString();
-
-    let details = getLevelDetails(totalXP);
-    const rankTitle = document.getElementById('profile-rank-title');
-    const headerSub = document.getElementById('header-level-subtitle');
-    const xpText = document.getElementById('profile-xp-text');
-    const xpBar = document.getElementById('profile-xp-bar');
-
-    if (rankTitle) rankTitle.textContent = `${details.title} (Level ${details.level})`;
-    if (headerSub) headerSub.textContent = details.title;
-    if (xpText) xpText.textContent = `${totalXP} / ${details.nextXP} XP`;
-    if (xpBar) {
-        let pct = Math.min(100, (totalXP / details.nextXP) * 100);
-        xpBar.style.width = `${pct}%`;
-    }
-
-    renderTrophiesPanel();
-}
-
-function renderTrophiesPanel() {
-    const container = document.getElementById('trophies-list-container');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const games = [
-        { key: 'snake', name: 'Snake Evolution', icon: '🐍' },
-        { key: 'dino', name: 'Dino Runner', icon: '🦖' },
-        { key: 'carracing', name: 'Car Racing', icon: '🏎️' },
-        { key: 'brickbreaker', name: 'Brick Breaker', icon: '🧱' },
-        { key: 'pianotiles', name: 'Piano Tiles', icon: '🎹' },
-        { key: 'fruitslasher', name: 'Fruit Master', icon: '🍉' },
-        { key: 'sr', name: 'Stick Run', icon: '🏃‍♂️' },
-        { key: 'solitaire', name: 'Speed Solitaire', icon: '🎴' },
-        { key: 'blackjack', name: 'Blackjack 21', icon: '🃏' },
-        { key: 'highlow', name: 'High-Low', icon: '🔼' },
-        { key: 'tictactoe', name: 'Tic-Tac-Toe', icon: '❌' },
-        { key: 'guess', name: 'Number Master', icon: '🔢' },
-        { key: 'wordscape', name: 'Wordscape Pro', icon: '📝' },
-        { key: 'mole', name: 'Whack-a-Mole', icon: '🔨' }
-    ];
-
-    games.forEach(g => {
-        const st = ScoreManager.getStats(g.key);
-        const item = document.createElement('div');
-        item.style.cssText = 'background: rgba(17,24,39,0.9); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;';
-        item.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 20px;">${g.icon}</span>
-                <div>
-                    <strong style="font-size: 12px; color: #fff; display: block;">${g.name}</strong>
-                    <small style="font-size: 10px; color: var(--text-muted);">Played: ${st.gamesPlayed} times</small>
-                </div>
-            </div>
-            <div style="text-align: right;">
-                <span style="font-size: 13px; font-weight: 800; color: #facc15;">${st.highScore.toLocaleString()}</span>
-                <small style="font-size: 9px; color: var(--text-muted); display: block;">Best Score</small>
-            </div>
-        `;
-        container.appendChild(item);
-    });
-}
-
-function openProfileModal() {
-    audio.playSFX('click');
-    const uName = document.getElementById('profile-username');
-    if (uName) uName.textContent = localStorage.getItem("arcadehub_player_name") || "Player";
-    const pModal = document.getElementById('profile-modal');
-    if (pModal) pModal.classList.add('active');
-}
-
-function closeProfileModal() {
-    audio.playSFX('click');
-    const pModal = document.getElementById('profile-modal');
-    if (pModal) pModal.classList.remove('active');
-}
-
-function selectAvatar(emoji) {
-    audio.playSFX('click');
-    localStorage.setItem("arcadehub_avatar", emoji);
-    const hAvatar = document.getElementById('header-avatar');
-    const pAvatar = document.getElementById('profile-avatar-display');
-    if (hAvatar) hAvatar.textContent = emoji;
-    if (pAvatar) pAvatar.textContent = emoji;
-}
-
-// ===================================================
-// SHARE SCORE MODAL
-// ===================================================
-let lastShareText = '';
-function showShareModal(gameName, score) {
-    lastShareText = `🎮 I just scored ${score.toLocaleString()} points in ${gameName} on Arcade Hub Pro! Can you beat my score? 🔥`;
-    const gTitle = document.getElementById('share-game-title');
-    const sText = document.getElementById('share-score-text');
-    if (gTitle) gTitle.textContent = gameName;
-    if (sText) sText.textContent = lastShareText;
-    const sModal = document.getElementById('share-score-modal');
-    if (sModal) sModal.classList.add('active');
-}
-
-function closeShareModal() {
-    audio.playSFX('click');
-    const sModal = document.getElementById('share-score-modal');
-    if (sModal) sModal.classList.remove('active');
-}
-
-function copyScoreToClipboard() {
-    audio.playSFX('click');
-    navigator.clipboard.writeText(lastShareText).then(() => {
-        alert("📋 Score card copied to clipboard!");
-        closeShareModal();
-    });
-}
-
-// ===================================================
-// AMBIENT SYNTHWAVE / LO-FI AUDIO PLAYER
-// ===================================================
-let ambientInterval = null;
-function toggleAmbientAudio() {
-    const btn = document.getElementById('ambient-audio-toggle');
-    if(ambientInterval) {
-        clearInterval(ambientInterval);
-        ambientInterval = null;
-        if(btn) {
-            btn.textContent = "OFF";
-            btn.classList.remove('active');
-        }
-        audio.playSFX('click');
-    } else {
-        audio.initContext();
-        if(btn) {
-            btn.textContent = "PLAYING 🎵";
-            btn.classList.add('active');
-        }
-        audio.playSFX('powerup');
-        
-        const chords = [220, 261.63, 329.63, 392.00];
-        let chordIdx = 0;
-        ambientInterval = setInterval(() => {
-            if(audio.isMuted) return;
-            let freq = chords[chordIdx % chords.length];
-            chordIdx++;
-            audio.playTone(freq, 1.2, 'sine');
-        }, 1400);
-    }
-}
-
-// ===================================================
 // SERVICE WORKER & ROBOT COMPANION
 // ===================================================
 if ('serviceWorker' in navigator) {
@@ -314,6 +87,88 @@ function movePupil(pupil, rect, mouseX, mouseY) {
 }
 
 // ===================================================
+// SCORE MANAGER & HUB STATS
+// ===================================================
+const ScoreManager = {
+    getStats(gameKey) {
+        const data = localStorage.getItem(`arcadehub_${gameKey}`);
+        return data ? JSON.parse(data) : { highScore: 0, gamesPlayed: 0 };
+    },
+    saveScore(gameKey, score) {
+        const stats = this.getStats(gameKey);
+        stats.gamesPlayed += 1;
+        if (score > stats.highScore) stats.highScore = score;
+        localStorage.setItem(`arcadehub_${gameKey}`, JSON.stringify(stats));
+        updateHubActivityStats();
+        return stats;
+    }
+};
+
+function updateHubActivityStats() {
+    const allGameKeys = ['snake', 'towerstack', 'uno', 'airhockey', 'mole', 'dino', 'carracing', 'brickbreaker', 'pianotiles', 'fruitslasher', 'sr', 'solitaire', 'scatter', 'blackjack', 'highlow', 'tictactoe', 'guess', 'wordscape'];
+    let totalPlayed = 0;
+    let totalHighScoresSet = 0;
+
+    allGameKeys.forEach(k => {
+        const st = ScoreManager.getStats(k);
+        totalPlayed += st.gamesPlayed;
+        if(st.highScore > 0) totalHighScoresSet++;
+    });
+
+    document.getElementById('stat-games-played').textContent = totalPlayed;
+    document.getElementById('stat-achievements').textContent = totalHighScoresSet;
+    const xpStatEl = document.getElementById('stat-total-xp');
+    if (xpStatEl && typeof ProgressionManager !== 'undefined') xpStatEl.textContent = ProgressionManager.getXP().toLocaleString();
+    renderTrophiesPanel();
+}
+
+function renderTrophiesPanel() {
+    const container = document.getElementById('trophies-list-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const games = [
+        { key: 'snake', name: 'Cyber Snake', icon: '🐍' },
+        { key: 'towerstack', name: 'Tower Stack', icon: '🏗️' },
+        { key: 'uno', name: 'UNO Battle', icon: '🌈' },
+        { key: 'airhockey', name: 'Air Hockey', icon: '🏒' },
+        { key: 'dino', name: 'Dino Runner', icon: '🦖' },
+        { key: 'carracing', name: 'Car Racing', icon: '🏎️' },
+        { key: 'brickbreaker', name: 'Brick Breaker', icon: '🧱' },
+        { key: 'pianotiles', name: 'Piano Tiles', icon: '🎹' },
+        { key: 'fruitslasher', name: 'Fruit Master', icon: '🍉' },
+        { key: 'sr', name: 'Stick Run', icon: '🏃‍♂️' },
+        { key: 'solitaire', name: 'Speed Solitaire', icon: '🎴' },
+        { key: 'blackjack', name: 'Blackjack 21', icon: '🃏' },
+        { key: 'highlow', name: 'High-Low', icon: '🔼' },
+        { key: 'tictactoe', name: 'Tic-Tac-Toe', icon: '❌' },
+        { key: 'guess', name: 'Number Master', icon: '🔢' },
+        { key: 'wordscape', name: 'Wordscape Pro', icon: '📝' },
+        { key: 'mole', name: 'Whack-a-Mole', icon: '🔨' }
+    ];
+
+    games.forEach(g => {
+        const st = ScoreManager.getStats(g.key);
+        const item = document.createElement('div');
+        item.style.cssText = 'background: rgba(17,24,39,0.9); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;';
+        item.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">${g.icon}</span>
+                <div>
+                    <strong style="font-size: 12px; color: #fff; display: block;">${g.name}</strong>
+                    <small style="font-size: 10px; color: var(--text-muted);">Played: ${st.gamesPlayed} times</small>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 13px; font-weight: 800; color: #facc15;">${st.highScore.toLocaleString()}</span>
+                <small style="font-size: 9px; color: var(--text-muted); display: block;">Best Score</small>
+            </div>
+        `;
+        container.appendChild(item);
+    });
+}
+
+// ===================================================
 // PLAYER NAME GENERATOR & VALIDATION
 // ===================================================
 const ADJECTIVES = ["Shadow", "Cyber", "Pixel", "Nova", "Vortex", "Phantom", "Blaze", "Neon", "Hyper", "Alpha", "Apex", "Turbo"];
@@ -334,45 +189,31 @@ function checkInappropriate(name) {
 
 document.addEventListener("DOMContentLoaded", () => {
     const saved = localStorage.getItem("arcadehub_player_name");
-    const welcomeH = document.getElementById("welcomeHeading");
-    const nameInput = document.getElementById("customNameInput");
-    
-    if (saved && welcomeH) {
-        welcomeH.textContent = `Welcome, ${saved}!`;
-    } else if (nameInput) {
-        nameInput.value = generateRandomName();
+    if (saved) {
+        document.getElementById("welcomeHeading").textContent = `Welcome, ${saved}!`;
+    } else {
+        document.getElementById("customNameInput").value = generateRandomName();
     }
 
-    const randBtn = document.getElementById("randomNameBtn");
-    if (randBtn) {
-        randBtn.addEventListener("click", () => {
-            audio.playSFX('click');
-            if (nameInput) nameInput.value = generateRandomName();
-            const errEl = document.getElementById("customNameError");
-            if (errEl) errEl.style.display = 'none';
-        });
-    }
+    document.getElementById("randomNameBtn").addEventListener("click", () => {
+        audio.playSFX('click');
+        document.getElementById("customNameInput").value = generateRandomName();
+        document.getElementById("customNameError").style.display = 'none';
+    });
 });
 
 function openNamePromptModal() {
     audio.playSFX('click');
     const saved = localStorage.getItem("arcadehub_player_name") || generateRandomName();
-    const nameInput = document.getElementById("customNameInput");
-    const errEl = document.getElementById("customNameError");
-    const nModal = document.getElementById("name-prompt-modal");
-
-    if (nameInput) nameInput.value = saved;
-    if (errEl) errEl.style.display = 'none';
-    if (nModal) nModal.classList.add('active');
+    document.getElementById("customNameInput").value = saved;
+    document.getElementById("customNameError").style.display = 'none';
+    document.getElementById("name-prompt-modal").classList.add('active');
 }
 
 function saveCustomNameAndEnter() {
     audio.playSFX('click');
-    const nameInput = document.getElementById("customNameInput");
+    const inputVal = document.getElementById("customNameInput").value.trim();
     const errorEl = document.getElementById("customNameError");
-    if (!nameInput || !errorEl) return;
-
-    const inputVal = nameInput.value.trim();
 
     if (inputVal.length < 3) {
         errorEl.textContent = "Name must be at least 3 characters long.";
@@ -387,18 +228,14 @@ function saveCustomNameAndEnter() {
     }
 
     localStorage.setItem("arcadehub_player_name", inputVal);
-    const welcomeH = document.getElementById("welcomeHeading");
-    if (welcomeH) welcomeH.textContent = `Welcome, ${inputVal}!`;
-    
-    const nModal = document.getElementById("name-prompt-modal");
-    if (nModal) nModal.classList.remove('active');
+    document.getElementById("welcomeHeading").textContent = `Welcome, ${inputVal}!`;
+    document.getElementById("name-prompt-modal").classList.remove('active');
 
     const splash = document.getElementById('splash-screen');
     if (splash && !splash.classList.contains('fade-out')) {
         splash.classList.add('fade-out');
         audio.playSFX('win');
-        const robotComp = document.getElementById('robot-companion');
-        if (robotComp) robotComp.classList.add('visible');
+        document.getElementById('robot-companion').classList.add('visible');
     }
 }
 
@@ -424,51 +261,43 @@ function showGameInstructions(containerId, gameName, icon, instructionObj) {
         return;
     }
 
-    const tEl = document.getElementById('inst-modal-title');
-    const iEl = document.getElementById('inst-modal-icon');
-    const cEl = document.getElementById('inst-modal-content');
-    const cb = document.getElementById('dont-show-checkbox');
-    const iModal = document.getElementById('instruction-modal');
-
-    if (tEl) tEl.textContent = `🎮 ${gameName}`;
-    if (iEl) iEl.innerHTML = icon || '🕹️';
-    if (cEl) {
-        cEl.innerHTML = `
-            <div style="margin-bottom: 10px;">
-                <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Objective</strong>
-                <p style="font-size: 0.9rem; color: var(--text-main); margin-top: 2px;">${instructionObj.objective}</p>
-            </div>
-            <div>
-                <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Controls & Rules</strong>
-                <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 2px;">${instructionObj.controls}</p>
-            </div>
-        `;
-    }
-    if (cb) cb.checked = false;
-    if (iModal) iModal.classList.add('active');
+    document.getElementById('inst-modal-title').textContent = `🎮 ${gameName}`;
+    document.getElementById('inst-modal-icon').innerHTML = icon || '🕹️';
+    
+    let contentHTML = `
+        <div style="margin-bottom: 10px;">
+            <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Objective</strong>
+            <p style="font-size: 0.9rem; color: var(--text-main); margin-top: 2px;">${instructionObj.objective}</p>
+        </div>
+        <div>
+            <strong style="color: var(--primary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Controls & Rules</strong>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 2px;">${instructionObj.controls}</p>
+        </div>
+    `;
+    document.getElementById('inst-modal-content').innerHTML = contentHTML;
+    document.getElementById('dont-show-checkbox').checked = false;
+    document.getElementById('instruction-modal').classList.add('active');
 }
 
 function closeInstructionModal() {
     audio.playSFX('click');
-    const iModal = document.getElementById('instruction-modal');
-    if (iModal) iModal.classList.remove('active');
+    document.getElementById('instruction-modal').classList.remove('active');
 }
 
 function toggleDontShowAgain() {
     let cb = document.getElementById('dont-show-checkbox');
-    if (cb) cb.checked = !cb.checked;
+    cb.checked = !cb.checked;
 }
 
 function proceedToGame() {
     audio.playSFX('click');
     let cb = document.getElementById('dont-show-checkbox');
-    if(cb && cb.checked) {
+    if(cb.checked) {
         let skippedGames = JSON.parse(localStorage.getItem('arcadehub_skipped_instructions') || '{}');
         skippedGames[pendingGameId] = true;
         localStorage.setItem('arcadehub_skipped_instructions', JSON.stringify(skippedGames));
     }
-    const iModal = document.getElementById('instruction-modal');
-    if (iModal) iModal.classList.remove('active');
+    document.getElementById('instruction-modal').classList.remove('active');
     recordRecentGame(pendingGameId, pendingGameName, pendingGameIcon);
     openGame(pendingGameId);
 }
@@ -579,19 +408,15 @@ function setTheme(themeName) { audio.playSFX('click'); document.documentElement.
 
 function openSettingsDrawer() {
     audio.playSFX('click');
-    const sDrawer = document.getElementById('settings-drawer');
-    const dBackdrop = document.getElementById('drawer-backdrop');
-    if (sDrawer) sDrawer.classList.add('active');
-    if (dBackdrop) dBackdrop.classList.add('active');
+    document.getElementById('settings-drawer').classList.add('active');
+    document.getElementById('drawer-backdrop').classList.add('active');
     renderRecentGames();
     renderTrophiesPanel();
 }
 function closeSettingsDrawer() {
     audio.playSFX('click');
-    const sDrawer = document.getElementById('settings-drawer');
-    const dBackdrop = document.getElementById('drawer-backdrop');
-    if (sDrawer) sDrawer.classList.remove('active');
-    if (dBackdrop) dBackdrop.classList.remove('active');
+    document.getElementById('settings-drawer').classList.remove('active');
+    document.getElementById('drawer-backdrop').classList.remove('active');
 }
 
 function toggleInstructionPreference() {
@@ -600,10 +425,8 @@ function toggleInstructionPreference() {
     let next = !current;
     localStorage.setItem('arcadehub_global_instructions', next);
     const btn = document.getElementById('pref-instructions-toggle');
-    if(btn) {
-        if(next) { btn.textContent = "ENABLED"; btn.classList.add('active'); }
-        else { btn.textContent = "DISABLED"; btn.classList.remove('active'); }
-    }
+    if(next) { btn.textContent = "ENABLED"; btn.classList.add('active'); }
+    else { btn.textContent = "DISABLED"; btn.classList.remove('active'); }
 }
 
 function switchSettingsTab(tabName) {
@@ -631,24 +454,21 @@ function toggleHubFullscreen() {
 }
 
 // ===================================================
-// PAUSE & NAVIGATION SYSTEM (Fixed missing element checks)
+// PAUSE & NAVIGATION SYSTEM
 // ===================================================
 let isGamePaused = false;
 function openPauseModal() {
     audio.playSFX('click');
     isGamePaused = true;
-    const pModal = document.getElementById('pause-modal');
-    if (pModal) pModal.classList.add('active');
+    document.getElementById('pause-modal').classList.add('active');
 }
 function resumeGame() {
     audio.playSFX('click');
     isGamePaused = false;
-    const pModal = document.getElementById('pause-modal');
-    if (pModal) pModal.classList.remove('active');
+    document.getElementById('pause-modal').classList.remove('active');
 }
 function backToHubFromPause() {
-    const pModal = document.getElementById('pause-modal');
-    if (pModal) pModal.classList.remove('active');
+    document.getElementById('pause-modal').classList.remove('active');
     isGamePaused = false;
     backToHub();
 }
@@ -657,8 +477,13 @@ function backToHub() {
     audio.playSFX('click');
     if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
 
-    const header = document.querySelector('header');
-    if (header) header.style.display = 'flex';
+    document.querySelector('header').style.display = 'flex';
+    const pCard = document.getElementById('player-profile-card');
+    if (pCard) pCard.style.display = 'flex';
+    const dCard = document.getElementById('daily-hub-card');
+    if (dCard) dCard.style.display = 'block';
+    const gBanner = document.getElementById('gotd-hero-banner');
+    if (gBanner && sessionStorage.getItem('gotd_dismissed') !== 'true') gBanner.classList.add('visible');
 
     if (typeof snakeInterval !== 'undefined') clearInterval(snakeInterval);
     if (typeof dinoInterval !== 'undefined') clearInterval(dinoInterval);
@@ -673,6 +498,10 @@ function backToHub() {
     if (typeof carAnimId !== 'undefined') cancelAnimationFrame(carAnimId);
     if (typeof dinoAnimId !== 'undefined') cancelAnimationFrame(dinoAnimId);
     if (typeof srAnimId !== 'undefined') cancelAnimationFrame(srAnimId);
+    if (typeof tsAnimId !== 'undefined') cancelAnimationFrame(tsAnimId);
+    if (typeof ahAnimId !== 'undefined') cancelAnimationFrame(ahAnimId);
+    if (typeof tsRunning !== 'undefined') tsRunning = false;
+    if (typeof ahRunning !== 'undefined') ahRunning = false;
 
     if (typeof frostRunning !== 'undefined') frostRunning = false;
     if (typeof fruitRunning !== 'undefined') fruitRunning = false;
@@ -683,31 +512,21 @@ function backToHub() {
     if (typeof srRunning !== 'undefined') { srRunning = false; if(srBgMusicInterval) clearInterval(srBgMusicInterval); }
 
     document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
-    const mainMenu = document.getElementById('main-menu');
-    if (mainMenu) mainMenu.classList.add('active');
-    
+    document.getElementById('main-menu').classList.add('active');
     updateHubActivityStats();
     renderRecentGames();
 }
 
 window.onload = function() {
     generateQRCode();
-    if (typeof initSnakeCanvas === 'function') initSnakeCanvas();
-    if (typeof initDinoCanvas === 'function') initDinoCanvas();
-    if (typeof initFrostCanvas === 'function') initFrostCanvas();
-    if (typeof initFruitCanvas === 'function') initFruitCanvas();
-    if (typeof initPianoCanvas === 'function') initPianoCanvas();
-    if (typeof initCarCanvas === 'function') initCarCanvas();
-
+    initSnakeCanvas(); initDinoCanvas(); initFrostCanvas(); initFruitCanvas(); initPianoCanvas(); initCarCanvas();
     const savedTheme = localStorage.getItem("arcadehub_theme") || "";
     if (savedTheme) document.documentElement.className = savedTheme;
 
     let globalInst = localStorage.getItem('arcadehub_global_instructions') !== 'false';
     const prefBtn = document.getElementById('pref-instructions-toggle');
-    if(prefBtn) {
-        if(globalInst) { prefBtn.textContent = "ENABLED"; prefBtn.classList.add('active'); }
-        else { prefBtn.textContent = "DISABLED"; prefBtn.classList.remove('active'); }
-    }
+    if(globalInst) { prefBtn.textContent = "ENABLED"; prefBtn.classList.add('active'); }
+    else { prefBtn.textContent = "DISABLED"; prefBtn.classList.remove('active'); }
 
     updateHubActivityStats();
     renderRecentGames();
@@ -715,41 +534,334 @@ window.onload = function() {
 };
 
 function openGame(containerId) {
-    const header = document.querySelector('header');
-    if (header) header.style.display = 'none';
+    document.querySelector('header').style.display = 'none';
+    const pCard = document.getElementById('player-profile-card');
+    if (pCard) pCard.style.display = 'none';
+    const dCard = document.getElementById('daily-hub-card');
+    if (dCard) dCard.style.display = 'none';
+    const gBanner = document.getElementById('gotd-hero-banner');
+    if (gBanner) gBanner.classList.remove('visible');
     
-    const mainMenu = document.getElementById('main-menu');
-    if (mainMenu) mainMenu.classList.remove('active');
-
+    document.getElementById('main-menu').classList.remove('active');
     document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
-    const targetContainer = document.getElementById(containerId);
-    if (targetContainer) targetContainer.classList.add('active');
+    document.getElementById(containerId).classList.add('active');
     
     setTimeout(() => {
-        if (containerId === 'snakegame-container' && typeof startSnakeGame === 'function') startSnakeGame();
-        if (containerId === 'dinogame-container' && typeof startDinoGame === 'function') startDinoGame();
-        if (containerId === 'fruitslice-container' && typeof startFruitGame === 'function') startFruitGame();
-        if (containerId === 'frostgame-container' && typeof startFrostGame === 'function') { initFrostCanvas(); startFrostGame(); }
-        if (containerId === 'piano-container' && typeof startPianoGame === 'function') { renderPianoAlbumCarousel(); startPianoGame(); }
-        if (containerId === 'carracing-container' && typeof startCarGame === 'function') startCarGame();
-        if (containerId === 'stickman-container' && typeof returnToSrMenu === 'function') returnToSrMenu();
-        if (containerId === 'solitaire-container' && typeof startSolitaireGame === 'function') startSolitaireGame();
-        if (containerId === 'scattercard-container' && typeof initScatterGame === 'function') initScatterGame();
+        if (containerId === 'snakegame-container') startSnakeGame();
+        if (containerId === 'dinogame-container') startDinoGame();
+        if (containerId === 'fruitslice-container') startFruitGame();
+        if (containerId === 'frostgame-container') { initFrostCanvas(); startFrostGame(); }
+        if (containerId === 'piano-container') { renderPianoAlbumCarousel(); startPianoGame(); }
+        if (containerId === 'carracing-container') startCarGame();
+        if (containerId === 'stickman-container') returnToSrMenu();
+        if (containerId === 'solitaire-container') startSolitaireGame();
+        if (containerId === 'scattercard-container') initScatterGame();
         if (containerId === 'blackjack-container') {
             let savedBal = localStorage.getItem('arcadehub_scatter_bal');
-            if(savedBal !== null && typeof bjBalance !== 'undefined') bjBalance = parseInt(savedBal);
-            const bjBalEl = document.getElementById('bj-balance');
-            if(bjBalEl && typeof bjBalance !== 'undefined') bjBalEl.textContent = bjBalance.toLocaleString();
+            if(savedBal !== null) bjBalance = parseInt(savedBal);
+            document.getElementById('bj-balance').textContent = bjBalance.toLocaleString();
         }
-        if (containerId === 'highlow-container' && typeof initHighLowGame === 'function') initHighLowGame();
-        if (containerId === 'wordscape-container' && typeof startWordscapeGame === 'function') startWordscapeGame();
+        if (containerId === 'highlow-container') initHighLowGame();
+        if (containerId === 'wordscape-container') startWordscapeGame();
+        if (containerId === 'towerstack-container') startTowerStackGame();
+        if (containerId === 'uno-container') startUnoGame();
+        if (containerId === 'airhockey-container') startAirHockeyGame();
     }, 50);
 }
 
 function generateQRCode() {
     const targetUrl = window.location.href || "https://arcadehubgames-july12.vercel.app/";
-    const urlText = document.getElementById('current-url-text');
-    const qrImg = document.getElementById('qr-code-img');
-    if (urlText) urlText.textContent = targetUrl;
-    if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
+    document.getElementById('current-url-text').textContent = targetUrl;
+    document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(targetUrl)}`;
 }
+
+
+// ===================================================
+// LEVEL 1-50 PROGRESSION, TITLES, AVATARS & BORDERS
+// ===================================================
+const LEVEL_TITLES = [
+    "Arcade Newcomer", "Button Masher", "Coin Collector", "Pixel Rookie", "Cabinet Explorer",
+    "Casual Contender", "Joystick Apprentice", "Score Chaser", "Neon Hopper", "Grid Runner",
+    "Combo Starter", "Reflex Cadet", "Token Hustler", "Retro Enthusiast", "Arcade Regular",
+    "High-Score Hunter", "Pattern Breaker", "Card Tactician", "Cyber Sprinter", "Rhythm Keeper",
+    "Silver Challenger", "Arena Striker", "Puzzle Architect", "Turbo Drifter", "Quarter-Master",
+    "Gold Contender", "Neon Tactician", "Streak Builder", "Arcade Veteran", "Precision Pro",
+    "Platinum Ace", "Cyber Gladiator", "Leaderboard Threat", "Combo Virtuoso", "Shadow Strategist",
+    "Diamond Prodigy", "Overdrive Master", "Grand Tactician", "Apex Challenger", "Mythic Contender",
+    "Master of Reflexes", "Neon Sovereign", "Arcade Legend", "Cyber Warlord", "Supreme Champion",
+    "Immortal Gamer", "Celestial Striker", "Arcade Overlord", "Grandmaster of Hub", "ARCADE GOD (MAX)"
+];
+
+const AVATAR_UNLOCKS = [
+    { level: 1, icon: "🕹️", name: "Classic Stick" },
+    { level: 3, icon: "👾", name: "Space Invader" },
+    { level: 6, icon: "🦊", name: "Cozy Fox" },
+    { level: 10, icon: "🤖", name: "Cyber Bot" },
+    { level: 15, icon: "🐉", name: "Neon Dragon" },
+    { level: 20, icon: "🥷", name: "Shadow Ninja" },
+    { level: 25, icon: "🦄", name: "Prism Unicorn" },
+    { level: 30, icon: "🛸", name: "UFO Pilot" },
+    { level: 35, icon: "🔥", name: "Inferno Spirit" },
+    { level: 40, icon: "⚡", name: "Volt Phantom" },
+    { level: 45, icon: "👑", name: "Royal Crown" },
+    { level: 50, icon: "🌌", name: "Celestial Deity" }
+];
+
+const BORDER_UNLOCKS = [
+    { id: "border-rookie", level: 1, name: "Slate" },
+    { id: "border-neon", level: 5, name: "Cyber Pulse" },
+    { id: "border-emerald", level: 12, name: "Emerald Flash" },
+    { id: "border-inferno", level: 22, name: "Inferno Sides" },
+    { id: "border-galaxy", level: 35, name: "Galaxy Prism" },
+    { id: "border-celestial", level: 50, name: "Lv.50 God Aura" },
+    { id: "border-daily-champ", level: 99, name: "Quest Reward", special: true }
+];
+
+function getXPForLevel(lvl) {
+    if (lvl <= 1) return 0;
+    return Math.floor(Math.pow(lvl - 1, 3) * 12);
+}
+
+function getLevelFromXP(xp) {
+    let lvl = 1;
+    while (lvl < 50 && xp >= getXPForLevel(lvl + 1)) {
+        lvl++;
+    }
+    return lvl;
+}
+
+const ProgressionManager = {
+    getXP() {
+        return parseInt(localStorage.getItem("arcadehub_total_xp") || "0", 10);
+    },
+    addXP(amount) {
+        let oldXP = this.getXP();
+        let oldLvl = getLevelFromXP(oldXP);
+        let newXP = oldXP + Math.max(5, Math.floor(amount));
+        localStorage.setItem("arcadehub_total_xp", newXP);
+        let newLvl = getLevelFromXP(newXP);
+        if (newLvl > oldLvl) {
+            audio.playSFX('win');
+            alert(`🎉 LEVEL UP! You reached Level ${newLvl}: ${LEVEL_TITLES[newLvl - 1]}!`);
+        }
+        this.updateUI();
+    },
+    awardGameXP(gameKey, score) {
+        let baseXP = Math.min(450, Math.max(15, Math.floor(score * 0.25)));
+        const gotd = getGameOfTheDay();
+        if (gotd && gotd.key === gameKey) {
+            baseXP *= 2;
+        }
+        this.addXP(baseXP);
+        DailyChallengeManager.trackProgress(gameKey, score);
+    },
+    updateUI() {
+        const xp = this.getXP();
+        const lvl = getLevelFromXP(xp);
+        const title = LEVEL_TITLES[lvl - 1] || "Arcade Legend";
+        const currFloor = getXPForLevel(lvl);
+        const nextFloor = lvl < 50 ? getXPForLevel(lvl + 1) : currFloor;
+        const pct = lvl >= 50 ? 100 : Math.min(100, Math.max(4, ((xp - currFloor) / (nextFloor - currFloor)) * 100));
+
+        const nameEl = document.getElementById("welcomeHeading");
+        if (nameEl) nameEl.textContent = localStorage.getItem("arcadehub_player_name") || "Player";
+
+        const titleEl = document.getElementById("hub-player-title");
+        if (titleEl) titleEl.textContent = `LVL ${lvl} • ${title}`;
+
+        const lvlLabel = document.getElementById("hub-level-label");
+        if (lvlLabel) lvlLabel.textContent = lvl >= 50 ? "MAX LEVEL (50)" : `Level ${lvl} / 50`;
+
+        const xpText = document.getElementById("hub-xp-text");
+        if (xpText) xpText.textContent = lvl >= 50 ? `${xp.toLocaleString()} XP (MAX)` : `${xp.toLocaleString()} / ${nextFloor.toLocaleString()} XP`;
+
+        const fill = document.getElementById("hub-xp-fill");
+        if (fill) fill.style.width = `${pct}%`;
+
+        const xpStatEl = document.getElementById("stat-total-xp");
+        if (xpStatEl) xpStatEl.textContent = xp.toLocaleString();
+
+        const equippedAvatar = localStorage.getItem("arcadehub_avatar") || "🕹️";
+        const equippedBorder = localStorage.getItem("arcadehub_border") || "border-rookie";
+        const avEl = document.getElementById("hub-avatar-icon");
+        const frameEl = document.getElementById("hub-avatar-frame");
+        if (avEl) avEl.textContent = equippedAvatar;
+        if (frameEl) frameEl.className = `avatar-frame ${equippedBorder}`;
+    }
+};
+
+const _origSaveScore = ScoreManager.saveScore.bind(ScoreManager);
+ScoreManager.saveScore = function(gameKey, score) {
+    const res = _origSaveScore(gameKey, score);
+    ProgressionManager.awardGameXP(gameKey, score);
+    return res;
+};
+
+// ===================================================
+// GAME OF THE DAY (2X XP HERO BANNER)
+// ===================================================
+const GOTD_POOL = [
+    { key: "towerstack", id: "towerstack-container", name: "Tower Stack", icon: "🏗️", desc: "Stack blocks to the sky for 2X XP today!" },
+    { key: "snake", id: "snakegame-container", name: "Cyber Snake", icon: "🐍", desc: "Collect glowing orbs & power-ups for 2X XP!" },
+    { key: "uno", id: "uno-container", name: "UNO Battle", icon: "🌈", desc: "Outsmart the AI in UNO for 2X XP!" },
+    { key: "airhockey", id: "airhockey-container", name: "Air Hockey", icon: "🏒", desc: "Score 7 goals on the neon rink for 2X XP!" },
+    { key: "pianotiles", id: "piano-container", name: "Piano Tiles", icon: "🎹", desc: "Hit every rhythm tile for 2X XP!" }
+];
+
+function getGameOfTheDay() {
+    const dayIndex = Math.floor(Date.now() / 86400000);
+    return GOTD_POOL[dayIndex % GOTD_POOL.length];
+}
+
+function showGotdBanner() {
+    if (sessionStorage.getItem("gotd_dismissed") === "true") return;
+    const gotd = getGameOfTheDay();
+    const banner = document.getElementById("gotd-hero-banner");
+    if (!banner) return;
+    document.getElementById("gotd-icon").textContent = gotd.icon;
+    document.getElementById("gotd-title").textContent = gotd.name;
+    document.getElementById("gotd-desc").textContent = gotd.desc;
+    document.getElementById("gotd-play-btn").onclick = () => {
+        const inst = gameInstructionsMap[gotd.id] || { objective: gotd.desc, controls: "Tap controls to play." };
+        showGameInstructions(gotd.id, gotd.name, gotd.icon, inst);
+    };
+    banner.classList.add("visible");
+}
+
+function closeGotdBanner() {
+    audio.playSFX('click');
+    sessionStorage.setItem("gotd_dismissed", "true");
+    document.getElementById("gotd-hero-banner").classList.remove("visible");
+}
+
+// ===================================================
+// RANDOM DAILY CHALLENGES & LOGIN STREAK
+// ===================================================
+const CHALLENGE_TEMPLATES = [
+    { id: "c_stack", gameKey: "towerstack", text: "Stack 15+ blocks in Tower Stack", target: 15, type: "score", rewardXP: 350, unlockBorder: "border-daily-champ" },
+    { id: "c_snake", gameKey: "snake", text: "Score 80+ in Cyber Snake", target: 80, type: "score", rewardXP: 300, unlockBorder: null },
+    { id: "c_uno", gameKey: "uno", text: "Win 1 match of UNO Battle", target: 1, type: "play", rewardXP: 400, unlockBorder: "border-daily-champ" },
+    { id: "c_hockey", gameKey: "airhockey", text: "Win an Air Hockey match", target: 1, type: "play", rewardXP: 350, unlockBorder: null },
+    { id: "c_any3", gameKey: "ANY", text: "Play any 3 arcade games today", target: 3, type: "play", rewardXP: 250, unlockBorder: null }
+];
+
+const DailyChallengeManager = {
+    init() {
+        const today = new Date().toDateString();
+        const lastLogin = localStorage.getItem("arcadehub_last_login");
+        let streak = parseInt(localStorage.getItem("arcadehub_streak") || "0", 10);
+
+        if (lastLogin !== today) {
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            streak = (lastLogin === yesterday) ? streak + 1 : 1;
+            localStorage.setItem("arcadehub_streak", streak);
+            localStorage.setItem("arcadehub_last_login", today);
+
+            const shuffled = [...CHALLENGE_TEMPLATES].sort(() => Math.random() - 0.5).slice(0, 3);
+            const dailyData = shuffled.map(c => ({ ...c, progress: 0, done: false }));
+            localStorage.setItem("arcadehub_daily_quests", JSON.stringify(dailyData));
+        }
+
+        const pill = document.getElementById("hub-streak-pill");
+        if (pill) pill.textContent = `🔥 ${streak} Day Streak`;
+        this.render();
+    },
+    trackProgress(gameKey, score) {
+        let quests = JSON.parse(localStorage.getItem("arcadehub_daily_quests") || "[]");
+        let updated = false;
+        quests.forEach(q => {
+            if (q.done) return;
+            if (q.gameKey === "ANY" || q.gameKey === gameKey) {
+                if (q.type === "play") q.progress += 1;
+                if (q.type === "score" && score >= q.target) q.progress = q.target;
+                if (q.progress >= q.target) {
+                    q.done = true;
+                    updated = true;
+                    ProgressionManager.addXP(q.rewardXP);
+                    if (q.unlockBorder) {
+                        localStorage.setItem("arcadehub_unlocked_special_border", "true");
+                    }
+                }
+            }
+        });
+        localStorage.setItem("arcadehub_daily_quests", JSON.stringify(quests));
+        if (updated) audio.playSFX('win');
+        this.render();
+    },
+    render() {
+        const list = document.getElementById("daily-challenges-list");
+        if (!list) return;
+        const quests = JSON.parse(localStorage.getItem("arcadehub_daily_quests") || "[]");
+        list.innerHTML = quests.map(q => `
+            <div class="challenge-item ${q.done ? 'completed' : ''}">
+                <div>
+                    <div style="font-size:12px; font-weight:700; color:#fff;">${q.done ? '✅' : '🎯'} ${q.text}</div>
+                    <div style="font-size:10px; color:var(--text-muted);">Progress: ${Math.min(q.progress, q.target)}/${q.target}</div>
+                </div>
+                <span class="challenge-reward-tag">${q.done ? 'CLAIMED' : `+${q.rewardXP} XP${q.unlockBorder ? ' + Border' : ''}`}</span>
+            </div>
+        `).join('');
+    }
+};
+
+function openCustomizeModal() {
+    audio.playSFX('click');
+    const lvl = getLevelFromXP(ProgressionManager.getXP());
+    const currAvatar = localStorage.getItem("arcadehub_avatar") || "🕹️";
+    const currBorder = localStorage.getItem("arcadehub_border") || "border-rookie";
+    const hasSpecial = localStorage.getItem("arcadehub_unlocked_special_border") === "true";
+
+    const avGrid = document.getElementById("avatar-unlock-grid");
+    avGrid.innerHTML = AVATAR_UNLOCKS.map(a => {
+        const unlocked = lvl >= a.level;
+        return `<div class="unlock-slot ${unlocked ? '' : 'locked'} ${currAvatar === a.icon ? 'selected' : ''}"
+            onclick="${unlocked ? `equipAvatar('${a.icon}')` : ''}">
+            <div>${a.icon}</div>
+            <div style="font-size:9px; color:var(--text-muted); margin-top:2px;">${unlocked ? a.name : `Lv.${a.level}`}</div>
+        </div>`;
+    }).join('');
+
+    const bGrid = document.getElementById("border-unlock-grid");
+    bGrid.innerHTML = BORDER_UNLOCKS.map(b => {
+        const unlocked = b.special ? hasSpecial : (lvl >= b.level);
+        return `<div class="unlock-slot ${unlocked ? '' : 'locked'} ${currBorder === b.id ? 'selected' : ''}"
+            onclick="${unlocked ? `equipBorder('${b.id}')` : ''}">
+            <div class="avatar-frame ${b.id}" style="width:32px; height:32px; margin:0 auto; font-size:14px;">✨</div>
+            <div style="font-size:9px; color:var(--text-muted); margin-top:4px;">${unlocked ? b.name : (b.special ? 'Quest' : `Lv.${b.level}`)}</div>
+        </div>`;
+    }).join('');
+
+    document.getElementById("customize-modal").classList.add("active");
+}
+
+function closeCustomizeModal() {
+    audio.playSFX('click');
+    document.getElementById("customize-modal").classList.remove("active");
+}
+
+function equipAvatar(icon) {
+    audio.playSFX('score');
+    localStorage.setItem("arcadehub_avatar", icon);
+    ProgressionManager.updateUI();
+    openCustomizeModal();
+}
+
+function equipBorder(borderId) {
+    audio.playSFX('score');
+    localStorage.setItem("arcadehub_border", borderId);
+    ProgressionManager.updateUI();
+    openCustomizeModal();
+}
+
+const _origSaveCustomNameAndEnter = saveCustomNameAndEnter;
+saveCustomNameAndEnter = function() {
+    _origSaveCustomNameAndEnter();
+    ProgressionManager.updateUI();
+    DailyChallengeManager.init();
+    setTimeout(showGotdBanner, 350);
+};
+
+window.addEventListener("load", () => {
+    ProgressionManager.updateUI();
+    DailyChallengeManager.init();
+});
