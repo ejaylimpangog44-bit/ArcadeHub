@@ -1012,7 +1012,19 @@
                     </div>
                 </div>
                 <div class="setting-row">
-                    <span class="setting-label">🎵 SFX Volume</span>
+                    <span class="setting-label">🎚️ Master Volume</span>
+                    <div class="setting-control">
+                        <input type="range" min="0" max="1" step="0.1" value="0.5" class="setting-slider" id="master-volume-slider" oninput="updateMasterVolume(this.value)">
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">🎵 BGM Volume</span>
+                    <div class="setting-control">
+                        <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="bgm-volume-slider" oninput="updateBgmVolume(this.value)">
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">🔊 SFX Volume</span>
                     <div class="setting-control">
                         <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
                     </div>
