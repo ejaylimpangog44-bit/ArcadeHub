@@ -554,34 +554,33 @@ function generateQRCode() {
 }
 
 // ===================================================
-// BACKGROUND MUSIC (BGM) MANAGER - FIXED & PERSISTENT
+// BACKGROUND MUSIC (BGM) MANAGER - FINAL FIX
 // ===================================================
 document.addEventListener("DOMContentLoaded", () => {
     let bgm = document.getElementById("background-audio");
 
-    // If the audio element doesn't exist yet in the DOM, create it dynamically
     if (!bgm) {
         bgm = document.createElement("audio");
         bgm.id = "background-audio";
-        bgm.src = "https://github.com/ejaylimpangog44-bit/ArcadeHub/releases/download/v1.0.0/bgm.mp3";
+        bgm.src = "Https://github.com/ejaylimpangog44-bit/ArcadeHub/releases/download/v1.0.0/bgm.mp3";
         bgm.loop = true;
         bgm.volume = 0.5;
+        bgm.preload = "auto";
         document.body.appendChild(bgm);
     }
 
-    // Restore previous playback position if transitioning between screens
+    // Restore previous playback position
     const savedTime = localStorage.getItem("bgm_current_time");
     if (savedTime) {
         bgm.currentTime = parseFloat(savedTime);
     }
 
-    // Function to safely trigger playback
     const startBGM = () => {
         if (bgm.paused) {
             bgm.play().then(() => {
                 console.log("BGM started successfully.");
             }).catch(err => {
-                console.log("BGM play prevented:", err);
+                console.log("BGM play prevented by browser policy:", err);
             });
         }
     };
@@ -589,7 +588,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Try playing immediately
     startBGM();
 
-    // Fallback: Bind to any click, touch, or keydown on the entire document to unlock audio instantly
+    // Unlock audio on the very first user tap, click, or key press anywhere
     const unlockAudio = () => {
         startBGM();
         document.removeEventListener("click", unlockAudio);
@@ -601,7 +600,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("touchstart", unlockAudio);
     document.addEventListener("keydown", unlockAudio);
 
-    // Save playback position continuously so it stays synced across navigation
+    // Save playback position continuously
     setInterval(() => {
         if (!bgm.paused) {
             localStorage.setItem("bgm_current_time", bgm.currentTime);
