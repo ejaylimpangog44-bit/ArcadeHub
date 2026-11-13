@@ -784,6 +784,10 @@
 
     <!-- AIR HOCKEY CONTAINER -->
     <div id="airhockey-container" class="game-container">
+       <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px;">
+    <button id="ah-mode-ai" class="opt-btn active" onclick="setAhMode('ai')">🤖 VS AI</button>
+    <button id="ah-mode-pvp" class="opt-btn" onclick="setAhMode('pvp')">👥 2P Local</button>
+</div>
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Neon Air Hockey</span>
             <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
