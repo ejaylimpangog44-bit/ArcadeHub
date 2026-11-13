@@ -1115,16 +1115,24 @@ html.theme-coffee {
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.28), rgba(236, 72, 153, 0.25));
     border: 1.5px solid var(--primary);
     border-radius: 16px;
-    padding: 16px;
+    padding: 28px 16px 16px 16px; /* Extra top padding for close button */
     margin-bottom: 16px;
     display: none;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column; /* Stack vertically on mobile */
     gap: 12px;
     box-shadow: 0 10px 28px var(--accent-glow);
     animation: heroPopOut 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 .gotd-hero-banner.visible { display: flex; }
+
+@media (min-width: 480px) {
+    .gotd-hero-banner {
+        flex-direction: row; /* Row layout on tablets/desktop */
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+    }
+}
 
 @keyframes heroPopOut {
     0% { opacity: 0; transform: scale(0.88) translateY(-12px); }
@@ -1133,13 +1141,13 @@ html.theme-coffee {
 
 .gotd-close-btn {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 24px;
-    height: 24px;
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(11, 15, 25, 0.75);
+    background: rgba(11, 15, 25, 0.85);
     color: #fff;
     font-size: 11px;
     font-weight: 800;
@@ -1147,6 +1155,7 @@ html.theme-coffee {
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 5;
 }
 .gotd-close-btn:hover { background: #ef4444; }
 
@@ -1178,102 +1187,10 @@ html.theme-coffee {
     font-size: 12px;
     font-weight: 800;
     cursor: pointer;
-    white-space: nowrap;
-    box-shadow: 0 4px 14px var(--accent-glow);
-    margin-top: 12px;
-}
-
-/* ===================== DAILY CHALLENGES & STREAK CARD ===================== */
-.daily-hub-card {
     width: 100%;
-    max-width: 600px;
-    background: rgba(17, 24, 39, 0.88);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
-}
-.daily-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-.streak-pill {
-    background: rgba(250, 204, 21, 0.15);
-    border: 1px solid rgba(250, 204, 21, 0.4);
-    color: #facc15;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 999px;
-}
-.challenge-item {
-    background: #0b0f19;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-}
-.challenge-item:last-child { margin-bottom: 0; }
-.challenge-item.completed { border-color: #10b981; background: rgba(16, 185, 129, 0.08); }
-.challenge-reward-tag {
-    font-size: 10px;
-    font-weight: 800;
-    color: #38bdf8;
-    background: rgba(56, 189, 248, 0.15);
-    padding: 4px 8px;
-    border-radius: 8px;
-    white-space: nowrap;
-}
-
-/* ===================== UNO CARD STYLES ===================== */
-.uno-card {
-    width: 54px;
-    height: 78px;
-    border-radius: 10px;
-    border: 2px solid #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 1.15rem;
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    transition: transform 0.18s ease;
-    user-select: none;
-    flex-shrink: 0;
-}
-.uno-card:hover { transform: translateY(-6px); }
-.uno-red { background: linear-gradient(135deg, #ef4444, #b91c1c); }
-.uno-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-.uno-green { background: linear-gradient(135deg, #22c55e, #15803d); }
-.uno-yellow { background: linear-gradient(135deg, #eab308, #ca8a04); color: #0b0f19; }
-.uno-wild { background: conic-gradient(#ef4444, #eab308, #22c55e, #3b82f6, #ef4444); text-shadow: 0 1px 3px #000; }
-
-/* ===================== CUSTOMIZE MODAL GRID ===================== */
-.unlock-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    max-height: 220px;
-    overflow-y: auto;
-    padding: 4px;
-}
-.unlock-slot {
-    background: #0b0f19;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 4px;
     text-align: center;
-    cursor: pointer;
-    font-size: 20px;
+    box-shadow: 0 4px 14px var(--accent-glow);
 }
-.unlock-slot.locked { opacity: 0.35; cursor: not-allowed; }
-.unlock-slot.selected { border-color: var(--primary); background: rgba(139, 92, 246, 0.2); }
+@media (min-width: 480px) {
+    .gotd-play-btn { width: auto; }
+}
