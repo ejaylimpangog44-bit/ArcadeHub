@@ -997,3 +997,27 @@ window.addEventListener("load", () => {
     ProgressionManager.updateUI();
     DailyChallengeManager.init();
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const bgm = document.getElementById('bgm');
+    if (!bgm) return;
+
+    // Set loop so it keeps playing
+    bgm.loop = true;
+
+    const enableAudio = () => {
+        bgm.play().then(() => {
+            // Once played successfully, remove the listeners so it doesn't trigger again
+            document.removeEventListener('click', enableAudio);
+            document.removeEventListener('touchstart', enableAudio);
+            document.removeEventListener('keydown', enableAudio);
+        }).catch(err => {
+            console.log("Waiting for valid user gesture...", err);
+        });
+    };
+
+    // Listen for the first user interaction on the page
+    document.addEventListener('click', enableAudio);
+    document.addEventListener('touchstart', enableAudio);
+    document.addEventListener('keydown', enableAudio);
+});
