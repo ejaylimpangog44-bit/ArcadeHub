@@ -93,6 +93,31 @@
         <span style="font-size: 11px; font-weight: 800; color: #facc15; background: rgba(250,204,21,0.15); padding: 4px 10px; border-radius: 6px;">VIEW 🔥</span>
     </div>
 
+    <!-- DAILY LUCKY SPIN BUTTON CHIP -->
+    <div onclick="openLuckySpinModal()" style="width: 100%; max-width: 600px; background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(236,72,153,0.2)); border: 1px solid var(--primary); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 15px var(--accent-glow);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">🎡</span>
+            <span style="font-size: 12px; font-weight: 800; color: #fff;">Daily Lucky Spin</span>
+            <span style="font-size: 10px; color: var(--text-muted);">• Win Bonus XP & Coins</span>
+        </div>
+        <span style="font-size: 11px; font-weight: 800; color: #facc15; background: rgba(250,204,21,0.15); padding: 4px 10px; border-radius: 6px;">SPIN 🎡</span>
+    </div>
+
+    <!-- SEARCH BAR & CATEGORY FILTER PILL BAR -->
+    <div style="width: 100%; max-width: 600px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="position: relative; width: 100%;">
+            <input type="text" id="arcade-search-input" placeholder="🔍 Search 20+ arcade games..." oninput="filterArcadeGames(this.value)" style="width: 100%; background: rgba(17,24,39,0.9); border: 1px solid var(--border); color: #fff; padding: 10px 16px 10px 38px; border-radius: 12px; font-size: 0.9rem; outline: none; transition: border-color 0.2s;" />
+            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; opacity: 0.7;">🔎</span>
+        </div>
+        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;" id="category-filter-bar">
+            <button class="opt-btn active" onclick="filterCategory('all', this)" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px;">All Games</button>
+            <button class="opt-btn" onclick="filterCategory('card', this)" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px;">🃏 Cards</button>
+            <button class="opt-btn" onclick="filterCategory('puzzle', this)" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px;">🧩 Puzzle</button>
+            <button class="opt-btn" onclick="filterCategory('action', this)" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px;">⚡ Action</button>
+            <button class="opt-btn" onclick="filterCategory('racing', this)" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px;">🏎️ Racing</button>
+        </div>
+    </div>
+
     <div id="main-menu" class="view active">
         <div class="category-section" data-category="card">
             <div class="category-title">Card Games</div>
@@ -123,6 +148,11 @@
         <div class="category-section" data-category="puzzle">
             <div class="category-title">Puzzle Games</div>
             <div class="game-grid">
+                <!-- Connect Four Game Card -->
+                <div class="game-card" data-name="connect four tactical" data-category="puzzle" onclick="showGameInstructions('connectfour-container', 'Connect Four', '🔴', { objective: 'Drop colored discs into the grid to connect 4 in a row horizontally, vertically, or diagonally!', controls: 'Tap column headers to drop your disc.' })">
+                    <span class="game-icon">🔴</span>
+                    <span class="game-name">Connect Four</span>
+                </div>
                 <div class="game-card" data-name="tic tac toe pro" onclick="showGameInstructions('tictactoe-container', 'Tic-Tac-Toe', '❌', { objective: 'Configure your match settings and align 3 (or 4) symbols in a row horizontally, vertically, or diagonally to win!', controls: 'Tap empty cells on the grid.' })">
                     <span class="game-icon">❌</span>
                     <span class="game-name">Tic-Tac-Toe</span>
@@ -484,6 +514,22 @@
         </div>
     </div>
 
+    <!-- CONNECT FOUR CONTAINER -->
+    <div id="connectfour-container" class="game-container">
+        <div class="game-top-bar">
+            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Connect Four</span>
+            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
+        </div>
+        <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+            <div class="score-board" style="margin-top:4px; width:100%;">
+                <div class="score-box">Status <span id="c4-status-text">Your Turn (🔴)</span></div>
+                <div class="score-box">Wins 🏆 <span id="c4-wins">0</span></div>
+            </div>
+            <div id="c4-board" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; background:#1e293b; padding:10px; border-radius:12px; border:2px solid var(--border); margin-bottom:14px; width:100%;"></div>
+            <button class="action-btn" style="width:100%;" onclick="startConnectFourGame()">Reset Game</button>
+        </div>
+    </div>
+
     <!-- Fruit Master -->
     <div id="fruitslice-container" class="game-container">
         <div class="game-top-bar">
@@ -764,6 +810,21 @@
         </div>
     </div>
 
+    <!-- LUCKY SPIN MODAL -->
+    <div class="modal-overlay" id="lucky-spin-modal" style="z-index: 10560;">
+        <div class="settings-modal-box" style="text-align: center; max-width: 340px;">
+            <div class="settings-header">
+                <h3>🎡 Daily Lucky Spin</h3>
+                <button class="settings-close-x" onclick="closeLuckySpinModal()">✕</button>
+            </div>
+            <div class="settings-body" style="padding: 24px 20px;">
+                <div id="wheel-display" style="font-size: 3rem; margin-bottom: 12px; transition: transform 0.5s ease;">🎁</div>
+                <p id="wheel-status" style="font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 16px;">Spin to win random XP or Coin bonuses!</p>
+                <button class="start-game-btn" id="spin-wheel-btn" onclick="executeLuckySpin()" style="width: 100%;">SPIN WHEEL ▶</button>
+            </div>
+        </div>
+    </div>
+
     <!-- DAILY QUESTS MODAL -->
     <div class="modal-overlay" id="daily-quests-modal" style="z-index: 10550;">
         <div class="settings-modal-box landscape-modal-box" style="max-width: 440px;">
@@ -863,11 +924,19 @@
         </div>
     </div>
 
-    <!-- CLEAN FIXED BOTTOM NAVIGATION BAR -->
-    <nav class="bottom-nav-bar">
+    <!-- EXPANDED BOTTOM NAVIGATION BAR -->
+    <nav class="bottom-nav-bar" style="display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 4px;">
         <button class="bottom-nav-item active" onclick="backToHub()">
             <span>🏠</span>
             Home
+        </button>
+        <button class="bottom-nav-item" onclick="openLeaderboardTab()">
+            <span>🏆</span>
+            Ranks
+        </button>
+        <button class="bottom-nav-item" onclick="openShopTab()">
+            <span>🛒</span>
+            Shop
         </button>
         <button class="bottom-nav-item" onclick="openSettingsDrawer()">
             <span>⚙️</span>
