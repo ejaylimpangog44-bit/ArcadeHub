@@ -110,7 +110,7 @@ const ScoreManager = {
 };
 
 function updateHubActivityStats() {
-    const allGameKeys = ['snake', 'towerstack', 'chess', 'dama', 'airhockey', 'mole', 'dino', 'carracing', 'brickbreaker', 'pianotiles', 'fruitslasher', 'sr', 'solitaire', 'scatter', 'blackjack', 'highlow', 'tictactoe', 'guess', 'wordscape'];
+    const allGameKeys = ['snake', 'towerstack', 'uno', 'airhockey', 'mole', 'dino', 'carracing', 'brickbreaker', 'pianotiles', 'fruitslasher', 'sr', 'solitaire', 'scatter', 'blackjack', 'highlow', 'tictactoe', 'guess', 'wordscape'];
     let totalPlayed = 0;
     let totalHighScoresSet = 0;
 
@@ -135,8 +135,7 @@ function renderTrophiesPanel() {
     const games = [
         { key: 'snake', name: 'Cyber Snake', icon: '🐍' },
         { key: 'towerstack', name: 'Tower Stack', icon: '🏗️' },
-        { key: 'chess', name: 'Chess Pro', icon: '♟️' },
-        { key: 'dama', name: 'Pinoy Dama', icon: '🔴' },
+        { key: 'uno', name: 'UNO Battle', icon: '🌈' },
         { key: 'airhockey', name: 'Air Hockey', icon: '🏒' },
         { key: 'dino', name: 'Dino Runner', icon: '🦖' },
         { key: 'carracing', name: 'Car Racing', icon: '🏎️' },
@@ -360,9 +359,7 @@ const gameInstructionsMap = {
     'dinogame-container': { objective: "Sprint endlessly across the desert avoiding obstacles.", controls: "Press Space/Up Arrow to Jump, Down Arrow to Duck." },
     'carracing-container': { objective: "Steer your car at high speeds and collect power-ups.", controls: "Use Left/Right arrows to steer, Space/Up arrow for Nitro boost." },
     'frostgame-container': { objective: "Bounce the ball off your paddle to smash glowing bricks.", controls: "Drag your mouse or finger across the screen to move the paddle." },
-    'stickman-container': { objective: "Clear obstacles in this high-speed endless runner.", controls: "Press Space/Up Arrow to Jump/Double Jump, Down Arrow to Slide." },
-    'chess-container': { objective: "Capture the opponent's king through strategic checkmate.", controls: "Tap a piece to select, then tap a highlighted square to move." },
-    'dama-container': { objective: "Capture all enemy pieces or trap them so they cannot move.", controls: "Tap your piece to select, jump diagonally over opponent pieces." }
+    'stickman-container': { objective: "Clear obstacles in this high-speed endless runner.", controls: "Press Space/Up Arrow to Jump/Double Jump, Down Arrow to Slide." }
 };
 
 // ===================================================
@@ -773,8 +770,7 @@ function openGame(containerId) {
         if (containerId === 'highlow-container') initHighLowGame();
         if (containerId === 'wordscape-container') startWordscapeGame();
         if (containerId === 'towerstack-container') startTowerStackGame();
-        if (containerId === 'chess-container') startChessGame();
-        if (containerId === 'dama-container') startDamaGame();
+        if (containerId === 'uno-container') startUnoGame();
         if (containerId === 'airhockey-container') startAirHockeyGame();
         if (containerId === 'connectfour-container') startConnectFourGame();
     }, 50);
@@ -935,8 +931,8 @@ ScoreManager.saveScore = function(gameKey, score) {
 // ===================================================
 const GOTD_POOL = [
     { key: "towerstack", id: "towerstack-container", name: "Tower Stack", icon: "🏗️", desc: "Stack blocks to the sky for 2X XP today!" },
-    { key: "chess", id: "chess-container", name: "Chess Pro", icon: "♟️", desc: "Checkmate opponents in Chess Pro for 2X XP!" },
-    { key: "dama", id: "dama-container", name: "Pinoy Dama", icon: "🔴", desc: "Crown your pieces in Pinoy Dama for 2X XP!" },
+    { key: "snake", id: "snakegame-container", name: "Cyber Snake", icon: "🐍", desc: "Collect glowing orbs & power-ups for 2X XP!" },
+    { key: "uno", id: "uno-container", name: "UNO Battle", icon: "🌈", desc: "Outsmart the AI in UNO for 2X XP!" },
     { key: "airhockey", id: "airhockey-container", name: "Air Hockey", icon: "🏒", desc: "Score 7 goals on the neon rink for 2X XP!" },
     { key: "pianotiles", id: "piano-container", name: "Piano Tiles", icon: "🎹", desc: "Hit every rhythm tile for 2X XP!" }
 ];
@@ -951,8 +947,8 @@ function getGameOfTheDay() {
 // ===================================================
 const CHALLENGE_TEMPLATES = [
     { id: "c_stack", gameKey: "towerstack", text: "Stack 15+ blocks in Tower Stack", target: 15, type: "score", rewardXP: 350, unlockBorder: "border-daily-champ" },
-    { id: "c_chess", gameKey: "chess", text: "Win 1 match of Chess Pro", target: 1, type: "play", rewardXP: 400, unlockBorder: "border-daily-champ" },
-    { id: "c_dama", gameKey: "dama", text: "Win 1 match of Pinoy Dama", target: 1, type: "play", rewardXP: 350, unlockBorder: null },
+    { id: "c_snake", gameKey: "snake", text: "Score 80+ in Cyber Snake", target: 80, type: "score", rewardXP: 300, unlockBorder: null },
+    { id: "c_uno", gameKey: "uno", text: "Win 1 match of UNO Battle", target: 1, type: "play", rewardXP: 400, unlockBorder: "border-daily-champ" },
     { id: "c_hockey", gameKey: "airhockey", text: "Win an Air Hockey match", target: 1, type: "play", rewardXP: 350, unlockBorder: null },
     { id: "c_any3", gameKey: "ANY", text: "Play any 3 arcade games today", target: 3, type: "play", rewardXP: 250, unlockBorder: null }
 ];
@@ -1024,6 +1020,7 @@ const DailyChallengeManager = {
 function openWelcomeDailyModal() {
     audio.playSFX('click');
     
+    // Populate Game of the Day inside modal
     const gotd = getGameOfTheDay();
     const iconEl = document.getElementById("modal-gotd-icon");
     const titleEl = document.getElementById("modal-gotd-title");
@@ -1044,6 +1041,7 @@ function openWelcomeDailyModal() {
     DailyChallengeManager.render();
     LuckySpinManager.updateUIState();
 
+    // Open Modal automatically upon entering main UI
     document.getElementById('welcome-daily-modal').classList.add('active');
 }
 
@@ -1084,7 +1082,7 @@ function openCustomizeModal() {
 
 function openDailyQuestsModal() {
     audio.playSFX('click');
-    openWelcomeDailyModal();
+    openWelcomeDailyModal(); // Opens the unified modal
 }
 
 function closeDailyQuestsModal() {
@@ -1117,7 +1115,7 @@ saveCustomNameAndEnter = function() {
     if (success !== false) {
         ProgressionManager.updateUI();
         DailyChallengeManager.init();
-        setTimeout(openWelcomeDailyModal, 400);
+        setTimeout(openWelcomeDailyModal, 400); // Pops up right when entering main UI
     }
 };
 
@@ -1125,10 +1123,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const bgm = document.getElementById('bgm');
     if (!bgm) return;
 
+    // Set loop so it keeps playing
     bgm.loop = true;
 
     const enableAudio = () => {
         bgm.play().then(() => {
+            // Once played successfully, remove the listeners so it doesn't trigger again
             document.removeEventListener('click', enableAudio);
             document.removeEventListener('touchstart', enableAudio);
             document.removeEventListener('keydown', enableAudio);
@@ -1137,6 +1137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    // Listen for the first user interaction on the page
     document.addEventListener('click', enableAudio);
     document.addEventListener('touchstart', enableAudio);
     document.addEventListener('keydown', enableAudio);
@@ -1150,8 +1151,10 @@ document.addEventListener('visibilitychange', () => {
     if (!bgm) return;
 
     if (document.hidden) {
+        // User switched apps or minimized the browser
         bgm.pause();
     } else {
+        // User came back to the browser (resume only if not muted)
         if (typeof audio !== 'undefined' && !audio.isMuted) {
             bgm.play().catch(() => {});
         }
@@ -1164,9 +1167,9 @@ document.addEventListener('visibilitychange', () => {
 let ahCanvas, ahCtx, ahRunning = false, ahAnimId;
 let ahPlayerScore = 0, ahAiScore = 0;
 let ahPuck = { x: 140, y: 200, vx: 3, vy: 4, r: 12 };
-let ahPlayer = { x: 140, y: 340, r: 22 };
-let ahAi = { x: 140, y: 60, r: 22 };
-let ahGameMode = 'ai';
+let ahPlayer = { x: 140, y: 340, r: 22 }; // Player 1 (Bottom)
+let ahAi = { x: 140, y: 60, r: 22 };     // Player 2 / AI (Top)
+let ahGameMode = 'ai';                    // 'ai' or 'pvp'
 let ahP2Keys = { up: false, down: false, left: false, right: false };
 
 function setAhMode(mode) {
@@ -1177,6 +1180,7 @@ function setAhMode(mode) {
     if (btnAi) btnAi.classList.toggle('active', mode === 'ai');
     if (btnPvp) btnPvp.classList.toggle('active', mode === 'pvp');
     
+    // Update labels if needed
     const p2Label = document.getElementById('ah-p2-label');
     if (p2Label) p2Label.textContent = mode === 'pvp' ? 'PLAYER 2' : 'AI OPPONENT';
     
@@ -1194,6 +1198,7 @@ function initAirHockeyCanvas() {
         const cx = (clientX - rect.left) * (ahCanvas.width / rect.width);
         const cy = (clientY - rect.top) * (ahCanvas.height / rect.height);
         
+        // Mouse / Single touch always controls Player 1 (Bottom half)
         ahPlayer.x = Math.max(ahPlayer.r, Math.min(280 - ahPlayer.r, cx));
         ahPlayer.y = Math.max(200 + ahPlayer.r, Math.min(400 - ahPlayer.r, cy));
     };
@@ -1202,15 +1207,18 @@ function initAirHockeyCanvas() {
         if (!ahRunning || isGamePaused) return;
         const rect = ahCanvas.getBoundingClientRect();
         
+        // Multi-touch support for local PvP on mobile/tablets
         for (let i = 0; i < e.touches.length; i++) {
             const touch = e.touches[i];
             const cx = (touch.clientX - rect.left) * (ahCanvas.width / rect.width);
             const cy = (touch.clientY - rect.top) * (ahCanvas.height / rect.height);
 
             if (cy < 200 && ahGameMode === 'pvp') {
+                // Top half controls Player 2
                 ahAi.x = Math.max(ahAi.r, Math.min(280 - ahAi.r, cx));
                 ahAi.y = Math.max(ahAi.r, Math.min(200 - ahAi.r, cy));
             } else if (cy >= 200) {
+                // Bottom half controls Player 1
                 ahPlayer.x = Math.max(ahPlayer.r, Math.min(280 - ahPlayer.r, cx));
                 ahPlayer.y = Math.max(200 + ahPlayer.r, Math.min(400 - ahPlayer.r, cy));
             }
@@ -1292,6 +1300,7 @@ function ahLoop() {
         return;
     }
 
+    // Update Player 2 (AI or Keyboard/Touch controls)
     if (ahGameMode === 'pvp') {
         const p2Speed = 5.5;
         if (ahP2Keys.up) ahAi.y = Math.max(ahAi.r, ahAi.y - p2Speed);
@@ -1299,12 +1308,14 @@ function ahLoop() {
         if (ahP2Keys.left) ahAi.x = Math.max(ahAi.r, ahAi.x - p2Speed);
         if (ahP2Keys.right) ahAi.x = Math.min(280 - ahAi.r, ahAi.x + p2Speed);
     } else {
+        // AI Logic
         const targetX = ahPuck.y < 210 ? ahPuck.x : 140;
         const targetY = ahPuck.y < 180 ? Math.max(35, ahPuck.y - 10) : 60;
         ahAi.x += Math.sign(targetX - ahAi.x) * Math.min(4.2, Math.abs(targetX - ahAi.x));
         ahAi.y += Math.sign(targetY - ahAi.y) * Math.min(3.5, Math.abs(targetY - ahAi.y));
     }
 
+    // Puck physics
     ahPuck.x += ahPuck.vx;
     ahPuck.y += ahPuck.vy;
     ahPuck.vx *= 0.996;
@@ -1344,6 +1355,7 @@ function ahLoop() {
     resolveMalletCollision(ahPlayer);
     resolveMalletCollision(ahAi);
 
+    // Render Rink
     ahCtx.fillStyle = '#090d16';
     ahCtx.fillRect(0, 0, 280, 400);
 
@@ -1355,6 +1367,7 @@ function ahLoop() {
     ahCtx.fillStyle = '#ef4444'; ahCtx.fillRect(90, 0, 100, 5);
     ahCtx.fillStyle = '#38bdf8'; ahCtx.fillRect(90, 395, 100, 5);
 
+    // Render Mallets & Puck
     ahCtx.fillStyle = '#ef4444';
     ahCtx.beginPath(); ahCtx.arc(ahAi.x, ahAi.y, ahAi.r, 0, Math.PI * 2); ahCtx.fill();
     ahCtx.strokeStyle = '#fff'; ahCtx.lineWidth = 2; ahCtx.stroke();
@@ -1393,618 +1406,4 @@ function endAirHockey(playerWon, winnerName) {
         ScoreManager.saveScore('airhockey', ahPlayerScore * 25);
         if (typeof submitScore === 'function') submitScore('Air Hockey', 'Player', ahPlayerScore * 25);
     }
-}
-
-// ===================================================
-// CHESS PRO ENGINE (STRICT RULE VALIDATION & AI)
-// ===================================================
-let chessCanvas, chessCtx, chessGame = null, chessMode = 'ai';
-
-function setChessMode(mode) {
-    if (typeof audio !== 'undefined') audio.playSFX('move');
-    chessMode = mode;
-    document.getElementById('chess-mode-ai').classList.toggle('active', mode === 'ai');
-    document.getElementById('chess-mode-pvp').classList.toggle('active', mode === 'pvp');
-    startChessGame();
-}
-
-function startChessGame() {
-    if (typeof audio !== 'undefined') audio.playSFX('click');
-    chessCanvas = document.getElementById('chess-canvas');
-    if (!chessCanvas) return;
-    chessCtx = chessCanvas.getContext('2d');
-    
-    chessGame = {
-        board: [
-            ['r','n','b','q','k','b','n','r'],
-            ['p','p','p','p','p','p','p','p'],
-            [null,null,null,null,null,null,null,null],
-            [null,null,null,null,null,null,null,null],
-            [null,null,null,null,null,null,null,null],
-            [null,null,null,null,null,null,null,null],
-            ['P','P','P','P','P','P','P','P'],
-            ['R','N','B','Q','K','B','N','R']
-        ],
-        turn: 'w',
-        selected: null,
-        over: false
-    };
-
-    chessCanvas.onclick = (e) => {
-        if (chessGame.over) return;
-        if (chessMode === 'ai' && chessGame.turn === 'b') return;
-        const rect = chessCanvas.getBoundingClientRect();
-        const x = Math.floor(((e.clientX - rect.left) / rect.width) * 8);
-        const y = Math.floor(((e.clientY - rect.top) / rect.height) * 8);
-        handleChessClick(x, y);
-    };
-
-    renderChessBoard();
-}
-
-function isWhitePiece(p) { return p && p === p.toUpperCase(); }
-function isBlackPiece(p) { return p && p === p.toLowerCase(); }
-
-function isPathClear(board, sx, sy, dx, dy) {
-    const stepX = Math.sign(dx - sx);
-    const stepY = Math.sign(dy - sy);
-    let cx = sx + stepX;
-    let cy = sy + stepY;
-    while (cx !== dx || cy !== dy) {
-        if (board[cy][cx] !== null) return false;
-        cx += stepX;
-        cy += stepY;
-    }
-    return true;
-}
-
-function isValidChessMove(board, sx, sy, dx, dy, playerTurn) {
-    if (dx < 0 || dx > 7 || dy < 0 || dy > 7) return false;
-    if (sx === dx && sy === dy) return false;
-
-    const piece = board[sy][sx];
-    const target = board[dy][dx];
-
-    if (!piece) return false;
-    if (playerTurn === 'w' && !isWhitePiece(piece)) return false;
-    if (playerTurn === 'b' && !isBlackPiece(piece)) return false;
-    if (target && (playerTurn === 'w' ? isWhitePiece(target) : isBlackPiece(target))) return false;
-
-    const pLower = piece.toLowerCase();
-    const adx = dx - sx;
-    const ady = dy - sy;
-    const absDx = Math.abs(adx);
-    const absDy = Math.abs(ady);
-
-    switch (pLower) {
-        case 'p': {
-            const dir = (piece === 'P') ? -1 : 1;
-            const startRow = (piece === 'P') ? 6 : 1;
-            
-            // Forward move
-            if (adx === 0) {
-                if (ady === dir && target === null) return true;
-                if (ady === dir * 2 && sy === startRow && target === null && board[sy + dir][sx] === null) return true;
-            }
-            // Diagonal capture
-            if (absDx === 1 && ady === dir && target !== null) {
-                return true;
-            }
-            return false;
-        }
-        case 'n':
-            return (absDx === 1 && absDy === 2) || (absDx === 2 && absDy === 1);
-        case 'b':
-            return absDx === absDy && isPathClear(board, sx, sy, dx, dy);
-        case 'r':
-            return (adx === 0 || ady === 0) && isPathClear(board, sx, sy, dx, dy);
-        case 'q':
-            return (absDx === absDy || adx === 0 || ady === 0) && isPathClear(board, sx, sy, dx, dy);
-        case 'k':
-            return absDx <= 1 && absDy <= 1;
-        default:
-            return false;
-    }
-}
-
-function handleChessClick(x, y) {
-    const piece = chessGame.board[y][x];
-
-    if (!chessGame.selected) {
-        if (piece && ((chessGame.turn === 'w' && isWhitePiece(piece)) || (chessGame.turn === 'b' && isBlackPiece(piece)))) {
-            chessGame.selected = {x, y};
-            if (typeof audio !== 'undefined') audio.playSFX('click');
-            renderChessBoard();
-        }
-    } else {
-        const sx = chessGame.selected.x;
-        const sy = chessGame.selected.y;
-
-        if (sx === x && sy === y) {
-            chessGame.selected = null;
-            renderChessBoard();
-            return;
-        }
-
-        if (piece && ((chessGame.turn === 'w' && isWhitePiece(piece)) || (chessGame.turn === 'b' && isBlackPiece(piece)))) {
-            chessGame.selected = {x, y};
-            if (typeof audio !== 'undefined') audio.playSFX('click');
-            renderChessBoard();
-            return;
-        }
-
-        if (isValidChessMove(chessGame.board, sx, sy, x, y, chessGame.turn)) {
-            const captured = chessGame.board[y][x];
-            chessGame.board[y][x] = chessGame.board[sy][sx];
-            chessGame.board[sy][sx] = null;
-
-            // Pawn promotion
-            if (chessGame.board[y][x] === 'P' && y === 0) chessGame.board[y][x] = 'Q';
-            if (chessGame.board[y][x] === 'p' && y === 7) chessGame.board[y][x] = 'q';
-
-            chessGame.selected = null;
-            if (typeof audio !== 'undefined') {
-                if (captured) audio.playSFX('powerup');
-                else audio.playSFX('move');
-            }
-
-            if (captured && (captured.toLowerCase() === 'k')) {
-                chessGame.over = true;
-                showChessGameOver(chessGame.turn === 'w' ? "WHITE WINS! 🏆" : "BLACK WINS! 🏆");
-                return;
-            }
-
-            chessGame.turn = chessGame.turn === 'w' ? 'b' : 'w';
-            renderChessBoard();
-
-            if (chessMode === 'ai' && chessGame.turn === 'b' && !chessGame.over) {
-                setTimeout(chessAiMove, 600);
-            }
-        } else {
-            if (typeof audio !== 'undefined') audio.playSFX('gameover');
-            chessGame.selected = null;
-            renderChessBoard();
-        }
-    }
-}
-
-function chessAiMove() {
-    if (chessGame.over || chessGame.turn !== 'b') return;
-
-    let allMoves = [];
-    for (let sy = 0; sy < 8; sy++) {
-        for (let sx = 0; sx < 8; sx++) {
-            const p = chessGame.board[sy][sx];
-            if (isBlackPiece(p)) {
-                for (let dy = 0; dy < 8; dy++) {
-                    for (let dx = 0; dx < 8; dx++) {
-                        if (isValidChessMove(chessGame.board, sx, sy, dx, dy, 'b')) {
-                            allMoves.push({sx, sy, dx, dy, score: chessGame.board[dy][dx] ? 10 : 0});
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (allMoves.length > 0) {
-        allMoves.sort((a, b) => b.score - a.score);
-        const bestMove = allMoves[0];
-        const captured = chessGame.board[bestMove.dy][bestMove.dx];
-
-        chessGame.board[bestMove.dy][bestMove.dx] = chessGame.board[bestMove.sy][bestMove.sx];
-        chessGame.board[bestMove.sy][bestMove.sx] = null;
-
-        if (chessGame.board[bestMove.dy][bestMove.dx] === 'p' && bestMove.dy === 7) {
-            chessGame.board[bestMove.dy][bestMove.dx] = 'q';
-        }
-
-        if (typeof audio !== 'undefined') audio.playSFX('move');
-
-        if (captured && captured.toLowerCase() === 'k') {
-            chessGame.over = true;
-            showChessGameOver("AI WINS! 🤖");
-            return;
-        }
-    }
-
-    chessGame.turn = 'w';
-    renderChessBoard();
-}
-
-function showChessGameOver(msg) {
-    const indicator = document.getElementById('chess-turn-indicator');
-    if (indicator) indicator.textContent = msg;
-    if (typeof audio !== 'undefined') audio.playSFX('win');
-    ScoreManager.saveScore('chess', 600);
-    if (typeof submitScore === 'function') submitScore('Chess Pro', 'Player', 600);
-}
-
-function renderChessBoard() {
-    const symbols = { 'r':'♜','n':'♞','b':'♝','q':'♛','k':'♚','p':'♟','R':'♖','N':'♘','B':'♗','Q':'♕','K':'♔','P':'♙' };
-    const sqSize = 40;
-    chessCtx.clearRect(0, 0, 320, 320);
-
-    for (let r=0; r<8; r++) {
-        for (let c=0; c<8; c++) {
-            chessCtx.fillStyle = (r + c) % 2 === 0 ? '#1e293b' : '#0f172a';
-            chessCtx.fillRect(c * sqSize, r * sqSize, sqSize, sqSize);
-
-            if (chessGame.selected && chessGame.selected.x === c && chessGame.selected.y === r) {
-                chessCtx.fillStyle = 'rgba(56, 189, 248, 0.4)';
-                chessCtx.fillRect(c * sqSize, r * sqSize, sqSize, sqSize);
-            }
-
-            const piece = chessGame.board[r][c];
-            if (piece) {
-                chessCtx.fillStyle = isWhitePiece(piece) ? '#f8fafc' : '#cbd5e1';
-                chessCtx.font = '28px sans-serif';
-                chessCtx.textAlign = 'center';
-                chessCtx.textBaseline = 'middle';
-                chessCtx.fillText(symbols[piece] || '', c * sqSize + sqSize/2, r * sqSize + sqSize/2);
-            }
-        }
-    }
-
-    if (!chessGame.over) {
-        const ind = document.getElementById('chess-turn-indicator');
-        if (ind) ind.textContent = chessGame.turn === 'w' ? "White's Turn" : (chessMode === 'ai' ? "AI's Turn..." : "Black's Turn");
-    }
-}
-
-
-// ===================================================
-// PINOY DAMA ENGINE (CAPTURES + HARD AI + MULTI-JUMP & WIN MODAL)
-// ===================================================
-let damaCanvas, damaCtx, damaGame = null, damaMode = 'ai', damaDiff = 'hard';
-let damaCaptured = { w: 0, b: 0 };
-
-function setDamaMode(mode) {
-    if (typeof audio !== 'undefined') audio.playSFX('move');
-    damaMode = mode;
-    document.getElementById('dama-mode-ai').classList.toggle('active', mode === 'ai');
-    document.getElementById('dama-mode-pvp').classList.toggle('active', mode === 'pvp');
-    document.getElementById('dama-diff-box').style.display = mode === 'ai' ? 'flex' : 'none';
-    startDamaGame();
-}
-
-function setDamaDifficulty(diff) {
-    if (typeof audio !== 'undefined') audio.playSFX('click');
-    damaDiff = diff;
-    document.getElementById('dama-diff-easy').classList.toggle('active', diff === 'easy');
-    document.getElementById('dama-diff-hard').classList.toggle('active', diff === 'hard');
-}
-
-function startDamaGame() {
-    if (typeof audio !== 'undefined') audio.playSFX('click');
-    const overlay = document.getElementById('dama-gameover-overlay');
-    if (overlay) overlay.style.display = 'none';
-
-    damaCanvas = document.getElementById('dama-canvas');
-    if (!damaCanvas) return;
-    damaCtx = damaCanvas.getContext('2d');
-
-    let board = Array(8).fill(null).map(() => Array(8).fill(null));
-    for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 8; c++) {
-            if ((r + c) % 2 === 1) board[r][c] = 'b';
-        }
-    }
-    for (let r = 5; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-            if ((r + c) % 2 === 1) board[r][c] = 'w';
-        }
-    }
-
-    damaCaptured = { w: 0, b: 0 };
-    damaGame = { board, turn: 'w', selected: null, over: false };
-
-    damaCanvas.onclick = (e) => {
-        if (damaGame && damaGame.over) return;
-        const rect = damaCanvas.getBoundingClientRect();
-        const x = Math.floor(((e.clientX - rect.left) / rect.width) * 8);
-        const y = Math.floor(((e.clientY - rect.top) / rect.height) * 8);
-        handleDamaClick(x, y);
-    };
-
-    renderDamaBoard();
-}
-
-function handleDamaClick(x, y) {
-    if (damaGame.over) return;
-    if (damaMode === 'ai' && damaGame.turn === 'b') return;
-
-    if (!damaGame.selected) {
-        if (damaGame.board[y][x] === damaGame.turn) {
-            damaGame.selected = {x, y};
-            if (typeof audio !== 'undefined') audio.playSFX('click');
-            renderDamaBoard();
-        }
-    } else {
-        const sx = damaGame.selected.x;
-        const sy = damaGame.selected.y;
-        const dx = x - sx;
-        const dy = y - sy;
-        
-        if (damaGame.board[y][x] === null) {
-            if (Math.abs(dx) === 1 && Math.abs(dy) === 1) {
-                damaGame.board[y][x] = damaGame.board[sy][sx];
-                damaGame.board[sy][sx] = null;
-                finalizeDamaTurn();
-            } else if (Math.abs(dx) === 2 && Math.abs(dy) === 2) {
-                const mx = sx + dx / 2;
-                const my = sy + dy / 2;
-                const middlePiece = damaGame.board[my][mx];
-                
-                if (middlePiece && middlePiece !== damaGame.turn) {
-                    damaGame.board[my][mx] = null;
-                    damaGame.board[y][x] = damaGame.board[sy][sx];
-                    damaGame.board[sy][sx] = null;
-                    
-                    if (damaGame.turn === 'w') damaCaptured.w++;
-                    else damaCaptured.b++;
-
-                    if (typeof audio !== 'undefined') audio.playSFX('powerup');
-
-                    // Check if the same piece can jump again (Multi-Capture / Chain Jump)
-                    if (canPieceJumpAgain(x, y)) {
-                        damaGame.selected = { x, y }; // Keep piece selected for next jump
-                        renderDamaBoard();
-                        const statusEl = document.getElementById('dama-turn-indicator');
-                        if (statusEl) statusEl.textContent = "Multi-jump! Jump again ⚡";
-                    } else {
-                        finalizeDamaTurn();
-                    }
-                } else {
-                    damaGame.selected = null;
-                    renderDamaBoard();
-                }
-            } else {
-                damaGame.selected = null;
-                renderDamaBoard();
-            }
-        } else {
-            if (damaGame.board[y][x] === damaGame.turn) {
-                damaGame.selected = {x, y};
-                if (typeof audio !== 'undefined') audio.playSFX('click');
-                renderDamaBoard();
-            } else {
-                damaGame.selected = null;
-                renderDamaBoard();
-            }
-        }
-    }
-}
-
-function canPieceJumpAgain(x, y) {
-    const jumpOffsets = [
-        {dx: -2, dy: -2}, {dx: 2, dy: -2},
-        {dx: -2, dy: 2}, {dx: 2, dy: 2}
-    ];
-    const opponent = damaGame.turn === 'w' ? 'b' : 'w';
-
-    for (let d of jumpOffsets) {
-        const nx = x + d.dx;
-        const ny = y + d.dy;
-        if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
-            if (damaGame.board[ny][nx] === null) {
-                const mx = x + d.dx / 2;
-                const my = y + d.dy / 2;
-                if (damaGame.board[my][mx] === opponent) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-
-function finalizeDamaTurn() {
-    damaGame.selected = null;
-    if (checkDamaWinner()) return;
-
-    damaGame.turn = damaGame.turn === 'w' ? 'b' : 'w';
-    renderDamaBoard();
-
-    if (damaMode === 'ai' && damaGame.turn === 'b' && !damaGame.over) {
-        setTimeout(damaAiMove, 600);
-    }
-}
-
-function damaAiMove() {
-    if (damaGame.over) return;
-    
-    // Check for available jumps for AI ('b')
-    let allJumps = [];
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-            if (damaGame.board[r][c] === 'b') {
-                const jumpOffsets = [
-                    {dx: -2, dy: -2}, {dx: 2, dy: -2},
-                    {dx: -2, dy: 2}, {dx: 2, dy: 2}
-                ];
-                jumpOffsets.forEach(d => {
-                    const nx = c + d.dx;
-                    const ny = r + d.dy;
-                    if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8 && damaGame.board[ny][nx] === null) {
-                        const mx = c + d.dx / 2;
-                        const my = r + d.dy / 2;
-                        if (damaGame.board[my][mx] === 'w') {
-                            allJumps.push({from: {x: c, y: r}, to: {x: nx, y: ny}, middle: {x: mx, y: my}});
-                        }
-                    }
-                });
-            }
-        }
-    }
-
-    if (allJumps.length > 0) {
-        let move = allJumps[Math.floor(Math.random() * allJumps.length)];
-        damaGame.board[move.middle.y][move.middle.x] = null;
-        damaGame.board[move.to.y][move.to.x] = 'b';
-        damaGame.board[move.from.y][move.from.x] = null;
-        damaCaptured.b++;
-        if (typeof audio !== 'undefined') audio.playSFX('powerup');
-        renderDamaBoard();
-
-        // Recursively check if AI can jump again from landing spot
-        setTimeout(() => {
-            executeAiMultiJump(move.to.x, move.to.y);
-        }, 500);
-    } else {
-        // Normal movement steps if no jumps available
-        let blackPieces = [];
-        let possibleSteps = [];
-
-        for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 8; c++) {
-                if (damaGame.board[r][c] === 'b') {
-                    blackPieces.push({x: c, y: r});
-                    const directions = [{dx: -1, dy: 1}, {dx: 1, dy: 1}, {dx: -1, dy: -1}, {dx: 1, dy: -1}];
-                    
-                    directions.forEach(d => {
-                        const nx = c + d.dx;
-                        const ny = r + d.dy;
-                        if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8 && damaGame.board[ny][nx] === null && damaDiff === 'hard') {
-                            possibleSteps.push({from: {x: c, y: r}, to: {x: nx, y: ny}});
-                        }
-                    });
-                }
-            }
-        }
-
-        if (possibleSteps.length > 0 && damaDiff === 'hard') {
-            possibleSteps.sort((a, b) => b.to.y - a.to.y);
-            let move = possibleSteps[0];
-            damaGame.board[move.to.y][move.to.x] = damaGame.board[move.from.y][move.from.x];
-            damaGame.board[move.from.y][move.from.x] = null;
-            if (typeof audio !== 'undefined') audio.playSFX('move');
-        } else if (blackPieces.length > 0) {
-            let p = blackPieces[Math.floor(Math.random() * blackPieces.length)];
-            let targetY = Math.min(7, p.y + 1);
-            let targetX = p.x + (Math.random() > 0.5 ? 1 : -1);
-            targetX = Math.max(0, Math.min(7, targetX));
-
-            if (damaGame.board[targetY][targetX] === null) {
-                damaGame.board[targetY][targetX] = 'b';
-                damaGame.board[p.y][p.x] = null;
-            }
-            if (typeof audio !== 'undefined') audio.playSFX('move');
-        }
-
-        if (!checkDamaWinner()) {
-            damaGame.turn = 'w';
-            renderDamaBoard();
-        }
-    }
-}
-
-function executeAiMultiJump(x, y) {
-    if (damaGame.over) return;
-    let jumps = [];
-    const jumpOffsets = [
-        {dx: -2, dy: -2}, {dx: 2, dy: -2},
-        {dx: -2, dy: 2}, {dx: 2, dy: 2}
-    ];
-    jumpOffsets.forEach(d => {
-        const nx = x + d.dx;
-        const ny = y + d.dy;
-        if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8 && damaGame.board[ny][nx] === null) {
-            const mx = x + d.dx / 2;
-            const my = y + d.dy / 2;
-            if (damaGame.board[my][mx] === 'w') {
-                jumps.push({from: {x, y}, to: {x: nx, y: ny}, middle: {x: mx, y: my}});
-            }
-        }
-    });
-
-    if (jumps.length > 0) {
-        let move = jumps[Math.floor(Math.random() * jumps.length)];
-        damaGame.board[move.middle.y][move.middle.x] = null;
-        damaGame.board[move.to.y][move.to.x] = 'b';
-        damaGame.board[move.from.y][move.from.x] = null;
-        damaCaptured.b++;
-        if (typeof audio !== 'undefined') audio.playSFX('powerup');
-        renderDamaBoard();
-
-        setTimeout(() => {
-            executeAiMultiJump(move.to.x, move.to.y);
-        }, 500);
-    } else {
-        if (!checkDamaWinner()) {
-            damaGame.turn = 'w';
-            renderDamaBoard();
-        }
-    }
-}
-
-function checkDamaWinner() {
-    let whiteCount = 0;
-    let blackCount = 0;
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-            if (damaGame.board[r][c] === 'w') whiteCount++;
-            if (damaGame.board[r][c] === 'b') blackCount++;
-        }
-    }
-
-    if (blackCount === 0) {
-        showDamaGameOver("WHITE WINS! 🏆", "All opponent pieces captured!");
-        return true;
-    } else if (whiteCount === 0) {
-        let winnerName = damaMode === 'ai' ? "AI" : "BLACK";
-        showDamaGameOver(`${winnerName} WINS! 🤖`, "All white pieces captured!");
-        return true;
-    }
-    return false;
-}
-
-function showDamaGameOver(title, msg) {
-    damaGame.over = true;
-    const titleEl = document.getElementById('dama-final-title');
-    const msgEl = document.getElementById('dama-final-msg');
-    const overlay = document.getElementById('dama-gameover-overlay');
-
-    if (titleEl) titleEl.textContent = title;
-    if (msgEl) msgEl.textContent = msg;
-    if (overlay) overlay.style.display = 'flex';
-
-    if (typeof audio !== 'undefined') audio.playSFX('win');
-
-    if (title.includes("WHITE")) {
-        ScoreManager.saveScore('dama', 500);
-        if (typeof submitScore === 'function') submitScore('Pinoy Dama', 'Player', 500);
-    }
-}
-
-function renderDamaBoard() {
-    const sqSize = 40;
-    damaCtx.clearRect(0, 0, 320, 320);
-
-    for (let r=0; r<8; r++) {
-        for (let c=0; c<8; c++) {
-            damaCtx.fillStyle = (r + c) % 2 === 0 ? '#334155' : '#0f172a';
-            damaCtx.fillRect(c * sqSize, r * sqSize, sqSize, sqSize);
-
-            if (damaGame.selected && damaGame.selected.x === c && damaGame.selected.y === r) {
-                damaCtx.fillStyle = 'rgba(250, 204, 21, 0.4)';
-                damaCtx.fillRect(c * sqSize, r * sqSize, sqSize, sqSize);
-            }
-
-            const piece = damaGame.board[r][c];
-            if (piece) {
-                damaCtx.fillStyle = piece === 'w' ? '#f8fafc' : '#ef4444';
-                damaCtx.beginPath();
-                damaCtx.arc(c * sqSize + sqSize/2, r * sqSize + sqSize/2, 14, 0, Math.PI * 2);
-                damaCtx.fill();
-                damaCtx.strokeStyle = '#000';
-                damaCtx.lineWidth = 2;
-                damaCtx.stroke();
-            }
-        }
-    }
-
-    document.getElementById('dama-white-captured').textContent = damaCaptured.w;
-    document.getElementById('dama-black-captured').textContent = damaCaptured.b;
-    document.getElementById('dama-turn-indicator').textContent = damaGame.turn === 'w' ? "White's Turn" : (damaMode === 'ai' ? "AI's Turn..." : "Black's Turn");
 }
