@@ -1,5 +1,5 @@
 /**
- * Magic Tiles 3 Style Engine with Song Album Carousel
+ * Magic Tiles 3 Style Engine with Grid Song Album Modal
  * ArcadeHub Piano Tiles Pro
  */
 
@@ -103,26 +103,32 @@ class MagicPianoGame {
             <span id="mt3-score">0</span>
           </div>
           <div id="mt3-judgment" class="mt3-judgment"></div>
-          <button id="mt3-autoplay-btn" class="mt3-pill-btn">Auto-Play: OFF</button>
         </div>
 
         <!-- Game Canvas -->
         <canvas id="mt3-canvas"></canvas>
 
-        <!-- Start / Game Over Overlay with Album Carousel -->
+        <!-- Start / Game Over Overlay -->
         <div id="mt3-overlay" class="mt3-overlay">
           <h1 id="mt3-title">PIANO TILES</h1>
-          <p id="mt3-subtitle">Select a Song Album Below</p>
+          <p id="mt3-subtitle">Current: Symphony No. 5</p>
           
-          <!-- Song Album Carousel -->
-          <div class="piano-album-carousel-wrapper">
-            <button class="carousel-nav-btn" id="carousel-left" aria-label="Previous Song">‹</button>
-            <div class="piano-album-carousel" id="piano-album-carousel"></div>
-            <button class="carousel-nav-btn" id="carousel-right" aria-label="Next Song">›</button>
-          </div>
+          <!-- Song Album Grid Modal Trigger Button -->
+          <button id="mt3-album-modal-btn" class="mt3-album-trigger-btn">🎼 Song Album</button>
 
           <button id="mt3-start-btn" class="mt3-play-btn">TAP TO PLAY</button>
           <div class="mt3-controls-hint">Keys: <b>D</b> &nbsp; <b>F</b> &nbsp; <b>J</b> &nbsp; <b>K</b> &nbsp; or Tap Lanes</div>
+        </div>
+
+        <!-- Song Album Grid Modal -->
+        <div id="mt3-song-modal" class="mt3-song-modal">
+          <div class="mt3-song-modal-content">
+            <div class="mt3-modal-header">
+              <h3>🎼 Select Song Album</h3>
+              <button id="mt3-modal-close" class="mt3-modal-close-btn">✕</button>
+            </div>
+            <div class="mt3-song-grid" id="mt3-song-grid"></div>
+          </div>
         </div>
       </div>
     `;
@@ -137,37 +143,39 @@ class MagicPianoGame {
     this.titleEl = document.getElementById('mt3-title');
     this.subtitleEl = document.getElementById('mt3-subtitle');
     this.startBtn = document.getElementById('mt3-start-btn');
-    this.autoPlayBtn = document.getElementById('mt3-autoplay-btn');
+    this.songModal = document.getElementById('mt3-song-modal');
+    this.openModalBtn = document.getElementById('mt3-album-modal-btn');
+    this.closeModalBtn = document.getElementById('mt3-modal-close');
 
-    this.renderCarousel();
+    this.renderSongGrid();
     this.resize();
   }
 
-  renderCarousel() {
-    const carousel = document.getElementById('piano-album-carousel');
-    if (!carousel) return;
-    carousel.innerHTML = '';
+  renderSongGrid() {
+    const grid = document.getElementById('mt3-song-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
 
     pianoAlbums.forEach(album => {
       const card = document.createElement('button');
       card.type = 'button';
-      card.className = `album-card ${album.id === this.currentSongId ? 'active' : ''}`;
-      card.dataset.songId = album.id;
+      card.className = `mt3-grid-card ${album.id === this.currentSongId ? 'active' : ''}`;
       card.onclick = () => {
         this.currentSongId = album.id;
-        document.querySelectorAll('.album-card').forEach(c => {
-          c.classList.toggle('active', c.dataset.songId === album.id);
-        });
+        const activeAlbum = pianoAlbums.find(a => a.id === this.currentSongId);
+        this.subtitleEl.textContent = `Current: ${activeAlbum.title}`;
+        this.songModal.classList.remove('active');
+        this.renderSongGrid();
       };
 
       card.innerHTML = `
-        <div class="album-cover" style="background: ${album.gradient};">${album.icon}</div>
-        <div class="album-meta">
-          <div class="album-title">${album.title}</div>
-          <div class="album-artist">${album.artist}</div>
+        <div class="mt3-grid-cover" style="background: ${album.gradient};">${album.icon}</div>
+        <div class="mt3-grid-meta">
+          <div class="mt3-grid-title">${album.title}</div>
+          <div class="mt3-grid-artist">${album.artist}</div>
         </div>
       `;
-      carousel.appendChild(card);
+      grid.appendChild(card);
     });
   }
 
@@ -209,7 +217,6 @@ class MagicPianoGame {
 
   resetState() {
     this.isPlaying = false;
-    this.autoPlay = false;
     this.score = 0;
     this.combo = 0;
     this.speed = 460;
@@ -384,21 +391,15 @@ class MagicPianoGame {
     window.addEventListener('resize', () => this.resize());
     this.startBtn.addEventListener('click', () => this.startGame());
 
-    document.getElementById('carousel-left').addEventListener('click', () => {
-      document.getElementById('piano-album-carousel').scrollBy({ left: -140, behavior: 'smooth' });
-    });
-    document.getElementById('carousel-right').addEventListener('click', () => {
-      document.getElementById('piano-album-carousel').scrollBy({ left: 140, behavior: 'smooth' });
+    this.openModalBtn.addEventListener('click', () => {
+      this.songModal.classList.add('active');
     });
 
-    this.autoPlayBtn.addEventListener('click', () => {
-      this.autoPlay = !this.autoPlay;
-      this.autoPlayBtn.textContent = `Auto-Play: ${this.autoPlay ? 'ON' : 'OFF'}`;
-      this.autoPlayBtn.classList.toggle('active', this.autoPlay);
+    this.closeModalBtn.addEventListener('click', () => {
+      this.songModal.classList.remove('active');
     });
 
     this.canvas.addEventListener('pointerdown', (e) => {
-      if (this.autoPlay) return;
       const rect = this.canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const lane = Math.floor(x / this.laneWidth);
@@ -411,7 +412,7 @@ class MagicPianoGame {
 
     const keyMap = { KeyD: 0, KeyF: 1, KeyJ: 2, KeyK: 3 };
     window.addEventListener('keydown', (e) => {
-      if (e.repeat || this.autoPlay) return;
+      if (e.repeat) return;
       if (e.code in keyMap) this.handleLanePress(keyMap[e.code]);
     });
 
@@ -432,10 +433,6 @@ class MagicPianoGame {
     for (let i = this.tiles.length - 1; i >= 0; i--) {
       const t = this.tiles[i];
       t.y += this.speed * dt;
-
-      if (this.autoPlay && !t.hit && t.y + t.height >= this.hitLineY) {
-        this.handleLanePress(t.lane);
-      }
 
       if (t.isHold && t.holding) {
         const filledPx = Math.min(t.height, (t.y + t.height) - this.hitLineY);
