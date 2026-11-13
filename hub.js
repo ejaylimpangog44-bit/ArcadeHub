@@ -1515,9 +1515,8 @@ function renderChessBoard() {
     document.getElementById('chess-turn-indicator').textContent = chessGame.turn === 'w' ? "White's Turn" : (chessMode === 'ai' ? "AI's Turn..." : "Black's Turn");
 }
 
-
 // ===================================================
-// PINOY DAMA ENGINE (CAPTURES + HARD AI + WIN MODAL)
+// PINOY DAMA ENGINE (CAPTURES + HARD AI + MULTI-JUMP & WIN MODAL)
 // ===================================================
 let damaCanvas, damaCtx, damaGame = null, damaMode = 'ai', damaDiff = 'hard';
 let damaCaptured = { w: 0, b: 0 };
@@ -1608,7 +1607,16 @@ function handleDamaClick(x, y) {
                     else damaCaptured.b++;
 
                     if (typeof audio !== 'undefined') audio.playSFX('powerup');
-                    finalizeDamaTurn();
+
+                    // Check if the same piece can jump again (Multi-Capture / Chain Jump)
+                    if (canPieceJumpAgain(x, y)) {
+                        damaGame.selected = { x, y }; // Keep piece selected for next jump
+                        renderDamaBoard();
+                        const statusEl = document.getElementById('dama-turn-indicator');
+                        if (statusEl) statusEl.textContent = "Multi-jump! Jump again ⚡";
+                    } else {
+                        finalizeDamaTurn();
+                    }
                 } else {
                     damaGame.selected = null;
                     renderDamaBoard();
@@ -1618,10 +1626,39 @@ function handleDamaClick(x, y) {
                 renderDamaBoard();
             }
         } else {
-            damaGame.selected = null;
-            renderDamaBoard();
+            if (damaGame.board[y][x] === damaGame.turn) {
+                damaGame.selected = {x, y};
+                if (typeof audio !== 'undefined') audio.playSFX('click');
+                renderDamaBoard();
+            } else {
+                damaGame.selected = null;
+                renderDamaBoard();
+            }
         }
     }
+}
+
+function canPieceJumpAgain(x, y) {
+    const jumpOffsets = [
+        {dx: -2, dy: -2}, {dx: 2, dy: -2},
+        {dx: -2, dy: 2}, {dx: 2, dy: 2}
+    ];
+    const opponent = damaGame.turn === 'w' ? 'b' : 'w';
+
+    for (let d of jumpOffsets) {
+        const nx = x + d.dx;
+        const ny = y + d.dy;
+        if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
+            if (damaGame.board[ny][nx] === null) {
+                const mx = x + d.dx / 2;
+                const my = y + d.dy / 2;
+                if (damaGame.board[my][mx] === opponent) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 function finalizeDamaTurn() {
@@ -1638,29 +1675,24 @@ function finalizeDamaTurn() {
 
 function damaAiMove() {
     if (damaGame.over) return;
-    let blackPieces = [];
-    let possibleJumps = [];
-    let possibleSteps = [];
-
+    
+    // Check for available jumps for AI ('b')
+    let allJumps = [];
     for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
             if (damaGame.board[r][c] === 'b') {
-                blackPieces.push({x: c, y: r});
-                
-                const directions = [{dx: -1, dy: 1}, {dx: 1, dy: 1}, {dx: -2, dy: 2}, {dx: 2, dy: 2}, {dx: -2, dy: -2}, {dx: 2, dy: -2}, {dx: -1, dy: -1}, {dx: 1, dy: -1}];
-                
-                directions.forEach(d => {
+                const jumpOffsets = [
+                    {dx: -2, dy: -2}, {dx: 2, dy: -2},
+                    {dx: -2, dy: 2}, {dx: 2, dy: 2}
+                ];
+                jumpOffsets.forEach(d => {
                     const nx = c + d.dx;
                     const ny = r + d.dy;
                     if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8 && damaGame.board[ny][nx] === null) {
-                        if (Math.abs(d.dx) === 2) {
-                            const mx = c + d.dx / 2;
-                            const my = r + d.dy / 2;
-                            if (damaGame.board[my][mx] === 'w') {
-                                possibleJumps.push({from: {x: c, y: r}, to: {x: nx, y: ny}, middle: {x: mx, y: my}});
-                            }
-                        } else if (damaDiff === 'hard') {
-                            possibleSteps.push({from: {x: c, y: r}, to: {x: nx, y: ny}});
+                        const mx = c + d.dx / 2;
+                        const my = r + d.dy / 2;
+                        if (damaGame.board[my][mx] === 'w') {
+                            allJumps.push({from: {x: c, y: r}, to: {x: nx, y: ny}, middle: {x: mx, y: my}});
                         }
                     }
                 });
@@ -1668,35 +1700,103 @@ function damaAiMove() {
         }
     }
 
-    if (possibleJumps.length > 0) {
-        let move = possibleJumps[Math.floor(Math.random() * possibleJumps.length)];
+    if (allJumps.length > 0) {
+        let move = allJumps[Math.floor(Math.random() * allJumps.length)];
         damaGame.board[move.middle.y][move.middle.x] = null;
         damaGame.board[move.to.y][move.to.x] = 'b';
         damaGame.board[move.from.y][move.from.x] = null;
         damaCaptured.b++;
         if (typeof audio !== 'undefined') audio.playSFX('powerup');
-    } else if (possibleSteps.length > 0 && damaDiff === 'hard') {
-        possibleSteps.sort((a, b) => b.to.y - a.to.y);
-        let move = possibleSteps[0];
-        damaGame.board[move.to.y][move.to.x] = damaGame.board[move.from.y][move.from.x];
-        damaGame.board[move.from.y][move.from.x] = null;
-        if (typeof audio !== 'undefined') audio.playSFX('move');
-    } else if (blackPieces.length > 0) {
-        let p = blackPieces[Math.floor(Math.random() * blackPieces.length)];
-        let targetY = Math.min(7, p.y + 1);
-        let targetX = p.x + (Math.random() > 0.5 ? 1 : -1);
-        targetX = Math.max(0, Math.min(7, targetX));
-
-        if (damaGame.board[targetY][targetX] === null) {
-            damaGame.board[targetY][targetX] = 'b';
-            damaGame.board[p.y][p.x] = null;
-        }
-        if (typeof audio !== 'undefined') audio.playSFX('move');
-    }
-
-    if (!checkDamaWinner()) {
-        damaGame.turn = 'w';
         renderDamaBoard();
+
+        // Recursively check if AI can jump again from landing spot
+        setTimeout(() => {
+            executeAiMultiJump(move.to.x, move.to.y);
+        }, 500);
+    } else {
+        // Normal movement steps if no jumps available
+        let blackPieces = [];
+        let possibleSteps = [];
+
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                if (damaGame.board[r][c] === 'b') {
+                    blackPieces.push({x: c, y: r});
+                    const directions = [{dx: -1, dy: 1}, {dx: 1, dy: 1}, {dx: -1, dy: -1}, {dx: 1, dy: -1}];
+                    
+                    directions.forEach(d => {
+                        const nx = c + d.dx;
+                        const ny = r + d.dy;
+                        if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8 && damaGame.board[ny][nx] === null && damaDiff === 'hard') {
+                            possibleSteps.push({from: {x: c, y: r}, to: {x: nx, y: ny}});
+                        }
+                    });
+                }
+            }
+        }
+
+        if (possibleSteps.length > 0 && damaDiff === 'hard') {
+            possibleSteps.sort((a, b) => b.to.y - a.to.y);
+            let move = possibleSteps[0];
+            damaGame.board[move.to.y][move.to.x] = damaGame.board[move.from.y][move.from.x];
+            damaGame.board[move.from.y][move.from.x] = null;
+            if (typeof audio !== 'undefined') audio.playSFX('move');
+        } else if (blackPieces.length > 0) {
+            let p = blackPieces[Math.floor(Math.random() * blackPieces.length)];
+            let targetY = Math.min(7, p.y + 1);
+            let targetX = p.x + (Math.random() > 0.5 ? 1 : -1);
+            targetX = Math.max(0, Math.min(7, targetX));
+
+            if (damaGame.board[targetY][targetX] === null) {
+                damaGame.board[targetY][targetX] = 'b';
+                damaGame.board[p.y][p.x] = null;
+            }
+            if (typeof audio !== 'undefined') audio.playSFX('move');
+        }
+
+        if (!checkDamaWinner()) {
+            damaGame.turn = 'w';
+            renderDamaBoard();
+        }
+    }
+}
+
+function executeAiMultiJump(x, y) {
+    if (damaGame.over) return;
+    let jumps = [];
+    const jumpOffsets = [
+        {dx: -2, dy: -2}, {dx: 2, dy: -2},
+        {dx: -2, dy: 2}, {dx: 2, dy: 2}
+    ];
+    jumpOffsets.forEach(d => {
+        const nx = x + d.dx;
+        const ny = y + d.dy;
+        if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8 && damaGame.board[ny][nx] === null) {
+            const mx = x + d.dx / 2;
+            const my = y + d.dy / 2;
+            if (damaGame.board[my][mx] === 'w') {
+                jumps.push({from: {x, y}, to: {x: nx, y: ny}, middle: {x: mx, y: my}});
+            }
+        }
+    });
+
+    if (jumps.length > 0) {
+        let move = jumps[Math.floor(Math.random() * jumps.length)];
+        damaGame.board[move.middle.y][move.middle.x] = null;
+        damaGame.board[move.to.y][move.to.x] = 'b';
+        damaGame.board[move.from.y][move.from.x] = null;
+        damaCaptured.b++;
+        if (typeof audio !== 'undefined') audio.playSFX('powerup');
+        renderDamaBoard();
+
+        setTimeout(() => {
+            executeAiMultiJump(move.to.x, move.to.y);
+        }, 500);
+    } else {
+        if (!checkDamaWinner()) {
+            damaGame.turn = 'w';
+            renderDamaBoard();
+        }
     }
 }
 
