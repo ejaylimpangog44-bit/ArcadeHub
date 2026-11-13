@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arcade Hub Pro</title>
+    <title>Arcade Hub</title>
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <!-- LEADERBOARD ROLL-OUT BANNER -->
+    <!-- LEADERBOARD ROLL-OUT BANNER (Triggers on 1K+ score) -->
     <div id="leaderboard-rollout-banner">
         <div class="lb-banner-info">
             <h4>🏆 Epic Score Reached (1K+)</h4>
@@ -43,109 +43,90 @@
         </div>
     </div>
 
-    <!-- PROFILE / AVATAR MODAL -->
-    <div class="modal-overlay" id="profile-modal" style="z-index: 10700;">
-        <div class="settings-modal-box" style="text-align: center; max-width: 360px;">
-            <div class="settings-header">
-                <h3>👤 Gamer Profile</h3>
-                <button class="settings-close-x" onclick="closeProfileModal()">✕</button>
-            </div>
-            <div class="settings-body" style="padding: 20px;">
-                <div id="profile-avatar-display" style="font-size: 54px; margin-bottom: 8px; cursor: pointer;" title="Choose Avatar">🤖</div>
-                <div style="font-size: 1rem; font-weight: 800; color: #fff;" id="profile-username">Player</div>
-                <div style="font-size: 0.8rem; color: var(--primary); font-weight: 700; margin-bottom: 12px;" id="profile-rank-title">Novice Gamer (Level 1)</div>
-                
-                <div style="background: rgba(11,15,25,0.8); border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 14px; text-align: left;">
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">
-                        <span>XP Progress</span>
-                        <span id="profile-xp-text">0 / 500 XP</span>
-                    </div>
-                    <div style="width: 100%; height: 6px; background: #334155; border-radius: 3px; overflow: hidden;">
-                        <div id="profile-xp-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.4s;"></div>
-                    </div>
-                </div>
-
-                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; font-weight: bold; text-align: left;">Choose Avatar Icon</div>
-                <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 16px;">
-                    <button class="opt-btn" onclick="selectAvatar('🤖')">🤖</button>
-                    <button class="opt-btn" onclick="selectAvatar('🦊')">🦊</button>
-                    <button class="opt-btn" onclick="selectAvatar('🚀')">🚀</button>
-                    <button class="opt-btn" onclick="selectAvatar('👑')">👑</button>
-                    <button class="opt-btn" onclick="selectAvatar('🎮')">🎮</button>
-                </div>
-
-                <button class="start-game-btn" onclick="closeProfileModal()" style="width: 100%;">Done</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- SHARE SCORE MODAL -->
-    <div class="modal-overlay" id="share-score-modal" style="z-index: 10700;">
-        <div class="settings-modal-box" style="text-align: center; max-width: 360px;">
-            <div class="settings-header">
-                <h3>📤 Share Victory</h3>
-                <button class="settings-close-x" onclick="closeShareModal()">✕</button>
-            </div>
-            <div class="settings-body" style="padding: 20px;">
-                <div style="font-size: 42px; margin-bottom: 8px;">🔥</div>
-                <div style="font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 4px;" id="share-game-title">Arcade Hub High Score</div>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;" id="share-score-text">I just scored 0 points!</p>
-                <button class="start-game-btn" onclick="copyScoreToClipboard()" style="width: 100%; margin-bottom: 8px;">📋 Copy Score Card</button>
-                <button class="action-btn" onclick="closeShareModal()" style="width: 100%; background: #334155;">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- UNIFIED HEADER & PROFILE BAR (ICON ONLY) -->
-    <header style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 14px; padding: 0 4px;">
-        <div class="logo-area" style="display: flex; align-items: center; gap: 10px;">
-            <div class="logo-icon" style="font-size: 22px; background: linear-gradient(135deg, var(--primary), var(--accent)); width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px var(--accent-glow);">🎮</div>
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">🎮</div>
             <div class="logo-text">
-                <h1 style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Arcade Hub</h1>
-                <p style="font-size: 9px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase;">Play • Think • Win</p>
+                <h1>Arcade Hub</h1>
+                <p>Play • Think • Win</p>
             </div>
-        </div>
-        <div style="display: flex; align-items: center; cursor: pointer;" onclick="openProfileModal()" title="View Profile">
-            <div id="header-avatar" style="font-size: 26px; background: rgba(139,92,246,0.2); width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border);">🤖</div>
-            <!-- Hidden elements to prevent JS errors when hub.js updates data -->
-            <span id="welcomeHeading" style="display: none;"></span>
-            <span id="header-level-subtitle" style="display: none;"></span>
         </div>
     </header>
 
-    <!-- SEARCH & QUICK FILTER BAR -->
-    <div style="width: 100%; max-width: 600px; margin-bottom: 16px; padding: 0 4px;">
-        <input type="text" id="gameSearchInput" class="game-search-input" placeholder="🔍 Search 14+ games..." oninput="filterGames()" />
-        <div class="filter-pills-row" style="display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; scrollbar-width: none;">
-            <button class="filter-pill active" onclick="filterCategory('all', this)">All</button>
-            <button class="filter-pill" onclick="filterCategory('card', this)">Card</button>
-            <button class="filter-pill" onclick="filterCategory('puzzle', this)">Puzzle</button>
-            <button class="filter-pill" onclick="filterCategory('action', this)">Action</button>
-            <button class="filter-pill" onclick="filterCategory('racing', this)">Racing</button>
+    <!-- PLAYER PROFILE CARD (Level 1-50, Avatar + Flashy Side Border + Title + XP Bar) -->
+    <div class="player-profile-card" id="player-profile-card">
+        <div class="avatar-frame border-rookie" id="hub-avatar-frame" onclick="openCustomizeModal()" style="cursor:pointer;" title="Customize Avatar & Border">
+            <span id="hub-avatar-icon">🕹️</span>
         </div>
+        <div class="profile-info">
+            <div class="profile-top-row">
+                <div class="profile-name-wrap">
+                    <span class="profile-name" id="welcomeHeading">Player</span>
+                    <span class="profile-title-badge" id="hub-player-title">LVL 1 • Arcade Newcomer</span>
+                </div>
+                <button class="edit-name-btn" onclick="openCustomizeModal()">Customize</button>
+            </div>
+            <div class="xp-bar-container">
+                <div class="xp-bar-fill" id="hub-xp-fill"></div>
+            </div>
+            <div class="xp-meta-row">
+                <span id="hub-level-label">Level 1 / 50</span>
+                <span id="hub-xp-text">0 / 12 XP</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME OF THE DAY / FEATURED HERO BANNER (Pops out after clicking Play Arcade Hub) -->
+    <div class="gotd-hero-banner" id="gotd-hero-banner">
+        <button class="gotd-close-btn" onclick="closeGotdBanner()" title="Dismiss Banner">✕</button>
+        <div style="flex:1;">
+            <div class="gotd-badges">
+                <span class="gotd-badge-2x">⚡ 2X XP TODAY</span>
+                <span class="gotd-badge-featured">🌟 FEATURED GAME</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span id="gotd-icon" style="font-size:34px;">🏗️</span>
+                <div>
+                    <h3 id="gotd-title" style="font-size:17px; font-weight:900; color:#fff;">Tower Stack</h3>
+                    <p id="gotd-desc" style="font-size:12px; color:var(--text-muted);">Stack precision blocks to the sky for double XP!</p>
+                </div>
+            </div>
+        </div>
+        <button class="gotd-play-btn" id="gotd-play-btn">PLAY 2X XP ▶</button>
+    </div>
+
+    <!-- DAILY CHALLENGES & LOGIN STREAK -->
+    <div class="daily-hub-card" id="daily-hub-card">
+        <div class="daily-header">
+            <div class="category-title" style="margin-bottom:0;">Daily Quests & Streak</div>
+            <span class="streak-pill" id="hub-streak-pill">🔥 1 Day Streak</span>
+        </div>
+        <div id="daily-challenges-list"></div>
     </div>
 
     <div id="main-menu" class="view active">
         <div class="category-section" data-category="card">
             <div class="category-title">Card Games</div>
             <div class="game-grid">
-                <div class="game-card" data-category="card" data-name="speed solitaire sprint" onclick="showGameInstructions('solitaire-container', 'Speed Solitaire', '🎴', { objective: 'Match cards in your tableau that are 1 rank higher or lower than the foundation target card before time runs out!', controls: 'Tap playable cards to match before time runs out.' })">
-                    <span class="game-badge new">NEW</span>
+                <div class="game-card" data-name="speed solitaire sprint" onclick="showGameInstructions('solitaire-container', 'Speed Solitaire', '🎴', { objective: 'Match cards in your tableau that are 1 rank higher or lower than the foundation target card before time runs out!', controls: 'Tap playable cards to match before time runs out.' })">
                     <span class="game-icon">🎴</span>
                     <span class="game-name">Speed Solitaire</span>
                 </div>
-                <div class="game-card" data-category="card" data-name="coin scatter v2 multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter v2', '🎰', { objective: 'Place your bet and roll the dice to earn spins, then spin the reels to land multipliers and win big coins!', controls: 'Select bet, roll dice for spins, and hit spin.' })">
-                    <span class="game-badge hot">HOT</span>
+                <div class="game-card" data-name="coin scatter v2 multiplier" onclick="showGameInstructions('scattercard-container', 'Coin Scatter v2', '🎰', { objective: 'Place your bet and roll the dice to earn spins, then spin the reels to land multipliers and win big coins!', controls: 'Select bet, roll dice for spins, and hit spin.' })">
                     <span class="game-icon">🎰</span>
                     <span class="game-name">Coin Scatter v2</span>
                 </div>
-                <div class="game-card" data-category="card" data-name="blackjack 21 pro" onclick="showGameInstructions('blackjack-container', 'Blackjack 21', '🃏', { objective: 'Hit or stand to get as close to 21 as possible without busting. Beat the dealer\'s hand to win!', controls: 'Hit for another card or Stand to hold your hand.' })">
+                <div class="game-card" data-name="blackjack 21 pro" onclick="showGameInstructions('blackjack-container', 'Blackjack 21', '🃏', { objective: 'Hit or stand to get as close to 21 as possible without busting. Beat the dealer\'s hand to win!', controls: 'Hit for another card or Stand to hold your hand.' })">
                     <span class="game-icon">🃏</span>
                     <span class="game-name">Blackjack 21</span>
                 </div>
-                <div class="game-card" data-category="card" data-name="high low predictor" onclick="showGameInstructions('highlow-container', 'High-Low', '🔼', { objective: 'Predict whether the next card dealt will be Higher or Lower than your current card to build your streak!', controls: 'Tap Higher or Lower buttons based on current card.' })">
+                <div class="game-card" data-name="high low predictor" onclick="showGameInstructions('highlow-container', 'High-Low', '🔼', { objective: 'Predict whether the next card dealt will be Higher or Lower than your current card to build your streak!', controls: 'Tap Higher or Lower buttons based on current card.' })">
                     <span class="game-icon">🔼</span>
                     <span class="game-name">High-Low</span>
+                </div>
+                <div class="game-card" data-name="uno card game" onclick="showGameInstructions('uno-container', 'UNO Battle', '🌈', { objective: 'Be the first to empty your hand by matching colors, numbers, or action cards against the AI!', controls: 'Tap a matching card in your hand or tap the Deck to draw.' })">
+                    <span class="game-icon">🌈</span>
+                    <span class="game-name">UNO Battle</span>
                 </div>
             </div>
         </div>
@@ -153,16 +134,15 @@
         <div class="category-section" data-category="puzzle">
             <div class="category-title">Puzzle Games</div>
             <div class="game-grid">
-                <div class="game-card" data-category="puzzle" data-name="tic tac toe pro" onclick="showGameInstructions('tictactoe-container', 'Tic-Tac-Toe', '❌', { objective: 'Configure your match settings and align 3 (or 4) symbols in a row horizontally, vertically, or diagonally to win!', controls: 'Tap empty cells on the grid.' })">
+                <div class="game-card" data-name="tic tac toe pro" onclick="showGameInstructions('tictactoe-container', 'Tic-Tac-Toe', '❌', { objective: 'Configure your match settings and align 3 (or 4) symbols in a row horizontally, vertically, or diagonally to win!', controls: 'Tap empty cells on the grid.' })">
                     <span class="game-icon">❌</span>
                     <span class="game-name">Tic-Tac-Toe</span>
                 </div>
-                <div class="game-card" data-category="puzzle" data-name="number master" onclick="showGameInstructions('guessgame-container', 'Number Master', '🔢', { objective: 'Take strategic guesses within the selected range and use the higher/lower hints to find the secret number!', controls: 'Input number guesses and follow higher/lower hints.' })">
+                <div class="game-card" data-name="number master" onclick="showGameInstructions('guessgame-container', 'Number Master', '🔢', { objective: 'Take strategic guesses within the selected range and use the higher/lower hints to find the secret number!', controls: 'Input number guesses and follow higher/lower hints.' })">
                     <span class="game-icon">🔢</span>
                     <span class="game-name">Number Master</span>
                 </div>
-                <div class="game-card" data-category="puzzle" data-name="wordscape pro" onclick="showGameInstructions('wordscape-container', 'Wordscape Pro', '📝', { objective: 'Swipe your finger across the letter wheel to connect letters and spell out all hidden target words!', controls: 'Swipe your finger across the letter wheel.' })">
-                    <span class="game-badge hot">HOT</span>
+                <div class="game-card" data-name="wordscape pro" onclick="showGameInstructions('wordscape-container', 'Wordscape Pro', '📝', { objective: 'Swipe your finger across the letter wheel to connect letters and spell out all hidden target words!', controls: 'Swipe your finger across the letter wheel.' })">
                     <span class="game-icon">📝</span>
                     <span class="game-name">Wordscape Pro</span>
                 </div>
@@ -172,24 +152,31 @@
         <div class="category-section" data-category="action">
             <div class="category-title">Action Games</div>
             <div class="game-grid">
-                <div class="game-card" data-category="action" data-name="piano tiles pro" onclick="showGameInstructions('piano-container', 'Piano Tiles', '🎹', { objective: 'Tap falling white tiles (+15) and hold long tiles (+50) across multiple song albums in Endless or 60s Time Attack mode!', controls: 'Tap normal tiles, press & hold long tiles until full.' })">
-                    <span class="game-badge hot">POPULAR</span>
+                <div class="game-card" data-name="piano tiles pro" onclick="showGameInstructions('piano-container', 'Piano Tiles', '🎹', { objective: 'Tap falling white tiles (+15) and hold long tiles (+50) across multiple song albums in Endless or 60s Time Attack mode!', controls: 'Tap normal tiles, press & hold long tiles until full.' })">
                     <span class="game-icon">🎹</span>
                     <span class="game-name">Piano Tiles</span>
                 </div>
-                <div class="game-card" data-category="action" data-name="fruit master" onclick="showGameInstructions('fruitslice-container', 'Fruit Master', '🍉', { objective: 'Slice flying fruits across the screen to score points. Watch out and avoid slicing 💣 bombs!', controls: 'Swipe across fruits with your finger. Avoid 💣 bombs!' })">
+                <div class="game-card" data-name="fruit master" onclick="showGameInstructions('fruitslice-container', 'Fruit Master', '🍉', { objective: 'Slice flying fruits across the screen to score points. Watch out and avoid slicing 💣 bombs!', controls: 'Swipe across fruits with your finger. Avoid 💣 bombs!' })">
                     <span class="game-icon">🍉</span>
                     <span class="game-name">Fruit Master</span>
                 </div>
-                <div class="game-card" data-category="action" data-name="whack a mole pro" onclick="showGameInstructions('molegame-container', 'Whack-a-Mole', '🔨', { objective: 'Tap the cheeky hamsters as they pop out of their holes before the timer runs out!', controls: 'Tap moles instantly when they appear.' })">
+                <div class="game-card" data-name="whack a mole pro" onclick="showGameInstructions('molegame-container', 'Whack-a-Mole', '🔨', { objective: 'Tap the cheeky hamsters as they pop out of their holes before the timer runs out!', controls: 'Tap moles instantly when they appear.' })">
                     <span class="game-icon">🔨</span>
                     <span class="game-name">Whack-a-Mole</span>
                 </div>
-                <div class="game-card" data-category="action" data-name="snake evolution" onclick="showGameInstructions('snakegame-container', 'Snake Evolution', '🐍', { objective: 'Guide the growing snake to eat glowing food pellets without crashing into walls or your own tail!', controls: 'Use Arrow keys to steer.' })">
+                <div class="game-card" data-name="cyber snake" onclick="showGameInstructions('snakegame-container', 'Cyber Snake', '🐍', { objective: 'Guide the cyber snake to eat glowing orbs, build combo multipliers, and grab Ghost Phase or Gold Orbs!', controls: 'Use Arrow keys or D-Pad to steer.' })">
                     <span class="game-icon">🐍</span>
-                    <span class="game-name">Snake Evolution</span>
+                    <span class="game-name">Cyber Snake</span>
                 </div>
-                <div class="game-card" data-category="action" data-name="dino runner pro" onclick="showGameInstructions('dinogame-container', 'Dino Runner', '🦖', { objective: 'Press Jump to clear cacti or Duck to dodge flying pterodactyls in this endless prehistoric sprint!', controls: 'Press Space/Up Arrow to Jump, Down Arrow to Duck.' })">
+                <div class="game-card" data-name="tower stack" onclick="showGameInstructions('towerstack-container', 'Tower Stack', '🏗️', { objective: 'Drop moving blocks cleanly on top of the tower. Stack 3+ perfect alignments in a row to widen your block!', controls: 'Tap the screen or press Spacebar to drop the block.' })">
+                    <span class="game-icon">🏗️</span>
+                    <span class="game-name">Tower Stack</span>
+                </div>
+                <div class="game-card" data-name="air hockey" onclick="showGameInstructions('airhockey-container', 'Air Hockey', '🏒', { objective: 'First to 7 goals wins! Defend your goal and smash the neon puck past the AI striker.', controls: 'Drag your finger or mouse on the bottom half of the rink.' })">
+                    <span class="game-icon">🏒</span>
+                    <span class="game-name">Air Hockey</span>
+                </div>
+                <div class="game-card" data-name="dino runner pro" onclick="showGameInstructions('dinogame-container', 'Dino Runner', '🦖', { objective: 'Press Jump to clear cacti or Duck to dodge flying pterodactyls in this endless prehistoric sprint!', controls: 'Press Space/Up Arrow to Jump, Down Arrow to Duck.' })">
                     <span class="game-icon">🦖</span>
                     <span class="game-name">Dino Runner</span>
                 </div>
@@ -199,17 +186,15 @@
         <div class="category-section" data-category="racing">
             <div class="category-title">Racing Games</div>
             <div class="game-grid">
-                <div class="game-card" data-category="racing" data-name="turbo car racing" onclick="showGameInstructions('carracing-container', 'Car Racing', '🏎️', { objective: 'Steer left or right to dodge traffic, pick up 🛡️ Shield power-ups, and trigger ⚡ Nitro boosts!', controls: 'Use Left/Right arrows to steer, Space/Up arrow for Nitro boost.' })">
-                    <span class="game-badge new">NEW</span>
+                <div class="game-card" data-name="turbo car racing" onclick="showGameInstructions('carracing-container', 'Car Racing', '🏎️', { objective: 'Steer left or right to dodge traffic, pick up 🛡️ Shield power-ups, and trigger ⚡ Nitro boosts!', controls: 'Use Left/Right arrows to steer, Space/Up arrow for Nitro boost.' })">
                     <span class="game-icon">🏎️</span>
                     <span class="game-name">Car Racing</span>
                 </div>
-                <div class="game-card" data-category="racing" data-name="brick breaker" onclick="showGameInstructions('frostgame-container', 'Brick Breaker', '🧱', { objective: 'Bounce the ball off your paddle to smash all glowing bricks and catch helpful power-up drops!', controls: 'Drag your mouse or finger across the screen to move the paddle.' })">
+                <div class="game-card" data-name="brick breaker" onclick="showGameInstructions('frostgame-container', 'Brick Breaker', '🧱', { objective: 'Bounce the ball off your paddle to smash all glowing bricks and catch helpful power-up drops!', controls: 'Drag your mouse or finger across the screen to move the paddle.' })">
                     <span class="game-icon">🧱</span>
                     <span class="game-name">Brick Breaker</span>
                 </div>
-                <div class="game-card" data-category="racing" data-name="stick run" onclick="showGameInstructions('stickman-container', 'Stick Run', '🏃‍♂️', { objective: 'Clear obstacles in this high-speed endless runner.', controls: 'Press Space/Up Arrow to Jump/Double Jump, Down Arrow to Slide.' })">
-                    <span class="game-badge hot">HOT</span>
+                <div class="game-card" data-name="stick run" onclick="showGameInstructions('stickman-container', 'Stick Run', '🏃‍♂️', { objective: 'Clear obstacles in this high-speed endless runner.', controls: 'Press Space/Up Arrow to Jump/Double Jump, Down Arrow to Slide.' })">
                     <span style="font-size: 24px;">🏃‍♂️</span>
                     <span class="game-name">Stick Run</span>
                 </div>
@@ -217,7 +202,7 @@
         </div>
 
         <div class="activity-card">
-            <div class="activity-header">Your Gaming Activity & XP</div>
+            <div class="activity-header">Your Gaming Activity</div>
             <div class="activity-stats-grid">
                 <div class="activity-stat-item">
                     <h3 id="stat-games-played">0</h3>
@@ -235,7 +220,6 @@
         </div>
     </div>
 
-    <!-- GAME CONTAINERS -->
     <!-- WORDSCAPE PRO CONTAINER -->
     <div id="wordscape-container" class="game-container">
         <div class="game-top-bar">
@@ -248,13 +232,21 @@
                 <div class="score-box">Level 🧩 <span id="ws-level">1</span></div>
                 <div class="score-box">Found <span id="ws-found">0/0</span></div>
             </div>
+
             <div id="ws-category-badge" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--primary); font-weight:800; margin-bottom:6px;">Category: Easy Warmup</div>
+
             <div id="ws-word-board" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:10px; min-height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;"></div>
-            <div id="ws-current-word" style="font-size:1.3rem; font-weight:bold; letter-spacing:4px; color:var(--primary); margin-bottom:8px; min-height:30px; background:rgba(17,24,39,0.8); border:1px solid var(--border); border-radius:8px; width:100%; display:flex; align-items:center; justify-content:center;">_ _ _ _</div>
+
+            <div id="ws-current-word" style="font-size:1.3rem; font-weight:bold; letter-spacing:4px; color:var(--primary); margin-bottom:8px; min-height:30px; background:rgba(17,24,39,0.8); border:1px solid var(--border); border-radius:8px; width:100%; display:flex; align-items:center; justify-content:center;">
+                _ _ _ _
+            </div>
+
             <div style="position:relative; width:180px; height:180px; margin:0 auto 10px auto;" id="ws-letter-wheel">
                 <canvas id="ws-trace-canvas" width="180" height="180" style="position:absolute; top:0; left:0; pointer-events:none; z-index:10;"></canvas>
             </div>
+
             <p id="ws-status" style="margin-bottom:10px; font-weight:600; font-size:0.85rem; color:var(--text-main);">Swipe across letters to connect words!</p>
+
             <div style="display:flex; gap:8px; width:100%;">
                 <button class="action-btn" style="flex:1; background:#334155; padding:8px;" onclick="shuffleWordLetters()">SHUFFLE 🔀</button>
                 <button class="action-btn" style="flex:1; background:#b91c1c; padding:8px;" onclick="clearWordSelection()">CLEAR ❌</button>
@@ -273,15 +265,19 @@
                 <div class="score-box">Score 🏆 <span id="sol-score">0</span></div>
                 <div class="score-box">Time ⏱️ <span id="sol-time">60s</span></div>
             </div>
+
             <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:10px; text-align:center;">
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">FOUNDATION (Target)</p>
                 <div id="sol-foundation" style="font-size:2.2rem; min-height:50px; display:flex; align-items:center; justify-content:center; color:#38bdf8;">🎴</div>
             </div>
+
             <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:12px; text-align:center;">
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">TABLEAU (Tap playable cards ±1 rank)</p>
                 <div id="sol-tableau" style="display:flex; justify-content:center; gap:8px; min-height:75px;"></div>
             </div>
+
             <p id="sol-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-main);">Match cards that are 1 rank higher or lower!</p>
+
             <div style="display:flex; gap:8px; width:100%;">
                 <button class="action-btn" style="flex:1; background:#334155;" onclick="drawSolitaireCard()">DRAW CARD 🃏</button>
                 <button class="action-btn" style="flex:1;" onclick="startSolitaireGame()">NEW GAME</button>
@@ -300,15 +296,18 @@
                 <div class="score-box">Balance 🪙 <span id="scatter-balance">1,000,000</span></div>
                 <div class="score-box">Spins Left 🎲 <span id="scatter-spins-left">0</span></div>
             </div>
+
             <div style="display:flex; gap:6px; margin-bottom:10px; width:100%; justify-content:center;">
                 <button class="opt-btn active" id="bet-btn-1" onclick="setScatterBet(1000, this)">Bet 1K</button>
                 <button class="opt-btn" id="bet-btn-2" onclick="setScatterBet(5000, this)">Bet 5K</button>
                 <button class="opt-btn" id="bet-btn-3" onclick="setScatterBet(10000, this)">Bet 10K</button>
             </div>
+
             <div id="scatter-dice-box" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:10px; width:100%; margin-bottom:10px; text-align:center;">
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">DICE ROLL SPINS GENERATOR</p>
                 <div id="scatter-dice-display" style="font-size:1.8rem; font-weight:bold; color:#38bdf8;">🎲 ⚀</div>
             </div>
+
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; width:100%; margin-bottom:12px;" id="scatter-card-grid">
                 <div class="ttt-cell" id="sc-0" style="font-size:1.6rem; background:#111827;">🎴</div>
                 <div class="ttt-cell" id="sc-1" style="font-size:1.6rem; background:#111827;">🎴</div>
@@ -320,7 +319,9 @@
                 <div class="ttt-cell" id="sc-7" style="font-size:1.6rem; background:#111827;">🎴</div>
                 <div class="ttt-cell" id="sc-8" style="font-size:1.6rem; background:#111827;">🎴</div>
             </div>
+
             <p id="scatter-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-muted);">Choose your bet and roll the dice for spins!</p>
+
             <button class="action-btn" style="width:100%; max-width:320px; margin:0 auto; padding:14px; font-size:1.1rem;" id="scatter-spin-btn" onclick="rollDiceForSpins()">ROLL DICE & SPIN (🪙 Bet)</button>
         </div>
     </div>
@@ -351,18 +352,24 @@
                 <div class="score-box">Bankroll 🪙 <span id="bj-balance">1,000,000</span></div>
                 <div class="score-box">Bet 🪙 <span id="bj-bet">1,000</span></div>
             </div>
+
             <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:12px; text-align:center;">
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">DEALER'S HAND (<span id="bj-dealer-score">?</span>)</p>
                 <div id="bj-dealer-cards" style="font-size:1.5rem; margin-bottom:10px; min-height:35px;">🎴 🎴</div>
+
                 <hr style="border-color:var(--border); margin:8px 0;">
+
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">YOUR HAND (<span id="bj-player-score">0</span>)</p>
                 <div id="bj-player-cards" style="font-size:1.5rem; min-height:35px;">🎴 🎴</div>
             </div>
+
             <p id="bj-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-main);">Place your bet and hit Deal!</p>
+
             <div style="display:flex; gap:8px; width:100%; margin-bottom:8px;" id="bj-bet-controls">
                 <button class="action-btn" style="flex:1; background:#334155;" onclick="startBlackjack(1000)">Bet 1K</button>
                 <button class="action-btn" style="flex:1; background:#334155;" onclick="startBlackjack(5000)">Bet 5K</button>
             </div>
+
             <div style="display:flex; gap:8px; width:100%; display:none;" id="bj-action-controls">
                 <button class="action-btn" style="flex:1; background:#15803d;" onclick="bjHit()">HIT 🎯</button>
                 <button class="action-btn" style="flex:1; background:#b91c1c;" onclick="bjStand()">STAND 🛑</button>
@@ -381,11 +388,13 @@
                 <div class="score-box">Bankroll 🪙 <span id="hl-balance">1,000,000</span></div>
                 <div class="score-box">Streak 🔥 <span id="hl-streak">0</span></div>
             </div>
+
             <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:20px; width:100%; margin-bottom:12px; text-align:center;">
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">CURRENT CARD</p>
                 <div id="hl-card-display" style="font-size:3rem; margin-bottom:12px;">🎴 7</div>
                 <p id="hl-status" style="font-weight:600; font-size:0.9rem; color:var(--text-main);">Will the next card be Higher or Lower?</p>
             </div>
+
             <div style="display:flex; gap:10px; width:100%;" id="hl-controls">
                 <button class="action-btn" style="flex:1; background:#15803d;" onclick="guessHighLow('higher')">🔼 HIGHER</button>
                 <button class="action-btn" style="flex:1; background:#b91c1c;" onclick="guessHighLow('lower')">🔽 LOWER</button>
@@ -394,14 +403,15 @@
         </div>
     </div>
 
-    <!-- Piano Tiles Pro -->
-    <div id="piano-container" class="game-container">
-        <div class="game-top-bar">
-            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Piano Tiles</span>
-            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
-        </div>
-        <div id="piano-mount"></div>
+       <!-- Piano Tiles Pro (Magic Tiles 3 Style) -->
+<div id="piano-container" class="game-container">
+    <div class="game-top-bar">
+        <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Piano Tiles</span>
+        <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
     </div>
+    <div id="piano-mount"></div>
+</div>
+
 
     <!-- Turbo Car Racing -->
     <div id="carracing-container" class="game-container">
@@ -587,7 +597,7 @@
     <!-- Snake Evolution -->
     <div id="snakegame-container" class="game-container">
         <div class="game-top-bar">
-            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Snake Evolution</span>
+            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Cyber Snake</span>
             <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
         </div>
         <div style="width:100%; max-width:300px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
@@ -622,7 +632,6 @@
         <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
             <div class="score-board" style="margin-top:4px; width:100%;">
                 <div class="score-box">Score <span id="dino-score">0</span></div>
-                <div class="score-box">Pterodactyls 🦇 <span id="dino-birds-dodged">0</span></div>
                 <div class="score-box">High <span id="dino-high">0</span></div>
             </div>
             <div style="position:relative; display:inline-block;">
@@ -640,19 +649,24 @@
         </div>
     </div>
 
-    <!-- Stick Run -->
+    <!-- Stick Run (Endless Edition) -->
     <div id="stickman-container" class="game-container">
         <div class="sr-main-menu" id="sr-main-menu" style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:420px; margin:0 auto; background: linear-gradient(135deg, #111827, #0b0f19); border:2px solid var(--primary); border-radius:16px; padding:25px; box-shadow:0 10px 30px var(--accent-glow);">
             <div style="text-align:center; margin-bottom:20px;">
-                <div style="font-size: 36px; background: linear-gradient(135deg, #ef4444, #f59e0b); width: 64px; height: 64px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">🏃‍♂️</div>
+                <div style="font-size: 36px; background: linear-gradient(135deg, #ef4444, #f59e0b); width: 64px; height: 64px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
+                    🏃‍♂️
+                </div>
                 <h1 style="font-size:2rem; font-weight:900; letter-spacing:2px; color:#fff;">STICK <span style="color:#ef4444;">RUN</span></h1>
             </div>
+
             <button class="action-btn" style="width:100%; background:linear-gradient(135deg, #10b981, #059669); padding:16px; font-size:1.1rem; font-weight:bold; margin-bottom:15px;" onclick="startStickRunGame()">▶ START ENDLESS RUN</button>
+
             <div style="background:#0b0f19; border:1px solid var(--border); border-radius:10px; padding:12px; width:100%; display:flex; justify-content:space-around; text-align:center;">
                 <div><small style="color:var(--text-muted); font-size:11px;">COINS</small><strong id="sr-hub-coins" style="display:block; color:#facc15; font-size:1.1rem;">0</strong></div>
                 <div><small style="color:var(--text-muted); font-size:11px;">HIGHCORE</small><strong id="sr-hub-high" style="display:block; color:#fff; font-size:1.1rem;">0</strong></div>
             </div>
         </div>
+
         <div id="sr-gameplay-screen" style="display:none; width:100%; max-width:480px; flex-direction:column; align-items:center;">
             <div class="game-top-bar" style="max-width:100%;">
                 <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Stick Run</span>
@@ -673,6 +687,116 @@
         </div>
     </div>
 
+    <!-- TOWER STACK FULL VERSION CONTAINER -->
+    <div id="towerstack-container" class="game-container">
+        <div class="game-top-bar">
+            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Tower Stack</span>
+            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
+        </div>
+        <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+            <div class="score-board" style="margin-top:4px; width:100%;">
+                <div class="score-box">Height 🏗️ <span id="ts-score">0</span></div>
+                <div class="score-box">Combo 🔥 <span id="ts-combo">0x</span></div>
+                <div class="score-box">High 🏆 <span id="ts-high">0</span></div>
+            </div>
+            <div style="position:relative; display:inline-block;">
+                <canvas id="ts-canvas" class="arcade-canvas" width="300" height="400" style="touch-action:none; cursor:pointer;"></canvas>
+                <div id="ts-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.86); backdrop-filter:blur(4px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 style="color:#facc15; margin-bottom:6px; font-size:1.2rem;">TOWER TOPPLED! 🏗️</h2>
+                    <p id="ts-final-msg" style="color:var(--text-muted); font-size:0.85rem; margin-bottom:14px;">Blocks Stacked: 0</p>
+                    <button class="action-btn" onclick="startTowerStackGame()">STACK AGAIN</button>
+                </div>
+            </div>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:6px;">Tap canvas or press SPACE to drop block</p>
+        </div>
+    </div>
+
+    <!-- UNO CARD BATTLE CONTAINER -->
+    <div id="uno-container" class="game-container">
+        <div class="game-top-bar">
+            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">UNO Battle</span>
+            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
+        </div>
+        <div style="width:100%; max-width:360px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+            <div class="score-board" style="margin-top:4px; width:100%;">
+                <div class="score-box">AI Cards 🤖 <span id="uno-ai-count">7</span></div>
+                <div class="score-box">Active Color <span id="uno-active-color" style="color:#38bdf8;">BLUE</span></div>
+                <div class="score-box">Wins 🏆 <span id="uno-wins">0</span></div>
+            </div>
+
+            <!-- AI Hand Backs -->
+            <div id="uno-ai-hand" style="display:flex; justify-content:center; gap:4px; margin-bottom:12px; min-height:36px; flex-wrap:wrap;"></div>
+
+            <!-- Center Deck & Discard Pile -->
+            <div style="display:flex; align-items:center; justify-content:center; gap:20px; background:#111827; border:1px solid var(--border); border-radius:14px; padding:16px; width:100%; margin-bottom:12px;">
+                <div class="uno-card" style="background:linear-gradient(135deg, #1e293b, #0f172a); border-color:#8b5cf6;" onclick="unoDrawCard()">
+                    <span style="font-size:0.75rem;">DRAW</span>
+                    <span>🃏</span>
+                </div>
+                <div id="uno-discard-pile" class="uno-card uno-blue">7</div>
+            </div>
+
+            <p id="uno-status" style="margin-bottom:10px; font-weight:700; font-size:0.85rem; color:var(--text-main); text-align:center;">Your Turn! Match color or number.</p>
+
+            <!-- Wild Color Picker -->
+            <div id="uno-color-picker" style="display:none; gap:8px; margin-bottom:10px;">
+                <button class="action-btn" style="background:#ef4444; padding:8px 12px;" onclick="chooseUnoWildColor('red')">Red</button>
+                <button class="action-btn" style="background:#3b82f6; padding:8px 12px;" onclick="chooseUnoWildColor('blue')">Blue</button>
+                <button class="action-btn" style="background:#22c55e; padding:8px 12px;" onclick="chooseUnoWildColor('green')">Green</button>
+                <button class="action-btn" style="background:#eab308; color:#000; padding:8px 12px;" onclick="chooseUnoWildColor('yellow')">Yellow</button>
+            </div>
+
+            <!-- Player Hand -->
+            <div id="uno-player-hand" style="display:flex; gap:6px; overflow-x:auto; width:100%; padding:8px 4px; justify-content:flex-start;"></div>
+
+            <button class="control-btn" style="width:100%; margin-top:10px;" onclick="startUnoGame()">New UNO Match</button>
+        </div>
+    </div>
+
+    <!-- AIR HOCKEY CONTAINER -->
+    <div id="airhockey-container" class="game-container">
+        <div class="game-top-bar">
+            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Neon Air Hockey</span>
+            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
+        </div>
+        <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+            <div class="score-board" style="margin-top:4px; width:100%;">
+                <div class="score-box">AI 🤖 <span id="ah-ai-score">0</span></div>
+                <div class="score-box">First to 7 <span id="ah-status-tag">LIVE</span></div>
+                <div class="score-box">You 🔥 <span id="ah-player-score">0</span></div>
+            </div>
+            <div style="position:relative; display:inline-block;">
+                <canvas id="ah-canvas" class="arcade-canvas" width="280" height="400" style="touch-action:none; cursor:none;"></canvas>
+                <div id="ah-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.86); backdrop-filter:blur(4px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
+                    <h2 id="ah-final-title" style="color:#38bdf8; margin-bottom:6px; font-size:1.2rem;">VICTORY! 🏆</h2>
+                    <p id="ah-final-msg" style="color:var(--text-muted); font-size:0.85rem; margin-bottom:14px;">7 - 4</p>
+                    <button class="action-btn" onclick="startAirHockeyGame()">REMATCH</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AVATAR, FLASHY BORDER & TITLE CUSTOMIZER MODAL -->
+    <div class="modal-overlay" id="customize-modal" style="z-index: 10550;">
+        <div class="settings-modal-box" style="max-width: 400px;">
+            <div class="settings-header">
+                <h3>✨ Profile & Unlocks (Lv. 1–50)</h3>
+                <button class="settings-close-x" onclick="closeCustomizeModal()">✕</button>
+            </div>
+            <div class="settings-body">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <span style="font-size:12px; color:var(--text-muted);">Player Name</span>
+                    <button class="edit-name-btn" onclick="closeCustomizeModal(); openNamePromptModal();">Edit Name ✏️</button>
+                </div>
+                <p style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:6px;">Unlocked Avatars</p>
+                <div class="unlock-grid" id="avatar-unlock-grid" style="margin-bottom:14px;"></div>
+
+                <p style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:6px;">Flashy Side Borders</p>
+                <div class="unlock-grid" id="border-unlock-grid"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- PAUSE MODAL -->
     <div class="modal-overlay" id="pause-modal" style="z-index: 10600;">
         <div class="settings-modal-box" style="text-align: center; max-width: 320px;">
@@ -687,7 +811,7 @@
         </div>
     </div>
 
-    <!-- HOW TO PLAY INSTRUCTIONS MODAL -->
+    <!-- HOW TO PLAY STRUCTURED INSTRUCTIONS MODAL -->
     <div class="modal-overlay" id="instruction-modal">
         <div class="settings-modal-box" style="text-align: center;">
             <div class="settings-header">
@@ -706,7 +830,7 @@
         </div>
     </div>
 
-    <!-- BOTTOM NAVIGATION BAR -->
+    <!-- CLEAN FIXED BOTTOM NAVIGATION BAR -->
     <nav class="bottom-nav-bar">
         <button class="bottom-nav-item active" onclick="backToHub()">
             <span>🏠</span>
@@ -718,7 +842,7 @@
         </button>
     </nav>
 
-    <!-- SETTINGS DRAWER -->
+    <!-- Smooth Sliding/Popup Settings Panel -->
     <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeSettingsDrawer()"></div>
     <div id="settings-drawer">
         <div class="settings-header">
@@ -746,12 +870,7 @@
                         <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
                     </div>
                 </div>
-                <div class="setting-row">
-                    <span class="setting-label">🎹 Ambient Synthwave Lo-Fi</span>
-                    <div class="setting-control">
-                        <button class="setting-toggle" id="ambient-audio-toggle" onclick="toggleAmbientAudio()">OFF</button>
-                    </div>
-                </div>
+
                 <div class="category-section" id="recently-played-section" style="margin-top: 20px; display:none;">
                     <div class="category-title" style="margin-bottom: 8px;">Recently Played</div>
                     <div class="recent-scroll-row" id="recent-scroll-container"></div>
@@ -761,10 +880,14 @@
                 <div class="setting-row">
                     <span class="setting-label">🎨 Accent Color</span>
                     <div class="setting-control">
-                        <div class="theme-picker-grid">
+                        <div class="theme-picker-grid" style="flex-wrap:wrap;">
                             <button class="theme-swatch pink" onclick="setTheme('')" title="Neon Violet/Pink"></button>
                             <button class="theme-swatch cyan" onclick="setTheme('theme-cyan')" title="Cyber Cyan"></button>
                             <button class="theme-swatch emerald" onclick="setTheme('theme-emerald')" title="Emerald Green"></button>
+                            <button class="theme-swatch matcha" onclick="setTheme('theme-matcha')" title="Cozy Matcha"></button>
+                            <button class="theme-swatch sunset" onclick="setTheme('theme-sunset')" title="Warm Sunset"></button>
+                            <button class="theme-swatch lavender" onclick="setTheme('theme-lavender')" title="Chill Lavender"></button>
+                            <button class="theme-swatch coffee" onclick="setTheme('theme-coffee')" title="Midnight Coffee"></button>
                         </div>
                     </div>
                 </div>
@@ -776,7 +899,9 @@
                     <h4 style="font-size: 15px; font-weight: 800; color: #fff;">Trophies & High Scores</h4>
                     <p style="font-size: 11px; color: var(--text-muted);">Your top achievements across Arcade Hub</p>
                 </div>
-                <div id="trophies-list-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <div id="trophies-list-container" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Dynamically populated -->
+                </div>
             </div>
             <div class="settings-panel" id="panel-prefs">
                 <div class="setting-row">
@@ -824,7 +949,7 @@
       </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Linked Modular Scripts -->
     <script src="hub.js"></script>
     <script src="piano.js"></script>
     <script src="games.js"></script>
