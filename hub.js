@@ -631,6 +631,7 @@ function openGame(containerId) {
         if (containerId === 'towerstack-container') startTowerStackGame();
         if (containerId === 'uno-container') startUnoGame();
         if (containerId === 'airhockey-container') startAirHockeyGame();
+        if (containerId === 'connectfour-container') startConnectFourGame();
     }, 50);
 }
 
