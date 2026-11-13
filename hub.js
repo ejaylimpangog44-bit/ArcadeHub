@@ -358,13 +358,97 @@ const gameInstructionsMap = {
 };
 
 // ===================================================
+// SEARCH BAR & CATEGORY FILTERING
+// ===================================================
+function filterArcadeGames(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.game-card').forEach(card => {
+        const name = card.getAttribute('data-name') || '';
+        if(name.includes(q)) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterCategory(category, btn) {
+    audio.playSFX('click');
+    document.querySelectorAll('#category-filter-bar .opt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.category-section').forEach(sec => {
+        if(category === 'all' || sec.getAttribute('data-category') === category) {
+            sec.style.display = 'block';
+        } else {
+            sec.style.display = 'none';
+        }
+    });
+}
+
+// ===================================================
+// DAILY LUCKY SPIN WHEEL
+// ===================================================
+function openLuckySpinModal() {
+    audio.playSFX('click');
+    document.getElementById('lucky-spin-modal').classList.add('active');
+}
+
+function closeLuckySpinModal() {
+    audio.playSFX('click');
+    document.getElementById('lucky-spin-modal').classList.remove('active');
+}
+
+function executeLuckySpin() {
+    audio.playSFX('powerup');
+    const rewards = [
+        { label: "+250 XP", xp: 250, icon: "⚡" },
+        { label: "+500 XP", xp: 500, icon: "🔥" },
+        { label: "+1,000 XP", xp: 1000, icon: "💎" },
+        { label: "+150 XP", xp: 150, icon: "🎁" }
+    ];
+    let won = rewards[Math.floor(Math.random() * rewards.length)];
+    document.getElementById('wheel-display').textContent = won.icon;
+    document.getElementById('wheel-status').textContent = `🎉 You won ${won.label}!`;
+    document.getElementById('spin-wheel-btn').disabled = true;
+    document.getElementById('spin-wheel-btn').style.opacity = '0.5';
+    ProgressionManager.addXP(won.xp);
+}
+
+// ===================================================
+// LEADERBOARD & SHOP TABS NAVIGATION
+// ===================================================
+function openLeaderboardTab() {
+    audio.playSFX('click');
+    openSettingsDrawer();
+    switchSettingsTab('trophies');
+}
+
+function openShopTab() {
+    audio.playSFX('click');
+    openCustomizeModal();
+}
+
+// ===================================================
 // AUDIO MANAGER & SETTINGS DRAWER
 // ===================================================
 class ArcadeAudioManager {
-    constructor() { this.audioCtx = null; this.isMuted = false; this.volume = 0.4; }
+    constructor() { 
+        this.audioCtx = null; 
+        this.isMuted = false; 
+        this.masterVolume = 0.5;
+        this.bgmVolume = 0.4;
+        this.sfxVolume = 0.4; 
+    }
     initContext() {
         if (!this.audioCtx) { const AC = window.AudioContext || window.webkitAudioContext; this.audioCtx = new AC(); }
         if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+    }
+    updateBgmElement() {
+        const bgm = document.getElementById('bgm');
+        if (bgm) {
+            bgm.volume = this.isMuted ? 0 : (this.masterVolume * this.bgmVolume);
+        }
     }
     playTone(freq, duration = 0.1, type='triangle') {
         if (this.isMuted) return;
@@ -374,7 +458,8 @@ class ArcadeAudioManager {
         const gain = this.audioCtx.createGain();
         osc.connect(gain); gain.connect(this.audioCtx.destination);
         osc.type = type; osc.frequency.setValueAtTime(freq, now);
-        gain.gain.setValueAtTime(this.volume * 0.25, now);
+        const effectiveVol = this.masterVolume * this.sfxVolume;
+        gain.gain.setValueAtTime(effectiveVol * 0.25, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
         osc.start(now); osc.stop(now + duration);
     }
@@ -385,13 +470,14 @@ class ArcadeAudioManager {
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
         osc.connect(gain); gain.connect(this.audioCtx.destination);
+        const eff = this.masterVolume * this.sfxVolume;
         switch (type) {
-            case 'click': osc.type='square'; osc.frequency.setValueAtTime(400,now); gain.gain.setValueAtTime(this.volume*.15,now); gain.gain.exponentialRampToValueAtTime(.001,now+.04); osc.start(now); osc.stop(now+.04); break;
-            case 'move': osc.type='triangle'; osc.frequency.setValueAtTime(300,now); osc.frequency.exponentialRampToValueAtTime(500,now+.06); gain.gain.setValueAtTime(this.volume*.2,now); gain.gain.exponentialRampToValueAtTime(.001,now+.06); osc.start(now); osc.stop(now+.06); break;
-            case 'score': osc.type='sine'; osc.frequency.setValueAtTime(587.33,now); osc.frequency.setValueAtTime(880,now+.08); gain.gain.setValueAtTime(this.volume*.3,now); gain.gain.exponentialRampToValueAtTime(.001,now+.2); osc.start(now); osc.stop(now+.2); break;
-            case 'powerup': osc.type='sine'; osc.frequency.setValueAtTime(400,now); osc.frequency.exponentialRampToValueAtTime(1200,now+.2); gain.gain.setValueAtTime(this.volume*.3,now); gain.gain.exponentialRampToValueAtTime(.001,now+.25); osc.start(now); osc.stop(now+.25); break;
-            case 'win': osc.type='triangle'; osc.frequency.setValueAtTime(523.25,now); osc.frequency.setValueAtTime(659.25,now+.1); osc.frequency.setValueAtTime(783.99,now+.2); osc.frequency.setValueAtTime(1046.50,now+.3); gain.gain.setValueAtTime(this.volume*.4,now); gain.gain.exponentialRampToValueAtTime(.001,now+.5); osc.start(now); osc.stop(now+.5); break;
-            case 'gameover': osc.type='sawtooth'; osc.frequency.setValueAtTime(250,now); osc.frequency.exponentialRampToValueAtTime(70,now+.35); gain.gain.setValueAtTime(this.volume*.35,now); gain.gain.exponentialRampToValueAtTime(.001,now+.35); osc.start(now); osc.stop(now+.35); break;
+            case 'click': osc.type='square'; osc.frequency.setValueAtTime(400,now); gain.gain.setValueAtTime(eff*.15,now); gain.gain.exponentialRampToValueAtTime(.001,now+.04); osc.start(now); osc.stop(now+.04); break;
+            case 'move': osc.type='triangle'; osc.frequency.setValueAtTime(300,now); osc.frequency.exponentialRampToValueAtTime(500,now+.06); gain.gain.setValueAtTime(eff*.2,now); gain.gain.exponentialRampToValueAtTime(.001,now+.06); osc.start(now); osc.stop(now+.06); break;
+            case 'score': osc.type='sine'; osc.frequency.setValueAtTime(587.33,now); osc.frequency.setValueAtTime(880,now+.08); gain.gain.setValueAtTime(eff*.3,now); gain.gain.exponentialRampToValueAtTime(.001,now+.2); osc.start(now); osc.stop(now+.2); break;
+            case 'powerup': osc.type='sine'; osc.frequency.setValueAtTime(400,now); osc.frequency.exponentialRampToValueAtTime(1200,now+.2); gain.gain.setValueAtTime(eff*.3,now); gain.gain.exponentialRampToValueAtTime(.001,now+.25); osc.start(now); osc.stop(now+.25); break;
+            case 'win': osc.type='triangle'; osc.frequency.setValueAtTime(523.25,now); osc.frequency.setValueAtTime(659.25,now+.1); osc.frequency.setValueAtTime(783.99,now+.2); osc.frequency.setValueAtTime(1046.50,now+.3); gain.gain.setValueAtTime(eff*.4,now); gain.gain.exponentialRampToValueAtTime(.001,now+.5); osc.start(now); osc.stop(now+.5); break;
+            case 'gameover': osc.type='sawtooth'; osc.frequency.setValueAtTime(250,now); osc.frequency.exponentialRampToValueAtTime(70,now+.35); gain.gain.setValueAtTime(eff*.35,now); gain.gain.exponentialRampToValueAtTime(.001,now+.35); osc.start(now); osc.stop(now+.35); break;
         }
     }
 }
@@ -400,11 +486,28 @@ const audio = new ArcadeAudioManager();
 
 function toggleAudioSetting() {
     audio.isMuted = !audio.isMuted;
+    audio.updateBgmElement();
     const btn = document.getElementById('audio-toggle-switch');
     if (audio.isMuted) { btn.textContent = "MUTED"; btn.classList.remove('active'); }
     else { btn.textContent = "ENABLED"; btn.classList.add('active'); audio.playSFX('click'); }
 }
-function updateVolume(val) { audio.volume = parseFloat(val); audio.playSFX('click'); }
+
+function updateMasterVolume(val) {
+    audio.masterVolume = parseFloat(val);
+    audio.updateBgmElement();
+    audio.playSFX('click');
+}
+
+function updateBgmVolume(val) {
+    audio.bgmVolume = parseFloat(val);
+    audio.updateBgmElement();
+}
+
+function updateVolume(val) { 
+    audio.sfxVolume = parseFloat(val); 
+    audio.playSFX('click'); 
+}
+
 function setTheme(themeName) { audio.playSFX('click'); document.documentElement.className = themeName; localStorage.setItem("arcadehub_theme", themeName); }
 
 function openSettingsDrawer() {
@@ -481,10 +584,6 @@ function backToHub() {
     document.querySelector('header').style.display = 'flex';
     const pCard = document.getElementById('player-profile-card');
     if (pCard) pCard.style.display = 'flex';
-    const dCard = document.getElementById('daily-hub-card');
-    if (dCard) dCard.style.display = 'block';
-    const gBanner = document.getElementById('gotd-hero-banner');
-    if (gBanner && sessionStorage.getItem('gotd_dismissed') !== 'true') gBanner.classList.add('visible');
 
     if (typeof snakeInterval !== 'undefined') clearInterval(snakeInterval);
     if (typeof dinoInterval !== 'undefined') clearInterval(dinoInterval);
@@ -538,10 +637,6 @@ function openGame(containerId) {
     document.querySelector('header').style.display = 'none';
     const pCard = document.getElementById('player-profile-card');
     if (pCard) pCard.style.display = 'none';
-    const dCard = document.getElementById('daily-hub-card');
-    if (dCard) dCard.style.display = 'none';
-    const gBanner = document.getElementById('gotd-hero-banner');
-    if (gBanner) gBanner.classList.remove('visible');
     
     document.getElementById('main-menu').classList.remove('active');
     document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
@@ -567,6 +662,7 @@ function openGame(containerId) {
         if (containerId === 'towerstack-container') startTowerStackGame();
         if (containerId === 'uno-container') startUnoGame();
         if (containerId === 'airhockey-container') startAirHockeyGame();
+        if (containerId === 'connectfour-container') startConnectFourGame();
     }, 50);
 }
 
@@ -697,15 +793,12 @@ const ProgressionManager = {
 };
 
 function triggerLevelUpModal(levelText) {
-    // Set the dynamic text
     const titleEl = document.getElementById('level-up-title-text');
     if (titleEl) titleEl.innerText = levelText;
 
-    // Show the custom modal overlay with flex layout
     const modal = document.getElementById('level-up-modal');
     if (modal) modal.style.display = 'flex';
 
-    // Play level up SFX (using your hub's built-in sound system)
     if (typeof audio !== 'undefined' && typeof audio.playSFX === 'function') {
         audio.playSFX('win');
     }
@@ -724,7 +817,7 @@ ScoreManager.saveScore = function(gameKey, score) {
 };
 
 // ===================================================
-// GAME OF THE DAY (2X XP HERO BANNER)
+// GAME OF THE DAY (2X XP DATA POOL)
 // ===================================================
 const GOTD_POOL = [
     { key: "towerstack", id: "towerstack-container", name: "Tower Stack", icon: "🏗️", desc: "Stack blocks to the sky for 2X XP today!" },
@@ -737,27 +830,6 @@ const GOTD_POOL = [
 function getGameOfTheDay() {
     const dayIndex = Math.floor(Date.now() / 86400000);
     return GOTD_POOL[dayIndex % GOTD_POOL.length];
-}
-
-function showGotdBanner() {
-    if (sessionStorage.getItem("gotd_dismissed") === "true") return;
-    const gotd = getGameOfTheDay();
-    const banner = document.getElementById("gotd-hero-banner");
-    if (!banner) return;
-    document.getElementById("gotd-icon").textContent = gotd.icon;
-    document.getElementById("gotd-title").textContent = gotd.name;
-    document.getElementById("gotd-desc").textContent = gotd.desc;
-    document.getElementById("gotd-play-btn").onclick = () => {
-        const inst = gameInstructionsMap[gotd.id] || { objective: gotd.desc, controls: "Tap controls to play." };
-        showGameInstructions(gotd.id, gotd.name, gotd.icon, inst);
-    };
-    banner.classList.add("visible");
-}
-
-function closeGotdBanner() {
-    audio.playSFX('click');
-    sessionStorage.setItem("gotd_dismissed", "true");
-    document.getElementById("gotd-hero-banner").classList.remove("visible");
 }
 
 // ===================================================
@@ -787,9 +859,6 @@ const DailyChallengeManager = {
             const dailyData = shuffled.map(c => ({ ...c, progress: 0, done: false }));
             localStorage.setItem("arcadehub_daily_quests", JSON.stringify(dailyData));
         }
-
-        const pill = document.getElementById("hub-streak-pill");
-        if (pill) pill.textContent = `🔥 ${streak} Day Streak`;
         this.render();
     },
     trackProgress(gameKey, score) {
@@ -815,30 +884,76 @@ const DailyChallengeManager = {
         this.render();
     },
     render() {
-        const list = document.getElementById("daily-challenges-list");
-        const listModal = document.getElementById("daily-challenges-list-modal");
-        const subtitle = document.getElementById("daily-card-subtitle");
+        const listModal = document.getElementById("modal-daily-challenges-list");
         let streak = localStorage.getItem("arcadehub_streak") || "1";
 
         const quests = JSON.parse(localStorage.getItem("arcadehub_daily_quests") || "[]");
         const html = quests.map(q => `
-            <div class="challenge-item ${q.done ? 'completed' : ''}" style="display: flex; justify-content: space-between; align-items: center; background: rgba(17,24,39,0.8); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(17,24,39,0.85); border: 1px solid var(--border); padding: 8px 10px; border-radius: 8px;">
                 <div>
-                    <div style="font-size:12px; font-weight:700; color:#fff;">${q.done ? '✅' : '🎯'} ${q.text}</div>
-                    <div style="font-size:10px; color:var(--text-muted);">Progress: ${Math.min(q.progress, q.target)}/${q.target}</div>
+                    <div style="font-size:11px; font-weight:700; color:#fff;">${q.done ? '✅' : '🎯'} ${q.text}</div>
+                    <div style="font-size:9px; color:var(--text-muted);">Progress: ${Math.min(q.progress, q.target)}/${q.target}</div>
                 </div>
-                <span class="challenge-reward-tag" style="font-size: 10px; font-weight: 800; color: #facc15;">${q.done ? 'CLAIMED' : `+${q.rewardXP} XP${q.unlockBorder ? ' + Border' : ''}`}</span>
+                <span style="font-size: 10px; font-weight: 800; color: #facc15;">${q.done ? 'CLAIMED' : `+${q.rewardXP} XP${q.unlockBorder ? ' + Border' : ''}`}</span>
             </div>
         `).join('');
 
-        if (list) list.innerHTML = html;
         if (listModal) listModal.innerHTML = html;
-        if (subtitle) subtitle.textContent = `${streak} Day Streak • Tap to view active quests`;
-        
-        const modalStreakPill = document.getElementById("hub-streak-pill-modal");
+        const modalStreakPill = document.getElementById("modal-hub-streak-pill");
         if (modalStreakPill) modalStreakPill.textContent = `🔥 ${streak} Day Streak`;
     }
 };
+
+// ===================================================
+// WELCOME DAILY REWARDS POPUP MODAL & ENTRY TRIGGERS
+// ===================================================
+function openWelcomeDailyModal() {
+    audio.playSFX('click');
+    
+    // Populate Game of the Day inside modal
+    const gotd = getGameOfTheDay();
+    const iconEl = document.getElementById("modal-gotd-icon");
+    const titleEl = document.getElementById("modal-gotd-title");
+    const descEl = document.getElementById("modal-gotd-desc");
+    const playBtn = document.getElementById("modal-gotd-play-btn");
+
+    if (iconEl) iconEl.textContent = gotd.icon;
+    if (titleEl) titleEl.textContent = gotd.name;
+    if (descEl) descEl.textContent = gotd.desc;
+    if (playBtn) {
+        playBtn.onclick = () => {
+            closeWelcomeDailyModal();
+            const inst = gameInstructionsMap[gotd.id] || { objective: gotd.desc, controls: "Tap controls to play." };
+            showGameInstructions(gotd.id, gotd.name, gotd.icon, inst);
+        };
+    }
+
+    DailyChallengeManager.render();
+
+    // Open Modal automatically upon entering main UI
+    document.getElementById('welcome-daily-modal').classList.add('active');
+}
+
+function closeWelcomeDailyModal() {
+    audio.playSFX('click');
+    document.getElementById('welcome-daily-modal').classList.remove('active');
+}
+
+function executeModalLuckySpin() {
+    audio.playSFX('powerup');
+    const rewards = [
+        { label: "+250 XP", xp: 250, icon: "⚡" },
+        { label: "+500 XP", xp: 500, icon: "🔥" },
+        { label: "+1,000 XP", xp: 1000, icon: "💎" },
+        { label: "+150 XP", xp: 150, icon: "🎁" }
+    ];
+    let won = rewards[Math.floor(Math.random() * rewards.length)];
+    document.getElementById('modal-wheel-display').textContent = won.icon;
+    document.getElementById('modal-wheel-status').textContent = `🎉 You won ${won.label}!`;
+    document.getElementById('modal-spin-wheel-btn').disabled = true;
+    document.getElementById('modal-spin-wheel-btn').style.opacity = '0.5';
+    ProgressionManager.addXP(won.xp);
+}
 
 function openCustomizeModal() {
     audio.playSFX('click');
@@ -872,7 +987,7 @@ function openCustomizeModal() {
 
 function openDailyQuestsModal() {
     audio.playSFX('click');
-    document.getElementById('daily-quests-modal').classList.add('active');
+    openWelcomeDailyModal(); // Opens the unified modal
 }
 
 function closeDailyQuestsModal() {
@@ -905,11 +1020,300 @@ saveCustomNameAndEnter = function() {
     if (success !== false) {
         ProgressionManager.updateUI();
         DailyChallengeManager.init();
-        setTimeout(showGotdBanner, 350);
+        setTimeout(openWelcomeDailyModal, 400); // Pops up right when entering main UI
     }
 };
 
-window.addEventListener("load", () => {
+window.onload = function() {
     ProgressionManager.updateUI();
     DailyChallengeManager.init();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const bgm = document.getElementById('bgm');
+    if (!bgm) return;
+
+    // Set loop so it keeps playing
+    bgm.loop = true;
+
+    const enableAudio = () => {
+        bgm.play().then(() => {
+            // Once played successfully, remove the listeners so it doesn't trigger again
+            document.removeEventListener('click', enableAudio);
+            document.removeEventListener('touchstart', enableAudio);
+            document.removeEventListener('keydown', enableAudio);
+        }).catch(err => {
+            console.log("Waiting for valid user gesture...", err);
+        });
+    };
+
+    // Listen for the first user interaction on the page
+    document.addEventListener('click', enableAudio);
+    document.addEventListener('touchstart', enableAudio);
+    document.addEventListener('keydown', enableAudio);
 });
+
+// ===================================================
+// PAGE VISIBILITY API (PAUSE/RESUME BGM ON APP SWITCH)
+// ===================================================
+document.addEventListener('visibilitychange', () => {
+    const bgm = document.getElementById('bgm');
+    if (!bgm) return;
+
+    if (document.hidden) {
+        // User switched apps or minimized the browser
+        bgm.pause();
+    } else {
+        // User came back to the browser (resume only if not muted)
+        if (typeof audio !== 'undefined' && !audio.isMuted) {
+            bgm.play().catch(() => {});
+        }
+    }
+});
+
+// ===================================================
+// NEON AIR HOCKEY (FULL VERSION ENGINE WITH PVP)
+// ===================================================
+let ahCanvas, ahCtx, ahRunning = false, ahAnimId;
+let ahPlayerScore = 0, ahAiScore = 0;
+let ahPuck = { x: 140, y: 200, vx: 3, vy: 4, r: 12 };
+let ahPlayer = { x: 140, y: 340, r: 22 }; // Player 1 (Bottom)
+let ahAi = { x: 140, y: 60, r: 22 };     // Player 2 / AI (Top)
+let ahGameMode = 'ai';                    // 'ai' or 'pvp'
+let ahP2Keys = { up: false, down: false, left: false, right: false };
+
+function setAhMode(mode) {
+    if (typeof audio !== 'undefined') audio.playSFX('move');
+    ahGameMode = mode;
+    const btnAi = document.getElementById('ah-mode-ai');
+    const btnPvp = document.getElementById('ah-mode-pvp');
+    if (btnAi) btnAi.classList.toggle('active', mode === 'ai');
+    if (btnPvp) btnPvp.classList.toggle('active', mode === 'pvp');
+    
+    // Update labels if needed
+    const p2Label = document.getElementById('ah-p2-label');
+    if (p2Label) p2Label.textContent = mode === 'pvp' ? 'PLAYER 2' : 'AI OPPONENT';
+    
+    startAirHockeyGame();
+}
+
+function initAirHockeyCanvas() {
+    ahCanvas = document.getElementById('ah-canvas');
+    if (!ahCanvas) return;
+    ahCtx = ahCanvas.getContext('2d');
+
+    const handleMove = (clientX, clientY) => {
+        if (!ahRunning || isGamePaused) return;
+        const rect = ahCanvas.getBoundingClientRect();
+        const cx = (clientX - rect.left) * (ahCanvas.width / rect.width);
+        const cy = (clientY - rect.top) * (ahCanvas.height / rect.height);
+        
+        // Mouse / Single touch always controls Player 1 (Bottom half)
+        ahPlayer.x = Math.max(ahPlayer.r, Math.min(280 - ahPlayer.r, cx));
+        ahPlayer.y = Math.max(200 + ahPlayer.r, Math.min(400 - ahPlayer.r, cy));
+    };
+
+    const handleTouchMove = (e) => {
+        if (!ahRunning || isGamePaused) return;
+        const rect = ahCanvas.getBoundingClientRect();
+        
+        // Multi-touch support for local PvP on mobile/tablets
+        for (let i = 0; i < e.touches.length; i++) {
+            const touch = e.touches[i];
+            const cx = (touch.clientX - rect.left) * (ahCanvas.width / rect.width);
+            const cy = (touch.clientY - rect.top) * (ahCanvas.height / rect.height);
+
+            if (cy < 200 && ahGameMode === 'pvp') {
+                // Top half controls Player 2
+                ahAi.x = Math.max(ahAi.r, Math.min(280 - ahAi.r, cx));
+                ahAi.y = Math.max(ahAi.r, Math.min(200 - ahAi.r, cy));
+            } else if (cy >= 200) {
+                // Bottom half controls Player 1
+                ahPlayer.x = Math.max(ahPlayer.r, Math.min(280 - ahPlayer.r, cx));
+                ahPlayer.y = Math.max(200 + ahPlayer.r, Math.min(400 - ahPlayer.r, cy));
+            }
+        }
+        e.preventDefault();
+    };
+
+    ahCanvas.onmousemove = e => handleMove(e.clientX, e.clientY);
+    ahCanvas.ontouchmove = handleTouchMove;
+    ahCanvas.ontouchstart = handleTouchMove;
+}
+
+window.addEventListener('keydown', e => {
+    if (!document.getElementById('airhockey-container')?.classList.contains('active') || isGamePaused) return;
+    if (ahGameMode === 'pvp') {
+        if (e.code === 'ArrowUp') { ahP2Keys.up = true; e.preventDefault(); }
+        if (e.code === 'ArrowDown') { ahP2Keys.down = true; e.preventDefault(); }
+        if (e.code === 'ArrowLeft') { ahP2Keys.left = true; e.preventDefault(); }
+        if (e.code === 'ArrowRight') { ahP2Keys.right = true; e.preventDefault(); }
+    }
+});
+
+window.addEventListener('keyup', e => {
+    if (ahGameMode === 'pvp') {
+        if (e.code === 'ArrowUp') ahP2Keys.up = false;
+        if (e.code === 'ArrowDown') ahP2Keys.down = false;
+        if (e.code === 'ArrowLeft') ahP2Keys.left = false;
+        if (e.code === 'ArrowRight') ahP2Keys.right = false;
+    }
+});
+
+function startAirHockeyGame() {
+    audio.playSFX('click');
+    const gameOverOverlay = document.getElementById('ah-gameover-overlay');
+    if (gameOverOverlay) gameOverOverlay.style.display = 'none';
+    
+    initAirHockeyCanvas();
+    if (!ahCtx) return;
+    cancelAnimationFrame(ahAnimId);
+
+    ahPlayerScore = 0;
+    ahAiScore = 0;
+    ahRunning = true;
+    
+    const p1ScoreEl = document.getElementById('ah-player-score');
+    const p2ScoreEl = document.getElementById('ah-ai-score');
+    if (p1ScoreEl) p1ScoreEl.textContent = 0;
+    if (p2ScoreEl) p2ScoreEl.textContent = 0;
+    
+    resetAhPuck(1);
+    ahLoop();
+}
+
+function resetAhPuck(dirY) {
+    ahPuck = { x: 140, y: 200, vx: (Math.random() - 0.5) * 5, vy: 4.2 * dirY, r: 12 };
+}
+
+function resolveMalletCollision(mallet) {
+    const dx = ahPuck.x - mallet.x;
+    const dy = ahPuck.y - mallet.y;
+    const dist = Math.hypot(dx, dy);
+    const minDist = ahPuck.r + mallet.r;
+    if (dist < minDist && dist > 0) {
+        audio.playSFX('click');
+        const nx = dx / dist;
+        const ny = dy / dist;
+        ahPuck.x = mallet.x + nx * (minDist + 1);
+        ahPuck.y = mallet.y + ny * (minDist + 1);
+        const speed = Math.min(10.5, Math.hypot(ahPuck.vx, ahPuck.vy) + 0.8);
+        ahPuck.vx = nx * speed;
+        ahPuck.vy = ny * speed;
+    }
+}
+
+function ahLoop() {
+    if (!ahRunning) return;
+    if (isGamePaused) {
+        ahAnimId = requestAnimationFrame(ahLoop);
+        return;
+    }
+
+    // Update Player 2 (AI or Keyboard/Touch controls)
+    if (ahGameMode === 'pvp') {
+        const p2Speed = 5.5;
+        if (ahP2Keys.up) ahAi.y = Math.max(ahAi.r, ahAi.y - p2Speed);
+        if (ahP2Keys.down) ahAi.y = Math.min(200 - ahAi.r, ahAi.y + p2Speed);
+        if (ahP2Keys.left) ahAi.x = Math.max(ahAi.r, ahAi.x - p2Speed);
+        if (ahP2Keys.right) ahAi.x = Math.min(280 - ahAi.r, ahAi.x + p2Speed);
+    } else {
+        // AI Logic
+        const targetX = ahPuck.y < 210 ? ahPuck.x : 140;
+        const targetY = ahPuck.y < 180 ? Math.max(35, ahPuck.y - 10) : 60;
+        ahAi.x += Math.sign(targetX - ahAi.x) * Math.min(4.2, Math.abs(targetX - ahAi.x));
+        ahAi.y += Math.sign(targetY - ahAi.y) * Math.min(3.5, Math.abs(targetY - ahAi.y));
+    }
+
+    // Puck physics
+    ahPuck.x += ahPuck.vx;
+    ahPuck.y += ahPuck.vy;
+    ahPuck.vx *= 0.996;
+    ahPuck.vy *= 0.996;
+
+    if (ahPuck.x - ahPuck.r < 0) { ahPuck.x = ahPuck.r; ahPuck.vx *= -1; audio.playSFX('move'); }
+    if (ahPuck.x + ahPuck.r > 280) { ahPuck.x = 280 - ahPuck.r; ahPuck.vx *= -1; audio.playSFX('move'); }
+
+    const inGoalX = ahPuck.x > 90 && ahPuck.x < 190;
+    if (ahPuck.y - ahPuck.r < 0) {
+        if (inGoalX) {
+            ahPlayerScore++;
+            const p1ScoreEl = document.getElementById('ah-player-score');
+            if (p1ScoreEl) p1ScoreEl.textContent = ahPlayerScore;
+            audio.playSFX('score');
+            if (ahPlayerScore >= 7) return endAirHockey(true, 'P1');
+            resetAhPuck(-1);
+        } else {
+            ahPuck.y = ahPuck.r;
+            ahPuck.vy *= -1;
+        }
+    }
+    if (ahPuck.y + ahPuck.r > 400) {
+        if (inGoalX) {
+            ahAiScore++;
+            const p2ScoreEl = document.getElementById('ah-ai-score');
+            if (p2ScoreEl) p2ScoreEl.textContent = ahAiScore;
+            audio.playSFX('gameover');
+            if (ahAiScore >= 7) return endAirHockey(false, ahGameMode === 'pvp' ? 'P2' : 'AI');
+            resetAhPuck(1);
+        } else {
+            ahPuck.y = 400 - ahPuck.r;
+            ahPuck.vy *= -1;
+        }
+    }
+
+    resolveMalletCollision(ahPlayer);
+    resolveMalletCollision(ahAi);
+
+    // Render Rink
+    ahCtx.fillStyle = '#090d16';
+    ahCtx.fillRect(0, 0, 280, 400);
+
+    ahCtx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+    ahCtx.lineWidth = 2;
+    ahCtx.beginPath(); ahCtx.moveTo(0, 200); ahCtx.lineTo(280, 200); ahCtx.stroke();
+    ahCtx.beginPath(); ahCtx.arc(140, 200, 42, 0, Math.PI * 2); ahCtx.stroke();
+
+    ahCtx.fillStyle = '#ef4444'; ahCtx.fillRect(90, 0, 100, 5);
+    ahCtx.fillStyle = '#38bdf8'; ahCtx.fillRect(90, 395, 100, 5);
+
+    // Render Mallets & Puck
+    ahCtx.fillStyle = '#ef4444';
+    ahCtx.beginPath(); ahCtx.arc(ahAi.x, ahAi.y, ahAi.r, 0, Math.PI * 2); ahCtx.fill();
+    ahCtx.strokeStyle = '#fff'; ahCtx.lineWidth = 2; ahCtx.stroke();
+
+    ahCtx.fillStyle = '#38bdf8';
+    ahCtx.beginPath(); ahCtx.arc(ahPlayer.x, ahPlayer.y, ahPlayer.r, 0, Math.PI * 2); ahCtx.fill();
+    ahCtx.strokeStyle = '#fff'; ahCtx.lineWidth = 2; ahCtx.stroke();
+
+    ahCtx.shadowColor = '#facc15';
+    ahCtx.shadowBlur = 12;
+    ahCtx.fillStyle = '#facc15';
+    ahCtx.beginPath(); ahCtx.arc(ahPuck.x, ahPuck.y, ahPuck.r, 0, Math.PI * 2); ahCtx.fill();
+    ahCtx.shadowBlur = 0;
+
+    ahAnimId = requestAnimationFrame(ahLoop);
+}
+
+function endAirHockey(playerWon, winnerName) {
+    ahRunning = false;
+    const titleEl = document.getElementById('ah-final-title');
+    const msgEl = document.getElementById('ah-final-msg');
+    const overlay = document.getElementById('ah-gameover-overlay');
+
+    if (titleEl) {
+        if (ahGameMode === 'pvp') {
+            titleEl.textContent = `${winnerName === 'P1' ? 'PLAYER 1' : 'PLAYER 2'} WINS MATCH! 🏆`;
+        } else {
+            titleEl.textContent = playerWon ? "CHAMPIONSHIP WIN! 🏆" : "AI WINS MATCH! 🤖";
+        }
+    }
+    if (msgEl) msgEl.textContent = `Final Score: ${ahPlayerScore} - ${ahAiScore}`;
+    if (overlay) overlay.style.display = 'flex';
+    
+    if (playerWon || ahGameMode === 'pvp') {
+        audio.playSFX('win');
+        ScoreManager.saveScore('airhockey', ahPlayerScore * 25);
+        if (typeof submitScore === 'function') submitScore('Air Hockey', 'Player', ahPlayerScore * 25);
+    }
+}
