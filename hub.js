@@ -1517,7 +1517,7 @@ function renderChessBoard() {
 
 
 // ===================================================
-// PINOY DAMA ENGINE (CAPTURES + HARD AI)
+// PINOY DAMA ENGINE (CAPTURES + HARD AI + WIN MODAL)
 // ===================================================
 let damaCanvas, damaCtx, damaGame = null, damaMode = 'ai', damaDiff = 'hard';
 let damaCaptured = { w: 0, b: 0 };
@@ -1540,6 +1540,9 @@ function setDamaDifficulty(diff) {
 
 function startDamaGame() {
     if (typeof audio !== 'undefined') audio.playSFX('click');
+    const overlay = document.getElementById('dama-gameover-overlay');
+    if (overlay) overlay.style.display = 'none';
+
     damaCanvas = document.getElementById('dama-canvas');
     if (!damaCanvas) return;
     damaCtx = damaCanvas.getContext('2d');
@@ -1557,9 +1560,10 @@ function startDamaGame() {
     }
 
     damaCaptured = { w: 0, b: 0 };
-    damaGame = { board, turn: 'w', selected: null };
+    damaGame = { board, turn: 'w', selected: null, over: false };
 
     damaCanvas.onclick = (e) => {
+        if (damaGame && damaGame.over) return;
         const rect = damaCanvas.getBoundingClientRect();
         const x = Math.floor(((e.clientX - rect.left) / rect.width) * 8);
         const y = Math.floor(((e.clientY - rect.top) / rect.height) * 8);
@@ -1570,6 +1574,7 @@ function startDamaGame() {
 }
 
 function handleDamaClick(x, y) {
+    if (damaGame.over) return;
     if (damaMode === 'ai' && damaGame.turn === 'b') return;
 
     if (!damaGame.selected) {
@@ -1621,15 +1626,18 @@ function handleDamaClick(x, y) {
 
 function finalizeDamaTurn() {
     damaGame.selected = null;
+    if (checkDamaWinner()) return;
+
     damaGame.turn = damaGame.turn === 'w' ? 'b' : 'w';
     renderDamaBoard();
 
-    if (damaMode === 'ai' && damaGame.turn === 'b') {
+    if (damaMode === 'ai' && damaGame.turn === 'b' && !damaGame.over) {
         setTimeout(damaAiMove, 600);
     }
 }
 
 function damaAiMove() {
+    if (damaGame.over) return;
     let blackPieces = [];
     let possibleJumps = [];
     let possibleSteps = [];
@@ -1686,8 +1694,49 @@ function damaAiMove() {
         if (typeof audio !== 'undefined') audio.playSFX('move');
     }
 
-    damaGame.turn = 'w';
-    renderDamaBoard();
+    if (!checkDamaWinner()) {
+        damaGame.turn = 'w';
+        renderDamaBoard();
+    }
+}
+
+function checkDamaWinner() {
+    let whiteCount = 0;
+    let blackCount = 0;
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            if (damaGame.board[r][c] === 'w') whiteCount++;
+            if (damaGame.board[r][c] === 'b') blackCount++;
+        }
+    }
+
+    if (blackCount === 0) {
+        showDamaGameOver("WHITE WINS! 🏆", "All opponent pieces captured!");
+        return true;
+    } else if (whiteCount === 0) {
+        let winnerName = damaMode === 'ai' ? "AI" : "BLACK";
+        showDamaGameOver(`${winnerName} WINS! 🤖`, "All white pieces captured!");
+        return true;
+    }
+    return false;
+}
+
+function showDamaGameOver(title, msg) {
+    damaGame.over = true;
+    const titleEl = document.getElementById('dama-final-title');
+    const msgEl = document.getElementById('dama-final-msg');
+    const overlay = document.getElementById('dama-gameover-overlay');
+
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = msg;
+    if (overlay) overlay.style.display = 'flex';
+
+    if (typeof audio !== 'undefined') audio.playSFX('win');
+
+    if (title.includes("WHITE")) {
+        ScoreManager.saveScore('dama', 500);
+        if (typeof submitScore === 'function') submitScore('Pinoy Dama', 'Player', 500);
+    }
 }
 
 function renderDamaBoard() {
