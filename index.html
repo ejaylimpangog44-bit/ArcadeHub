@@ -425,14 +425,24 @@
             <button class="opt-btn" onclick="openPauseModal()">⏸</button>
         </div>
         
-        <!-- Mode Selector -->
-        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-            <button id="dama-mode-ai" class="opt-btn active" onclick="setDamaMode('ai')">🤖 VS AI</button>
-            <button id="dama-mode-pvp" class="opt-btn" onclick="setDamaMode('pvp')">👥 2P LOCAL</button>
+        <!-- Mode & Difficulty Selectors -->
+        <div style="display: flex; gap: 6px; margin-bottom: 8px; width: 100%; max-width: 360px;">
+            <button id="dama-mode-ai" class="opt-btn active" style="flex:1;" onclick="setDamaMode('ai')">🤖 VS AI</button>
+            <button id="dama-mode-pvp" class="opt-btn" style="flex:1;" onclick="setDamaMode('pvp')">👥 2P LOCAL</button>
+        </div>
+        <div id="dama-diff-box" style="display: flex; gap: 6px; margin-bottom: 10px; width: 100%; max-width: 360px;">
+            <button id="dama-diff-easy" class="opt-btn" style="flex:1; font-size:11px;" onclick="setDamaDifficulty('easy')">Easy AI</button>
+            <button id="dama-diff-hard" class="opt-btn active" style="flex:1; font-size:11px;" onclick="setDamaDifficulty('hard')">Hard AI 🔥</button>
         </div>
 
         <div style="background: rgba(17,24,39,0.9); padding: 10px; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
-            <div id="dama-turn-indicator" style="font-size: 12px; font-weight: 700; color: #facc15; margin-bottom: 8px;">White's Turn</div>
+            <!-- Captured Score Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(15,23,42,0.8); padding: 6px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 11px; font-weight: 700;">
+                <span style="color: #f8fafc;">White: <span id="dama-white-captured">0</span> ⚪</span>
+                <span id="dama-turn-indicator" style="color: #facc15;">White's Turn</span>
+                <span style="color: #ef4444;">🔴 <span id="dama-black-captured">0</span> :AI</span>
+            </div>
+
             <canvas id="dama-canvas" width="320" height="320" style="border-radius: 6px; cursor: pointer; display: block; margin: 0 auto;"></canvas>
             <div style="margin-top: 10px;">
                 <button class="opt-btn" style="width: 100%;" onclick="startDamaGame()">🔄 Restart Game</button>
