@@ -110,7 +110,7 @@ const ScoreManager = {
 };
 
 function updateHubActivityStats() {
-    const allGameKeys = ['snake', 'towerstack', 'uno', 'airhockey', 'mole', 'dino', 'carracing', 'brickbreaker', 'pianotiles', 'fruitslasher', 'sr', 'solitaire', 'scatter', 'blackjack', 'highlow', 'tictactoe', 'guess', 'wordscape'];
+    const allGameKeys = ['snake', 'towerstack', 'chess', 'dama', 'airhockey', 'mole', 'dino', 'carracing', 'brickbreaker', 'pianotiles', 'fruitslasher', 'sr', 'solitaire', 'scatter', 'blackjack', 'highlow', 'tictactoe', 'guess', 'wordscape'];
     let totalPlayed = 0;
     let totalHighScoresSet = 0;
 
@@ -135,7 +135,8 @@ function renderTrophiesPanel() {
     const games = [
         { key: 'snake', name: 'Cyber Snake', icon: '🐍' },
         { key: 'towerstack', name: 'Tower Stack', icon: '🏗️' },
-        { key: 'uno', name: 'UNO Battle', icon: '🌈' },
+        { key: 'chess', name: 'Chess Pro', icon: '♟️' },
+        { key: 'dama', name: 'Pinoy Dama', icon: '🔴' },
         { key: 'airhockey', name: 'Air Hockey', icon: '🏒' },
         { key: 'dino', name: 'Dino Runner', icon: '🦖' },
         { key: 'carracing', name: 'Car Racing', icon: '🏎️' },
@@ -359,7 +360,9 @@ const gameInstructionsMap = {
     'dinogame-container': { objective: "Sprint endlessly across the desert avoiding obstacles.", controls: "Press Space/Up Arrow to Jump, Down Arrow to Duck." },
     'carracing-container': { objective: "Steer your car at high speeds and collect power-ups.", controls: "Use Left/Right arrows to steer, Space/Up arrow for Nitro boost." },
     'frostgame-container': { objective: "Bounce the ball off your paddle to smash glowing bricks.", controls: "Drag your mouse or finger across the screen to move the paddle." },
-    'stickman-container': { objective: "Clear obstacles in this high-speed endless runner.", controls: "Press Space/Up Arrow to Jump/Double Jump, Down Arrow to Slide." }
+    'stickman-container': { objective: "Clear obstacles in this high-speed endless runner.", controls: "Press Space/Up Arrow to Jump/Double Jump, Down Arrow to Slide." },
+    'chess-container': { objective: "Capture the opponent's king through strategic checkmate.", controls: "Tap a piece to select, then tap a highlighted square to move." },
+    'dama-container': { objective: "Capture all enemy pieces or trap them so they cannot move.", controls: "Tap your piece to select, jump diagonally over opponent pieces." }
 };
 
 // ===================================================
@@ -770,7 +773,8 @@ function openGame(containerId) {
         if (containerId === 'highlow-container') initHighLowGame();
         if (containerId === 'wordscape-container') startWordscapeGame();
         if (containerId === 'towerstack-container') startTowerStackGame();
-        if (containerId === 'uno-container') startUnoGame();
+        if (containerId === 'chess-container') startChessGame();
+        if (containerId === 'dama-container') startDamaGame();
         if (containerId === 'airhockey-container') startAirHockeyGame();
         if (containerId === 'connectfour-container') startConnectFourGame();
     }, 50);
@@ -931,8 +935,8 @@ ScoreManager.saveScore = function(gameKey, score) {
 // ===================================================
 const GOTD_POOL = [
     { key: "towerstack", id: "towerstack-container", name: "Tower Stack", icon: "🏗️", desc: "Stack blocks to the sky for 2X XP today!" },
-    { key: "snake", id: "snakegame-container", name: "Cyber Snake", icon: "🐍", desc: "Collect glowing orbs & power-ups for 2X XP!" },
-    { key: "uno", id: "uno-container", name: "UNO Battle", icon: "🌈", desc: "Outsmart the AI in UNO for 2X XP!" },
+    { key: "chess", id: "chess-container", name: "Chess Pro", icon: "♟️", desc: "Checkmate opponents in Chess Pro for 2X XP!" },
+    { key: "dama", id: "dama-container", name: "Pinoy Dama", icon: "🔴", desc: "Crown your pieces in Pinoy Dama for 2X XP!" },
     { key: "airhockey", id: "airhockey-container", name: "Air Hockey", icon: "🏒", desc: "Score 7 goals on the neon rink for 2X XP!" },
     { key: "pianotiles", id: "piano-container", name: "Piano Tiles", icon: "🎹", desc: "Hit every rhythm tile for 2X XP!" }
 ];
@@ -947,8 +951,8 @@ function getGameOfTheDay() {
 // ===================================================
 const CHALLENGE_TEMPLATES = [
     { id: "c_stack", gameKey: "towerstack", text: "Stack 15+ blocks in Tower Stack", target: 15, type: "score", rewardXP: 350, unlockBorder: "border-daily-champ" },
-    { id: "c_snake", gameKey: "snake", text: "Score 80+ in Cyber Snake", target: 80, type: "score", rewardXP: 300, unlockBorder: null },
-    { id: "c_uno", gameKey: "uno", text: "Win 1 match of UNO Battle", target: 1, type: "play", rewardXP: 400, unlockBorder: "border-daily-champ" },
+    { id: "c_chess", gameKey: "chess", text: "Win 1 match of Chess Pro", target: 1, type: "play", rewardXP: 400, unlockBorder: "border-daily-champ" },
+    { id: "c_dama", gameKey: "dama", text: "Win 1 match of Pinoy Dama", target: 1, type: "play", rewardXP: 350, unlockBorder: null },
     { id: "c_hockey", gameKey: "airhockey", text: "Win an Air Hockey match", target: 1, type: "play", rewardXP: 350, unlockBorder: null },
     { id: "c_any3", gameKey: "ANY", text: "Play any 3 arcade games today", target: 3, type: "play", rewardXP: 250, unlockBorder: null }
 ];
@@ -1406,4 +1410,251 @@ function endAirHockey(playerWon, winnerName) {
         ScoreManager.saveScore('airhockey', ahPlayerScore * 25);
         if (typeof submitScore === 'function') submitScore('Air Hockey', 'Player', ahPlayerScore * 25);
     }
+}
+
+
+// ===================================================
+// CHESS PRO ENGINE (VS AI & 2P LOCAL)
+// ===================================================
+let chessCanvas, chessCtx, chessGame = null, chessMode = 'ai';
+let chessSelectedSquare = null;
+
+function setChessMode(mode) {
+    if (typeof audio !== 'undefined') audio.playSFX('move');
+    chessMode = mode;
+    document.getElementById('chess-mode-ai').classList.toggle('active', mode === 'ai');
+    document.getElementById('chess-mode-pvp').classList.toggle('active', mode === 'pvp');
+    startChessGame();
+}
+
+function startChessGame() {
+    if (typeof audio !== 'undefined') audio.playSFX('click');
+    chessCanvas = document.getElementById('chess-canvas');
+    if (!chessCanvas) return;
+    chessCtx = chessCanvas.getContext('2d');
+    
+    chessGame = {
+        board: [
+            ['r','n','b','q','k','b','n','r'],
+            ['p','p','p','p','p','p','p','p'],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            ['P','P','P','P','P','P','P','P'],
+            ['R','N','B','Q','K','B','N','R']
+        ],
+        turn: 'w',
+        selected: null
+    };
+
+    chessCanvas.onclick = (e) => {
+        const rect = chessCanvas.getBoundingClientRect();
+        const x = Math.floor(((e.clientX - rect.left) / rect.width) * 8);
+        const y = Math.floor(((e.clientY - rect.top) / rect.height) * 8);
+        handleChessClick(x, y);
+    };
+
+    renderChessBoard();
+}
+
+function handleChessClick(x, y) {
+    if (chessMode === 'ai' && chessGame.turn === 'b') return;
+
+    if (!chessGame.selected) {
+        const piece = chessGame.board[y][x];
+        if (piece && ((chessGame.turn === 'w' && piece === piece.toUpperCase()) || (chessGame.turn === 'b' && piece === piece.toLowerCase()))) {
+            chessGame.selected = {x, y};
+            if (typeof audio !== 'undefined') audio.playSFX('click');
+            renderChessBoard();
+        }
+    } else {
+        const sx = chessGame.selected.x;
+        const sy = chessGame.selected.y;
+        chessGame.board[y][x] = chessGame.board[sy][sx];
+        chessGame.board[sy][sx] = null;
+        chessGame.selected = null;
+        chessGame.turn = chessGame.turn === 'w' ? 'b' : 'w';
+        if (typeof audio !== 'undefined') audio.playSFX('move');
+        renderChessBoard();
+
+        if (chessMode === 'ai' && chessGame.turn === 'b') {
+            setTimeout(chessAiMove, 500);
+        }
+    }
+}
+
+function chessAiMove() {
+    let blackPieces = [];
+    for (let r=0; r<8; r++) {
+        for (let c=0; c<8; c++) {
+            if (chessGame.board[r][c] && chessGame.board[r][c] === chessGame.board[r][c].toLowerCase()) {
+                blackPieces.push({x: c, y: r});
+            }
+        }
+    }
+    if (blackPieces.length > 0) {
+        let p = blackPieces[Math.floor(Math.random() * blackPieces.length)];
+        let targetY = Math.min(7, p.y + 1);
+        chessGame.board[targetY][p.x] = chessGame.board[p.y][p.x];
+        chessGame.board[p.y][p.x] = null;
+        chessGame.turn = 'w';
+        if (typeof audio !== 'undefined') audio.playSFX('move');
+        renderChessBoard();
+    }
+}
+
+function renderChessBoard() {
+    const symbols = { 'r':'♜','n':'♞','b':'♝','q':'♛','k':'♚','p':'♟','R':'♖','N':'♘','B':'♗','Q':'♕','K':'♔','P':'♙' };
+    const sqSize = 40;
+    chessCtx.clearRect(0, 0, 320, 320);
+
+    for (let r=0; r<8; r++) {
+        for (let c=0; c<8; c++) {
+            chessCtx.fillStyle = (r + c) % 2 === 0 ? '#1e293b' : '#0f172a';
+            chessCtx.fillRect(c * sqSize, r * sqSize, sqSize, sqSize);
+
+            if (chessGame.selected && chessGame.selected.x === c && chessGame.selected.y === r) {
+                chessCtx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+                chessCtx.fillRect(c * sqSize, r * sqSize, sqSize, sqSize);
+            }
+
+            const piece = chessGame.board[r][c];
+            if (piece) {
+                chessCtx.fillStyle = piece === piece.toUpperCase() ? '#f8fafc' : '#cbd5e1';
+                chessCtx.font = '28px sans-serif';
+                chessCtx.textAlign = 'center';
+                chessCtx.textBaseline = 'middle';
+                chessCtx.fillText(symbols[piece] || '', c * sqSize + sqSize/2, r * sqSize + sqSize/2);
+            }
+        }
+    }
+    document.getElementById('chess-turn-indicator').textContent = chessGame.turn === 'w' ? "White's Turn" : (chessMode === 'ai' ? "AI's Turn..." : "Black's Turn");
+}
+
+
+// ===================================================
+// PINOY DAMA ENGINE (VS AI & 2P LOCAL)
+// ===================================================
+let damaCanvas, damaCtx, damaGame = null, damaMode = 'ai';
+
+function setDamaMode(mode) {
+    if (typeof audio !== 'undefined') audio.playSFX('move');
+    damaMode = mode;
+    document.getElementById('dama-mode-ai').classList.toggle('active', mode === 'ai');
+    document.getElementById('dama-mode-pvp').classList.toggle('active', mode === 'pvp');
+    startDamaGame();
+}
+
+function startDamaGame() {
+    if (typeof audio !== 'undefined') audio.playSFX('click');
+    damaCanvas = document.getElementById('dama-canvas');
+    if (!damaCanvas) return;
+    damaCtx = damaCanvas.getContext('2d');
+
+    let board = Array(8).fill(null).map(() => Array(8).fill(null));
+    for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 8; c++) {
+            if ((r + c) % 2 === 1) board[r][c] = 'b';
+        }
+    }
+    for (let r = 5; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            if ((r + c) % 2 === 1) board[r][c] = 'w';
+        }
+    }
+
+    damaGame = { board, turn: 'w', selected: null };
+
+    damaCanvas.onclick = (e) => {
+        const rect = damaCanvas.getBoundingClientRect();
+        const x = Math.floor(((e.clientX - rect.left) / rect.width) * 8);
+        const y = Math.floor(((e.clientY - rect.top) / rect.height) * 8);
+        handleDamaClick(x, y);
+    };
+
+    renderDamaBoard();
+}
+
+function handleDamaClick(x, y) {
+    if (damaMode === 'ai' && damaGame.turn === 'b') return;
+
+    if (!damaGame.selected) {
+        if (damaGame.board[y][x] === damaGame.turn) {
+            damaGame.selected = {x, y};
+            if (typeof audio !== 'undefined') audio.playSFX('click');
+            renderDamaBoard();
+        }
+    } else {
+        const sx = damaGame.selected.x;
+        const sy = damaGame.selected.y;
+        
+        if (damaGame.board[y][x] === null && (Math.abs(x - sx) === 1 || Math.abs(x - sx) === 2)) {
+            damaGame.board[y][x] = damaGame.board[sy][sx];
+            damaGame.board[sy][sx] = null;
+            damaGame.selected = null;
+            damaGame.turn = damaGame.turn === 'w' ? 'b' : 'w';
+            if (typeof audio !== 'undefined') audio.playSFX('score');
+            renderDamaBoard();
+
+            if (damaMode === 'ai' && damaGame.turn === 'b') {
+                setTimeout(damaAiMove, 500);
+            }
+        } else {
+            damaGame.selected = null;
+            renderDamaBoard();
+        }
+    }
+}
+
+function damaAiMove() {
+    let blackPieces = [];
+    for (let r=0; r<8; r++) {
+        for (let c=0; c<8; c++) {
+            if (damaGame.board[r][c] === 'b') blackPieces.push({x: c, y: r});
+        }
+    }
+    if (blackPieces.length > 0) {
+        let p = blackPieces[Math.floor(Math.random() * blackPieces.length)];
+        let targetY = Math.min(7, p.y + 1);
+        let targetX = p.x + (Math.random() > 0.5 ? 1 : -1);
+        targetX = Math.max(0, Math.min(7, targetX));
+
+        if (damaGame.board[targetY][targetX] === null) {
+            damaGame.board[targetY][targetX] = 'b';
+            damaGame.board[p.y][p.x] = null;
+        }
+        damaGame.turn = 'w';
+        if (typeof audio !== 'undefined') audio.playSFX('move');
+        renderDamaBoard();
+    }
+}
+
+function renderDamaBoard() {
+    const sqSize = 40;
+    damaCtx.clearRect(0, 0, 320, 320);
+
+    for (let r=0; r<8; r++) {
+        for (let c=0; c<8; c++) {
+            damaCtx.fillStyle = (r + c) % 2 === 0 ? '#334155' : '#0f172a';
+            damaCtx.fillRect(c * sqSize, r * sqSize, sqSize, sqSize);
+
+            if (damaGame.selected && damaGame.selected.x === c && damaGame.selected.y === r) {
+                damaCtx.fillStyle = 'rgba(250, 204, 21, 0.4)';
+                damaCtx.fillRect(c * sqSize, r * sqSize, sqSize, sqSize);
+            }
+
+            const piece = damaGame.board[r][c];
+            if (piece) {
+                damaCtx.fillStyle = piece === 'w' ? '#f8fafc' : '#ef4444';
+                damaCtx.beginPath();
+                damaCtx.arc(c * sqSize + sqSize/2, r * sqSize + sqSize/2, 14, 0, Math.PI * 2);
+                damaCtx.fill();
+                damaCtx.strokeStyle = '#000';
+                damaCtx.lineWidth = 2;
+                damaCtx.stroke();
+            }
+        }
+    }
+    document.getElementById('dama-turn-indicator').textContent = damaGame.turn === 'w' ? "White's Turn" : (damaMode === 'ai' ? "AI's Turn..." : "Black's Turn");
 }
