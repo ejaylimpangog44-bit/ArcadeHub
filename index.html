@@ -64,45 +64,6 @@
         </div>
     </header>
 
-    <!-- GAME OF THE DAY / FEATURED HERO BANNER -->
-    <div class="gotd-hero-banner" id="gotd-hero-banner">
-        <button class="gotd-close-btn" onclick="closeGotdBanner()">✕</button>
-        <div style="flex:1; width: 100%;">
-            <div class="gotd-badges">
-                <span class="gotd-badge-2x">⚡ 2X XP TODAY</span>
-                <span class="gotd-badge-featured">🌟 FEATURED GAME</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span id="gotd-icon" style="font-size:34px;">🏗️</span>
-                <div>
-                    <h3 id="gotd-title" style="font-size:17px; font-weight:900; color:#fff;">Tower Stack</h3>
-                    <p id="gotd-desc" style="font-size:12px; color:var(--text-muted);">Stack precision blocks to the sky for double XP!</p>
-                </div>
-            </div>
-        </div>
-        <button class="gotd-play-btn" id="gotd-play-btn">PLAY 2X XP ▶</button>
-    </div>
-
-    <!-- COMPACT DAILY QUESTS CHIP -->
-    <div onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(135deg, rgba(22, 30, 48, 0.9), rgba(13, 19, 33, 0.9)); border: 1px solid rgba(250, 204, 21, 0.4); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.1); transition: transform 0.15s;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 18px;">🔥</span>
-            <span style="font-size: 12px; font-weight: 800; color: #fff;">Daily Quests & Streak</span>
-            <span style="font-size: 10px; color: var(--text-muted);" id="daily-card-subtitle">• 1 Day Streak</span>
-        </div>
-        <span style="font-size: 11px; font-weight: 800; color: #facc15; background: rgba(250,204,21,0.15); padding: 4px 10px; border-radius: 6px;">VIEW 🔥</span>
-    </div>
-
-    <!-- DAILY LUCKY SPIN BUTTON CHIP -->
-    <div onclick="openLuckySpinModal()" style="width: 100%; max-width: 600px; background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(236,72,153,0.2)); border: 1px solid var(--primary); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 15px var(--accent-glow);">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 18px;">🎡</span>
-            <span style="font-size: 12px; font-weight: 800; color: #fff;">Daily Lucky Spin</span>
-            <span style="font-size: 10px; color: var(--text-muted);">• Win Bonus XP & Coins</span>
-        </div>
-        <span style="font-size: 11px; font-weight: 800; color: #facc15; background: rgba(250,204,21,0.15); padding: 4px 10px; border-radius: 6px;">SPIN 🎡</span>
-    </div>
-
     <!-- SEARCH BAR & CATEGORY FILTER PILL BAR -->
     <div style="width: 100%; max-width: 600px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;">
         <div style="position: relative; width: 100%;">
@@ -806,6 +767,56 @@
                     <p id="ah-final-msg" style="color:var(--text-muted); font-size:0.85rem; margin-bottom:14px;">7 - 4</p>
                     <button class="action-btn" onclick="startAirHockeyGame()">REMATCH</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DAILY HUB WELCOME & REWARDS POPUP MODAL (Pops up automatically upon entering main hub) -->
+    <div class="modal-overlay" id="welcome-daily-modal" style="z-index: 10650;">
+        <div class="settings-modal-box landscape-modal-box" style="max-width: 480px; text-align: left;">
+            <div class="settings-header">
+                <h3>🌟 Daily Arcade Hub & Rewards</h3>
+                <button class="settings-close-x" onclick="closeWelcomeDailyModal()">✕</button>
+            </div>
+            <div class="settings-body" style="padding: 16px; display: flex; flex-direction: column; gap: 14px; max-height: 75vh; overflow-y: auto;">
+                
+                <!-- 1. Game of the Day Card -->
+                <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.28), rgba(236, 72, 153, 0.25)); border: 1.5px solid var(--primary); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <span class="gotd-badge-2x">⚡ 2X XP TODAY</span>
+                        <span class="gotd-badge-featured">🌟 FEATURED GAME</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="modal-gotd-icon" style="font-size: 32px;">🏗️</span>
+                        <div style="flex: 1;">
+                            <h4 id="modal-gotd-title" style="font-size: 15px; font-weight: 900; color: #fff;">Tower Stack</h4>
+                            <p id="modal-gotd-desc" style="font-size: 11px; color: var(--text-muted);">Stack precision blocks to the sky for double XP!</p>
+                        </div>
+                    </div>
+                    <button class="gotd-play-btn" id="modal-gotd-play-btn" style="width: 100%; text-align: center;">PLAY 2X XP ▶</button>
+                </div>
+
+                <!-- 2. Daily Quests Section -->
+                <div style="background: rgba(17,24,39,0.8); border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12px; font-weight: 800; color: #fff;">🔥 Daily Quests & Streak</span>
+                        <span class="streak-pill" id="modal-hub-streak-pill" style="font-size: 10px; background: rgba(250,204,21,0.15); color: #facc15; padding: 2px 8px; border-radius: 999px;">🔥 1 Day Streak</span>
+                    </div>
+                    <div id="modal-daily-challenges-list" style="display: flex; flex-direction: column; gap: 6px;">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- 3. Daily Lucky Spin Section -->
+                <div style="background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(236,72,153,0.15)); border: 1.5px solid var(--primary); border-radius: 12px; padding: 12px; text-align: center;">
+                    <div style="font-size: 28px; margin-bottom: 4px;" id="modal-wheel-display">🎡</div>
+                    <p id="modal-wheel-status" style="font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 8px;">Spin for bonus XP & coins today!</p>
+                    <button class="start-game-btn" id="modal-spin-wheel-btn" onclick="executeModalLuckySpin()" style="width: 100%; padding: 10px; font-size: 0.9rem;">SPIN LUCKY WHEEL ▶</button>
+                </div>
+
+            </div>
+            <div class="settings-footer">
+                <button class="settings-save-btn" onclick="closeWelcomeDailyModal()">Got it, Let's Play! 🚀</button>
             </div>
         </div>
     </div>
