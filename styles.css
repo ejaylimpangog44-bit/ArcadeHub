@@ -460,19 +460,24 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 90%;
+  width: 94%;
   max-width: 360px;
-  margin: 12px auto 20px auto;
+  background: rgba(17, 24, 39, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 10px 8px;
+  margin: 8px auto 14px auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
 
 .carousel-nav-btn {
-  background: rgba(139, 92, 246, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(139, 92, 246, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   color: #fff;
-  width: 32px;
-  height: 58px;
-  border-radius: 12px;
-  font-size: 1.3rem;
+  width: 28px;
+  height: 48px;
+  border-radius: 8px;
+  font-size: 1.1rem;
   font-weight: 800;
   cursor: pointer;
   display: flex;
@@ -492,12 +497,12 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 .piano-album-carousel {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   overflow-x: auto;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  padding: 4px 2px;
+  padding: 2px;
   flex: 1;
 }
 
@@ -507,15 +512,15 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 
 .album-card {
   scroll-snap-align: center;
-  min-width: 124px;
-  background: rgba(17, 24, 39, 0.9);
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  padding: 8px 10px;
+  min-width: 115px;
+  background: rgba(11, 15, 25, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 6px 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   transition: all 0.25s ease;
   text-align: left;
   flex-shrink: 0;
@@ -527,21 +532,21 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 }
 
 .album-card.active {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(56, 189, 248, 0.3));
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.45), rgba(56, 189, 248, 0.35));
   border-color: #38bdf8;
-  box-shadow: 0 0 15px rgba(56, 189, 248, 0.45);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
 }
 
 .album-cover {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .album-meta {
@@ -549,7 +554,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 }
 
 .album-title {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 800;
   color: #fff;
   white-space: nowrap;
@@ -558,7 +563,7 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 }
 
 .album-artist {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: #9ca3af;
   white-space: nowrap;
   overflow: hidden;
@@ -732,20 +737,20 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
   color: #15803d;
 }
 
-/* Start / Game Over Overlay */
 .mt3-overlay {
   position: absolute;
   inset: 0;
   z-index: 20;
-  background: rgba(9, 13, 22, 0.82);
-  backdrop-filter: blur(6px);
+  background: rgba(9, 13, 22, 0.88);
+  backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   color: #ffffff;
   text-align: center;
-  padding: 20px;
+  padding: 16px;
+  overflow-y: auto;
 }
 
 .mt3-overlay.hidden {
@@ -753,21 +758,21 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 }
 
 .mt3-overlay h1 {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 900;
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   letter-spacing: 2px;
 }
 
 .mt3-overlay p {
-  font-size: 16px;
+  font-size: 13px;
   opacity: 0.85;
-  margin: 0 0 24px;
+  margin: 0 0 10px;
 }
 
 .mt3-play-btn {
-  padding: 14px 36px;
-  font-size: 18px;
+  padding: 12px 32px;
+  font-size: 16px;
   font-weight: 800;
   color: #090d16;
   background: linear-gradient(135deg, #4ade80, #38bdf8);
@@ -775,13 +780,15 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
   border-radius: 999px;
   cursor: pointer;
   box-shadow: 0 8px 25px rgba(56, 189, 248, 0.45);
+  margin-top: 2px;
 }
 
 .mt3-controls-hint {
-  margin-top: 20px;
-  font-size: 13px;
+  margin-top: 10px;
+  font-size: 11px;
   opacity: 0.75;
 }
+
 
 #piano-mount {
   width: 100%;
