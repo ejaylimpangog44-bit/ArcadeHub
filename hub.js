@@ -87,18 +87,23 @@ function movePupil(pupil, rect, mouseX, mouseY) {
 }
 
 // ===================================================
-// SCORE MANAGER & HUB STATS
+// SCORE MANAGER & HUB STATS (NAME-SCOPED)
 // ===================================================
 const ScoreManager = {
+    getActivePlayer() {
+        return localStorage.getItem("arcadehub_player_name") || "Player";
+    },
     getStats(gameKey) {
-        const data = localStorage.getItem(`arcadehub_${gameKey}`);
+        const playerName = this.getActivePlayer();
+        const data = localStorage.getItem(`arcadehub_${playerName}_${gameKey}`);
         return data ? JSON.parse(data) : { highScore: 0, gamesPlayed: 0 };
     },
     saveScore(gameKey, score) {
+        const playerName = this.getActivePlayer();
         const stats = this.getStats(gameKey);
         stats.gamesPlayed += 1;
         if (score > stats.highScore) stats.highScore = score;
-        localStorage.setItem(`arcadehub_${gameKey}`, JSON.stringify(stats));
+        localStorage.setItem(`arcadehub_${playerName}_${gameKey}`, JSON.stringify(stats));
         updateHubActivityStats();
         return stats;
     }
