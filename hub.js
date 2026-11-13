@@ -1024,7 +1024,6 @@ const DailyChallengeManager = {
 function openWelcomeDailyModal() {
     audio.playSFX('click');
     
-    // Populate Game of the Day inside modal
     const gotd = getGameOfTheDay();
     const iconEl = document.getElementById("modal-gotd-icon");
     const titleEl = document.getElementById("modal-gotd-title");
@@ -1045,7 +1044,6 @@ function openWelcomeDailyModal() {
     DailyChallengeManager.render();
     LuckySpinManager.updateUIState();
 
-    // Open Modal automatically upon entering main UI
     document.getElementById('welcome-daily-modal').classList.add('active');
 }
 
@@ -1086,7 +1084,7 @@ function openCustomizeModal() {
 
 function openDailyQuestsModal() {
     audio.playSFX('click');
-    openWelcomeDailyModal(); // Opens the unified modal
+    openWelcomeDailyModal();
 }
 
 function closeDailyQuestsModal() {
@@ -1119,7 +1117,7 @@ saveCustomNameAndEnter = function() {
     if (success !== false) {
         ProgressionManager.updateUI();
         DailyChallengeManager.init();
-        setTimeout(openWelcomeDailyModal, 400); // Pops up right when entering main UI
+        setTimeout(openWelcomeDailyModal, 400);
     }
 };
 
@@ -1127,12 +1125,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const bgm = document.getElementById('bgm');
     if (!bgm) return;
 
-    // Set loop so it keeps playing
     bgm.loop = true;
 
     const enableAudio = () => {
         bgm.play().then(() => {
-            // Once played successfully, remove the listeners so it doesn't trigger again
             document.removeEventListener('click', enableAudio);
             document.removeEventListener('touchstart', enableAudio);
             document.removeEventListener('keydown', enableAudio);
@@ -1141,7 +1137,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // Listen for the first user interaction on the page
     document.addEventListener('click', enableAudio);
     document.addEventListener('touchstart', enableAudio);
     document.addEventListener('keydown', enableAudio);
@@ -1155,10 +1150,8 @@ document.addEventListener('visibilitychange', () => {
     if (!bgm) return;
 
     if (document.hidden) {
-        // User switched apps or minimized the browser
         bgm.pause();
     } else {
-        // User came back to the browser (resume only if not muted)
         if (typeof audio !== 'undefined' && !audio.isMuted) {
             bgm.play().catch(() => {});
         }
@@ -1171,9 +1164,9 @@ document.addEventListener('visibilitychange', () => {
 let ahCanvas, ahCtx, ahRunning = false, ahAnimId;
 let ahPlayerScore = 0, ahAiScore = 0;
 let ahPuck = { x: 140, y: 200, vx: 3, vy: 4, r: 12 };
-let ahPlayer = { x: 140, y: 340, r: 22 }; // Player 1 (Bottom)
-let ahAi = { x: 140, y: 60, r: 22 };     // Player 2 / AI (Top)
-let ahGameMode = 'ai';                    // 'ai' or 'pvp'
+let ahPlayer = { x: 140, y: 340, r: 22 };
+let ahAi = { x: 140, y: 60, r: 22 };
+let ahGameMode = 'ai';
 let ahP2Keys = { up: false, down: false, left: false, right: false };
 
 function setAhMode(mode) {
@@ -1184,7 +1177,6 @@ function setAhMode(mode) {
     if (btnAi) btnAi.classList.toggle('active', mode === 'ai');
     if (btnPvp) btnPvp.classList.toggle('active', mode === 'pvp');
     
-    // Update labels if needed
     const p2Label = document.getElementById('ah-p2-label');
     if (p2Label) p2Label.textContent = mode === 'pvp' ? 'PLAYER 2' : 'AI OPPONENT';
     
@@ -1202,7 +1194,6 @@ function initAirHockeyCanvas() {
         const cx = (clientX - rect.left) * (ahCanvas.width / rect.width);
         const cy = (clientY - rect.top) * (ahCanvas.height / rect.height);
         
-        // Mouse / Single touch always controls Player 1 (Bottom half)
         ahPlayer.x = Math.max(ahPlayer.r, Math.min(280 - ahPlayer.r, cx));
         ahPlayer.y = Math.max(200 + ahPlayer.r, Math.min(400 - ahPlayer.r, cy));
     };
@@ -1211,18 +1202,15 @@ function initAirHockeyCanvas() {
         if (!ahRunning || isGamePaused) return;
         const rect = ahCanvas.getBoundingClientRect();
         
-        // Multi-touch support for local PvP on mobile/tablets
         for (let i = 0; i < e.touches.length; i++) {
             const touch = e.touches[i];
             const cx = (touch.clientX - rect.left) * (ahCanvas.width / rect.width);
             const cy = (touch.clientY - rect.top) * (ahCanvas.height / rect.height);
 
             if (cy < 200 && ahGameMode === 'pvp') {
-                // Top half controls Player 2
                 ahAi.x = Math.max(ahAi.r, Math.min(280 - ahAi.r, cx));
                 ahAi.y = Math.max(ahAi.r, Math.min(200 - ahAi.r, cy));
             } else if (cy >= 200) {
-                // Bottom half controls Player 1
                 ahPlayer.x = Math.max(ahPlayer.r, Math.min(280 - ahPlayer.r, cx));
                 ahPlayer.y = Math.max(200 + ahPlayer.r, Math.min(400 - ahPlayer.r, cy));
             }
@@ -1304,7 +1292,6 @@ function ahLoop() {
         return;
     }
 
-    // Update Player 2 (AI or Keyboard/Touch controls)
     if (ahGameMode === 'pvp') {
         const p2Speed = 5.5;
         if (ahP2Keys.up) ahAi.y = Math.max(ahAi.r, ahAi.y - p2Speed);
@@ -1312,14 +1299,12 @@ function ahLoop() {
         if (ahP2Keys.left) ahAi.x = Math.max(ahAi.r, ahAi.x - p2Speed);
         if (ahP2Keys.right) ahAi.x = Math.min(280 - ahAi.r, ahAi.x + p2Speed);
     } else {
-        // AI Logic
         const targetX = ahPuck.y < 210 ? ahPuck.x : 140;
         const targetY = ahPuck.y < 180 ? Math.max(35, ahPuck.y - 10) : 60;
         ahAi.x += Math.sign(targetX - ahAi.x) * Math.min(4.2, Math.abs(targetX - ahAi.x));
         ahAi.y += Math.sign(targetY - ahAi.y) * Math.min(3.5, Math.abs(targetY - ahAi.y));
     }
 
-    // Puck physics
     ahPuck.x += ahPuck.vx;
     ahPuck.y += ahPuck.vy;
     ahPuck.vx *= 0.996;
@@ -1359,7 +1344,6 @@ function ahLoop() {
     resolveMalletCollision(ahPlayer);
     resolveMalletCollision(ahAi);
 
-    // Render Rink
     ahCtx.fillStyle = '#090d16';
     ahCtx.fillRect(0, 0, 280, 400);
 
@@ -1371,7 +1355,6 @@ function ahLoop() {
     ahCtx.fillStyle = '#ef4444'; ahCtx.fillRect(90, 0, 100, 5);
     ahCtx.fillStyle = '#38bdf8'; ahCtx.fillRect(90, 395, 100, 5);
 
-    // Render Mallets & Puck
     ahCtx.fillStyle = '#ef4444';
     ahCtx.beginPath(); ahCtx.arc(ahAi.x, ahAi.y, ahAi.r, 0, Math.PI * 2); ahCtx.fill();
     ahCtx.strokeStyle = '#fff'; ahCtx.lineWidth = 2; ahCtx.stroke();
@@ -1534,16 +1517,25 @@ function renderChessBoard() {
 
 
 // ===================================================
-// PINOY DAMA ENGINE (VS AI & 2P LOCAL)
+// PINOY DAMA ENGINE (CAPTURES + HARD AI)
 // ===================================================
-let damaCanvas, damaCtx, damaGame = null, damaMode = 'ai';
+let damaCanvas, damaCtx, damaGame = null, damaMode = 'ai', damaDiff = 'hard';
+let damaCaptured = { w: 0, b: 0 };
 
 function setDamaMode(mode) {
     if (typeof audio !== 'undefined') audio.playSFX('move');
     damaMode = mode;
     document.getElementById('dama-mode-ai').classList.toggle('active', mode === 'ai');
     document.getElementById('dama-mode-pvp').classList.toggle('active', mode === 'pvp');
+    document.getElementById('dama-diff-box').style.display = mode === 'ai' ? 'flex' : 'none';
     startDamaGame();
+}
+
+function setDamaDifficulty(diff) {
+    if (typeof audio !== 'undefined') audio.playSFX('click');
+    damaDiff = diff;
+    document.getElementById('dama-diff-easy').classList.toggle('active', diff === 'easy');
+    document.getElementById('dama-diff-hard').classList.toggle('active', diff === 'hard');
 }
 
 function startDamaGame() {
@@ -1564,6 +1556,7 @@ function startDamaGame() {
         }
     }
 
+    damaCaptured = { w: 0, b: 0 };
     damaGame = { board, turn: 'w', selected: null };
 
     damaCanvas.onclick = (e) => {
@@ -1588,17 +1581,36 @@ function handleDamaClick(x, y) {
     } else {
         const sx = damaGame.selected.x;
         const sy = damaGame.selected.y;
+        const dx = x - sx;
+        const dy = y - sy;
         
-        if (damaGame.board[y][x] === null && (Math.abs(x - sx) === 1 || Math.abs(x - sx) === 2)) {
-            damaGame.board[y][x] = damaGame.board[sy][sx];
-            damaGame.board[sy][sx] = null;
-            damaGame.selected = null;
-            damaGame.turn = damaGame.turn === 'w' ? 'b' : 'w';
-            if (typeof audio !== 'undefined') audio.playSFX('score');
-            renderDamaBoard();
+        if (damaGame.board[y][x] === null) {
+            if (Math.abs(dx) === 1 && Math.abs(dy) === 1) {
+                damaGame.board[y][x] = damaGame.board[sy][sx];
+                damaGame.board[sy][sx] = null;
+                finalizeDamaTurn();
+            } else if (Math.abs(dx) === 2 && Math.abs(dy) === 2) {
+                const mx = sx + dx / 2;
+                const my = sy + dy / 2;
+                const middlePiece = damaGame.board[my][mx];
+                
+                if (middlePiece && middlePiece !== damaGame.turn) {
+                    damaGame.board[my][mx] = null;
+                    damaGame.board[y][x] = damaGame.board[sy][sx];
+                    damaGame.board[sy][sx] = null;
+                    
+                    if (damaGame.turn === 'w') damaCaptured.w++;
+                    else damaCaptured.b++;
 
-            if (damaMode === 'ai' && damaGame.turn === 'b') {
-                setTimeout(damaAiMove, 500);
+                    if (typeof audio !== 'undefined') audio.playSFX('powerup');
+                    finalizeDamaTurn();
+                } else {
+                    damaGame.selected = null;
+                    renderDamaBoard();
+                }
+            } else {
+                damaGame.selected = null;
+                renderDamaBoard();
             }
         } else {
             damaGame.selected = null;
@@ -1607,14 +1619,61 @@ function handleDamaClick(x, y) {
     }
 }
 
+function finalizeDamaTurn() {
+    damaGame.selected = null;
+    damaGame.turn = damaGame.turn === 'w' ? 'b' : 'w';
+    renderDamaBoard();
+
+    if (damaMode === 'ai' && damaGame.turn === 'b') {
+        setTimeout(damaAiMove, 600);
+    }
+}
+
 function damaAiMove() {
     let blackPieces = [];
-    for (let r=0; r<8; r++) {
-        for (let c=0; c<8; c++) {
-            if (damaGame.board[r][c] === 'b') blackPieces.push({x: c, y: r});
+    let possibleJumps = [];
+    let possibleSteps = [];
+
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            if (damaGame.board[r][c] === 'b') {
+                blackPieces.push({x: c, y: r});
+                
+                const directions = [{dx: -1, dy: 1}, {dx: 1, dy: 1}, {dx: -2, dy: 2}, {dx: 2, dy: 2}, {dx: -2, dy: -2}, {dx: 2, dy: -2}, {dx: -1, dy: -1}, {dx: 1, dy: -1}];
+                
+                directions.forEach(d => {
+                    const nx = c + d.dx;
+                    const ny = r + d.dy;
+                    if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8 && damaGame.board[ny][nx] === null) {
+                        if (Math.abs(d.dx) === 2) {
+                            const mx = c + d.dx / 2;
+                            const my = r + d.dy / 2;
+                            if (damaGame.board[my][mx] === 'w') {
+                                possibleJumps.push({from: {x: c, y: r}, to: {x: nx, y: ny}, middle: {x: mx, y: my}});
+                            }
+                        } else if (damaDiff === 'hard') {
+                            possibleSteps.push({from: {x: c, y: r}, to: {x: nx, y: ny}});
+                        }
+                    }
+                });
+            }
         }
     }
-    if (blackPieces.length > 0) {
+
+    if (possibleJumps.length > 0) {
+        let move = possibleJumps[Math.floor(Math.random() * possibleJumps.length)];
+        damaGame.board[move.middle.y][move.middle.x] = null;
+        damaGame.board[move.to.y][move.to.x] = 'b';
+        damaGame.board[move.from.y][move.from.x] = null;
+        damaCaptured.b++;
+        if (typeof audio !== 'undefined') audio.playSFX('powerup');
+    } else if (possibleSteps.length > 0 && damaDiff === 'hard') {
+        possibleSteps.sort((a, b) => b.to.y - a.to.y);
+        let move = possibleSteps[0];
+        damaGame.board[move.to.y][move.to.x] = damaGame.board[move.from.y][move.from.x];
+        damaGame.board[move.from.y][move.from.x] = null;
+        if (typeof audio !== 'undefined') audio.playSFX('move');
+    } else if (blackPieces.length > 0) {
         let p = blackPieces[Math.floor(Math.random() * blackPieces.length)];
         let targetY = Math.min(7, p.y + 1);
         let targetX = p.x + (Math.random() > 0.5 ? 1 : -1);
@@ -1624,10 +1683,11 @@ function damaAiMove() {
             damaGame.board[targetY][targetX] = 'b';
             damaGame.board[p.y][p.x] = null;
         }
-        damaGame.turn = 'w';
         if (typeof audio !== 'undefined') audio.playSFX('move');
-        renderDamaBoard();
     }
+
+    damaGame.turn = 'w';
+    renderDamaBoard();
 }
 
 function renderDamaBoard() {
@@ -1656,5 +1716,8 @@ function renderDamaBoard() {
             }
         }
     }
+
+    document.getElementById('dama-white-captured').textContent = damaCaptured.w;
+    document.getElementById('dama-black-captured').textContent = damaCaptured.b;
     document.getElementById('dama-turn-indicator').textContent = damaGame.turn === 'w' ? "White's Turn" : (damaMode === 'ai' ? "AI's Turn..." : "Black's Turn");
 }
