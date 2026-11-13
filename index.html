@@ -53,19 +53,16 @@
             </div>
         </div>
         <!-- Compact Header Profile Hero Icon -->
-        <div class="header-profile-icon" onclick="openCustomizeModal()" style="display: flex; align-items: center; gap: 8px; background: rgba(17,24,39,0.85); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px 4px 4px; cursor: pointer;" title="Customize Profile">
+        <div class="header-profile-icon" role="button" aria-label="Customize avatar" onclick="openCustomizeModal()" style="display: flex; align-items: center; gap: 8px; background: rgba(17,24,39,0.85); border: 1px solid var(--border); border-radius: 999px; padding: 4px; width: 48px; height: 48px; justify-content: center; gap: 0; cursor: pointer;" title="Customize Profile">
             <div class="avatar-frame border-rookie" id="hub-avatar-frame" style="width: 36px; height: 36px; font-size: 18px; border-radius: 50%;">
                 <span id="hub-avatar-icon">🕹️</span>
             </div>
-            <div style="display: flex; flex-direction: column; text-align: left;">
-                <span class="profile-name" id="welcomeHeading" style="font-size: 11px; font-weight: 800; max-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Player</span>
-                <span style="font-size: 9px; color: var(--primary); font-weight: 700;" id="hub-level-mini">LVL 1</span>
-            </div>
+
         </div>
     </header>
 
     <!-- GAME OF THE DAY / FEATURED HERO BANNER -->
-    <div class="gotd-hero-banner" id="gotd-hero-banner">
+    <div class="gotd-hero-banner" id="gotd-hero-banner" style="display:none !important;">
         <button class="gotd-close-btn" onclick="closeGotdBanner()">✕</button>
         <div style="flex:1; width: 100%;">
             <div class="gotd-badges">
@@ -84,7 +81,7 @@
     </div>
 
     <!-- COMPACT DAILY QUESTS CHIP -->
-    <div onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(135deg, rgba(22, 30, 48, 0.9), rgba(13, 19, 33, 0.9)); border: 1px solid rgba(250, 204, 21, 0.4); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.1); transition: transform 0.15s;">
+    <div style="display:none !important;" onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(135deg, rgba(22, 30, 48, 0.9), rgba(13, 19, 33, 0.9)); border: 1px solid rgba(250, 204, 21, 0.4); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.1); transition: transform 0.15s;">
         <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 18px;">🔥</span>
             <span style="font-size: 12px; font-weight: 800; color: #fff;">Daily Quests & Streak</span>
@@ -113,9 +110,15 @@
                     <span class="game-icon">🔼</span>
                     <span class="game-name">High-Low</span>
                 </div>
-                <div class="game-card" data-name="uno card game" onclick="showGameInstructions('uno-container', 'UNO Battle', '🌈', { objective: 'Be the first to empty your hand by matching colors, numbers, or action cards against the AI!', controls: 'Tap a matching card in your hand or tap the Deck to draw.' })">
-                    <span class="game-icon">🌈</span>
-                    <span class="game-name">UNO Battle</span>
+                <div class="game-card" data-name="chess strategy board game" onclick="openBoardGame('chess')">
+                    <span class="game-icon">♟️</span>
+                    <span class="game-name">Chess</span>
+                    <span class="game-cta">TAP TO PLAY ↗</span>
+                </div>
+                <div class="game-card" data-name="dama checkers board game" onclick="openBoardGame('dama')">
+                    <span class="game-icon">🔴</span>
+                    <span class="game-name">Dama</span>
+                    <span class="game-cta">TAP TO PLAY ↗</span>
                 </div>
             </div>
         </div>
@@ -699,46 +702,19 @@
         </div>
     </div>
 
-    <!-- UNO CARD BATTLE CONTAINER -->
-    <div id="uno-container" class="game-container">
-        <div class="game-top-bar">
-            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">UNO Battle</span>
-            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
-        </div>
-        <div style="width:100%; max-width:360px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
-            <div class="score-board" style="margin-top:4px; width:100%;">
-                <div class="score-box">AI Cards 🤖 <span id="uno-ai-count">7</span></div>
-                <div class="score-box">Active Color <span id="uno-active-color" style="color:#38bdf8;">BLUE</span></div>
-                <div class="score-box">Wins 🏆 <span id="uno-wins">0</span></div>
-            </div>
-
-            <!-- AI Hand Backs -->
-            <div id="uno-ai-hand" style="display:flex; justify-content:center; gap:4px; margin-bottom:12px; min-height:36px; flex-wrap:wrap;"></div>
-
-            <!-- Center Deck & Discard Pile -->
-            <div style="display:flex; align-items:center; justify-content:center; gap:20px; background:#111827; border:1px solid var(--border); border-radius:14px; padding:16px; width:100%; margin-bottom:12px;">
-                <div class="uno-card" style="background:linear-gradient(135deg, #1e293b, #0f172a); border-color:#8b5cf6;" onclick="unoDrawCard()">
-                    <span style="font-size:0.75rem;">DRAW</span>
-                    <span>🃏</span>
-                </div>
-                <div id="uno-discard-pile" class="uno-card uno-blue">7</div>
-            </div>
-
-            <p id="uno-status" style="margin-bottom:10px; font-weight:700; font-size:0.85rem; color:var(--text-main); text-align:center;">Your Turn! Match color or number.</p>
-
-            <!-- Wild Color Picker -->
-            <div id="uno-color-picker" style="display:none; gap:8px; margin-bottom:10px;">
-                <button class="action-btn" style="background:#ef4444; padding:8px 12px;" onclick="chooseUnoWildColor('red')">Red</button>
-                <button class="action-btn" style="background:#3b82f6; padding:8px 12px;" onclick="chooseUnoWildColor('blue')">Blue</button>
-                <button class="action-btn" style="background:#22c55e; padding:8px 12px;" onclick="chooseUnoWildColor('green')">Green</button>
-                <button class="action-btn" style="background:#eab308; color:#000; padding:8px 12px;" onclick="chooseUnoWildColor('yellow')">Yellow</button>
-            </div>
-
-            <!-- Player Hand -->
-            <div id="uno-player-hand" style="display:flex; gap:6px; overflow-x:auto; width:100%; padding:8px 4px; justify-content:flex-start;"></div>
-
-            <button class="control-btn" style="width:100%; margin-top:10px;" onclick="startUnoGame()">New UNO Match</button>
-        </div>
+    <!-- CHESS -->
+    <div id="chess-container" class="game-container boardgame-container">
+      <div class="game-top-bar"><span>♟️ Chess vs AI</span><button class="pause-btn" onclick="boardBack()">← HUB</button></div>
+      <div class="boardgame-tools"><label>AI difficulty <select onchange="setBoardDifficulty('chess',this.value)"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><button class="control-btn" onclick="newChessGame()">New Game</button></div>
+      <p id="chess-status" class="boardgame-status">Your turn — White</p><div id="chess-board" class="board-grid" aria-label="Chess board"></div>
+      <p class="boardgame-help">Tap one of your white pieces, then tap a highlighted square. Pawns promote to queens.</p>
+    </div>
+    <!-- DAMA / CHECKERS -->
+    <div id="dama-container" class="game-container boardgame-container">
+      <div class="game-top-bar"><span>🔴 Dama vs AI</span><button class="pause-btn" onclick="boardBack()">← HUB</button></div>
+      <div class="boardgame-tools"><label>AI difficulty <select onchange="setBoardDifficulty('dama',this.value)"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><button class="control-btn" onclick="newDamaGame()">New Game</button></div>
+      <p id="dama-status" class="boardgame-status">Your turn — Red</p><div id="dama-board" class="board-grid" aria-label="Dama board"></div>
+      <p class="boardgame-help">Captures are mandatory. If another jump is available after a capture, continue the chain before ending your turn. Reach the opposite side to become a king.</p>
     </div>
 
     <!-- AIR HOCKEY CONTAINER -->
@@ -898,9 +874,15 @@
                     </div>
                 </div>
                 <div class="setting-row">
+                    <span class="setting-label">🔊 Master Volume (BGM)</span>
+                    <div class="setting-control">
+                        <input type="range" min="0" max="1" step="0.05" value="0.35" class="setting-slider" id="master-volume-slider" oninput="updateMasterVolume(this.value)">
+                    </div>
+                </div>
+                <div class="setting-row">
                     <span class="setting-label">🎵 SFX Volume</span>
                     <div class="setting-control">
-                        <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
+                        <input type="range" min="0" max="1" step="0.05" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
                     </div>
                 </div>
 
@@ -982,9 +964,23 @@
       </div>
     </div>
 
+
+    <audio id="hub-bgm" src="bgm.mp3" loop preload="auto"></audio>
+    <div class="daily-reward-overlay" id="daily-reward-modal" aria-modal="true" role="dialog" aria-labelledby="daily-reward-title">
+      <div class="daily-reward-card">
+        <button class="settings-close-x daily-reward-close" onclick="closeDailyRewardModal()" aria-label="Close">✕</button>
+        <div class="daily-reward-kicker">DAILY LOGIN BONUS</div><h2 id="daily-reward-title">Spin the Wheel!</h2>
+        <p>One free spin every day. Win XP, an avatar, or an exclusive avatar border.</p>
+        <div class="wheel-wrap"><div class="wheel-pointer"></div><div class="reward-wheel" id="daily-reward-wheel"><span>✨</span><span>⚡</span><span>🕹️</span><span>💎</span><span>🏅</span><span>🎮</span><span>🌟</span><span>🔥</span></div></div>
+        <div class="daily-reward-result" id="daily-reward-result">Your daily reward is waiting!</div>
+        <button class="gotd-play-btn daily-spin-btn" id="daily-spin-btn" onclick="spinDailyReward()">SPIN FOR TODAY'S REWARD</button>
+      </div>
+    </div>
+
     <!-- Linked Modular Scripts -->
     <script src="hub.js"></script>
     <script src="piano.js"></script>
     <script src="games.js"></script>
+    <script src="boardgames.js"></script>
 </body>
 </html>
