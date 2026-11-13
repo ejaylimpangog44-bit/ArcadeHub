@@ -11,13 +11,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
-  <audio id="bgm" src="bgm.mp3" preload="auto" loop></audio>
-
-    <!-- LEADERBOARD ROLL-OUT BANNER -->
+    <!-- LEADERBOARD ROLL-OUT BANNER (Triggers on 1K+ score) -->
     <div id="leaderboard-rollout-banner">
         <div class="lb-banner-info">
-            <h4>🏆 Epic Score Reached</h4>
+            <h4>🏆 Epic Score Reached (1K+)</h4>
             <p>You cracked the leaderboard! Check out top ranks.</p>
         </div>
         <button class="lb-banner-btn" onclick="openSettingsToTrophies()">View Ranks</button>
@@ -67,24 +64,38 @@
         </div>
     </header>
 
-    <!-- SEARCH BAR & CATEGORY FILTER PILL BAR -->
-    <div style="width: 100%; max-width: 600px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px;">
-        <div style="position: relative; width: 100%;">
-            <input type="text" id="arcade-search-input" placeholder="🔍 Search 20+ arcade games..." oninput="filterArcadeGames(this.value)" style="width: 100%; background: rgba(17,24,39,0.9); border: 1px solid var(--border); color: #fff; padding: 10px 16px 10px 38px; border-radius: 12px; font-size: 0.9rem; outline: none; transition: border-color 0.2s;" />
-            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; opacity: 0.7;">🔎</span>
+    <!-- GAME OF THE DAY / FEATURED HERO BANNER -->
+    <div class="gotd-hero-banner" id="gotd-hero-banner">
+        <button class="gotd-close-btn" onclick="closeGotdBanner()">✕</button>
+        <div style="flex:1; width: 100%;">
+            <div class="gotd-badges">
+                <span class="gotd-badge-2x">⚡ 2X XP TODAY</span>
+                <span class="gotd-badge-featured">🌟 FEATURED GAME</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span id="gotd-icon" style="font-size:34px;">🏗️</span>
+                <div>
+                    <h3 id="gotd-title" style="font-size:17px; font-weight:900; color:#fff;">Tower Stack</h3>
+                    <p id="gotd-desc" style="font-size:12px; color:var(--text-muted);">Stack precision blocks to the sky for double XP!</p>
+                </div>
+            </div>
         </div>
-        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;" id="category-filter-bar">
-            <button class="opt-btn active" onclick="filterCategory('all', this)" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px;">All Games</button>
-            <button class="opt-btn" onclick="filterCategory('card', this)" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px;">🃏 Cards</button>
-            <button class="opt-btn" onclick="filterCategory('puzzle', this)" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px;">🧩 Puzzle</button>
-            <button class="opt-btn" onclick="filterCategory('action', this)" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px;">⚡ Action</button>
-            <button class="opt-btn" onclick="filterCategory('racing', this)" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px;">🏎️ Racing</button>
+        <button class="gotd-play-btn" id="gotd-play-btn">PLAY 2X XP ▶</button>
+    </div>
+
+    <!-- COMPACT DAILY QUESTS CHIP -->
+    <div onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(135deg, rgba(22, 30, 48, 0.9), rgba(13, 19, 33, 0.9)); border: 1px solid rgba(250, 204, 21, 0.4); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.1); transition: transform 0.15s;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">🔥</span>
+            <span style="font-size: 12px; font-weight: 800; color: #fff;">Daily Quests & Streak</span>
+            <span style="font-size: 10px; color: var(--text-muted);" id="daily-card-subtitle">• 1 Day Streak</span>
         </div>
+        <span style="font-size: 11px; font-weight: 800; color: #facc15; background: rgba(250,204,21,0.15); padding: 4px 10px; border-radius: 6px;">VIEW 🔥</span>
     </div>
 
     <div id="main-menu" class="view active">
         <div class="category-section" data-category="card">
-            <div class="category-title">Card & Board Games</div>
+            <div class="category-title">Card Games</div>
             <div class="game-grid">
                 <div class="game-card" data-name="speed solitaire sprint" onclick="showGameInstructions('solitaire-container', 'Speed Solitaire', '🎴', { objective: 'Match cards in your tableau that are 1 rank higher or lower than the foundation target card before time runs out!', controls: 'Tap playable cards to match before time runs out.' })">
                     <span class="game-icon">🎴</span>
@@ -102,17 +113,9 @@
                     <span class="game-icon">🔼</span>
                     <span class="game-name">High-Low</span>
                 </div>
-                <!-- Chess Pro Card -->
-                <div class="game-card" data-name="chess" onclick="showGameInstructions('chess-container', 'Chess Pro', '♟️', gameInstructionsMap['chess-container'])">
-                    <div style="font-size: 32px;">♟️</div>
-                    <div style="font-weight: 700; font-size: 14px; margin-top: 4px;">Chess Pro</div>
-                    <div style="font-size: 10px; color: var(--text-muted);">Strategy & Tactics</div>
-                </div>
-                <!-- Pinoy Dama Card -->
-                <div class="game-card" data-name="dama" onclick="showGameInstructions('dama-container', 'Pinoy Dama', '🔴', gameInstructionsMap['dama-container'])">
-                    <div style="font-size: 32px;">🔴</div>
-                    <div style="font-weight: 700; font-size: 14px; margin-top: 4px;">Pinoy Dama</div>
-                    <div style="font-size: 10px; color: var(--text-muted);">Classic Board Game</div>
+                <div class="game-card" data-name="uno card game" onclick="showGameInstructions('uno-container', 'UNO Battle', '🌈', { objective: 'Be the first to empty your hand by matching colors, numbers, or action cards against the AI!', controls: 'Tap a matching card in your hand or tap the Deck to draw.' })">
+                    <span class="game-icon">🌈</span>
+                    <span class="game-name">UNO Battle</span>
                 </div>
             </div>
         </div>
@@ -120,11 +123,6 @@
         <div class="category-section" data-category="puzzle">
             <div class="category-title">Puzzle Games</div>
             <div class="game-grid">
-                <!-- Connect Four Game Card -->
-                <div class="game-card" data-name="connect four tactical" data-category="puzzle" onclick="showGameInstructions('connectfour-container', 'Connect Four', '🔴', { objective: 'Configure match settings and drop colored discs into the grid to connect 4 in a row horizontally, vertically, or diagonally!', controls: 'Tap column headers to drop your disc.' })">
-                    <span class="game-icon">🔴</span>
-                    <span class="game-name">Connect Four</span>
-                </div>
                 <div class="game-card" data-name="tic tac toe pro" onclick="showGameInstructions('tictactoe-container', 'Tic-Tac-Toe', '❌', { objective: 'Configure your match settings and align 3 (or 4) symbols in a row horizontally, vertically, or diagonally to win!', controls: 'Tap empty cells on the grid.' })">
                     <span class="game-icon">❌</span>
                     <span class="game-name">Tic-Tac-Toe</span>
@@ -394,72 +392,6 @@
         </div>
     </div>
 
-    <!-- CHESS PRO GAME CONTAINER -->
-    <div id="chess-container" class="game-container">
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 360px; margin-bottom: 10px;">
-            <button class="opt-btn" onclick="backToHub()">◀ HUB</button>
-            <div style="font-weight: 800; font-size: 14px; color: #fff;">♟️ CHESS PRO</div>
-            <button class="opt-btn" onclick="openPauseModal()">⏸</button>
-        </div>
-        
-        <!-- Mode Selector -->
-        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-            <button id="chess-mode-ai" class="opt-btn active" onclick="setChessMode('ai')">🤖 VS AI</button>
-            <button id="chess-mode-pvp" class="opt-btn" onclick="setChessMode('pvp')">👥 2P LOCAL</button>
-        </div>
-
-        <div style="background: rgba(17,24,39,0.9); padding: 10px; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
-            <div id="chess-turn-indicator" style="font-size: 12px; font-weight: 700; color: #38bdf8; margin-bottom: 8px;">White's Turn</div>
-            <canvas id="chess-canvas" width="320" height="320" style="border-radius: 6px; cursor: pointer; display: block; margin: 0 auto;"></canvas>
-            <div style="margin-top: 10px;">
-                <button class="opt-btn" style="width: 100%;" onclick="startChessGame()">🔄 Restart Game</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PINOY DAMA GAME CONTAINER -->
-    <div id="dama-container" class="game-container">
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 360px; margin-bottom: 10px;">
-            <button class="opt-btn" onclick="backToHub()">◀ HUB</button>
-            <div style="font-weight: 800; font-size: 14px; color: #fff;">🔴 PINOY DAMA</div>
-            <button class="opt-btn" onclick="openPauseModal()">⏸</button>
-        </div>
-        
-        <!-- Mode & Difficulty Selectors -->
-        <div style="display: flex; gap: 6px; margin-bottom: 8px; width: 100%; max-width: 360px;">
-            <button id="dama-mode-ai" class="opt-btn active" style="flex:1;" onclick="setDamaMode('ai')">🤖 VS AI</button>
-            <button id="dama-mode-pvp" class="opt-btn" style="flex:1;" onclick="setDamaMode('pvp')">👥 2P LOCAL</button>
-        </div>
-        <div id="dama-diff-box" style="display: flex; gap: 6px; margin-bottom: 10px; width: 100%; max-width: 360px;">
-            <button id="dama-diff-easy" class="opt-btn" style="flex:1; font-size:11px;" onclick="setDamaDifficulty('easy')">Easy AI</button>
-            <button id="dama-diff-hard" class="opt-btn active" style="flex:1; font-size:11px;" onclick="setDamaDifficulty('hard')">Hard AI 🔥</button>
-        </div>
-
-        <div style="background: rgba(17,24,39,0.9); padding: 10px; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
-            <!-- Captured Score Bar -->
-            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(15,23,42,0.8); padding: 6px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 11px; font-weight: 700;">
-                <span style="color: #f8fafc;">White: <span id="dama-white-captured">0</span> ⚪</span>
-                <span id="dama-turn-indicator" style="color: #facc15;">White's Turn</span>
-                <span style="color: #ef4444;">🔴 <span id="dama-black-captured">0</span> :AI</span>
-            </div>
-
-            <!-- Canvas Wrapper with Victory Modal Overlay -->
-            <div style="position: relative; display: inline-block;">
-                <canvas id="dama-canvas" width="320" height="320" style="border-radius: 6px; cursor: pointer; display: block; margin: 0 auto;"></canvas>
-                
-                <div id="dama-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.88); backdrop-filter:blur(4px); flex-direction:column; justify-content:center; align-items:center; border-radius:6px; z-index:20;">
-                    <h2 id="dama-final-title" style="color:#facc15; margin-bottom:6px; font-size:1.2rem;">WHITE WINS! 🏆</h2>
-                    <p id="dama-final-msg" style="color:var(--text-muted); font-size:0.85rem; margin-bottom:14px;">All opponent pieces captured!</p>
-                    <button class="action-btn" onclick="startDamaGame()">PLAY AGAIN</button>
-                </div>
-            </div>
-
-            <div style="margin-top: 10px;">
-                <button class="opt-btn" style="width: 100%;" onclick="startDamaGame()">🔄 Restart Game</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Piano Tiles Pro -->
     <div id="piano-container" class="game-container">
         <div class="game-top-bar">
@@ -548,53 +480,6 @@
             <div style="display:flex; gap:10px; width:100%; max-width:320px; margin:0 auto;">
                 <button class="action-btn" style="flex:1;" onclick="resetTTT()">Restart</button>
                 <button class="control-btn" style="flex:1;" onclick="backToSetup()">⚙️ Setup</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- CONNECT FOUR CONTAINER WITH SETUP & GAME SCREENS -->
-    <div id="connectfour-container" class="game-container">
-        <div class="game-top-bar">
-            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
-            <span style="font-size: 13px; font-weight: 800; color: var(--primary);">CONNECT FOUR PRO</span>
-        </div>
-
-        <!-- SETUP SCREEN -->
-        <div id="c4-setup-screen" class="screen active" style="align-items: center; width: 100%;">
-            <div class="setup-group">
-                <label class="setup-label">Select Game Mode</label>
-                <div class="setup-options-2">
-                    <button id="c4-setup-pvp" class="opt-btn active" onclick="selectC4Mode('pvp')">👥 Player vs Player</button>
-                    <button id="c4-setup-ai" class="opt-btn" onclick="selectC4Mode('ai')">🤖 Player vs AI</button>
-                </div>
-            </div>
-
-            <div id="c4-setup-diff-group" class="setup-group" style="display: none;">
-                <label class="setup-label">AI Difficulty</label>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
-                    <button id="c4-diff-easy" class="opt-btn active" onclick="selectC4Diff('easy')">Easy</button>
-                    <button id="c4-diff-normal" class="opt-btn" onclick="selectC4Diff('normal')">Normal</button>
-                    <button id="c4-diff-hard" class="opt-btn" onclick="selectC4Diff('hard')">Hard</button>
-                </div>
-            </div>
-
-            <button class="start-game-btn" onclick="startC4GameFromSetup()">START GAME</button>
-        </div>
-
-        <!-- GAMEPLAY SCREEN -->
-        <div id="c4-game-screen" class="screen" style="align-items: center; width: 100%;">
-            <div class="score-board">
-                <div class="score-box">Status <span id="c4-status-text">Your Turn (🔴)</span></div>
-                <div class="score-box">Wins 🏆 <span id="c4-wins-val">0</span></div>
-            </div>
-
-            <div style="position: relative; width: 100%; max-width: 340px; margin: 0 auto 15px auto;">
-                <div id="c4-board" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; background: #0b0f19; padding: 10px; border-radius: 14px; border: 2px solid var(--border);"></div>
-            </div>
-
-            <div style="display: flex; gap: 10px; width: 100%; max-width: 340px;">
-                <button class="action-btn" style="flex: 1;" onclick="startConnectFourGame()">Reset Game</button>
-                <button class="control-btn" onclick="backToC4Setup()">Change Mode</button>
             </div>
         </div>
     </div>
@@ -814,12 +699,50 @@
         </div>
     </div>
 
+    <!-- UNO CARD BATTLE CONTAINER -->
+    <div id="uno-container" class="game-container">
+        <div class="game-top-bar">
+            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">UNO Battle</span>
+            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
+        </div>
+        <div style="width:100%; max-width:360px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
+            <div class="score-board" style="margin-top:4px; width:100%;">
+                <div class="score-box">AI Cards 🤖 <span id="uno-ai-count">7</span></div>
+                <div class="score-box">Active Color <span id="uno-active-color" style="color:#38bdf8;">BLUE</span></div>
+                <div class="score-box">Wins 🏆 <span id="uno-wins">0</span></div>
+            </div>
+
+            <!-- AI Hand Backs -->
+            <div id="uno-ai-hand" style="display:flex; justify-content:center; gap:4px; margin-bottom:12px; min-height:36px; flex-wrap:wrap;"></div>
+
+            <!-- Center Deck & Discard Pile -->
+            <div style="display:flex; align-items:center; justify-content:center; gap:20px; background:#111827; border:1px solid var(--border); border-radius:14px; padding:16px; width:100%; margin-bottom:12px;">
+                <div class="uno-card" style="background:linear-gradient(135deg, #1e293b, #0f172a); border-color:#8b5cf6;" onclick="unoDrawCard()">
+                    <span style="font-size:0.75rem;">DRAW</span>
+                    <span>🃏</span>
+                </div>
+                <div id="uno-discard-pile" class="uno-card uno-blue">7</div>
+            </div>
+
+            <p id="uno-status" style="margin-bottom:10px; font-weight:700; font-size:0.85rem; color:var(--text-main); text-align:center;">Your Turn! Match color or number.</p>
+
+            <!-- Wild Color Picker -->
+            <div id="uno-color-picker" style="display:none; gap:8px; margin-bottom:10px;">
+                <button class="action-btn" style="background:#ef4444; padding:8px 12px;" onclick="chooseUnoWildColor('red')">Red</button>
+                <button class="action-btn" style="background:#3b82f6; padding:8px 12px;" onclick="chooseUnoWildColor('blue')">Blue</button>
+                <button class="action-btn" style="background:#22c55e; padding:8px 12px;" onclick="chooseUnoWildColor('green')">Green</button>
+                <button class="action-btn" style="background:#eab308; color:#000; padding:8px 12px;" onclick="chooseUnoWildColor('yellow')">Yellow</button>
+            </div>
+
+            <!-- Player Hand -->
+            <div id="uno-player-hand" style="display:flex; gap:6px; overflow-x:auto; width:100%; padding:8px 4px; justify-content:flex-start;"></div>
+
+            <button class="control-btn" style="width:100%; margin-top:10px;" onclick="startUnoGame()">New UNO Match</button>
+        </div>
+    </div>
+
     <!-- AIR HOCKEY CONTAINER -->
     <div id="airhockey-container" class="game-container">
-       <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px;">
-    <button id="ah-mode-ai" class="opt-btn active" onclick="setAhMode('ai')">🤖 VS AI</button>
-    <button id="ah-mode-pvp" class="opt-btn" onclick="setAhMode('pvp')">👥 2P Local</button>
-</div>
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Neon Air Hockey</span>
             <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
@@ -837,71 +760,6 @@
                     <p id="ah-final-msg" style="color:var(--text-muted); font-size:0.85rem; margin-bottom:14px;">7 - 4</p>
                     <button class="action-btn" onclick="startAirHockeyGame()">REMATCH</button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- DAILY HUB WELCOME & REWARDS POPUP MODAL (Pops up automatically upon entering main hub) -->
-    <div class="modal-overlay" id="welcome-daily-modal" style="z-index: 10650;">
-        <div class="settings-modal-box landscape-modal-box" style="max-width: 480px; text-align: left;">
-            <div class="settings-header">
-                <h3>🌟 Daily Arcade Hub & Rewards</h3>
-                <button class="settings-close-x" onclick="closeWelcomeDailyModal()">✕</button>
-            </div>
-            <div class="settings-body" style="padding: 16px; display: flex; flex-direction: column; gap: 14px; max-height: 75vh; overflow-y: auto;">
-                
-                <!-- 1. Game of the Day Card -->
-                <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.28), rgba(236, 72, 153, 0.25)); border: 1.5px solid var(--primary); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                        <span class="gotd-badge-2x">⚡ 2X XP TODAY</span>
-                        <span class="gotd-badge-featured">🌟 FEATURED GAME</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span id="modal-gotd-icon" style="font-size: 32px;">🏗️</span>
-                        <div style="flex: 1;">
-                            <h4 id="modal-gotd-title" style="font-size: 15px; font-weight: 900; color: #fff;">Tower Stack</h4>
-                            <p id="modal-gotd-desc" style="font-size: 11px; color: var(--text-muted);">Stack precision blocks to the sky for double XP!</p>
-                        </div>
-                    </div>
-                    <button class="gotd-play-btn" id="modal-gotd-play-btn" style="width: 100%; text-align: center;">PLAY 2X XP ▶</button>
-                </div>
-
-                <!-- 2. Daily Quests Section -->
-                <div style="background: rgba(17,24,39,0.8); border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-size: 12px; font-weight: 800; color: #fff;">🔥 Daily Quests & Streak</span>
-                        <span class="streak-pill" id="modal-hub-streak-pill" style="font-size: 10px; background: rgba(250,204,21,0.15); color: #facc15; padding: 2px 8px; border-radius: 999px;">🔥 1 Day Streak</span>
-                    </div>
-                    <div id="modal-daily-challenges-list" style="display: flex; flex-direction: column; gap: 6px;">
-                        <!-- Populated dynamically -->
-                    </div>
-                </div>
-
-                <!-- 3. Daily Lucky Spin Section -->
-                <div style="background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(236,72,153,0.15)); border: 1.5px solid var(--primary); border-radius: 12px; padding: 12px; text-align: center;">
-                    <div style="font-size: 28px; margin-bottom: 4px;" id="modal-wheel-display">🎡</div>
-                    <p id="modal-wheel-status" style="font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 8px;">Spin for bonus XP & coins today!</p>
-                    <button class="start-game-btn" id="modal-spin-wheel-btn" onclick="executeModalLuckySpin()" style="width: 100%; padding: 10px; font-size: 0.9rem;">SPIN LUCKY WHEEL ▶</button>
-                </div>
-
-            </div>
-            <div class="settings-footer">
-                <button class="settings-save-btn" onclick="closeWelcomeDailyModal()">Got it, Let's Play! 🚀</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- LUCKY SPIN MODAL -->
-    <div class="modal-overlay" id="lucky-spin-modal" style="z-index: 10560;">
-        <div class="settings-modal-box" style="text-align: center; max-width: 340px;">
-            <div class="settings-header">
-                <h3>🎡 Daily Lucky Spin</h3>
-                <button class="settings-close-x" onclick="closeLuckySpinModal()">✕</button>
-            </div>
-            <div class="settings-body" style="padding: 24px 20px;">
-                <div id="wheel-display" style="font-size: 3rem; margin-bottom: 12px; transition: transform 0.5s ease;">🎁</div>
-                <p id="wheel-status" style="font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 16px;">Spin to win random XP or Coin bonuses!</p>
-                <button class="start-game-btn" id="spin-wheel-btn" onclick="executeLuckySpin()" style="width: 100%;">SPIN WHEEL ▶</button>
             </div>
         </div>
     </div>
@@ -1005,19 +863,11 @@
         </div>
     </div>
 
-    <!-- EXPANDED BOTTOM NAVIGATION BAR -->
-    <nav class="bottom-nav-bar" style="display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 4px;">
+    <!-- CLEAN FIXED BOTTOM NAVIGATION BAR -->
+    <nav class="bottom-nav-bar">
         <button class="bottom-nav-item active" onclick="backToHub()">
             <span>🏠</span>
             Home
-        </button>
-        <button class="bottom-nav-item" onclick="openLeaderboardTab()">
-            <span>🏆</span>
-            Ranks
-        </button>
-        <button class="bottom-nav-item" onclick="openShopTab()">
-            <span>🛒</span>
-            Shop
         </button>
         <button class="bottom-nav-item" onclick="openSettingsDrawer()">
             <span>⚙️</span>
@@ -1048,19 +898,7 @@
                     </div>
                 </div>
                 <div class="setting-row">
-                    <span class="setting-label">🎚️ Master Volume</span>
-                    <div class="setting-control">
-                        <input type="range" min="0" max="1" step="0.1" value="0.5" class="setting-slider" id="master-volume-slider" oninput="updateMasterVolume(this.value)">
-                    </div>
-                </div>
-                <div class="setting-row">
-                    <span class="setting-label">🎵 BGM Volume</span>
-                    <div class="setting-control">
-                        <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="bgm-volume-slider" oninput="updateBgmVolume(this.value)">
-                    </div>
-                </div>
-                <div class="setting-row">
-                    <span class="setting-label">🔊 SFX Volume</span>
+                    <span class="setting-label">🎵 SFX Volume</span>
                     <div class="setting-control">
                         <input type="range" min="0" max="1" step="0.1" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
                     </div>
