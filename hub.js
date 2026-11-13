@@ -1024,10 +1024,10 @@ saveCustomNameAndEnter = function() {
     }
 };
 
-window.addEventListener("load", () => {
+window.onload = function() {
     ProgressionManager.updateUI();
     DailyChallengeManager.init();
-});
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     const bgm = document.getElementById('bgm');
@@ -1051,4 +1051,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', enableAudio);
     document.addEventListener('touchstart', enableAudio);
     document.addEventListener('keydown', enableAudio);
+});
+
+// ===================================================
+// PAGE VISIBILITY API (PAUSE/RESUME BGM ON APP SWITCH)
+// ===================================================
+document.addEventListener('visibilitychange', () => {
+    const bgm = document.getElementById('bgm');
+    if (!bgm) return;
+
+    if (document.hidden) {
+        // User switched apps or minimized the browser
+        bgm.pause();
+    } else {
+        // User came back to the browser (resume only if not muted)
+        if (typeof audio !== 'undefined' && !audio.isMuted) {
+            bgm.play().catch(() => {});
+        }
+    }
 });
