@@ -642,8 +642,7 @@ const ProgressionManager = {
         localStorage.setItem("arcadehub_total_xp", newXP);
         let newLvl = getLevelFromXP(newXP);
         if (newLvl > oldLvl) {
-            audio.playSFX('win');
-            alert(`🎉 LEVEL UP! You reached Level ${newLvl}: ${LEVEL_TITLES[newLvl - 1]}!`);
+            triggerLevelUpModal(`Level ${newLvl}: ${LEVEL_TITLES[newLvl - 1]}`);
         }
         this.updateUI();
     },
@@ -696,6 +695,26 @@ const ProgressionManager = {
         if (frameEl) frameEl.className = `avatar-frame ${equippedBorder}`;
     }
 };
+
+function triggerLevelUpModal(levelText) {
+    // Set the dynamic text
+    const titleEl = document.getElementById('level-up-title-text');
+    if (titleEl) titleEl.innerText = levelText;
+
+    // Show the custom modal overlay with flex layout
+    const modal = document.getElementById('level-up-modal');
+    if (modal) modal.style.display = 'flex';
+
+    // Play level up SFX (using your hub's built-in sound system)
+    if (typeof audio !== 'undefined' && typeof audio.playSFX === 'function') {
+        audio.playSFX('win');
+    }
+}
+
+function closeLevelUpModal() {
+    const modal = document.getElementById('level-up-modal');
+    if (modal) modal.style.display = 'none';
+}
 
 const _origSaveScore = ScoreManager.saveScore.bind(ScoreManager);
 ScoreManager.saveScore = function(gameKey, score) {
