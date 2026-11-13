@@ -562,7 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!bgm) {
         bgm = document.createElement("audio");
         bgm.id = "background-audio";
-        bgm.src = "Https://github.com/ejaylimpangog44-bit/ArcadeHub/releases/download/v1.0.0/bgm.mp3";
+        bgm.src = "./bgm.mp3";
         bgm.loop = true;
         bgm.volume = 0.5;
         bgm.preload = "auto";
