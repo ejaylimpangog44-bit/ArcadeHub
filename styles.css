@@ -282,103 +282,6 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
     }
 }
 
-/* ===================== PIANO TILES SONG ALBUM CAROUSEL ===================== */
-.piano-album-carousel-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    margin-bottom: 8px;
-}
-.carousel-nav-btn {
-    background: rgba(139, 92, 246, 0.22);
-    border: 1px solid var(--border);
-    color: #fff;
-    width: 28px;
-    height: 54px;
-    border-radius: 10px;
-    font-size: 1.2rem;
-    font-weight: 800;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.2s, transform 0.15s;
-}
-.carousel-nav-btn:hover {
-    background: var(--primary);
-}
-.carousel-nav-btn:active {
-    transform: scale(0.94);
-}
-.piano-album-carousel {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    padding: 2px 0;
-    flex: 1;
-}
-.piano-album-carousel::-webkit-scrollbar {
-    display: none;
-}
-.album-card {
-    scroll-snap-align: center;
-    min-width: 112px;
-    background: #111827;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    padding: 6px 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    transition: all 0.2s ease;
-    text-align: left;
-    flex-shrink: 0;
-}
-.album-card:hover {
-    border-color: var(--primary);
-    transform: translateY(-1px);
-}
-.album-card.active {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.25));
-    border-color: var(--primary);
-    box-shadow: 0 0 12px var(--accent-glow);
-}
-.album-cover {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-}
-.album-meta {
-    overflow: hidden;
-}
-.album-title {
-    font-size: 0.72rem;
-    font-weight: 800;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.album-artist {
-    font-size: 0.6rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 .recent-scroll-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
 .recent-scroll-row::-webkit-scrollbar { display: none; }
 .recent-card { min-width: 110px; background: rgba(17, 24, 39, 0.85); border: 1px solid var(--border); border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
@@ -552,6 +455,115 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
 .mole-hole { aspect-ratio: 1; background-color: #111827; border: 2px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; transition: background 0.2s; position: relative; overflow: hidden; }
 .mole-hole span { transform: translateY(50px); transition: transform 0.15s ease; opacity: 0; }
 .mole-hole.active span { transform: translateY(0); opacity: 1; }
+
+.piano-album-carousel-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 90%;
+  max-width: 360px;
+  margin: 12px auto 20px auto;
+}
+
+.carousel-nav-btn {
+  background: rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 32px;
+  height: 58px;
+  border-radius: 12px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.carousel-nav-btn:hover {
+  background: var(--primary, #8b5cf6);
+}
+
+.carousel-nav-btn:active {
+  transform: scale(0.92);
+}
+
+.piano-album-carousel {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 4px 2px;
+  flex: 1;
+}
+
+.piano-album-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.album-card {
+  scroll-snap-align: center;
+  min-width: 124px;
+  background: rgba(17, 24, 39, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.album-card:hover {
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+}
+
+.album-card.active {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(56, 189, 248, 0.3));
+  border-color: #38bdf8;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.45);
+}
+
+.album-cover {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.album-meta {
+  overflow: hidden;
+}
+
+.album-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-artist {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* === Magic Tiles 3 Visual Overhaul (Fixed & Optimized) === */
 #mt3-wrapper {
@@ -769,4 +781,4 @@ header { width: 100%; max-width: 600px; display: flex; justify-content: space-be
   opacity: 0.75;
 }
 
-#piano-container { width: 100%; height: 100%; flex: 1; display: flex; }
+#piano-mount { width: 100%; height: 100%; flex: 1; display: flex; flex-direction: column; }
