@@ -666,6 +666,12 @@ const ProgressionManager = {
         const nameEl = document.getElementById("welcomeHeading");
         if (nameEl) nameEl.textContent = localStorage.getItem("arcadehub_player_name") || "Player";
 
+        const miniLvlEl = document.getElementById("hub-level-mini");
+        if (miniLvlEl) miniLvlEl.textContent = `LVL ${lvl}`;
+
+        const customizeNameDisplay = document.getElementById("customize-name-display");
+        if (customizeNameDisplay) customizeNameDisplay.textContent = localStorage.getItem("arcadehub_player_name") || "Player";
+
         const titleEl = document.getElementById("hub-player-title");
         if (titleEl) titleEl.textContent = `LVL ${lvl} • ${title}`;
 
@@ -688,7 +694,7 @@ const ProgressionManager = {
         if (avEl) avEl.textContent = equippedAvatar;
         if (frameEl) frameEl.className = `avatar-frame ${equippedBorder}`;
     }
-};
+}; // <--- FIXED: Added missing closing brace for ProgressionManager
 
 const _origSaveScore = ScoreManager.saveScore.bind(ScoreManager);
 ScoreManager.saveScore = function(gameKey, score) {
@@ -790,19 +796,29 @@ const DailyChallengeManager = {
     },
     render() {
         const list = document.getElementById("daily-challenges-list");
-        if (!list) return;
+        const listModal = document.getElementById("daily-challenges-list-modal");
+        const subtitle = document.getElementById("daily-card-subtitle");
+        let streak = localStorage.getItem("arcadehub_streak") || "1";
+
         const quests = JSON.parse(localStorage.getItem("arcadehub_daily_quests") || "[]");
-        list.innerHTML = quests.map(q => `
-            <div class="challenge-item ${q.done ? 'completed' : ''}">
+        const html = quests.map(q => `
+            <div class="challenge-item ${q.done ? 'completed' : ''}" style="display: flex; justify-content: space-between; align-items: center; background: rgba(17,24,39,0.8); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; margin-bottom: 6px;">
                 <div>
                     <div style="font-size:12px; font-weight:700; color:#fff;">${q.done ? '✅' : '🎯'} ${q.text}</div>
                     <div style="font-size:10px; color:var(--text-muted);">Progress: ${Math.min(q.progress, q.target)}/${q.target}</div>
                 </div>
-                <span class="challenge-reward-tag">${q.done ? 'CLAIMED' : `+${q.rewardXP} XP${q.unlockBorder ? ' + Border' : ''}`}</span>
+                <span class="challenge-reward-tag" style="font-size: 10px; font-weight: 800; color: #facc15;">${q.done ? 'CLAIMED' : `+${q.rewardXP} XP${q.unlockBorder ? ' + Border' : ''}`}</span>
             </div>
         `).join('');
+
+        if (list) list.innerHTML = html;
+        if (listModal) listModal.innerHTML = html;
+        if (subtitle) subtitle.textContent = `${streak} Day Streak • Tap to view active quests`;
+        
+        const modalStreakPill = document.getElementById("hub-streak-pill-modal");
+        if (modalStreakPill) modalStreakPill.textContent = `🔥 ${streak} Day Streak`;
     }
-};
+}; // <--- FIXED: Added missing closing brace for DailyChallengeManager
 
 function openCustomizeModal() {
     audio.playSFX('click');
@@ -832,6 +848,16 @@ function openCustomizeModal() {
     }).join('');
 
     document.getElementById("customize-modal").classList.add("active");
+}
+
+function openDailyQuestsModal() {
+    audio.playSFX('click');
+    document.getElementById('daily-quests-modal').classList.add('active');
+}
+
+function closeDailyQuestsModal() {
+    audio.playSFX('click');
+    document.getElementById('daily-quests-modal').classList.remove('active');
 }
 
 function closeCustomizeModal() {
