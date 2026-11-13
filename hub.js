@@ -422,12 +422,12 @@ const LuckySpinManager = {
             if (btn1) {
                 btn1.disabled = true;
                 btn1.style.opacity = '0.6';
-                btn1.textContent = `COOLDOWN: ${timeStr}`;
+                btn1.textContent = `${timeStr}`;
             }
             if (btn2) {
                 btn2.disabled = true;
                 btn2.style.opacity = '0.6';
-                btn2.textContent = `COOLDOWN: ${timeStr}`;
+                btn2.textContent = `${timeStr}`;
             }
             if (status1) status1.textContent = `Next spin available tomorrow at midnight (PHT)`;
             if (status2) status2.textContent = `Next spin available tomorrow at midnight (PHT)`;
