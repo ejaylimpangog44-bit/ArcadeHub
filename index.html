@@ -64,7 +64,7 @@
         </div>
     </header>
 
-        <!-- GAME OF THE DAY / FEATURED HERO BANNER -->
+    <!-- GAME OF THE DAY / FEATURED HERO BANNER -->
     <div class="gotd-hero-banner" id="gotd-hero-banner">
         <button class="gotd-close-btn" onclick="closeGotdBanner()">✕</button>
         <div style="flex:1; width: 100%;">
@@ -83,17 +83,14 @@
         <button class="gotd-play-btn" id="gotd-play-btn">PLAY 2X XP ▶</button>
     </div>
 
-
-    <!-- CLICKABLE DAILY QUESTS GAME CARD -->
-    <div class="daily-game-card" onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(145deg, rgba(22, 30, 48, 0.95), rgba(13, 19, 33, 0.95)); border: 1.5px solid var(--primary); border-radius: 16px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 6px 20px var(--accent-glow); transition: transform 0.2s;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 28px; background: rgba(250, 204, 21, 0.15); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(250, 204, 21, 0.3);">🔥</div>
-            <div>
-                <h3 style="font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 2px;">Daily Quests & Streak</h3>
-                <p style="font-size: 11px; color: var(--text-muted);" id="daily-card-subtitle">1 Day Streak • Tap to view active quests</p>
-            </div>
+    <!-- COMPACT DAILY QUESTS CHIP -->
+    <div onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(135deg, rgba(22, 30, 48, 0.9), rgba(13, 19, 33, 0.9)); border: 1px solid rgba(250, 204, 21, 0.4); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.1); transition: transform 0.15s;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">🔥</span>
+            <span style="font-size: 12px; font-weight: 800; color: #fff;">Daily Quests & Streak</span>
+            <span style="font-size: 10px; color: var(--text-muted);" id="daily-card-subtitle">• 1 Day Streak</span>
         </div>
-        <span style="font-size: 12px; font-weight: 800; color: var(--primary); background: rgba(139,92,246,0.2); padding: 6px 12px; border-radius: 8px;">VIEW ➔</span>
+        <span style="font-size: 11px; font-weight: 800; color: #facc15; background: rgba(250,204,21,0.15); padding: 4px 10px; border-radius: 6px;">VIEW 🔥</span>
     </div>
 
     <div id="main-menu" class="view active">
@@ -787,7 +784,7 @@
         </div>
     </div>
 
-        <!-- AVATAR, FLASHY BORDER & TITLE CUSTOMIZER MODAL (Landscape Layout) -->
+    <!-- AVATAR, FLASHY BORDER & TITLE CUSTOMIZER MODAL (Landscape Layout) -->
     <div class="modal-overlay" id="customize-modal" style="z-index: 10550;">
         <div class="settings-modal-box landscape-modal-box">
             <div class="settings-header">
