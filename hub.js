@@ -1395,12 +1395,10 @@ function endAirHockey(playerWon, winnerName) {
     }
 }
 
-
 // ===================================================
-// CHESS PRO ENGINE (VS AI & 2P LOCAL)
+// CHESS PRO ENGINE (STRICT RULE VALIDATION & AI)
 // ===================================================
 let chessCanvas, chessCtx, chessGame = null, chessMode = 'ai';
-let chessSelectedSquare = null;
 
 function setChessMode(mode) {
     if (typeof audio !== 'undefined') audio.playSFX('move');
@@ -1428,10 +1426,13 @@ function startChessGame() {
             ['R','N','B','Q','K','B','N','R']
         ],
         turn: 'w',
-        selected: null
+        selected: null,
+        over: false
     };
 
     chessCanvas.onclick = (e) => {
+        if (chessGame.over) return;
+        if (chessMode === 'ai' && chessGame.turn === 'b') return;
         const rect = chessCanvas.getBoundingClientRect();
         const x = Math.floor(((e.clientX - rect.left) / rect.width) * 8);
         const y = Math.floor(((e.clientY - rect.top) / rect.height) * 8);
@@ -1441,12 +1442,76 @@ function startChessGame() {
     renderChessBoard();
 }
 
+function isWhitePiece(p) { return p && p === p.toUpperCase(); }
+function isBlackPiece(p) { return p && p === p.toLowerCase(); }
+
+function isPathClear(board, sx, sy, dx, dy) {
+    const stepX = Math.sign(dx - sx);
+    const stepY = Math.sign(dy - sy);
+    let cx = sx + stepX;
+    let cy = sy + stepY;
+    while (cx !== dx || cy !== dy) {
+        if (board[cy][cx] !== null) return false;
+        cx += stepX;
+        cy += stepY;
+    }
+    return true;
+}
+
+function isValidChessMove(board, sx, sy, dx, dy, playerTurn) {
+    if (dx < 0 || dx > 7 || dy < 0 || dy > 7) return false;
+    if (sx === dx && sy === dy) return false;
+
+    const piece = board[sy][sx];
+    const target = board[dy][dx];
+
+    if (!piece) return false;
+    if (playerTurn === 'w' && !isWhitePiece(piece)) return false;
+    if (playerTurn === 'b' && !isBlackPiece(piece)) return false;
+    if (target && (playerTurn === 'w' ? isWhitePiece(target) : isBlackPiece(target))) return false;
+
+    const pLower = piece.toLowerCase();
+    const adx = dx - sx;
+    const ady = dy - sy;
+    const absDx = Math.abs(adx);
+    const absDy = Math.abs(ady);
+
+    switch (pLower) {
+        case 'p': {
+            const dir = (piece === 'P') ? -1 : 1;
+            const startRow = (piece === 'P') ? 6 : 1;
+            
+            // Forward move
+            if (adx === 0) {
+                if (ady === dir && target === null) return true;
+                if (ady === dir * 2 && sy === startRow && target === null && board[sy + dir][sx] === null) return true;
+            }
+            // Diagonal capture
+            if (absDx === 1 && ady === dir && target !== null) {
+                return true;
+            }
+            return false;
+        }
+        case 'n':
+            return (absDx === 1 && absDy === 2) || (absDx === 2 && absDy === 1);
+        case 'b':
+            return absDx === absDy && isPathClear(board, sx, sy, dx, dy);
+        case 'r':
+            return (adx === 0 || ady === 0) && isPathClear(board, sx, sy, dx, dy);
+        case 'q':
+            return (absDx === absDy || adx === 0 || ady === 0) && isPathClear(board, sx, sy, dx, dy);
+        case 'k':
+            return absDx <= 1 && absDy <= 1;
+        default:
+            return false;
+    }
+}
+
 function handleChessClick(x, y) {
-    if (chessMode === 'ai' && chessGame.turn === 'b') return;
+    const piece = chessGame.board[y][x];
 
     if (!chessGame.selected) {
-        const piece = chessGame.board[y][x];
-        if (piece && ((chessGame.turn === 'w' && piece === piece.toUpperCase()) || (chessGame.turn === 'b' && piece === piece.toLowerCase()))) {
+        if (piece && ((chessGame.turn === 'w' && isWhitePiece(piece)) || (chessGame.turn === 'b' && isBlackPiece(piece)))) {
             chessGame.selected = {x, y};
             if (typeof audio !== 'undefined') audio.playSFX('click');
             renderChessBoard();
@@ -1454,37 +1519,105 @@ function handleChessClick(x, y) {
     } else {
         const sx = chessGame.selected.x;
         const sy = chessGame.selected.y;
-        chessGame.board[y][x] = chessGame.board[sy][sx];
-        chessGame.board[sy][sx] = null;
-        chessGame.selected = null;
-        chessGame.turn = chessGame.turn === 'w' ? 'b' : 'w';
-        if (typeof audio !== 'undefined') audio.playSFX('move');
-        renderChessBoard();
 
-        if (chessMode === 'ai' && chessGame.turn === 'b') {
-            setTimeout(chessAiMove, 500);
+        if (sx === x && sy === y) {
+            chessGame.selected = null;
+            renderChessBoard();
+            return;
+        }
+
+        if (piece && ((chessGame.turn === 'w' && isWhitePiece(piece)) || (chessGame.turn === 'b' && isBlackPiece(piece)))) {
+            chessGame.selected = {x, y};
+            if (typeof audio !== 'undefined') audio.playSFX('click');
+            renderChessBoard();
+            return;
+        }
+
+        if (isValidChessMove(chessGame.board, sx, sy, x, y, chessGame.turn)) {
+            const captured = chessGame.board[y][x];
+            chessGame.board[y][x] = chessGame.board[sy][sx];
+            chessGame.board[sy][sx] = null;
+
+            // Pawn promotion
+            if (chessGame.board[y][x] === 'P' && y === 0) chessGame.board[y][x] = 'Q';
+            if (chessGame.board[y][x] === 'p' && y === 7) chessGame.board[y][x] = 'q';
+
+            chessGame.selected = null;
+            if (typeof audio !== 'undefined') {
+                if (captured) audio.playSFX('powerup');
+                else audio.playSFX('move');
+            }
+
+            if (captured && (captured.toLowerCase() === 'k')) {
+                chessGame.over = true;
+                showChessGameOver(chessGame.turn === 'w' ? "WHITE WINS! 🏆" : "BLACK WINS! 🏆");
+                return;
+            }
+
+            chessGame.turn = chessGame.turn === 'w' ? 'b' : 'w';
+            renderChessBoard();
+
+            if (chessMode === 'ai' && chessGame.turn === 'b' && !chessGame.over) {
+                setTimeout(chessAiMove, 600);
+            }
+        } else {
+            if (typeof audio !== 'undefined') audio.playSFX('gameover');
+            chessGame.selected = null;
+            renderChessBoard();
         }
     }
 }
 
 function chessAiMove() {
-    let blackPieces = [];
-    for (let r=0; r<8; r++) {
-        for (let c=0; c<8; c++) {
-            if (chessGame.board[r][c] && chessGame.board[r][c] === chessGame.board[r][c].toLowerCase()) {
-                blackPieces.push({x: c, y: r});
+    if (chessGame.over || chessGame.turn !== 'b') return;
+
+    let allMoves = [];
+    for (let sy = 0; sy < 8; sy++) {
+        for (let sx = 0; sx < 8; sx++) {
+            const p = chessGame.board[sy][sx];
+            if (isBlackPiece(p)) {
+                for (let dy = 0; dy < 8; dy++) {
+                    for (let dx = 0; dx < 8; dx++) {
+                        if (isValidChessMove(chessGame.board, sx, sy, dx, dy, 'b')) {
+                            allMoves.push({sx, sy, dx, dy, score: chessGame.board[dy][dx] ? 10 : 0});
+                        }
+                    }
+                }
             }
         }
     }
-    if (blackPieces.length > 0) {
-        let p = blackPieces[Math.floor(Math.random() * blackPieces.length)];
-        let targetY = Math.min(7, p.y + 1);
-        chessGame.board[targetY][p.x] = chessGame.board[p.y][p.x];
-        chessGame.board[p.y][p.x] = null;
-        chessGame.turn = 'w';
+
+    if (allMoves.length > 0) {
+        allMoves.sort((a, b) => b.score - a.score);
+        const bestMove = allMoves[0];
+        const captured = chessGame.board[bestMove.dy][bestMove.dx];
+
+        chessGame.board[bestMove.dy][bestMove.dx] = chessGame.board[bestMove.sy][bestMove.sx];
+        chessGame.board[bestMove.sy][bestMove.sx] = null;
+
+        if (chessGame.board[bestMove.dy][bestMove.dx] === 'p' && bestMove.dy === 7) {
+            chessGame.board[bestMove.dy][bestMove.dx] = 'q';
+        }
+
         if (typeof audio !== 'undefined') audio.playSFX('move');
-        renderChessBoard();
+
+        if (captured && captured.toLowerCase() === 'k') {
+            chessGame.over = true;
+            showChessGameOver("AI WINS! 🤖");
+            return;
+        }
     }
+
+    chessGame.turn = 'w';
+    renderChessBoard();
+}
+
+function showChessGameOver(msg) {
+    const indicator = document.getElementById('chess-turn-indicator');
+    if (indicator) indicator.textContent = msg;
+    if (typeof audio !== 'undefined') audio.playSFX('win');
+    ScoreManager.saveScore('chess', 600);
+    if (typeof submitScore === 'function') submitScore('Chess Pro', 'Player', 600);
 }
 
 function renderChessBoard() {
@@ -1504,7 +1637,7 @@ function renderChessBoard() {
 
             const piece = chessGame.board[r][c];
             if (piece) {
-                chessCtx.fillStyle = piece === piece.toUpperCase() ? '#f8fafc' : '#cbd5e1';
+                chessCtx.fillStyle = isWhitePiece(piece) ? '#f8fafc' : '#cbd5e1';
                 chessCtx.font = '28px sans-serif';
                 chessCtx.textAlign = 'center';
                 chessCtx.textBaseline = 'middle';
@@ -1512,8 +1645,13 @@ function renderChessBoard() {
             }
         }
     }
-    document.getElementById('chess-turn-indicator').textContent = chessGame.turn === 'w' ? "White's Turn" : (chessMode === 'ai' ? "AI's Turn..." : "Black's Turn");
+
+    if (!chessGame.over) {
+        const ind = document.getElementById('chess-turn-indicator');
+        if (ind) ind.textContent = chessGame.turn === 'w' ? "White's Turn" : (chessMode === 'ai' ? "AI's Turn..." : "Black's Turn");
+    }
 }
+
 
 // ===================================================
 // PINOY DAMA ENGINE (CAPTURES + HARD AI + MULTI-JUMP & WIN MODAL)
