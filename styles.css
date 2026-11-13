@@ -1,3 +1,17 @@
+/* Dynamic Status Badges on Game Cards */
+.game-card[data-name*="towerstack"]::before {
+    content: "2X XP HOT";
+    background: rgba(250, 204, 21, 0.2);
+    border-color: #facc15;
+    color: #facc15;
+}
+.game-card[data-name*="connect four"]::before {
+    content: "NEW";
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+    color: #38bdf8;
+}
+
 /* ===================== HUB CORE STYLES ===================== */
 :root {
     --bg-color: #0b0f19;
