@@ -1194,3 +1194,50 @@ html.theme-coffee {
 @media (min-width: 480px) {
     .gotd-play-btn { width: auto; }
 }
+
+/* ===================== NEW CUSTOM COMPONENT STYLES ===================== */
+
+/* Header Profile Hero Icon Hover & Active States */
+.header-profile-icon:hover {
+    border-color: var(--primary);
+    background: rgba(17, 24, 39, 0.95);
+    box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+/* Clickable Daily Quests Game Card */
+.daily-game-card {
+    width: 100%;
+    max-width: 600px;
+    background: linear-gradient(145deg, rgba(22, 30, 48, 0.95), rgba(13, 19, 33, 0.95));
+    border: 1.5px solid var(--primary);
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    box-shadow: 0 6px 20px var(--accent-glow);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.daily-game-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px var(--accent-glow);
+}
+
+/* Landscape Modal Layout for Profile & Unlocks */
+.landscape-modal-box {
+    max-width: 620px !important;
+    width: 95% !important;
+}
+.landscape-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+@media (max-width: 540px) {
+    .landscape-modal-grid {
+        grid-template-columns: 1fr;
+    }
+}
