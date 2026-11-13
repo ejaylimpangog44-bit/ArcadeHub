@@ -1309,72 +1309,201 @@ function whackMole(idx) {
 }
 
 // ===================================================
-// SNAKE EVOLUTION ENGINE
+// CYBER SNAKE (FULL UPGRADED VERSION)
 // ===================================================
-let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT', snakeInterval = null, snakeScore = 0;
+let snakeCanvas, snakeCtx, snake = [], snakeFood = {}, snakeBonus = null, snakeDir = 'RIGHT', nextSnakeDir = 'RIGHT';
+let snakeInterval = null, snakeScore = 0, snakeCombo = 1, snakeComboTimer = 0, snakeParticles = [], snakeGhostTimer = 0;
 
-function initSnakeCanvas() { snakeCanvas=document.getElementById('snake-canvas'); if(snakeCanvas)snakeCtx=snakeCanvas.getContext('2d'); }
+function initSnakeCanvas() {
+    snakeCanvas = document.getElementById('snake-canvas');
+    if (snakeCanvas) snakeCtx = snakeCanvas.getContext('2d');
+}
+
 function startSnakeGame() {
-    audio.playSFX('click'); document.getElementById('snake-gameover-overlay').style.display='none'; initSnakeCanvas(); if(!snakeCtx)return; if(snakeInterval)clearInterval(snakeInterval);
-    snake=[{x:12,y:12},{x:11,y:12},{x:10,y:12}]; snakeDir='RIGHT'; nextSnakeDir='RIGHT'; snakeScore=0;
-    document.getElementById('snake-score').textContent=0; spawnRealSnakeFood(); 
-    snakeInterval=setInterval(updateRealSnake, 130);
+    audio.playSFX('click');
+    document.getElementById('snake-gameover-overlay').style.display = 'none';
+    initSnakeCanvas();
+    if (!snakeCtx) return;
+    if (snakeInterval) clearInterval(snakeInterval);
+
+    snake = [{ x: 12, y: 12 }, { x: 11, y: 12 }, { x: 10, y: 12 }];
+    snakeDir = 'RIGHT';
+    nextSnakeDir = 'RIGHT';
+    snakeScore = 0;
+    snakeCombo = 1;
+    snakeComboTimer = 0;
+    snakeBonus = null;
+    snakeParticles = [];
+    snakeGhostTimer = 0;
+
+    document.getElementById('snake-score').textContent = 0;
+    document.getElementById('snake-speed-lvl').textContent = '1x';
+    document.getElementById('snake-high').textContent = ScoreManager.getStats('snake').highScore;
+
+    spawnRealSnakeFood();
+    snakeInterval = setInterval(updateRealSnake, 115);
 }
-function spawnRealSnakeFood() { 
-    snakeFood={x:Math.floor(Math.random()*24)+1,y:Math.floor(Math.random()*24)+1}; 
+
+function spawnRealSnakeFood() {
+    snakeFood = { x: Math.floor(Math.random() * 24) + 1, y: Math.floor(Math.random() * 24) + 1 };
+    if (Math.random() < 0.35 && !snakeBonus) {
+        snakeBonus = {
+            x: Math.floor(Math.random() * 24) + 1,
+            y: Math.floor(Math.random() * 24) + 1,
+            type: Math.random() < 0.5 ? 'gold' : 'ghost',
+            ttl: 65
+        };
+    }
 }
-function changeSnakeDir(dir) { 
-    if(isGamePaused) return;
-    audio.playSFX('move'); 
-    if(dir==='UP'&&snakeDir!=='DOWN')nextSnakeDir='UP'; 
-    if(dir==='DOWN'&&snakeDir!=='UP')nextSnakeDir='DOWN'; 
-    if(dir==='LEFT'&&snakeDir!=='RIGHT')nextSnakeDir='LEFT'; 
-    if(dir==='RIGHT'&&snakeDir!=='LEFT')nextSnakeDir='RIGHT'; 
+
+function changeSnakeDir(dir) {
+    if (isGamePaused) return;
+    audio.playSFX('move');
+    if (dir === 'UP' && snakeDir !== 'DOWN') nextSnakeDir = 'UP';
+    if (dir === 'DOWN' && snakeDir !== 'UP') nextSnakeDir = 'DOWN';
+    if (dir === 'LEFT' && snakeDir !== 'RIGHT') nextSnakeDir = 'LEFT';
+    if (dir === 'RIGHT' && snakeDir !== 'LEFT') nextSnakeDir = 'RIGHT';
 }
 
 window.addEventListener('keydown', e => {
-    if(!document.getElementById('snakegame-container').classList.contains('active') || isGamePaused) return;
-    if(e.code === 'ArrowUp') { e.preventDefault(); changeSnakeDir('UP'); }
-    if(e.code === 'ArrowDown') { e.preventDefault(); changeSnakeDir('DOWN'); }
-    if(e.code === 'ArrowLeft') { e.preventDefault(); changeSnakeDir('LEFT'); }
-    if(e.code === 'ArrowRight') { e.preventDefault(); changeSnakeDir('RIGHT'); }
+    if (!document.getElementById('snakegame-container').classList.contains('active') || isGamePaused) return;
+    if (e.code === 'ArrowUp') { e.preventDefault(); changeSnakeDir('UP'); }
+    if (e.code === 'ArrowDown') { e.preventDefault(); changeSnakeDir('DOWN'); }
+    if (e.code === 'ArrowLeft') { e.preventDefault(); changeSnakeDir('LEFT'); }
+    if (e.code === 'ArrowRight') { e.preventDefault(); changeSnakeDir('RIGHT'); }
 });
 
-function updateRealSnake() {
-    if(isGamePaused) return;
-    snakeDir=nextSnakeDir; let head={x:snake[0].x,y:snake[0].y};
-    if(snakeDir==='UP')head.y--; if(snakeDir==='DOWN')head.y++; if(snakeDir==='LEFT')head.x--; if(snakeDir==='RIGHT')head.x++;
+function spawnSnakeParticles(gx, gy, color) {
+    for (let i = 0; i < 12; i++) {
+        snakeParticles.push({
+            x: gx * 10 + 5,
+            y: gy * 10 + 5,
+            vx: (Math.random() - 0.5) * 5,
+            vy: (Math.random() - 0.5) * 5,
+            life: 18,
+            color
+        });
+    }
+}
 
-    if(head.x<0||head.x>=26||head.y<0||head.y>=26||snake.some(s=>s.x===head.x&&s.y===head.y)){
+function updateRealSnake() {
+    if (isGamePaused) return;
+    snakeDir = nextSnakeDir;
+    let head = { x: snake[0].x, y: snake[0].y };
+
+    if (snakeDir === 'UP') head.y--;
+    if (snakeDir === 'DOWN') head.y++;
+    if (snakeDir === 'LEFT') head.x--;
+    if (snakeDir === 'RIGHT') head.x++;
+
+    if (snakeComboTimer > 0) snakeComboTimer--;
+    else snakeCombo = 1;
+
+    if (snakeGhostTimer > 0) {
+        snakeGhostTimer--;
+        if (head.x < 0) head.x = 25;
+        if (head.x >= 26) head.x = 0;
+        if (head.y < 0) head.y = 25;
+        if (head.y >= 26) head.y = 0;
+    }
+
+    const hitWall = head.x < 0 || head.x >= 26 || head.y < 0 || head.y >= 26;
+    const hitSelf = snakeGhostTimer <= 0 && snake.some(s => s.x === head.x && s.y === head.y);
+
+    if (hitWall || hitSelf) {
         audio.playSFX('gameover');
         clearInterval(snakeInterval);
         document.getElementById('snake-final-msg').textContent = `Final Score: ${snakeScore}`;
-        document.getElementById('snake-gameover-overlay').style.display='flex';
-        let stats=ScoreManager.saveScore('snake',snakeScore);
-        submitScore('Snake Evolution', 'TestPlayer', snakeScore);
-        document.getElementById('snake-high').textContent=stats.highScore;
+        document.getElementById('snake-gameover-overlay').style.display = 'flex';
+        let stats = ScoreManager.saveScore('snake', snakeScore);
+        submitScore('Cyber Snake', 'Player', snakeScore);
+        document.getElementById('snake-high').textContent = stats.highScore;
         return;
     }
 
-    snake.unshift(head); 
-    if(head.x===snakeFood.x&&head.y===snakeFood.y){
+    snake.unshift(head);
+
+    if (head.x === snakeFood.x && head.y === snakeFood.y) {
         audio.playSFX('score');
-        snakeScore+=10;
-        document.getElementById('snake-score').textContent=snakeScore;
+        snakeScore += 10 * snakeCombo;
+        snakeCombo = Math.min(5, snakeCombo + 1);
+        snakeComboTimer = 35;
+        document.getElementById('snake-score').textContent = snakeScore;
+        document.getElementById('snake-speed-lvl').textContent = `${snakeCombo}x`;
+        spawnSnakeParticles(head.x, head.y, '#ec4899');
         spawnRealSnakeFood();
     } else {
-        snake.pop(); 
+        snake.pop();
     }
+
+    if (snakeBonus) {
+        snakeBonus.ttl--;
+        if (head.x === snakeBonus.x && head.y === snakeBonus.y) {
+            audio.playSFX('powerup');
+            if (snakeBonus.type === 'gold') {
+                snakeScore += 50;
+                spawnSnakeParticles(head.x, head.y, '#facc15');
+            } else {
+                snakeGhostTimer = 50;
+                spawnSnakeParticles(head.x, head.y, '#38bdf8');
+            }
+            document.getElementById('snake-score').textContent = snakeScore;
+            snakeBonus = null;
+        } else if (snakeBonus.ttl <= 0) {
+            snakeBonus = null;
+        }
+    }
+
     drawRealSnake();
 }
 
 function drawRealSnake() {
-    snakeCtx.fillStyle='#0a0f1d'; snakeCtx.fillRect(0,0,260,260); 
-    snakeCtx.fillStyle='#ec4899'; snakeCtx.beginPath(); snakeCtx.arc(snakeFood.x*10+5,snakeFood.y*10+5,4.5,0,Math.PI*2); snakeCtx.fill();
-    snake.forEach((part,idx)=>{
-        snakeCtx.fillStyle=idx===0?'#10b981':'#059669'; let sz=idx===0?9:8;
-        snakeCtx.beginPath(); snakeCtx.roundRect(part.x*10+1,part.y*10+1,sz,sz,3); snakeCtx.fill();
+    snakeCtx.fillStyle = '#070b14';
+    snakeCtx.fillRect(0, 0, 260, 260);
+
+    snakeCtx.strokeStyle = 'rgba(56, 189, 248, 0.06)';
+    snakeCtx.lineWidth = 1;
+    for (let i = 0; i <= 260; i += 20) {
+        snakeCtx.beginPath(); snakeCtx.moveTo(i, 0); snakeCtx.lineTo(i, 260); snakeCtx.stroke();
+        snakeCtx.beginPath(); snakeCtx.moveTo(0, i); snakeCtx.lineTo(260, i); snakeCtx.stroke();
+    }
+
+    snakeCtx.shadowColor = '#ec4899';
+    snakeCtx.shadowBlur = 10;
+    snakeCtx.fillStyle = '#ec4899';
+    snakeCtx.beginPath();
+    snakeCtx.arc(snakeFood.x * 10 + 5, snakeFood.y * 10 + 5, 4.5, 0, Math.PI * 2);
+    snakeCtx.fill();
+
+    if (snakeBonus) {
+        snakeCtx.shadowColor = snakeBonus.type === 'gold' ? '#facc15' : '#38bdf8';
+        snakeCtx.fillStyle = snakeCtx.shadowColor;
+        snakeCtx.beginPath();
+        snakeCtx.arc(snakeBonus.x * 10 + 5, snakeBonus.y * 10 + 5, 5.5, 0, Math.PI * 2);
+        snakeCtx.fill();
+    }
+    snakeCtx.shadowBlur = 0;
+
+    snake.forEach((part, idx) => {
+        if (snakeGhostTimer > 0) {
+            snakeCtx.fillStyle = idx === 0 ? '#38bdf8' : 'rgba(56, 189, 248, 0.45)';
+        } else {
+            snakeCtx.fillStyle = idx === 0 ? '#34d399' : '#059669';
+        }
+        let sz = idx === 0 ? 9 : 8;
+        snakeCtx.beginPath();
+        snakeCtx.roundRect(part.x * 10 + 1, part.y * 10 + 1, sz, sz, 3);
+        snakeCtx.fill();
     });
+
+    snakeParticles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        snakeCtx.fillStyle = p.color;
+        snakeCtx.fillRect(p.x, p.y, 2.5, 2.5);
+    });
+    snakeParticles = snakeParticles.filter(p => p.life > 0);
 }
 
 // ===================================================
@@ -2049,5 +2178,523 @@ function drawSrDeathAnimation() {
                 initSrGame();
             }
         };
+    }
+}
+
+// ===================================================
+// TOWER STACK (FULL VERSION ENGINE)
+// ===================================================
+let tsCanvas, tsCtx, tsRunning = false, tsAnimId;
+let tsBlocks = [], tsDebris = [], tsCurrentBlock = null, tsScore = 0, tsCombo = 0, tsCameraY = 0;
+const TS_BLOCK_HEIGHT = 24;
+
+function initTowerStackCanvas() {
+    tsCanvas = document.getElementById('ts-canvas');
+    if (!tsCanvas) return;
+    tsCtx = tsCanvas.getContext('2d');
+    tsCanvas.onpointerdown = (e) => {
+        e.preventDefault();
+        dropTowerBlock();
+    };
+}
+
+function startTowerStackGame() {
+    audio.playSFX('click');
+    document.getElementById('ts-gameover-overlay').style.display = 'none';
+    initTowerStackCanvas();
+    if (!tsCtx) return;
+    cancelAnimationFrame(tsAnimId);
+
+    tsScore = 0;
+    tsCombo = 0;
+    tsCameraY = 0;
+    tsDebris = [];
+    tsRunning = true;
+
+    tsBlocks = [{ x: 75, y: 360, w: 150, hue: 260 }];
+    spawnNextTowerBlock();
+
+    document.getElementById('ts-score').textContent = 0;
+    document.getElementById('ts-combo').textContent = '0x';
+    document.getElementById('ts-high').textContent = ScoreManager.getStats('towerstack').highScore;
+
+    tsLoop();
+}
+
+function spawnNextTowerBlock() {
+    const prev = tsBlocks[tsBlocks.length - 1];
+    const hue = (prev.hue + 14) % 360;
+    const speed = Math.min(6.5, 2.6 + tsScore * 0.12);
+    const fromLeft = tsBlocks.length % 2 === 1;
+    tsCurrentBlock = {
+        x: fromLeft ? 0 : 300 - prev.w,
+        y: prev.y - TS_BLOCK_HEIGHT,
+        w: prev.w,
+        vx: fromLeft ? speed : -speed,
+        hue
+    };
+}
+
+function dropTowerBlock() {
+    if (!tsRunning || !tsCurrentBlock || isGamePaused) return;
+    const prev = tsBlocks[tsBlocks.length - 1];
+    const diff = tsCurrentBlock.x - prev.x;
+
+    if (Math.abs(diff) >= prev.w) {
+        tsDebris.push({ x: tsCurrentBlock.x, y: tsCurrentBlock.y, w: tsCurrentBlock.w, vy: 2, hue: tsCurrentBlock.hue });
+        tsRunning = false;
+        audio.playSFX('gameover');
+        document.getElementById('ts-final-msg').textContent = `Blocks Stacked: ${tsScore}`;
+        document.getElementById('ts-gameover-overlay').style.display = 'flex';
+        const stats = ScoreManager.saveScore('towerstack', tsScore);
+        submitScore('Tower Stack', 'Player', tsScore);
+        document.getElementById('ts-high').textContent = stats.highScore;
+        return;
+    }
+
+    if (Math.abs(diff) <= 5) {
+        tsCurrentBlock.x = prev.x;
+        tsCombo++;
+        audio.playSFX('powerup');
+        if (tsCombo >= 3) {
+            tsCurrentBlock.w = Math.min(165, tsCurrentBlock.w + 10);
+        }
+    } else {
+        tsCombo = 0;
+        audio.playSFX('score');
+        const overlapW = prev.w - Math.abs(diff);
+        if (diff > 0) {
+            tsDebris.push({ x: prev.x + prev.w, y: tsCurrentBlock.y, w: diff, vy: 1, hue: tsCurrentBlock.hue });
+            tsCurrentBlock.w = overlapW;
+        } else {
+            tsDebris.push({ x: tsCurrentBlock.x, y: tsCurrentBlock.y, w: Math.abs(diff), vy: 1, hue: tsCurrentBlock.hue });
+            tsCurrentBlock.x = prev.x;
+            tsCurrentBlock.w = overlapW;
+        }
+    }
+
+    tsBlocks.push({ x: tsCurrentBlock.x, y: tsCurrentBlock.y, w: tsCurrentBlock.w, hue: tsCurrentBlock.hue });
+    tsScore++;
+    document.getElementById('ts-score').textContent = tsScore;
+    document.getElementById('ts-combo').textContent = `${tsCombo}x`;
+
+    if (tsBlocks.length > 8) {
+        tsCameraY += TS_BLOCK_HEIGHT;
+    }
+    spawnNextTowerBlock();
+}
+
+window.addEventListener('keydown', e => {
+    if (!document.getElementById('towerstack-container')?.classList.contains('active') || isGamePaused) return;
+    if (e.code === 'Space') {
+        e.preventDefault();
+        dropTowerBlock();
+    }
+});
+
+function tsLoop() {
+    if (!tsRunning && tsDebris.length === 0) return;
+    if (isGamePaused) {
+        tsAnimId = requestAnimationFrame(tsLoop);
+        return;
+    }
+
+    tsCtx.fillStyle = '#090d16';
+    tsCtx.fillRect(0, 0, 300, 400);
+
+    if (tsRunning && tsCurrentBlock) {
+        tsCurrentBlock.x += tsCurrentBlock.vx;
+        if (tsCurrentBlock.x <= 0) {
+            tsCurrentBlock.x = 0;
+            tsCurrentBlock.vx *= -1;
+        } else if (tsCurrentBlock.x + tsCurrentBlock.w >= 300) {
+            tsCurrentBlock.x = 300 - tsCurrentBlock.w;
+            tsCurrentBlock.vx *= -1;
+        }
+    }
+
+    tsCtx.save();
+    tsCtx.translate(0, tsCameraY);
+
+    tsBlocks.forEach(b => {
+        tsCtx.fillStyle = `hsl(${b.hue}, 78%, 58%)`;
+        tsCtx.beginPath();
+        tsCtx.roundRect(b.x, b.y, b.w, TS_BLOCK_HEIGHT - 2, 4);
+        tsCtx.fill();
+    });
+
+    if (tsRunning && tsCurrentBlock) {
+        tsCtx.fillStyle = `hsl(${tsCurrentBlock.hue}, 85%, 65%)`;
+        tsCtx.beginPath();
+        tsCtx.roundRect(tsCurrentBlock.x, tsCurrentBlock.y, tsCurrentBlock.w, TS_BLOCK_HEIGHT - 2, 4);
+        tsCtx.fill();
+    }
+
+    tsDebris.forEach(d => {
+        d.y += d.vy;
+        d.vy += 0.45;
+        tsCtx.fillStyle = `hsla(${d.hue}, 70%, 50%, 0.7)`;
+        tsCtx.fillRect(d.x, d.y, d.w, TS_BLOCK_HEIGHT - 2);
+    });
+    tsDebris = tsDebris.filter(d => d.y - tsCameraY < 430);
+
+    tsCtx.restore();
+    tsAnimId = requestAnimationFrame(tsLoop);
+}
+
+// ===================================================
+// UNO BATTLE (FULL VERSION ENGINE)
+// ===================================================
+const UNO_COLORS = ['red', 'blue', 'green', 'yellow'];
+const UNO_VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '🚫', '🔄', '+2'];
+let unoPlayerHand = [], unoAiHand = [], unoDiscard = null, unoCurrentColor = 'blue', unoTurn = 'player', unoOver = false;
+
+function createUnoCard() {
+    if (Math.random() < 0.14) {
+        return { color: 'wild', value: Math.random() < 0.5 ? 'WILD' : '+4' };
+    }
+    return {
+        color: UNO_COLORS[Math.floor(Math.random() * UNO_COLORS.length)],
+        value: UNO_VALUES[Math.floor(Math.random() * UNO_VALUES.length)]
+    };
+}
+
+function startUnoGame() {
+    audio.playSFX('click');
+    unoPlayerHand = Array.from({ length: 7 }, createUnoCard);
+    unoAiHand = Array.from({ length: 7 }, createUnoCard);
+    unoDiscard = {
+        color: UNO_COLORS[Math.floor(Math.random() * UNO_COLORS.length)],
+        value: String(Math.floor(Math.random() * 9) + 1)
+    };
+    unoCurrentColor = unoDiscard.color;
+    unoTurn = 'player';
+    unoOver = false;
+    document.getElementById('uno-color-picker').style.display = 'none';
+    document.getElementById('uno-status').textContent = "Your Turn! Match color or symbol.";
+    document.getElementById('uno-wins').textContent = ScoreManager.getStats('uno').highScore;
+    renderUnoBoard();
+}
+
+function renderUnoBoard() {
+    document.getElementById('uno-ai-count').textContent = unoAiHand.length;
+    const colEl = document.getElementById('uno-active-color');
+    colEl.textContent = unoCurrentColor.toUpperCase();
+    colEl.style.color = unoCurrentColor === 'red' ? '#ef4444' : unoCurrentColor === 'blue' ? '#38bdf8' : unoCurrentColor === 'green' ? '#22c55e' : '#facc15';
+
+    const aiBox = document.getElementById('uno-ai-hand');
+    aiBox.innerHTML = unoAiHand.map(() => `<div style="width:24px; height:34px; border-radius:6px; background:#1e293b; border:1px solid #8b5cf6; display:flex; align-items:center; justify-content:center; font-size:10px;">🎴</div>`).join('');
+
+    const discEl = document.getElementById('uno-discard-pile');
+    discEl.className = `uno-card uno-${unoDiscard.color === 'wild' ? unoCurrentColor : unoDiscard.color}`;
+    discEl.textContent = unoDiscard.value;
+
+    const pBox = document.getElementById('uno-player-hand');
+    pBox.innerHTML = '';
+    unoPlayerHand.forEach((card, idx) => {
+        const el = document.createElement('div');
+        el.className = `uno-card uno-${card.color}`;
+        el.textContent = card.value;
+        el.onclick = () => playUnoCard(idx);
+        pBox.appendChild(el);
+    });
+}
+
+function canPlayUnoCard(card) {
+    return card.color === 'wild' || card.color === unoCurrentColor || card.value === unoDiscard.value;
+}
+
+function playUnoCard(idx) {
+    if (unoOver || unoTurn !== 'player' || isGamePaused) return;
+    const card = unoPlayerHand[idx];
+    if (!canPlayUnoCard(card)) {
+        audio.playSFX('gameover');
+        document.getElementById('uno-status').textContent = "❌ Doesn't match color or symbol!";
+        return;
+    }
+
+    audio.playSFX('move');
+    unoPlayerHand.splice(idx, 1);
+    unoDiscard = card;
+
+    if (unoPlayerHand.length === 0) {
+        endUnoMatch(true);
+        return;
+    }
+
+    if (card.color === 'wild') {
+        document.getElementById('uno-color-picker').style.display = 'flex';
+        document.getElementById('uno-status').textContent = "Pick a Wild color!";
+        renderUnoBoard();
+        return;
+    }
+
+    unoCurrentColor = card.color;
+    applyUnoActionEffect(card, 'ai');
+}
+
+function chooseUnoWildColor(color) {
+    audio.playSFX('click');
+    unoCurrentColor = color;
+    document.getElementById('uno-color-picker').style.display = 'none';
+    if (unoDiscard.value === '+4') {
+        for (let i = 0; i < 4; i++) unoAiHand.push(createUnoCard());
+        document.getElementById('uno-status').textContent = "AI drew +4 and skipped! Your turn again!";
+        renderUnoBoard();
+        return;
+    }
+    unoTurn = 'ai';
+    renderUnoBoard();
+    setTimeout(unoAiTurn, 750);
+}
+
+function applyUnoActionEffect(card, target) {
+    if (card.value === '+2') {
+        if (target === 'ai') {
+            unoAiHand.push(createUnoCard(), createUnoCard());
+            document.getElementById('uno-status').textContent = "AI drew +2 and was skipped! Your turn!";
+            renderUnoBoard();
+            return;
+        } else {
+            unoPlayerHand.push(createUnoCard(), createUnoCard());
+            document.getElementById('uno-status').textContent = "AI played +2! You drew 2 cards.";
+            unoTurn = 'player';
+            renderUnoBoard();
+            return;
+        }
+    }
+    if (card.value === '🚫' || card.value === '🔄') {
+        document.getElementById('uno-status').textContent = `${target === 'ai' ? 'AI' : 'Your'} turn skipped! Play again!`;
+        if (target === 'player') setTimeout(unoAiTurn, 750);
+        renderUnoBoard();
+        return;
+    }
+
+    unoTurn = target;
+    renderUnoBoard();
+    if (target === 'ai') {
+        document.getElementById('uno-status').textContent = "AI is thinking...";
+        setTimeout(unoAiTurn, 750);
+    } else {
+        document.getElementById('uno-status').textContent = "Your Turn!";
+    }
+}
+
+function unoDrawCard() {
+    if (unoOver || unoTurn !== 'player' || isGamePaused) return;
+    audio.playSFX('click');
+    unoPlayerHand.push(createUnoCard());
+    unoTurn = 'ai';
+    document.getElementById('uno-status').textContent = "You drew a card. AI's turn...";
+    renderUnoBoard();
+    setTimeout(unoAiTurn, 750);
+}
+
+function unoAiTurn() {
+    if (unoOver || isGamePaused) return;
+    const playIdx = unoAiHand.findIndex(canPlayUnoCard);
+    if (playIdx !== -1) {
+        const card = unoAiHand.splice(playIdx, 1)[0];
+        unoDiscard = card;
+        audio.playSFX('move');
+
+        if (unoAiHand.length === 0) {
+            endUnoMatch(false);
+            return;
+        }
+
+        if (card.color === 'wild') {
+            unoCurrentColor = UNO_COLORS[Math.floor(Math.random() * UNO_COLORS.length)];
+            if (card.value === '+4') {
+                for (let i = 0; i < 4; i++) unoPlayerHand.push(createUnoCard());
+                document.getElementById('uno-status').textContent = `AI played Wild +4 (${unoCurrentColor.toUpperCase()})!`;
+                renderUnoBoard();
+                setTimeout(unoAiTurn, 750);
+                return;
+            }
+            unoTurn = 'player';
+            document.getElementById('uno-status').textContent = `AI chose ${unoCurrentColor.toUpperCase()}! Your turn.`;
+            renderUnoBoard();
+            return;
+        }
+
+        unoCurrentColor = card.color;
+        applyUnoActionEffect(card, 'player');
+    } else {
+        unoAiHand.push(createUnoCard());
+        unoTurn = 'player';
+        document.getElementById('uno-status').textContent = "AI drew a card. Your turn!";
+        renderUnoBoard();
+    }
+}
+
+function endUnoMatch(playerWon) {
+    unoOver = true;
+    renderUnoBoard();
+    if (playerWon) {
+        audio.playSFX('win');
+        document.getElementById('uno-status').textContent = "🎉 UNO! You defeated the AI!";
+        const prevWins = ScoreManager.getStats('uno').highScore;
+        const stats = ScoreManager.saveScore('uno', prevWins + 1);
+        document.getElementById('uno-wins').textContent = stats.highScore;
+    } else {
+        audio.playSFX('gameover');
+        document.getElementById('uno-status').textContent = "💀 AI emptied its hand first!";
+    }
+}
+
+// ===================================================
+// NEON AIR HOCKEY (FULL VERSION ENGINE)
+// ===================================================
+let ahCanvas, ahCtx, ahRunning = false, ahAnimId;
+let ahPlayerScore = 0, ahAiScore = 0;
+let ahPuck = { x: 140, y: 200, vx: 3, vy: 4, r: 12 };
+let ahPlayer = { x: 140, y: 340, r: 22 };
+let ahAi = { x: 140, y: 60, r: 22 };
+
+function initAirHockeyCanvas() {
+    ahCanvas = document.getElementById('ah-canvas');
+    if (!ahCanvas) return;
+    ahCtx = ahCanvas.getContext('2d');
+
+    const moveMallet = (clientX, clientY) => {
+        if (!ahRunning || isGamePaused) return;
+        const rect = ahCanvas.getBoundingClientRect();
+        const cx = (clientX - rect.left) * (ahCanvas.width / rect.width);
+        const cy = (clientY - rect.top) * (ahCanvas.height / rect.height);
+        ahPlayer.x = Math.max(ahPlayer.r, Math.min(280 - ahPlayer.r, cx));
+        ahPlayer.y = Math.max(200 + ahPlayer.r, Math.min(400 - ahPlayer.r, cy));
+    };
+
+    ahCanvas.onmousemove = e => moveMallet(e.clientX, e.clientY);
+    ahCanvas.ontouchmove = e => {
+        moveMallet(e.touches[0].clientX, e.touches[0].clientY);
+        e.preventDefault();
+    };
+}
+
+function startAirHockeyGame() {
+    audio.playSFX('click');
+    document.getElementById('ah-gameover-overlay').style.display = 'none';
+    initAirHockeyCanvas();
+    if (!ahCtx) return;
+    cancelAnimationFrame(ahAnimId);
+
+    ahPlayerScore = 0;
+    ahAiScore = 0;
+    ahRunning = true;
+    document.getElementById('ah-player-score').textContent = 0;
+    document.getElementById('ah-ai-score').textContent = 0;
+    resetAhPuck(1);
+    ahLoop();
+}
+
+function resetAhPuck(dirY) {
+    ahPuck = { x: 140, y: 200, vx: (Math.random() - 0.5) * 5, vy: 4.2 * dirY, r: 12 };
+}
+
+function resolveMalletCollision(mallet) {
+    const dx = ahPuck.x - mallet.x;
+    const dy = ahPuck.y - mallet.y;
+    const dist = Math.hypot(dx, dy);
+    const minDist = ahPuck.r + mallet.r;
+    if (dist < minDist && dist > 0) {
+        audio.playSFX('click');
+        const nx = dx / dist;
+        const ny = dy / dist;
+        ahPuck.x = mallet.x + nx * (minDist + 1);
+        ahPuck.y = mallet.y + ny * (minDist + 1);
+        const speed = Math.min(10.5, Math.hypot(ahPuck.vx, ahPuck.vy) + 0.8);
+        ahPuck.vx = nx * speed;
+        ahPuck.vy = ny * speed;
+    }
+}
+
+function ahLoop() {
+    if (!ahRunning) return;
+    if (isGamePaused) {
+        ahAnimId = requestAnimationFrame(ahLoop);
+        return;
+    }
+
+    ahPuck.x += ahPuck.vx;
+    ahPuck.y += ahPuck.vy;
+    ahPuck.vx *= 0.996;
+    ahPuck.vy *= 0.996;
+
+    if (ahPuck.x - ahPuck.r < 0) { ahPuck.x = ahPuck.r; ahPuck.vx *= -1; audio.playSFX('move'); }
+    if (ahPuck.x + ahPuck.r > 280) { ahPuck.x = 280 - ahPuck.r; ahPuck.vx *= -1; audio.playSFX('move'); }
+
+    const inGoalX = ahPuck.x > 90 && ahPuck.x < 190;
+    if (ahPuck.y - ahPuck.r < 0) {
+        if (inGoalX) {
+            ahPlayerScore++;
+            document.getElementById('ah-player-score').textContent = ahPlayerScore;
+            audio.playSFX('score');
+            if (ahPlayerScore >= 7) return endAirHockey(true);
+            resetAhPuck(-1);
+        } else {
+            ahPuck.y = ahPuck.r;
+            ahPuck.vy *= -1;
+        }
+    }
+    if (ahPuck.y + ahPuck.r > 400) {
+        if (inGoalX) {
+            ahAiScore++;
+            document.getElementById('ah-ai-score').textContent = ahAiScore;
+            audio.playSFX('gameover');
+            if (ahAiScore >= 7) return endAirHockey(false);
+            resetAhPuck(1);
+        } else {
+            ahPuck.y = 400 - ahPuck.r;
+            ahPuck.vy *= -1;
+        }
+    }
+
+    const targetX = ahPuck.y < 210 ? ahPuck.x : 140;
+    const targetY = ahPuck.y < 180 ? Math.max(35, ahPuck.y - 10) : 60;
+    ahAi.x += Math.sign(targetX - ahAi.x) * Math.min(4.2, Math.abs(targetX - ahAi.x));
+    ahAi.y += Math.sign(targetY - ahAi.y) * Math.min(3.5, Math.abs(targetY - ahAi.y));
+
+    resolveMalletCollision(ahPlayer);
+    resolveMalletCollision(ahAi);
+
+    ahCtx.fillStyle = '#090d16';
+    ahCtx.fillRect(0, 0, 280, 400);
+
+    ahCtx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+    ahCtx.lineWidth = 2;
+    ahCtx.beginPath(); ahCtx.moveTo(0, 200); ahCtx.lineTo(280, 200); ahCtx.stroke();
+    ahCtx.beginPath(); ahCtx.arc(140, 200, 42, 0, Math.PI * 2); ahCtx.stroke();
+
+    ahCtx.fillStyle = '#ef4444'; ahCtx.fillRect(90, 0, 100, 5);
+    ahCtx.fillStyle = '#38bdf8'; ahCtx.fillRect(90, 395, 100, 5);
+
+    ahCtx.fillStyle = '#ef4444';
+    ahCtx.beginPath(); ahCtx.arc(ahAi.x, ahAi.y, ahAi.r, 0, Math.PI * 2); ahCtx.fill();
+    ahCtx.strokeStyle = '#fff'; ahCtx.lineWidth = 2; ahCtx.stroke();
+
+    ahCtx.fillStyle = '#38bdf8';
+    ahCtx.beginPath(); ahCtx.arc(ahPlayer.x, ahPlayer.y, ahPlayer.r, 0, Math.PI * 2); ahCtx.fill();
+    ahCtx.strokeStyle = '#fff'; ahCtx.lineWidth = 2; ahCtx.stroke();
+
+    ahCtx.shadowColor = '#facc15';
+    ahCtx.shadowBlur = 12;
+    ahCtx.fillStyle = '#facc15';
+    ahCtx.beginPath(); ahCtx.arc(ahPuck.x, ahPuck.y, ahPuck.r, 0, Math.PI * 2); ahCtx.fill();
+    ahCtx.shadowBlur = 0;
+
+    ahAnimId = requestAnimationFrame(ahLoop);
+}
+
+function endAirHockey(playerWon) {
+    ahRunning = false;
+    document.getElementById('ah-final-title').textContent = playerWon ? "CHAMPIONSHIP WIN! 🏆" : "AI WINS MATCH! 🤖";
+    document.getElementById('ah-final-msg').textContent = `Final Score: ${ahPlayerScore} - ${ahAiScore}`;
+    document.getElementById('ah-gameover-overlay').style.display = 'flex';
+    if (playerWon) {
+        audio.playSFX('win');
+        ScoreManager.saveScore('airhockey', ahPlayerScore * 25);
+        submitScore('Air Hockey', 'Player', ahPlayerScore * 25);
     }
 }
