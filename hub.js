@@ -566,7 +566,7 @@ function openGame(containerId) {
         if (containerId === 'wordscape-container') startWordscapeGame();
         if (containerId === 'towerstack-container') startTowerStackGame();
         if (containerId === 'chess-container') newChessGame();
-        if (containerId === 'dama-container') newDamaGame();
+        if (containerId === 'dama-container') newDamaGame(); // ✅ Fully integrated Dama bridge engine!
     }, 50);
 }
 
