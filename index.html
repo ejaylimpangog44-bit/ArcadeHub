@@ -43,7 +43,7 @@
         </div>
     </div>
 
-    <!-- HEADER WITH COMPACT PROFILE HERO ICON -->
+    <!-- HEADER WITH COMPACT PROFILE HERO ICON & TOTAL XP -->
     <header style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin-bottom: 14px; padding: 0 4px;">
         <div class="logo-area">
             <div class="logo-icon">🎮</div>
@@ -52,12 +52,15 @@
                 <p>Play • Think • Win</p>
             </div>
         </div>
-        <!-- Compact Header Profile Hero Icon -->
-        <div class="header-profile-icon" role="button" aria-label="Customize avatar" onclick="openCustomizeModal()" style="display: flex; align-items: center; gap: 8px; background: rgba(17,24,39,0.85); border: 1px solid var(--border); border-radius: 999px; padding: 4px; width: 48px; height: 48px; justify-content: center; gap: 0; cursor: pointer;" title="Customize Profile">
+        <!-- Profile Hero Icon with Level & Total XP -->
+        <div class="header-profile-icon" role="button" aria-label="Customize avatar" onclick="openCustomizeModal()" style="display: flex; align-items: center; gap: 8px; background: rgba(17,24,39,0.85); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px 4px 4px; cursor: pointer;" title="Customize Profile">
             <div class="avatar-frame border-rookie" id="hub-avatar-frame" style="width: 36px; height: 36px; font-size: 18px; border-radius: 50%;">
                 <span id="hub-avatar-icon">🕹️</span>
             </div>
-
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                <span id="hub-level-mini" style="font-size: 10px; font-weight: 800; color: var(--primary);">LVL 1</span>
+                <span id="header-total-xp" style="font-size: 11px; font-weight: 800; color: #facc15;">0 XP</span>
+            </div>
         </div>
     </header>
 
@@ -80,8 +83,8 @@
         <button class="gotd-play-btn" id="gotd-play-btn">PLAY 2X XP ▶</button>
     </div>
 
-    <!-- COMPACT DAILY QUESTS CHIP -->
-    <div style="display:none !important;" onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(135deg, rgba(22, 30, 48, 0.9), rgba(13, 19, 33, 0.9)); border: 1px solid rgba(250, 204, 21, 0.4); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.1); transition: transform 0.15s;">
+    <!-- DAILY QUESTS CHIP -->
+    <div onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(135deg, rgba(22, 30, 48, 0.9), rgba(13, 19, 33, 0.9)); border: 1px solid rgba(250, 204, 21, 0.4); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.1);">
         <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 18px;">🔥</span>
             <span style="font-size: 12px; font-weight: 800; color: #fff;">Daily Quests & Streak</span>
@@ -113,10 +116,12 @@
                 <div class="game-card" data-name="chess strategy board game" onclick="openBoardGame('chess')">
                     <span class="game-icon">♟️</span>
                     <span class="game-name">Chess</span>
+                    <span class="game-cta">TAP TO PLAY ↗</span>
                 </div>
                 <div class="game-card" data-name="dama checkers board game" onclick="openBoardGame('dama')">
                     <span class="game-icon">🔴</span>
                     <span class="game-name">Dama</span>
+                    <span class="game-cta">TAP TO PLAY ↗</span>
                 </div>
             </div>
         </div>
@@ -162,14 +167,6 @@
                     <span class="game-icon">🏗️</span>
                     <span class="game-name">Tower Stack</span>
                 </div>
-                <div class="game-card" data-name="air hockey" onclick="showGameInstructions('airhockey-container', 'Air Hockey', '🏒', { objective: 'First to 7 goals wins! Defend your goal and smash the neon puck past the AI striker.', controls: 'Drag your finger or mouse on the bottom half of the rink.' })">
-                    <span class="game-icon">🏒</span>
-                    <span class="game-name">Air Hockey</span>
-                </div>
-                <div class="game-card" data-name="dino runner pro" onclick="showGameInstructions('dinogame-container', 'Dino Runner', '🦖', { objective: 'Press Jump to clear cacti or Duck to dodge flying pterodactyls in this endless prehistoric sprint!', controls: 'Press Space/Up Arrow to Jump, Down Arrow to Duck.' })">
-                    <span class="game-icon">🦖</span>
-                    <span class="game-name">Dino Runner</span>
-                </div>
             </div>
         </div>
 
@@ -187,24 +184,6 @@
                 <div class="game-card" data-name="stick run" onclick="showGameInstructions('stickman-container', 'Stick Run', '🏃‍♂️', { objective: 'Clear obstacles in this high-speed endless runner.', controls: 'Press Space/Up Arrow to Jump/Double Jump, Down Arrow to Slide.' })">
                     <span style="font-size: 24px;">🏃‍♂️</span>
                     <span class="game-name">Stick Run</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="activity-card">
-            <div class="activity-header">Your Gaming Activity</div>
-            <div class="activity-stats-grid">
-                <div class="activity-stat-item">
-                    <h3 id="stat-games-played">0</h3>
-                    <p>Games played</p>
-                </div>
-                <div class="activity-stat-item">
-                    <h3 id="stat-achievements">0</h3>
-                    <p>High Scores Set</p>
-                </div>
-                <div class="activity-stat-item">
-                    <h3 id="stat-total-xp">0</h3>
-                    <p>Total XP Earned</p>
                 </div>
             </div>
         </div>
@@ -612,32 +591,6 @@
         </div>
     </div>
 
-    <!-- Dino Runner Pro -->
-    <div id="dinogame-container" class="game-container">
-        <div class="game-top-bar">
-            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Dino Runner</span>
-            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
-        </div>
-        <div style="width:100%; max-width:320px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
-            <div class="score-board" style="margin-top:4px; width:100%;">
-                <div class="score-box">Score <span id="dino-score">0</span></div>
-                <div class="score-box">High <span id="dino-high">0</span></div>
-            </div>
-            <div style="position:relative; display:inline-block;">
-                <canvas id="dino-canvas" class="arcade-canvas" width="320" height="180" style="touch-action:none;"></canvas>
-                <div id="dino-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.85); backdrop-filter:blur(3px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                    <h2 style="color:#ef4444; margin-bottom:8px; font-size:1.1rem;">EXTINCT! 🦖</h2>
-                    <p id="dino-final-msg" style="color:var(--text-muted); font-size:0.8rem; margin-bottom:12px;">Score: 0</p>
-                    <button class="action-btn" onclick="startDinoGame()">PLAY AGAIN</button>
-                </div>
-            </div>
-            <div class="dir-pad" style="max-width:220px; grid-template-columns: 1fr 1fr;">
-                <button class="dir-btn" onclick="dinoJump()">⬆️ JUMP</button>
-                <button class="dir-btn" onclick="dinoDuck()">⬇️ DUCK</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Stick Run (Endless Edition) -->
     <div id="stickman-container" class="game-container">
         <div class="sr-main-menu" id="sr-main-menu" style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:420px; margin:0 auto; background: linear-gradient(135deg, #111827, #0b0f19); border:2px solid var(--primary); border-radius:16px; padding:25px; box-shadow:0 10px 30px var(--accent-glow);">
@@ -715,29 +668,6 @@
       <p class="boardgame-help">Captures are mandatory. If another jump is available after a capture, continue the chain before ending your turn. Reach the opposite side to become a king.</p>
     </div>
 
-    <!-- AIR HOCKEY CONTAINER -->
-    <div id="airhockey-container" class="game-container">
-        <div class="game-top-bar">
-            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Neon Air Hockey</span>
-            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
-        </div>
-        <div style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center;">
-            <div class="score-board" style="margin-top:4px; width:100%;">
-                <div class="score-box">AI 🤖 <span id="ah-ai-score">0</span></div>
-                <div class="score-box">First to 7 <span id="ah-status-tag">LIVE</span></div>
-                <div class="score-box">You 🔥 <span id="ah-player-score">0</span></div>
-            </div>
-            <div style="position:relative; display:inline-block;">
-                <canvas id="ah-canvas" class="arcade-canvas" width="280" height="400" style="touch-action:none; cursor:none;"></canvas>
-                <div id="ah-gameover-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(11,15,25,0.86); backdrop-filter:blur(4px); flex-direction:column; justify-content:center; align-items:center; border-radius:10px; z-index:20;">
-                    <h2 id="ah-final-title" style="color:#38bdf8; margin-bottom:6px; font-size:1.2rem;">VICTORY! 🏆</h2>
-                    <p id="ah-final-msg" style="color:var(--text-muted); font-size:0.85rem; margin-bottom:14px;">7 - 4</p>
-                    <button class="action-btn" onclick="startAirHockeyGame()">REMATCH</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- DAILY QUESTS MODAL -->
     <div class="modal-overlay" id="daily-quests-modal" style="z-index: 10550;">
         <div class="settings-modal-box landscape-modal-box" style="max-width: 440px;">
@@ -758,7 +688,7 @@
         </div>
     </div>
 
-    <!-- AVATAR, FLASHY BORDER & TITLE CUSTOMIZER MODAL (Landscape Layout) -->
+    <!-- AVATAR, FLASHY BORDER & TITLE CUSTOMIZER MODAL -->
     <div class="modal-overlay" id="customize-modal" style="z-index: 10550;">
         <div class="settings-modal-box landscape-modal-box">
             <div class="settings-header">
@@ -962,8 +892,9 @@
       </div>
     </div>
 
-
     <audio id="hub-bgm" src="bgm.mp3" loop preload="auto"></audio>
+    
+    <!-- DAILY SPIN WHEEL MODAL -->
     <div class="daily-reward-overlay" id="daily-reward-modal" aria-modal="true" role="dialog" aria-labelledby="daily-reward-title">
       <div class="daily-reward-card">
         <button class="settings-close-x daily-reward-close" onclick="closeDailyRewardModal()" aria-label="Close">✕</button>
