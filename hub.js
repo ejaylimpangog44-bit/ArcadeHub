@@ -721,12 +721,30 @@ function closeLevelUpModal() {
     if (modal) modal.style.display = 'none';
 }
 
-const _origSaveScore = ScoreManager.saveScore.bind(ScoreManager);
-ScoreManager.saveScore = function(gameKey, score) {
-    const res = _origSaveScore(gameKey, score);
-    ProgressionManager.awardGameXP(gameKey, score);
-    return res;
-};
+// Automatically trigger Daily Reward and Daily Quests modals when entering Hub
+const _origSaveCustomNameAndEnter = typeof saveCustomNameAndEnter !== 'undefined' ? saveCustomNameAndEnter : null;
+function saveCustomNameAndEnter() {
+    const input = document.getElementById('customNameInput');
+    const name = input ? input.value.trim() : 'Player';
+    if (name.length < 3) {
+        document.getElementById('customNameError').style.display = 'block';
+        return;
+    }
+    localStorage.setItem('arcadehub_player_name', name);
+    document.getElementById('name-prompt-modal').classList.remove('active');
+    
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+        splash.classList.add('fade-out');
+        setTimeout(() => {
+            splash.style.display = 'none';
+            if (typeof startHubBGM === 'function') startHubBGM();
+            openDailyRewardModal();
+            setTimeout(openDailyQuestsModal, 700);
+        }, 500);
+    }
+}
+
 
 // ===================================================
 // GAME OF THE DAY (2X XP HERO BANNER)
