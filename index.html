@@ -83,16 +83,7 @@
         <button class="gotd-play-btn" id="gotd-play-btn">PLAY 2X XP ▶</button>
     </div>
 
-    <!-- DAILY QUESTS CHIP -->
-    <div onclick="openDailyQuestsModal()" style="width: 100%; max-width: 600px; background: linear-gradient(135deg, rgba(22, 30, 48, 0.9), rgba(13, 19, 33, 0.9)); border: 1px solid rgba(250, 204, 21, 0.4); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 4px 15px rgba(250, 204, 21, 0.1);">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 18px;">🔥</span>
-            <span style="font-size: 12px; font-weight: 800; color: #fff;">Daily Quests & Streak</span>
-            <span style="font-size: 10px; color: var(--text-muted);" id="daily-card-subtitle">• 1 Day Streak</span>
-        </div>
-        <span style="font-size: 11px; font-weight: 800; color: #facc15; background: rgba(250,204,21,0.15); padding: 4px 10px; border-radius: 6px;">VIEW 🔥</span>
-    </div>
-
+    <!-- MAIN MENU GRID -->
     <div id="main-menu" class="view active">
         <div class="category-section" data-category="card">
             <div class="category-title">Card Games</div>
@@ -116,12 +107,10 @@
                 <div class="game-card" data-name="chess strategy board game" onclick="openBoardGame('chess')">
                     <span class="game-icon">♟️</span>
                     <span class="game-name">Chess</span>
-                    <span class="game-cta">TAP TO PLAY ↗</span>
                 </div>
                 <div class="game-card" data-name="dama checkers board game" onclick="openBoardGame('dama')">
                     <span class="game-icon">🔴</span>
                     <span class="game-name">Dama</span>
-                    <span class="game-cta">TAP TO PLAY ↗</span>
                 </div>
             </div>
         </div>
@@ -189,7 +178,7 @@
         </div>
     </div>
 
-    <!-- WORDSCAPE PRO CONTAINER -->
+    <!-- GAME CONTAINERS -->
     <div id="wordscape-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Wordscape Pro</span>
@@ -201,21 +190,13 @@
                 <div class="score-box">Level 🧩 <span id="ws-level">1</span></div>
                 <div class="score-box">Found <span id="ws-found">0/0</span></div>
             </div>
-
             <div id="ws-category-badge" style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--primary); font-weight:800; margin-bottom:6px;">Category: Easy Warmup</div>
-
             <div id="ws-word-board" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:10px; min-height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;"></div>
-
-            <div id="ws-current-word" style="font-size:1.3rem; font-weight:bold; letter-spacing:4px; color:var(--primary); margin-bottom:8px; min-height:30px; background:rgba(17,24,39,0.8); border:1px solid var(--border); border-radius:8px; width:100%; display:flex; align-items:center; justify-content:center;">
-                _ _ _ _
-            </div>
-
+            <div id="ws-current-word" style="font-size:1.3rem; font-weight:bold; letter-spacing:4px; color:var(--primary); margin-bottom:8px; min-height:30px; background:rgba(17,24,39,0.8); border:1px solid var(--border); border-radius:8px; width:100%; display:flex; align-items:center; justify-content:center;">_ _ _ _</div>
             <div style="position:relative; width:180px; height:180px; margin:0 auto 10px auto;" id="ws-letter-wheel">
                 <canvas id="ws-trace-canvas" width="180" height="180" style="position:absolute; top:0; left:0; pointer-events:none; z-index:10;"></canvas>
             </div>
-
             <p id="ws-status" style="margin-bottom:10px; font-weight:600; font-size:0.85rem; color:var(--text-main);">Swipe across letters to connect words!</p>
-
             <div style="display:flex; gap:8px; width:100%;">
                 <button class="action-btn" style="flex:1; background:#334155; padding:8px;" onclick="shuffleWordLetters()">SHUFFLE 🔀</button>
                 <button class="action-btn" style="flex:1; background:#b91c1c; padding:8px;" onclick="clearWordSelection()">CLEAR ❌</button>
@@ -223,7 +204,6 @@
         </div>
     </div>
 
-    <!-- SPEED SOLITAIRE SPRINT CONTAINER -->
     <div id="solitaire-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Speed Solitaire</span>
@@ -234,19 +214,15 @@
                 <div class="score-box">Score 🏆 <span id="sol-score">0</span></div>
                 <div class="score-box">Time ⏱️ <span id="sol-time">60s</span></div>
             </div>
-
             <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:10px; text-align:center;">
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">FOUNDATION (Target)</p>
                 <div id="sol-foundation" style="font-size:2.2rem; min-height:50px; display:flex; align-items:center; justify-content:center; color:#38bdf8;">🎴</div>
             </div>
-
             <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:12px; text-align:center;">
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">TABLEAU (Tap playable cards ±1 rank)</p>
                 <div id="sol-tableau" style="display:flex; justify-content:center; gap:8px; min-height:75px;"></div>
             </div>
-
             <p id="sol-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-main);">Match cards that are 1 rank higher or lower!</p>
-
             <div style="display:flex; gap:8px; width:100%;">
                 <button class="action-btn" style="flex:1; background:#334155;" onclick="drawSolitaireCard()">DRAW CARD 🃏</button>
                 <button class="action-btn" style="flex:1;" onclick="startSolitaireGame()">NEW GAME</button>
@@ -254,7 +230,6 @@
         </div>
     </div>
 
-    <!-- COIN SCATTER v2 CONTAINER -->
     <div id="scattercard-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Coin Scatter v2</span>
@@ -265,18 +240,15 @@
                 <div class="score-box">Balance 🪙 <span id="scatter-balance">1,000,000</span></div>
                 <div class="score-box">Spins Left 🎲 <span id="scatter-spins-left">0</span></div>
             </div>
-
             <div style="display:flex; gap:6px; margin-bottom:10px; width:100%; justify-content:center;">
                 <button class="opt-btn active" id="bet-btn-1" onclick="setScatterBet(1000, this)">Bet 1K</button>
                 <button class="opt-btn" id="bet-btn-2" onclick="setScatterBet(5000, this)">Bet 5K</button>
                 <button class="opt-btn" id="bet-btn-3" onclick="setScatterBet(10000, this)">Bet 10K</button>
             </div>
-
             <div id="scatter-dice-box" style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:10px; width:100%; margin-bottom:10px; text-align:center;">
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">DICE ROLL SPINS GENERATOR</p>
                 <div id="scatter-dice-display" style="font-size:1.8rem; font-weight:bold; color:#38bdf8;">🎲 ⚀</div>
             </div>
-
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; width:100%; margin-bottom:12px;" id="scatter-card-grid">
                 <div class="ttt-cell" id="sc-0" style="font-size:1.6rem; background:#111827;">🎴</div>
                 <div class="ttt-cell" id="sc-1" style="font-size:1.6rem; background:#111827;">🎴</div>
@@ -288,9 +260,7 @@
                 <div class="ttt-cell" id="sc-7" style="font-size:1.6rem; background:#111827;">🎴</div>
                 <div class="ttt-cell" id="sc-8" style="font-size:1.6rem; background:#111827;">🎴</div>
             </div>
-
             <p id="scatter-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-muted);">Choose your bet and roll the dice for spins!</p>
-
             <button class="action-btn" style="width:100%; max-width:320px; margin:0 auto; padding:14px; font-size:1.1rem;" id="scatter-spin-btn" onclick="rollDiceForSpins()">ROLL DICE & SPIN (🪙 Bet)</button>
         </div>
     </div>
@@ -310,7 +280,6 @@
         </div>
     </div>
 
-    <!-- BLACKJACK 21 PRO CONTAINER -->
     <div id="blackjack-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Blackjack 21</span>
@@ -321,24 +290,18 @@
                 <div class="score-box">Bankroll 🪙 <span id="bj-balance">1,000,000</span></div>
                 <div class="score-box">Bet 🪙 <span id="bj-bet">1,000</span></div>
             </div>
-
             <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:12px; width:100%; margin-bottom:12px; text-align:center;">
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">DEALER'S HAND (<span id="bj-dealer-score">?</span>)</p>
                 <div id="bj-dealer-cards" style="font-size:1.5rem; margin-bottom:10px; min-height:35px;">🎴 🎴</div>
-
                 <hr style="border-color:var(--border); margin:8px 0;">
-
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">YOUR HAND (<span id="bj-player-score">0</span>)</p>
                 <div id="bj-player-cards" style="font-size:1.5rem; min-height:35px;">🎴 🎴</div>
             </div>
-
             <p id="bj-status" style="margin-bottom:12px; font-weight:600; font-size:0.9rem; color:var(--text-main);">Place your bet and hit Deal!</p>
-
             <div style="display:flex; gap:8px; width:100%; margin-bottom:8px;" id="bj-bet-controls">
                 <button class="action-btn" style="flex:1; background:#334155;" onclick="startBlackjack(1000)">Bet 1K</button>
                 <button class="action-btn" style="flex:1; background:#334155;" onclick="startBlackjack(5000)">Bet 5K</button>
             </div>
-
             <div style="display:flex; gap:8px; width:100%; display:none;" id="bj-action-controls">
                 <button class="action-btn" style="flex:1; background:#15803d;" onclick="bjHit()">HIT 🎯</button>
                 <button class="action-btn" style="flex:1; background:#b91c1c;" onclick="bjStand()">STAND 🛑</button>
@@ -346,7 +309,6 @@
         </div>
     </div>
 
-    <!-- HIGH-LOW PREDICTOR CONTAINER -->
     <div id="highlow-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">High-Low</span>
@@ -357,13 +319,11 @@
                 <div class="score-box">Bankroll 🪙 <span id="hl-balance">1,000,000</span></div>
                 <div class="score-box">Streak 🔥 <span id="hl-streak">0</span></div>
             </div>
-
             <div style="background:#111827; border:1px solid var(--border); border-radius:12px; padding:20px; width:100%; margin-bottom:12px; text-align:center;">
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">CURRENT CARD</p>
                 <div id="hl-card-display" style="font-size:3rem; margin-bottom:12px;">🎴 7</div>
                 <p id="hl-status" style="font-weight:600; font-size:0.9rem; color:var(--text-main);">Will the next card be Higher or Lower?</p>
             </div>
-
             <div style="display:flex; gap:10px; width:100%;" id="hl-controls">
                 <button class="action-btn" style="flex:1; background:#15803d;" onclick="guessHighLow('higher')">🔼 HIGHER</button>
                 <button class="action-btn" style="flex:1; background:#b91c1c;" onclick="guessHighLow('lower')">🔽 LOWER</button>
@@ -372,7 +332,6 @@
         </div>
     </div>
 
-    <!-- Piano Tiles Pro -->
     <div id="piano-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Piano Tiles</span>
@@ -381,7 +340,6 @@
         <div id="piano-mount"></div>
     </div>
 
-    <!-- Turbo Car Racing -->
     <div id="carracing-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Car Racing</span>
@@ -409,7 +367,6 @@
         </div>
     </div>
 
-    <!-- Tic Tac Toe Pro -->
     <div id="tictactoe-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Tic-Tac-Toe</span>
@@ -464,7 +421,6 @@
         </div>
     </div>
 
-    <!-- Fruit Master -->
     <div id="fruitslice-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Fruit Master</span>
@@ -487,7 +443,6 @@
         </div>
     </div>
 
-    <!-- Brick Breaker -->
     <div id="frostgame-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Brick Breaker</span>
@@ -510,7 +465,6 @@
         </div>
     </div>
 
-    <!-- Number Master -->
     <div id="guessgame-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Number Master</span>
@@ -535,7 +489,6 @@
         </div>
     </div>
 
-    <!-- Whack-a-Mole Pro -->
     <div id="molegame-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Whack-a-Mole</span>
@@ -562,7 +515,6 @@
         </div>
     </div>
 
-    <!-- Snake Evolution -->
     <div id="snakegame-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Cyber Snake</span>
@@ -591,24 +543,18 @@
         </div>
     </div>
 
-    <!-- Stick Run (Endless Edition) -->
     <div id="stickman-container" class="game-container">
         <div class="sr-main-menu" id="sr-main-menu" style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:420px; margin:0 auto; background: linear-gradient(135deg, #111827, #0b0f19); border:2px solid var(--primary); border-radius:16px; padding:25px; box-shadow:0 10px 30px var(--accent-glow);">
             <div style="text-align:center; margin-bottom:20px;">
-                <div style="font-size: 36px; background: linear-gradient(135deg, #ef4444, #f59e0b); width: 64px; height: 64px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
-                    🏃‍♂️
-                </div>
+                <div style="font-size: 36px; background: linear-gradient(135deg, #ef4444, #f59e0b); width: 64px; height: 64px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">🏃‍♂️</div>
                 <h1 style="font-size:2rem; font-weight:900; letter-spacing:2px; color:#fff;">STICK <span style="color:#ef4444;">RUN</span></h1>
             </div>
-
             <button class="action-btn" style="width:100%; background:linear-gradient(135deg, #10b981, #059669); padding:16px; font-size:1.1rem; font-weight:bold; margin-bottom:15px;" onclick="startStickRunGame()">▶ START ENDLESS RUN</button>
-
             <div style="background:#0b0f19; border:1px solid var(--border); border-radius:10px; padding:12px; width:100%; display:flex; justify-content:space-around; text-align:center;">
                 <div><small style="color:var(--text-muted); font-size:11px;">COINS</small><strong id="sr-hub-coins" style="display:block; color:#facc15; font-size:1.1rem;">0</strong></div>
                 <div><small style="color:var(--text-muted); font-size:11px;">HIGHCORE</small><strong id="sr-hub-high" style="display:block; color:#fff; font-size:1.1rem;">0</strong></div>
             </div>
         </div>
-
         <div id="sr-gameplay-screen" style="display:none; width:100%; max-width:480px; flex-direction:column; align-items:center;">
             <div class="game-top-bar" style="max-width:100%;">
                 <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Stick Run</span>
@@ -629,7 +575,6 @@
         </div>
     </div>
 
-    <!-- TOWER STACK FULL VERSION CONTAINER -->
     <div id="towerstack-container" class="game-container">
         <div class="game-top-bar">
             <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Tower Stack</span>
@@ -653,14 +598,13 @@
         </div>
     </div>
 
-    <!-- CHESS -->
     <div id="chess-container" class="game-container boardgame-container">
       <div class="game-top-bar"><span>♟️ Chess vs AI</span><button class="pause-btn" onclick="boardBack()">← HUB</button></div>
       <div class="boardgame-tools"><label>AI difficulty <select onchange="setBoardDifficulty('chess',this.value)"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><button class="control-btn" onclick="newChessGame()">New Game</button></div>
       <p id="chess-status" class="boardgame-status">Your turn — White</p><div id="chess-board" class="board-grid" aria-label="Chess board"></div>
       <p class="boardgame-help">Tap one of your white pieces, then tap a highlighted square. Pawns promote to queens.</p>
     </div>
-    <!-- DAMA / CHECKERS -->
+
     <div id="dama-container" class="game-container boardgame-container">
       <div class="game-top-bar"><span>🔴 Dama vs AI</span><button class="pause-btn" onclick="boardBack()">← HUB</button></div>
       <div class="boardgame-tools"><label>AI difficulty <select onchange="setBoardDifficulty('dama',this.value)"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><button class="control-btn" onclick="newDamaGame()">New Game</button></div>
@@ -668,27 +612,7 @@
       <p class="boardgame-help">Captures are mandatory. If another jump is available after a capture, continue the chain before ending your turn. Reach the opposite side to become a king.</p>
     </div>
 
-    <!-- DAILY QUESTS MODAL -->
-    <div class="modal-overlay" id="daily-quests-modal" style="z-index: 10550;">
-        <div class="settings-modal-box landscape-modal-box" style="max-width: 440px;">
-            <div class="settings-header">
-                <h3>🔥 Daily Quests & Streak</h3>
-                <button class="settings-close-x" onclick="closeDailyQuestsModal()">✕</button>
-            </div>
-            <div class="settings-body" style="padding: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(250,204,21,0.1); border: 1px solid rgba(250,204,21,0.3); padding: 10px 14px; border-radius: 10px;">
-                    <span style="font-size: 12px; font-weight: 800; color: #facc15;">Login Streak</span>
-                    <span class="streak-pill" id="hub-streak-pill-modal" style="font-size: 11px;">🔥 1 Day Streak</span>
-                </div>
-                <p style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 8px;">Today's Quests</p>
-                <div id="daily-challenges-list-modal" style="display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto;">
-                    <!-- Dynamically populated -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- AVATAR, FLASHY BORDER & TITLE CUSTOMIZER MODAL -->
+    <!-- AVATAR & TITLE CUSTOMIZER MODAL -->
     <div class="modal-overlay" id="customize-modal" style="z-index: 10550;">
         <div class="settings-modal-box landscape-modal-box">
             <div class="settings-header">
@@ -703,7 +627,6 @@
                     </div>
                     <button class="edit-name-btn" onclick="closeCustomizeModal(); openNamePromptModal();">Edit Name ✏️</button>
                 </div>
-
                 <div class="landscape-modal-grid">
                     <div>
                         <p style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:6px;">Unlocked Avatars</p>
@@ -813,7 +736,6 @@
                         <input type="range" min="0" max="1" step="0.05" value="0.4" class="setting-slider" id="volume-slider" oninput="updateVolume(this.value)">
                     </div>
                 </div>
-
                 <div class="category-section" id="recently-played-section" style="margin-top: 20px; display:none;">
                     <div class="category-title" style="margin-bottom: 8px;">Recently Played</div>
                     <div class="recent-scroll-row" id="recent-scroll-container"></div>
@@ -842,9 +764,7 @@
                     <h4 style="font-size: 15px; font-weight: 800; color: #fff;">Trophies & High Scores</h4>
                     <p style="font-size: 11px; color: var(--text-muted);">Your top achievements across Arcade Hub</p>
                 </div>
-                <div id="trophies-list-container" style="display: flex; flex-direction: column; gap: 8px;">
-                    <!-- Dynamically populated -->
-                </div>
+                <div id="trophies-list-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
             </div>
             <div class="settings-panel" id="panel-prefs">
                 <div class="setting-row">
@@ -894,15 +814,27 @@
 
     <audio id="hub-bgm" src="bgm.mp3" loop preload="auto"></audio>
     
-    <!-- DAILY SPIN WHEEL MODAL -->
+    <!-- DAILY SPIN WHEEL & QUESTS POP-UP MODAL -->
     <div class="daily-reward-overlay" id="daily-reward-modal" aria-modal="true" role="dialog" aria-labelledby="daily-reward-title">
-      <div class="daily-reward-card">
+      <div class="daily-reward-card" style="max-width: 440px; max-height: 90vh; overflow-y: auto;">
         <button class="settings-close-x daily-reward-close" onclick="closeDailyRewardModal()" aria-label="Close">✕</button>
-        <div class="daily-reward-kicker">DAILY LOGIN BONUS</div><h2 id="daily-reward-title">Spin the Wheel!</h2>
-        <p>One free spin every day. Win XP, an avatar, or an exclusive avatar border.</p>
-        <div class="wheel-wrap"><div class="wheel-pointer"></div><div class="reward-wheel" id="daily-reward-wheel"><span>✨</span><span>⚡</span><span>🕹️</span><span>💎</span><span>🏅</span><span>🎮</span><span>🌟</span><span>🔥</span></div></div>
-        <div class="daily-reward-result" id="daily-reward-result">Your daily reward is waiting!</div>
-        <button class="gotd-play-btn daily-spin-btn" id="daily-spin-btn" onclick="spinDailyReward()">SPIN FOR TODAY'S REWARD</button>
+        <div class="daily-reward-kicker">DAILY LOGIN BONUS</div>
+        <h2 id="daily-reward-title">Spin the Wheel & Quests!</h2>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Spin for daily rewards and check your active quests below.</p>
+        
+        <div class="wheel-wrap" style="margin: 10px auto;"><div class="wheel-pointer"></div><div class="reward-wheel" id="daily-reward-wheel"><span>✨</span><span>⚡</span><span>🕹️</span><span>💎</span><span>🏅</span><span>🎮</span><span>🌟</span><span>🔥</span></div></div>
+        <div class="daily-reward-result" id="daily-reward-result" style="margin-bottom: 10px;">Your daily reward is waiting!</div>
+        <button class="gotd-play-btn daily-spin-btn" id="daily-spin-btn" onclick="spinDailyReward()" style="margin-bottom: 16px; width: 100%;">SPIN FOR TODAY'S REWARD</button>
+        
+        <hr style="border-color: var(--border); margin: 12px 0;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 11px; font-weight: 800; color: #facc15;" id="hub-streak-pill-modal">🔥 1 Day Streak</span>
+            <span style="font-size: 10px; font-weight: 700; color: var(--primary); text-transform: uppercase;">Today's Quests</span>
+        </div>
+        <div id="daily-challenges-list-modal" style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
+            <!-- Dynamically populated -->
+        </div>
       </div>
     </div>
 
