@@ -2342,158 +2342,48 @@ function tsLoop() {
     tsAnimId = requestAnimationFrame(tsLoop);
 }
 
-// ===================================================
-// NEON AIR HOCKEY (FULL VERSION ENGINE)
-// ===================================================
+// NEON AIR HOCKEY (LOCAL PvP VERSION)
 let ahCanvas, ahCtx, ahRunning = false, ahAnimId;
-let ahPlayerScore = 0, ahAiScore = 0;
-let ahPuck = { x: 140, y: 200, vx: 3, vy: 4, r: 12 };
-let ahPlayer = { x: 140, y: 340, r: 22 };
-let ahAi = { x: 140, y: 60, r: 22 };
+let ahP1Score = 0, ahP2Score = 0;
+let ahPuck = { x: 140, y: 200, vx: 0, vy: 0, r: 12 };
+let ahP1 = { x: 140, y: 340, r: 22 }; // Bottom player (Blue)
+let ahP2 = { x: 140, y: 60, r: 22 };  // Top player (Red)
 
 function initAirHockeyCanvas() {
     ahCanvas = document.getElementById('ah-canvas');
     if (!ahCanvas) return;
     ahCtx = ahCanvas.getContext('2d');
 
-    const moveMallet = (clientX, clientY) => {
+    const handleTouchOrMouse = (e) => {
         if (!ahRunning || isGamePaused) return;
         const rect = ahCanvas.getBoundingClientRect();
-        const cx = (clientX - rect.left) * (ahCanvas.width / rect.width);
-        const cy = (clientY - rect.top) * (ahCanvas.height / rect.height);
-        ahPlayer.x = Math.max(ahPlayer.r, Math.min(280 - ahPlayer.r, cx));
-        ahPlayer.y = Math.max(200 + ahPlayer.r, Math.min(400 - ahPlayer.r, cy));
+        
+        // Support multi-touch or single touches/mouse
+        const touches = e.touches ? e.touches : [{ clientX: e.clientX, clientY: e.clientY }];
+        
+        for (let i = 0; i < touches.length; i++) {
+            const cx = (touches[i].clientX - rect.left) * (ahCanvas.width / rect.width);
+            const cy = (touches[i].clientY - rect.top) * (ahCanvas.height / rect.height);
+            
+            if (cy >= 200) {
+                // Bottom half -> Player 1 (Blue)
+                ahP1.x = Math.max(ahP1.r, Math.min(280 - ahP1.r, cx));
+                ahP1.y = Math.max(200 + ahP1.r, Math.min(400 - ahP1.r, cy));
+            } else {
+                // Top half -> Player 2 (Red)
+                ahP2.x = Math.max(ahP2.r, Math.min(280 - ahP2.r, cx));
+                ahP2.y = Math.max(ahP2.r, Math.min(200 - ahP2.r, cy));
+            }
+        }
     };
 
-    ahCanvas.onmousemove = e => moveMallet(e.clientX, e.clientY);
+    ahCanvas.onmousemove = e => handleTouchOrMouse(e);
     ahCanvas.ontouchmove = e => {
-        moveMallet(e.touches[0].clientX, e.touches[0].clientY);
+        handleTouchOrMouse(e);
         e.preventDefault();
     };
-}
-
-function startAirHockeyGame() {
-    audio.playSFX('click');
-    document.getElementById('ah-gameover-overlay').style.display = 'none';
-    initAirHockeyCanvas();
-    if (!ahCtx) return;
-    cancelAnimationFrame(ahAnimId);
-
-    ahPlayerScore = 0;
-    ahAiScore = 0;
-    ahRunning = true;
-    document.getElementById('ah-player-score').textContent = 0;
-    document.getElementById('ah-ai-score').textContent = 0;
-    resetAhPuck(1);
-    ahLoop();
-}
-
-function resetAhPuck(dirY) {
-    ahPuck = { x: 140, y: 200, vx: (Math.random() - 0.5) * 5, vy: 4.2 * dirY, r: 12 };
-}
-
-function resolveMalletCollision(mallet) {
-    const dx = ahPuck.x - mallet.x;
-    const dy = ahPuck.y - mallet.y;
-    const dist = Math.hypot(dx, dy);
-    const minDist = ahPuck.r + mallet.r;
-    if (dist < minDist && dist > 0) {
-        audio.playSFX('click');
-        const nx = dx / dist;
-        const ny = dy / dist;
-        ahPuck.x = mallet.x + nx * (minDist + 1);
-        ahPuck.y = mallet.y + ny * (minDist + 1);
-        const speed = Math.min(10.5, Math.hypot(ahPuck.vx, ahPuck.vy) + 0.8);
-        ahPuck.vx = nx * speed;
-        ahPuck.vy = ny * speed;
-    }
-}
-
-function ahLoop() {
-    if (!ahRunning) return;
-    if (isGamePaused) {
-        ahAnimId = requestAnimationFrame(ahLoop);
-        return;
-    }
-
-    ahPuck.x += ahPuck.vx;
-    ahPuck.y += ahPuck.vy;
-    ahPuck.vx *= 0.996;
-    ahPuck.vy *= 0.996;
-
-    if (ahPuck.x - ahPuck.r < 0) { ahPuck.x = ahPuck.r; ahPuck.vx *= -1; audio.playSFX('move'); }
-    if (ahPuck.x + ahPuck.r > 280) { ahPuck.x = 280 - ahPuck.r; ahPuck.vx *= -1; audio.playSFX('move'); }
-
-    const inGoalX = ahPuck.x > 90 && ahPuck.x < 190;
-    if (ahPuck.y - ahPuck.r < 0) {
-        if (inGoalX) {
-            ahPlayerScore++;
-            document.getElementById('ah-player-score').textContent = ahPlayerScore;
-            audio.playSFX('score');
-            if (ahPlayerScore >= 7) return endAirHockey(true);
-            resetAhPuck(-1);
-        } else {
-            ahPuck.y = ahPuck.r;
-            ahPuck.vy *= -1;
-        }
-    }
-    if (ahPuck.y + ahPuck.r > 400) {
-        if (inGoalX) {
-            ahAiScore++;
-            document.getElementById('ah-ai-score').textContent = ahAiScore;
-            audio.playSFX('gameover');
-            if (ahAiScore >= 7) return endAirHockey(false);
-            resetAhPuck(1);
-        } else {
-            ahPuck.y = 400 - ahPuck.r;
-            ahPuck.vy *= -1;
-        }
-    }
-
-    const targetX = ahPuck.y < 210 ? ahPuck.x : 140;
-    const targetY = ahPuck.y < 180 ? Math.max(35, ahPuck.y - 10) : 60;
-    ahAi.x += Math.sign(targetX - ahAi.x) * Math.min(4.2, Math.abs(targetX - ahAi.x));
-    ahAi.y += Math.sign(targetY - ahAi.y) * Math.min(3.5, Math.abs(targetY - ahAi.y));
-
-    resolveMalletCollision(ahPlayer);
-    resolveMalletCollision(ahAi);
-
-    ahCtx.fillStyle = '#090d16';
-    ahCtx.fillRect(0, 0, 280, 400);
-
-    ahCtx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
-    ahCtx.lineWidth = 2;
-    ahCtx.beginPath(); ahCtx.moveTo(0, 200); ahCtx.lineTo(280, 200); ahCtx.stroke();
-    ahCtx.beginPath(); ahCtx.arc(140, 200, 42, 0, Math.PI * 2); ahCtx.stroke();
-
-    ahCtx.fillStyle = '#ef4444'; ahCtx.fillRect(90, 0, 100, 5);
-    ahCtx.fillStyle = '#38bdf8'; ahCtx.fillRect(90, 395, 100, 5);
-
-    ahCtx.fillStyle = '#ef4444';
-    ahCtx.beginPath(); ahCtx.arc(ahAi.x, ahAi.y, ahAi.r, 0, Math.PI * 2); ahCtx.fill();
-    ahCtx.strokeStyle = '#fff'; ahCtx.lineWidth = 2; ahCtx.stroke();
-
-    ahCtx.fillStyle = '#38bdf8';
-    ahCtx.beginPath(); ahCtx.arc(ahPlayer.x, ahPlayer.y, ahPlayer.r, 0, Math.PI * 2); ahCtx.fill();
-    ahCtx.strokeStyle = '#fff'; ahCtx.lineWidth = 2; ahCtx.stroke();
-
-    ahCtx.shadowColor = '#facc15';
-    ahCtx.shadowBlur = 12;
-    ahCtx.fillStyle = '#facc15';
-    ahCtx.beginPath(); ahCtx.arc(ahPuck.x, ahPuck.y, ahPuck.r, 0, Math.PI * 2); ahCtx.fill();
-    ahCtx.shadowBlur = 0;
-
-    ahAnimId = requestAnimationFrame(ahLoop);
-}
-
-function endAirHockey(playerWon) {
-    ahRunning = false;
-    document.getElementById('ah-final-title').textContent = playerWon ? "CHAMPIONSHIP WIN! 🏆" : "AI WINS MATCH! 🤖";
-    document.getElementById('ah-final-msg').textContent = `Final Score: ${ahPlayerScore} - ${ahAiScore}`;
-    document.getElementById('ah-gameover-overlay').style.display = 'flex';
-    if (playerWon) {
-        audio.playSFX('win');
-        ScoreManager.saveScore('airhockey', ahPlayerScore * 25);
-        submitScore('Air Hockey', 'Player', ahPlayerScore * 25);
-    }
+    ahCanvas.ontouchstart = e => {
+        handleTouchOrMouse(e);
+        e.preventDefault();
+    };
 }
