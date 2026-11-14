@@ -1,6 +1,6 @@
 /* ==========================================================================
    Arcade Hub: Chess & Dama (Checkers) Strategy Board Game Module
-   ================ ========================================================== */
+   ========================================================================== */
 
 const BOARD_SYMBOLS = {
     wk: '♔', wq: '♕', wr: '♖', wb: '♗', wn: '♘', wp: '♙',
@@ -269,7 +269,7 @@ function clickChess(r, c) {
 
 
 /* ==========================================================================
-   DAMA / CHECKERS ENGINE & CHAIN JUMP LOGIC
+   DAMA / CHECKERS ENGINE & CHAIN JUMP LOGIC (Fixed King Ownership)
    ========================================================================== */
 
 function damaInitial() {
@@ -294,11 +294,12 @@ function newDamaGame() {
 function damaCaptures(b, r, c) {
     const p = b[r][c];
     if (!p) return [];
-    const dirs = p.toLowerCase() === 'k' ? [-1, 1] : [p === 'w' ? -1 : 1], out = [];
+    const color = p[0], isKing = p.length > 1;
+    const dirs = isKing ? [-1, 1] : [color === 'w' ? -1 : 1], out = [];
     for (const dr of dirs) {
         for (const dc of [-1, 1]) {
             const mr = r + dr, mc = c + dc, lr = r + 2 * dr, lc = c + 2 * dc;
-            if (inside(lr, lc) && b[mr]?.[mc] && b[mr][mc].toLowerCase() !== p.toLowerCase() && !b[lr][lc]) {
+            if (inside(lr, lc) && b[mr]?.[mc] && b[mr][mc][0] !== color && !b[lr][lc]) {
                 out.push({ from: [r, c], to: [lr, lc], cap: [mr, mc] });
             }
         }
@@ -309,7 +310,8 @@ function damaCaptures(b, r, c) {
 function damaSimple(b, r, c) {
     const p = b[r][c], out = [];
     if (!p) return out;
-    const dirs = p === 'k' ? [-1, 1] : [p === 'w' ? -1 : 1];
+    const color = p[0], isKing = p.length > 1;
+    const dirs = isKing ? [-1, 1] : [color === 'w' ? -1 : 1];
     for (const dr of dirs) {
         for (const dc of [-1, 1]) {
             if (inside(r + dr, c + dc) && !b[r + dr][c + dc]) {
@@ -324,7 +326,7 @@ function damaAll(b, color) {
     let caps = [], steps = [];
     for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
-            if (b[r][c] && b[r][c].toLowerCase() === color) {
+            if (b[r][c] && b[r][c][0] === color) {
                 caps.push(...damaCaptures(b, r, c));
                 steps.push(...damaSimple(b, r, c));
             }
@@ -339,7 +341,8 @@ function applyDama(b, m) {
     n[m.from[0]][m.from[1]] = null;
     if (m.cap) n[m.cap[0]][m.cap[1]] = null;
     n[m.to[0]][m.to[1]] = p;
-    if ((p === 'w' && m.to[0] === 0) || (p === 'b' && m.to[0] === 7)) n[m.to[0]][m.to[1]] = 'k';
+    if (p === 'w' && m.to[0] === 0) n[m.to[0]][m.to[1]] = 'wk';
+    else if (p === 'b' && m.to[0] === 7) n[m.to[0]][m.to[1]] = 'bk';
     return n;
 }
 
@@ -347,7 +350,7 @@ function damaHasFurther(b, r, c) { return damaCaptures(b, r, c); }
 
 function damaScore(b) {
     let s = 0;
-    for (let row of b) for (let p of row) if (p) s += (p.toLowerCase() === 'w' ? -1 : 1) * (p === 'k' ? 3 : 1);
+    for (let row of b) for (let p of row) if (p) s += (p[0] === 'w' ? -1 : 1) * (p.length > 1 ? 3 : 1);
     return s;
 }
 
@@ -409,7 +412,7 @@ function endDama(msg) {
 
 function clickDama(r, c) {
     if (damaOver || damaTurn !== 'w') return;
-    const candidates = damaChain ? damaCaptures(damaBoard, damaChain[0], damaChain[1]) : damaAll(damaBoard, 'w');
+    const candidates = damaChain ? damaCaptures(damaChain[0], damaChain[1]) : damaAll(damaBoard, 'w');
     
     if (damaSelected && candidates.some(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c)) {
         const move = candidates.find(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c);
@@ -434,7 +437,7 @@ function clickDama(r, c) {
         return;
     }
     
-    if (!damaChain && damaBoard[r][c] === 'w') {
+    if (!damaChain && damaBoard[r][c]?.[0] === 'w') {
         damaSelected = [r, c];
         damaMoves = candidates.filter(m => m.from[0] === r && m.from[1] === c);
     }
@@ -450,7 +453,7 @@ function drawDama() {
             const q = document.createElement('button');
             q.className = 'board-square ' + ((r + c) % 2 ? 'dark' : 'light');
             const p = damaBoard[r][c];
-            q.textContent = p ? (p === 'w' ? '🔴' : p === 'b' ? '⚫' : '👑') : '';
+            q.textContent = p ? (p === 'w' ? '🔴' : p === 'b' ? '⚫' : p === 'wk' ? '🔴👑' : '⚫👑') : '';
             if (damaSelected?.[0] === r && damaSelected?.[1] === c) q.classList.add('selected');
             if (damaMoves.some(m => m.to[0] === r && m.to[1] === c)) q.classList.add('legal');
             q.onclick = () => clickDama(r, c);
