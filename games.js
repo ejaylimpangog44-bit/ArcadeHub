@@ -2258,9 +2258,17 @@ function renderDamaBoard() {
     const boardEl = document.getElementById('dama-board');
     if (!boardEl) return;
 
+    // Fixed grid layout with minmax(0, 1fr) to prevent column squishing
     boardEl.style.display = 'grid';
-    boardEl.style.gridTemplateColumns = 'repeat(8, 1fr)';
-    boardEl.style.gridTemplateRows = 'repeat(8, 1fr)';
+    boardEl.style.gridTemplateColumns = 'repeat(8, minmax(0, 1fr))';
+    boardEl.style.gridTemplateRows = 'repeat(8, minmax(0, 1fr))';
+    boardEl.style.width = '100%';
+    boardEl.style.maxWidth = '360px';
+    boardEl.style.aspectRatio = '1';
+    boardEl.style.margin = '0 auto';
+    boardEl.style.border = '4px solid #1e293b';
+    boardEl.style.borderRadius = '8px';
+    boardEl.style.overflow = 'hidden';
     boardEl.innerHTML = '';
 
     for (let r = 0; r < 8; r++) {
@@ -2273,6 +2281,8 @@ function renderDamaBoard() {
             cell.style.justifyContent = 'center';
             cell.style.position = 'relative';
             cell.style.cursor = isDark ? 'pointer' : 'default';
+            cell.style.width = '100%';
+            cell.style.height = '100%';
 
             const piece = damaBoard[r][c];
             if (piece) {
