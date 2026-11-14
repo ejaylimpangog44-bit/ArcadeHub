@@ -589,34 +589,45 @@
 
     <!-- Updated Dama Container -->
     <div id="dama-container" class="game-container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <button class="action-btn" onclick="backToHub()">🏠 Hub</button>
-            <h2 style="margin: 0; font-size: 1.2rem; color: #fff;">🔴 Pinoy Dama</h2>
-            <button class="action-btn" onclick="restartDamaMatch()">🔄 Reset</button>
+        <div class="game-top-bar">
+            <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">Pinoy Dama</span>
+            <button class="pause-btn" onclick="openPauseModal()">⏸ PAUSE</button>
         </div>
 
-        <!-- Mode & Difficulty Controls -->
-        <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 12px;">
-            <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 8px;">
-                <button id="dama-btn-pvp" class="opt-btn active" onclick="setDamaMode('pvp')">👥 Player vs Player</button>
-                <button id="dama-btn-ai" class="opt-btn" onclick="setDamaMode('ai')">🤖 Player vs AI</button>
+        <!-- Dama Setup Screen (Appears after instructions modal) -->
+        <div id="dama-setup-screen" class="screen active" style="width:100%; max-width:340px; margin:0 auto; display:flex; flex-direction:column; align-items:center; padding:10px 0;">
+            <div style="font-size: 38px; margin-bottom: 8px;">🔴</div>
+            <h3 style="color:#fff; font-size:1.1rem; margin-bottom:4px;">Match Configuration</h3>
+            <p style="margin-bottom: 16px; color: var(--text-muted); font-size: 0.85rem; text-align:center;">Choose your opponent and difficulty</p>
+            
+            <div class="setup-group" style="width:100%; margin-bottom:12px;">
+                <label class="setup-label" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;">Game Mode</label>
+                <div class="setup-options-2" style="display:flex; gap:8px;">
+                    <button class="opt-btn active" id="dama-setup-pvp" onclick="setDamaSetupMode('pvp')" style="flex:1;">👥 2 Players</button>
+                    <button class="opt-btn" id="dama-setup-ai" onclick="setDamaSetupMode('ai')" style="flex:1;">🤖 vs AI</button>
+                </div>
             </div>
-
-            <!-- Difficulty Selector (Hidden in PvP mode, shown in AI mode) -->
-            <div id="dama-diff-wrapper" style="display: none; text-align: center;">
-                <span style="font-size: 0.8rem; color: var(--text-muted); margin-right: 6px;">AI Difficulty:</span>
-                <button id="dama-diff-normal" class="opt-btn active" onclick="setDamaDifficulty('normal')">Normal</button>
-                <button id="dama-diff-hard" class="opt-btn" onclick="setDamaDifficulty('hard')">Hard</button>
+            
+            <div class="setup-group" id="dama-setup-diff-group" style="width:100%; margin-bottom:20px; display:none;">
+                <label class="setup-label" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:6px; display:block;">AI Difficulty</label>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                    <button class="opt-btn active" id="dama-setup-normal" onclick="setDamaSetupDiff('normal')">Normal</button>
+                    <button class="opt-btn" id="dama-setup-hard" onclick="setDamaSetupDiff('hard')">Hard</button>
+                </div>
             </div>
+            
+            <button class="start-game-btn" onclick="startDamaMatchFromSetup()" style="width:100%;">Start Match 🚀</button>
         </div>
 
-        <!-- Turn & Match Status -->
-        <div id="dama-status" style="text-align: center; font-weight: bold; font-size: 1rem; margin-bottom: 10px; color: #38bdf8;">
-            Red Player's Turn
+        <!-- Dama Gameplay Screen (Clean board and status only) -->
+        <div id="dama-game-screen" class="screen" style="width:100%; max-width:360px; margin:0 auto; display:none; flex-direction:column; align-items:center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px;">
+                <button class="action-btn" onclick="backToDamaSetup()" style="padding: 6px 12px; font-size: 0.8rem;">⚙️ Setup</button>
+                <div id="dama-status" style="font-weight: bold; font-size: 0.9rem; color: #38bdf8;">Red Player's Turn</div>
+                <button class="action-btn" onclick="restartDamaMatch()" style="padding: 6px 12px; font-size: 0.8rem;">🔄 Reset</button>
+            </div>
+            <div id="dama-board" style="width: 100%; aspect-ratio: 1; margin: 0 auto; border: 4px solid #1e293b; border-radius: 8px; overflow: hidden;"></div>
         </div>
-
-        <!-- 8x8 Dama Board -->
-        <div id="dama-board" style="width: 100%; max-width: 360px; aspect-ratio: 1; margin: 0 auto; border: 4px solid #1e293b; border-radius: 8px; overflow: hidden;"></div>
     </div>
 
     <!-- AVATAR & TITLE CUSTOMIZER MODAL -->
