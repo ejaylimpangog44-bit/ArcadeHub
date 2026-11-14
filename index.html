@@ -90,7 +90,7 @@
                     <span class="game-name">Chess</span>
                 </div>
                 <!-- Cleaned Dama Card -->
-                <div class="game-card" data-name="dama checkers board game" onclick="openBoardGame('dama')">
+                <div class="game-card" data-name="dama checkers board game" onclick="showGameInstructions('dama-container', 'Pinoy Dama', '🔴', { objective: 'Capture opponent pieces or trap them so they cannot move. Reach the back rank to crown your pieces into Dama kings!', controls: 'Tap your piece then tap a valid highlighted destination dot.' })">
                     <span class="game-icon">🔴</span>
                     <span class="game-name">Dama</span>
                 </div>
@@ -587,11 +587,36 @@
       <p class="boardgame-help">Tap one of your white pieces, then tap a highlighted square. Pawns promote to queens.</p>
     </div>
 
-    <div id="dama-container" class="game-container boardgame-container">
-      <div class="game-top-bar"><span>🔴 Dama vs AI</span><button class="pause-btn" onclick="boardBack()">← HUB</button></div>
-      <div class="boardgame-tools"><label>AI difficulty <select onchange="setBoardDifficulty('dama',this.value)"><option value="normal">Normal</option><option value="hard">Hard</option></select></label><button class="control-btn" onclick="newDamaGame()">New Game</button></div>
-      <p id="dama-status" class="boardgame-status">Your turn — Red</p><div id="dama-board" class="board-grid" aria-label="Dama board"></div>
-      <p class="boardgame-help">Captures are mandatory. If another jump is available after a capture, continue the chain before ending your turn. Reach the opposite side to become a king.</p>
+    <!-- Updated Dama Container -->
+    <div id="dama-container" class="game-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <button class="action-btn" onclick="backToHub()">🏠 Hub</button>
+            <h2 style="margin: 0; font-size: 1.2rem; color: #fff;">🔴 Pinoy Dama</h2>
+            <button class="action-btn" onclick="restartDamaMatch()">🔄 Reset</button>
+        </div>
+
+        <!-- Mode & Difficulty Controls -->
+        <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 12px;">
+            <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 8px;">
+                <button id="dama-btn-pvp" class="opt-btn active" onclick="setDamaMode('pvp')">👥 Player vs Player</button>
+                <button id="dama-btn-ai" class="opt-btn" onclick="setDamaMode('ai')">🤖 Player vs AI</button>
+            </div>
+
+            <!-- Difficulty Selector (Hidden in PvP mode, shown in AI mode) -->
+            <div id="dama-diff-wrapper" style="display: none; text-align: center;">
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-right: 6px;">AI Difficulty:</span>
+                <button id="dama-diff-normal" class="opt-btn active" onclick="setDamaDifficulty('normal')">Normal</button>
+                <button id="dama-diff-hard" class="opt-btn" onclick="setDamaDifficulty('hard')">Hard</button>
+            </div>
+        </div>
+
+        <!-- Turn & Match Status -->
+        <div id="dama-status" style="text-align: center; font-weight: bold; font-size: 1rem; margin-bottom: 10px; color: #38bdf8;">
+            Red Player's Turn
+        </div>
+
+        <!-- 8x8 Dama Board -->
+        <div id="dama-board" style="width: 100%; max-width: 360px; aspect-ratio: 1; margin: 0 auto; border: 4px solid #1e293b; border-radius: 8px; overflow: hidden;"></div>
     </div>
 
     <!-- AVATAR & TITLE CUSTOMIZER MODAL -->
