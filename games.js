@@ -1,3 +1,7 @@
+/* ==========================================================================
+   ARCADE HUB: ALL-IN-ONE GAME ENGINES MODULE (CLEANED & WIRED)
+   ========================================================================== */
+
 // ===================================================
 // WORDSCAPE PRO ENGINE
 // ===================================================
@@ -100,15 +104,6 @@ function setupWordWheelSwipeEvents() {
         return { x: clientX - rect.left, y: clientY - rect.top };
     };
 
-    const startDrag = (e) => {
-        if(isGamePaused) return;
-        wsIsDragging = true;
-        wsCurrentSelection = '';
-        wsActiveLetterNodes.forEach(n => n.el.style.background = 'var(--primary)');
-        checkNodeHit(getEventPos(e));
-        e.preventDefault();
-    };
-
     const moveDrag = (e) => {
         if(!wsIsDragging || isGamePaused) return;
         const pos = getEventPos(e);
@@ -122,17 +117,34 @@ function setupWordWheelSwipeEvents() {
         wsIsDragging = false;
         tCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
         wsActiveLetterNodes.forEach(n => n.el.style.background = 'var(--primary)');
+        
+        window.removeEventListener('mousemove', moveDrag);
+        window.removeEventListener('mouseup', endDrag);
+        window.removeEventListener('touchmove', moveDrag);
+        window.removeEventListener('touchend', endDrag);
+
         if(wsCurrentSelection.length > 0) {
             submitWordscapeGuess();
         }
     };
 
+    const startDrag = (e) => {
+        if(isGamePaused) return;
+        wsIsDragging = true;
+        wsCurrentSelection = '';
+        wsActiveLetterNodes.forEach(n => n.el.style.background = 'var(--primary)');
+        checkNodeHit(getEventPos(e));
+
+        window.addEventListener('mousemove', moveDrag);
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchmove', moveDrag, { passive: false });
+        window.addEventListener('touchend', endDrag);
+
+        e.preventDefault();
+    };
+
     wheelEl.onmousedown = startDrag;
-    window.onmousemove = moveDrag;
-    window.onmouseup = endDrag;
     wheelEl.ontouchstart = startDrag;
-    window.ontouchmove = moveDrag;
-    window.ontouchend = endDrag;
 }
 
 function checkNodeHit(pos) {
@@ -228,7 +240,7 @@ function submitWordscapeGuess() {
 }
 
 // ===================================================
-// SPEED SOLITAIRE SPRINT ENGINE
+// SPEED SOLITAIRE SPRINT ENGINE (Fixed Card Range & Wrap)
 // ===================================================
 let solScore = 0, solTime = 60, solRunning = false, solTimer = null;
 let solFoundationCard = { val: 7, suit: '♥️', name: '7' };
@@ -264,7 +276,7 @@ function startSolitaireGame() {
 }
 
 function generateRandomCard() {
-    let val = Math.floor(Math.random() * 11) + 2;
+    let val = Math.floor(Math.random() * 12) + 2; // Values 2 through 13 (King)
     let suits = ['♠️', '♥️', '♦️', '♣️'];
     let suit = suits[Math.floor(Math.random() * suits.length)];
     let name = val === 11 ? 'J' : val === 12 ? 'Q' : val === 13 ? 'K' : val.toString();
@@ -298,7 +310,7 @@ function playSolitaireCard(index) {
     let card = solTableauCards[index];
     let diff = Math.abs(card.val - solFoundationCard.val);
 
-    if(diff === 1 || diff === 12) {
+    if(diff === 1 || diff === 11) {
         audio.playSFX('score');
         solScore += 100;
         solFoundationCard = card;
@@ -2176,15 +2188,14 @@ function tsLoop() {
 // ===================================================
 // PINOY DAMA ENGINE (PvP & PvE - Normal / Hard Only)
 // ===================================================
-let damaBoard = []; // 'r' = Red, 'b' = Blue/AI, 'R' = Red Dama, 'B' = Blue Dama
+let damaBoard = []; 
 let damaTurn = 'r';
 let damaSelected = null;
 let damaValidMoves = [];
-let damaMode = 'pvp';       // 'pvp' or 'ai'
-let damaDifficulty = 'normal'; // 'normal' or 'hard'
+let damaMode = 'pvp';       
+let damaDifficulty = 'normal'; 
 let damaGameOver = false;
 
-// Bridge function automatically called by hub.js when opening Dama
 function newDamaGame() {
     setDamaMode('pvp');
     setDamaDifficulty('normal');
@@ -2211,7 +2222,7 @@ function setDamaMode(mode) {
 
 function setDamaDifficulty(diff) {
     audio.playSFX('click');
-    damaDifficulty = diff; // Strictly 'normal' or 'hard'
+    damaDifficulty = diff; 
     document.getElementById('dama-diff-normal')?.classList.toggle('active', diff === 'normal');
     document.getElementById('dama-diff-hard')?.classList.toggle('active', diff === 'hard');
     
@@ -2228,13 +2239,11 @@ function initDamaBoard() {
 
     damaBoard = Array(8).fill(null).map(() => Array(8).fill(null));
 
-    // Place Blue (Top - Rows 0, 1, 2)
     for (let r = 0; r < 3; r++) {
         for (let c = 0; c < 8; c++) {
             if ((r + c) % 2 === 1) damaBoard[r][c] = 'b';
         }
     }
-    // Place Red (Bottom - Rows 5, 6, 7)
     for (let r = 5; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
             if ((r + c) % 2 === 1) damaBoard[r][c] = 'r';
@@ -2283,7 +2292,6 @@ function renderDamaBoard() {
                     pEl.style.background = 'radial-gradient(circle at 30% 30%, #38bdf8, #0369a1)';
                 }
 
-                // Crown styling for promoted Dama pieces
                 if (piece === 'R' || piece === 'B') {
                     pEl.textContent = '👑';
                     pEl.style.border = '2.5px solid #facc15';
@@ -2292,12 +2300,10 @@ function renderDamaBoard() {
                 cell.appendChild(pEl);
             }
 
-            // Highlight currently selected piece
             if (damaSelected && damaSelected.r === r && damaSelected.c === c) {
                 cell.style.boxShadow = 'inset 0 0 0 3px #facc15';
             }
 
-            // Show valid destination dots
             const validTarget = damaValidMoves.find(m => m.r === r && m.c === c);
             if (validTarget) {
                 const dot = document.createElement('div');
@@ -2321,7 +2327,6 @@ function onDamaCellClick(r, c) {
 
     const clickedPiece = damaBoard[r][c];
 
-    // Select player's own piece
     if (clickedPiece && clickedPiece.toLowerCase() === damaTurn) {
         damaSelected = { r, c };
         damaValidMoves = getDamaValidMoves(r, c, damaTurn);
@@ -2330,7 +2335,6 @@ function onDamaCellClick(r, c) {
         return;
     }
 
-    // Move to valid highlighted square
     const chosenMove = damaValidMoves.find(m => m.r === r && m.c === c);
     if (chosenMove && damaSelected) {
         applyDamaMove(damaSelected.r, damaSelected.c, chosenMove);
@@ -2346,7 +2350,6 @@ function getDamaValidMoves(r, c, turnColor) {
     const opponents = (turnColor === 'r') ? ['b', 'B'] : ['r', 'R'];
 
     if (!isDama) {
-        // Regular pieces move forward diagonally
         const forwardDirs = (piece === 'r') ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
         forwardDirs.forEach(([dr, dc]) => {
             const nr = r + dr, nc = c + dc;
@@ -2355,7 +2358,6 @@ function getDamaValidMoves(r, c, turnColor) {
             }
         });
 
-        // Regular pieces can capture BOTH forward and backward diagonally
         const allDirs = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
         allDirs.forEach(([dr, dc]) => {
             const midR = r + dr, midC = c + dc;
@@ -2367,7 +2369,6 @@ function getDamaValidMoves(r, c, turnColor) {
             }
         });
     } else {
-        // Dama (King) slides across multiple empty squares & captures forward/backward at range
         const allDirs = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
         allDirs.forEach(([dr, dc]) => {
             let step = 1;
@@ -2386,10 +2387,10 @@ function getDamaValidMoves(r, c, turnColor) {
                         jumped: enemyFound ? { r: enemyFound.r, c: enemyFound.c } : null
                     });
                 } else if (opponents.includes(cellContent)) {
-                    if (enemyFound) break; // Can't jump 2 consecutive enemies in a single line
+                    if (enemyFound) break; 
                     enemyFound = { r: nr, c: nc };
                 } else {
-                    break; // Blocked by own piece
+                    break; 
                 }
                 step++;
             }
@@ -2411,7 +2412,6 @@ function applyDamaMove(fromR, fromC, move) {
         audio.playSFX('move');
     }
 
-    // Dama Coronation (Reaching opponent's back rank)
     if (piece === 'r' && move.r === 0) {
         damaBoard[move.r][move.c] = 'R';
         audio.playSFX('powerup');
@@ -2503,24 +2503,18 @@ function executeAiDamaTurn() {
     let selectedOption;
 
     if (damaDifficulty === 'normal') {
-        // NORMAL MODE: Takes captures if available, otherwise picks a random move
         const captures = candidateMoves.filter(item => item.move.jumped !== null);
         const pool = captures.length > 0 ? captures : candidateMoves;
         selectedOption = pool[Math.floor(Math.random() * pool.length)];
     } else {
-        // HARD MODE: Scores every move based on captures, Dama promotion, and avoiding danger
         let bestScore = -9999;
         let bestMoves = [];
 
         candidateMoves.forEach(item => {
             let score = 0;
-            // High priority for capturing an opponent piece
             if (item.move.jumped) score += 50;
-            // High priority for promoting to a Dama
             if (damaBoard[item.fromR][item.fromC] === 'b' && item.move.r === 7) score += 40;
-            // Slight preference for advancing toward opponent's side
             score += (item.move.r - item.fromR) * 3;
-            // Control the center columns
             if (item.move.c >= 2 && item.move.c <= 5) score += 5;
 
             if (score > bestScore) {
