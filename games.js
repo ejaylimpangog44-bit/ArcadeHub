@@ -2186,7 +2186,7 @@ function tsLoop() {
 }
 
 // ===================================================
-// PINOY DAMA ENGINE (PvP & PvE - Normal / Hard Only)
+// PINOY DAMA ENGINE (With Multi-Jump Chaining & Setup)
 // ===================================================
 let damaBoard = []; 
 let damaTurn = 'r';
@@ -2195,11 +2195,70 @@ let damaValidMoves = [];
 let damaMode = 'pvp';       
 let damaDifficulty = 'normal'; 
 let damaGameOver = false;
+let damaChainingPiece = null; // Tracks a piece currently in the middle of a jump chain
 
 function newDamaGame() {
-    setDamaMode('pvp');
-    setDamaDifficulty('normal');
+    // Show setup screen first, hide active game screen
+    const setupScreen = document.getElementById('dama-setup-screen');
+    const gameScreen = document.getElementById('dama-game-screen');
+    if (setupScreen) {
+        setupScreen.style.display = 'flex';
+        setupScreen.classList.add('active');
+    }
+    if (gameScreen) {
+        gameScreen.style.display = 'none';
+        gameScreen.classList.remove('active');
+    }
+    setDamaSetupMode('pvp');
+    setDamaSetupDiff('normal');
+}
+
+function setDamaSetupMode(mode) {
+    audio.playSFX('click');
+    damaMode = mode;
+    document.getElementById('dama-setup-pvp')?.classList.toggle('active', mode === 'pvp');
+    document.getElementById('dama-setup-ai')?.classList.toggle('active', mode === 'ai');
+    
+    const diffGroup = document.getElementById('dama-setup-diff-group');
+    if (diffGroup) {
+        diffGroup.style.display = (mode === 'ai') ? 'block' : 'none';
+    }
+}
+
+function setDamaSetupDiff(diff) {
+    audio.playSFX('click');
+    damaDifficulty = diff;
+    document.getElementById('dama-setup-normal')?.classList.toggle('active', diff === 'normal');
+    document.getElementById('dama-setup-hard')?.classList.toggle('active', diff === 'hard');
+}
+
+function startDamaMatchFromSetup() {
+    audio.playSFX('click');
+    const setupScreen = document.getElementById('dama-setup-screen');
+    const gameScreen = document.getElementById('dama-game-screen');
+    if (setupScreen) {
+        setupScreen.style.display = 'none';
+        setupScreen.classList.remove('active');
+    }
+    if (gameScreen) {
+        gameScreen.style.display = 'flex';
+        gameScreen.classList.add('active');
+    }
     initDamaBoard();
+}
+
+function backToDamaSetup() {
+    audio.playSFX('click');
+    const setupScreen = document.getElementById('dama-setup-screen');
+    const gameScreen = document.getElementById('dama-game-screen');
+    if (gameScreen) {
+        gameScreen.style.display = 'none';
+        gameScreen.classList.remove('active');
+    }
+    if (setupScreen) {
+        setupScreen.style.display = 'flex';
+        setupScreen.classList.add('active');
+    }
 }
 
 function restartDamaMatch() {
@@ -2207,35 +2266,12 @@ function restartDamaMatch() {
     initDamaBoard();
 }
 
-function setDamaMode(mode) {
-    audio.playSFX('click');
-    damaMode = mode;
-    document.getElementById('dama-btn-pvp')?.classList.toggle('active', mode === 'pvp');
-    document.getElementById('dama-btn-ai')?.classList.toggle('active', mode === 'ai');
-    
-    const diffWrapper = document.getElementById('dama-diff-wrapper');
-    if (diffWrapper) {
-        diffWrapper.style.display = (mode === 'ai') ? 'block' : 'none';
-    }
-    initDamaBoard();
-}
-
-function setDamaDifficulty(diff) {
-    audio.playSFX('click');
-    damaDifficulty = diff; 
-    document.getElementById('dama-diff-normal')?.classList.toggle('active', diff === 'normal');
-    document.getElementById('dama-diff-hard')?.classList.toggle('active', diff === 'hard');
-    
-    if (damaMode === 'ai') {
-        initDamaBoard();
-    }
-}
-
 function initDamaBoard() {
     damaTurn = 'r';
     damaSelected = null;
     damaValidMoves = [];
     damaGameOver = false;
+    damaChainingPiece = null;
 
     damaBoard = Array(8).fill(null).map(() => Array(8).fill(null));
 
@@ -2258,7 +2294,6 @@ function renderDamaBoard() {
     const boardEl = document.getElementById('dama-board');
     if (!boardEl) return;
 
-    // Fixed grid layout with minmax(0, 1fr) to prevent column squishing
     boardEl.style.display = 'grid';
     boardEl.style.gridTemplateColumns = 'repeat(8, minmax(0, 1fr))';
     boardEl.style.gridTemplateRows = 'repeat(8, minmax(0, 1fr))';
@@ -2337,6 +2372,18 @@ function onDamaCellClick(r, c) {
 
     const clickedPiece = damaBoard[r][c];
 
+    // If a piece is currently chaining jumps, only that specific piece can be clicked/moved
+    if (damaChainingPiece) {
+        if (damaChainingPiece.r === r && damaChainingPiece.c === c) {
+            return; // Already selected
+        }
+        const chosenMove = damaValidMoves.find(m => m.r === r && m.c === c);
+        if (chosenMove && chosenMove.jumped) {
+            applyDamaMove(damaSelected.r, damaSelected.c, chosenMove);
+        }
+        return;
+    }
+
     if (clickedPiece && clickedPiece.toLowerCase() === damaTurn) {
         damaSelected = { r, c };
         damaValidMoves = getDamaValidMoves(r, c, damaTurn);
@@ -2351,7 +2398,7 @@ function onDamaCellClick(r, c) {
     }
 }
 
-function getDamaValidMoves(r, c, turnColor) {
+function getDamaValidMoves(r, c, turnColor, onlyJumps = false) {
     const piece = damaBoard[r][c];
     if (!piece) return [];
 
@@ -2360,13 +2407,15 @@ function getDamaValidMoves(r, c, turnColor) {
     const opponents = (turnColor === 'r') ? ['b', 'B'] : ['r', 'R'];
 
     if (!isDama) {
-        const forwardDirs = (piece === 'r') ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
-        forwardDirs.forEach(([dr, dc]) => {
-            const nr = r + dr, nc = c + dc;
-            if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && !damaBoard[nr][nc]) {
-                moves.push({ r: nr, c: nc, jumped: null });
-            }
-        });
+        if (!onlyJumps) {
+            const forwardDirs = (piece === 'r') ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+            forwardDirs.forEach(([dr, dc]) => {
+                const nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && !damaBoard[nr][nc]) {
+                    moves.push({ r: nr, c: nc, jumped: null });
+                }
+            });
+        }
 
         const allDirs = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
         allDirs.forEach(([dr, dc]) => {
@@ -2391,11 +2440,14 @@ function getDamaValidMoves(r, c, turnColor) {
 
                 const cellContent = damaBoard[nr][nc];
                 if (!cellContent) {
-                    moves.push({
-                        r: nr,
-                        c: nc,
-                        jumped: enemyFound ? { r: enemyFound.r, c: enemyFound.c } : null
-                    });
+                    const isJump = enemyFound !== null;
+                    if (!onlyJumps || isJump) {
+                        moves.push({
+                            r: nr,
+                            c: nc,
+                            jumped: enemyFound ? { r: enemyFound.r, c: enemyFound.c } : null
+                        });
+                    }
                 } else if (opponents.includes(cellContent)) {
                     if (enemyFound) break; 
                     enemyFound = { r: nr, c: nc };
@@ -2415,28 +2467,54 @@ function applyDamaMove(fromR, fromC, move) {
     damaBoard[move.r][move.c] = piece;
     damaBoard[fromR][fromC] = null;
 
-    if (move.jumped) {
+    let wasJump = move.jumped !== null;
+
+    if (wasJump) {
         damaBoard[move.jumped.r][move.jumped.c] = null;
         audio.playSFX('score');
     } else {
         audio.playSFX('move');
     }
 
+    // Crown promotion check
     if (piece === 'r' && move.r === 0) {
+        piece = 'R';
         damaBoard[move.r][move.c] = 'R';
         audio.playSFX('powerup');
     } else if (piece === 'b' && move.r === 7) {
+        piece = 'B';
         damaBoard[move.r][move.c] = 'B';
         audio.playSFX('powerup');
     }
 
+    if (checkDamaWinner()) return;
+
+    // Check for multi-jump chain opportunity if the move was a jump
+    if (wasJump) {
+        const furtherMoves = getDamaValidMoves(move.r, move.c, damaTurn, true).filter(m => m.jumped !== null);
+        if (furtherMoves.length > 0) {
+            // Chain continues with this exact piece!
+            damaChainingPiece = { r: move.r, c: move.c };
+            damaSelected = { r: move.r, c: move.c };
+            damaValidMoves = furtherMoves;
+            updateDamaStatus(true);
+            renderDamaBoard();
+            
+            // If AI is chaining jumps
+            if (damaMode === 'ai' && damaTurn === 'b' && !damaGameOver) {
+                setTimeout(executeAiDamaTurn, 450);
+            }
+            return;
+        }
+    }
+
+    // End of turn / switch turns
+    damaChainingPiece = null;
     damaSelected = null;
     damaValidMoves = [];
 
-    if (checkDamaWinner()) return;
-
     damaTurn = (damaTurn === 'r') ? 'b' : 'r';
-    updateDamaStatus();
+    updateDamaStatus(false);
     renderDamaBoard();
 
     if (damaMode === 'ai' && damaTurn === 'b' && !damaGameOver) {
@@ -2444,15 +2522,23 @@ function applyDamaMove(fromR, fromC, move) {
     }
 }
 
-function updateDamaStatus() {
+function updateDamaStatus(isChaining = false) {
     if (damaGameOver) return;
     const statusEl = document.getElementById('dama-status');
     if (!statusEl) return;
 
     if (damaMode === 'ai') {
-        statusEl.textContent = (damaTurn === 'r') ? `Your Turn (Red) — AI: ${damaDifficulty.toUpperCase()}` : "AI is thinking...";
+        if (isChaining) {
+            statusEl.textContent = (damaTurn === 'r') ? "🔥 Multi-Jump Chain! Take another jump!" : "AI is continuing jump chain...";
+        } else {
+            statusEl.textContent = (damaTurn === 'r') ? "Your Turn (Red)" : "AI is thinking...";
+        }
     } else {
-        statusEl.textContent = (damaTurn === 'r') ? "🔴 Red Player's Turn" : "🔵 Blue Player's Turn";
+        if (isChaining) {
+            statusEl.textContent = (damaTurn === 'r') ? "🔴 Red Chain! Jump again!" : "🔵 Blue Chain! Jump again!";
+        } else {
+            statusEl.textContent = (damaTurn === 'r') ? "Red Player's Turn" : "Blue Player's Turn";
+        }
     }
 }
 
@@ -2479,14 +2565,14 @@ function checkDamaWinner() {
         damaGameOver = true;
         renderDamaBoard();
         audio.playSFX('gameover');
-        if (statusEl) statusEl.textContent = (damaMode === 'ai') ? "🤖 AI Wins the Match!" : "🔵 Blue Player Wins! 🎉";
+        if (statusEl) statusEl.textContent = (damaMode === 'ai') ? "🤖 AI Wins the Match!" : "🔵 Blue Wins! 🎉";
         return true;
     }
     if (bluePieces === 0 || !blueCanMove) {
         damaGameOver = true;
         renderDamaBoard();
         audio.playSFX('win');
-        if (statusEl) statusEl.textContent = (damaMode === 'ai') ? "🎉 You Defeated the AI!" : "🔴 Red Player Wins! 🎉";
+        if (statusEl) statusEl.textContent = (damaMode === 'ai') ? "🎉 You Defeated AI!" : "🔴 Red Wins! 🎉";
         ScoreManager.saveScore('dama', 100);
         submitScore('Dama', 'Player', 100);
         return true;
@@ -2498,12 +2584,19 @@ function executeAiDamaTurn() {
     if (damaGameOver || isGamePaused) return;
 
     let candidateMoves = [];
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-            const p = damaBoard[r][c];
-            if (p && p.toLowerCase() === 'b') {
-                const moves = getDamaValidMoves(r, c, 'b');
-                moves.forEach(m => candidateMoves.push({ fromR: r, fromC: c, move: m }));
+
+    // If AI is in the middle of a jump chain, restrict moves only to the chaining piece
+    if (damaChainingPiece) {
+        const moves = getDamaValidMoves(damaChainingPiece.r, damaChainingPiece.c, 'b', true).filter(m => m.jumped !== null);
+        moves.forEach(m => candidateMoves.push({ fromR: damaChainingPiece.r, fromC: damaChainingPiece.c, move: m }));
+    } else {
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const p = damaBoard[r][c];
+                if (p && p.toLowerCase() === 'b') {
+                    const moves = getDamaValidMoves(r, c, 'b');
+                    moves.forEach(m => candidateMoves.push({ fromR: r, fromC: c, move: m }));
+                }
             }
         }
     }
