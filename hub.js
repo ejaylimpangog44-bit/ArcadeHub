@@ -796,7 +796,6 @@ const DailyChallengeManager = {
     },
     render() {
         const listModal = document.getElementById("daily-challenges-list-modal");
-        const subtitle = document.getElementById("daily-card-subtitle");
         let streak = localStorage.getItem("arcadehub_streak") || "1";
 
         const quests = JSON.parse(localStorage.getItem("arcadehub_daily_quests") || "[]");
@@ -811,7 +810,6 @@ const DailyChallengeManager = {
         `).join('');
 
         if (listModal) listModal.innerHTML = html;
-        if (subtitle) subtitle.textContent = `• ${streak} Day Streak`;
 
         const modalStreakPill = document.getElementById("hub-streak-pill-modal");
         if (modalStreakPill) modalStreakPill.textContent = `🔥 ${streak} Day Streak`;
