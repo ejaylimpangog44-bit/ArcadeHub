@@ -108,7 +108,6 @@ function initSpeedSolitaire(stage) {
     const totalFound = foundations.reduce((a, b) => a + b.length, 0);
     stage.innerHTML = `
       <div class="w-full h-full flex flex-col justify-between px-3 sm:px-8 py-3 overflow-y-auto">
-        <!-- Casino Table Top Bar -->
         <div class="flex flex-wrap items-center justify-between gap-2 max-w-5xl w-full mx-auto">
           <div class="flex items-center gap-3">
             <span class="px-3 py-1 rounded-full bg-emerald-950/80 border border-amber-400/30 text-amber-300 font-bold text-xs">SCORE: ${score}</span>
@@ -128,7 +127,6 @@ function initSpeedSolitaire(stage) {
             <button id="sol-win-deal" class="px-6 py-3 rounded-2xl bg-amber-400 text-slate-950 font-black">Play Again</button>
           </div>
         ` : `
-        <!-- Stock, Waste & 4 Foundations -->
         <div class="max-w-5xl w-full mx-auto grid grid-cols-7 gap-1.5 sm:gap-3 my-2">
           <button id="sol-stock" class="aspect-[2.5/3.5] rounded-xl border-2 border-amber-300/40 bg-emerald-900/70 flex flex-col items-center justify-center shadow-inner hover:border-amber-300">
             <span class="text-xl sm:text-2xl">${stock.length ? '🂠' : '🔄'}</span>
@@ -148,7 +146,6 @@ function initSpeedSolitaire(stage) {
           `).join('')}
         </div>
 
-        <!-- 7 Tableau Columns -->
         <div class="max-w-5xl w-full mx-auto grid grid-cols-7 gap-1.5 sm:gap-3 flex-1 min-h-[260px] pt-2">
           ${tableau.map((col, cIdx) => `
             <div data-tab="${cIdx}" class="sol-tab relative rounded-xl bg-black/15 border border-white/5 p-0.5 min-h-[220px]">
@@ -274,7 +271,6 @@ function initCoinScatter(stage, meta) {
 
       <div class="max-w-xl w-full bg-slate-950/80 backdrop-blur-xl border border-white/15 rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col gap-5 text-center mt-12 sm:mt-0">
         
-        <!-- HUD Header -->
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <div class="px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-xs font-bold text-amber-300">
             🪙 COINS: <span id="scatter-coins">3,250</span>
@@ -291,12 +287,9 @@ function initCoinScatter(stage, meta) {
           Match 3 Scatters to Trigger Free Spins Bonus!
         </div>
 
-        <!-- Slot Grid (5x3) -->
         <div id="slot-grid" class="grid grid-cols-5 gap-2 sm:gap-3 bg-black/60 p-3 sm:p-4 rounded-2xl border border-white/10">
-          <!-- Dynamically populated reels -->
         </div>
 
-        <!-- Controls -->
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-400 font-semibold">Bet:</span>
@@ -308,7 +301,6 @@ function initCoinScatter(stage, meta) {
         </div>
       </div>
 
-      <!-- Victory / Free Spin Summary Modal -->
       <div id="scatter-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
         <div class="max-w-md w-full bg-slate-900 border border-amber-500/40 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-4">
           <div class="text-4xl">🎉</div>
@@ -1359,6 +1351,26 @@ function initPianoTiles(stage, meta) {
         <div class="border-r border-white/10 relative h-full" data-lane="2"></div>
         <div class="relative h-full" data-lane="3"></div>
       </div>
+
+      <!-- Custom Game Over Modal Overlay -->
+      <div id="piano-gameover-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="max-w-sm w-full bg-slate-900 border border-amber-500/40 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-4">
+          <div class="text-4xl">🎹</div>
+          <h2 class="text-xl font-black text-amber-400">SONG ENDED!</h2>
+          <p class="text-xs text-slate-300">Final Score Achieved:</p>
+          <div class="text-3xl font-black text-white font-mono bg-black/40 py-3 rounded-2xl border border-white/10">
+            🎵 <span id="modal-piano-score" class="text-amber-300">0</span>
+          </div>
+          <div class="flex flex-col gap-2 mt-2">
+            <button onclick="restartPianoGame()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 font-extrabold text-xs text-slate-950 hover:opacity-95 transition">
+              Play Again ↺
+            </button>
+            <button onclick="openHubHome()" class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-xs text-white transition">
+              Return to Hub
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 
@@ -1378,6 +1390,7 @@ function initPianoTiles(stage, meta) {
   const spawnTimer = setInterval(spawnTile, 650);
 
   board.addEventListener('pointerdown', (e) => {
+    if (!active) return;
     const rect = board.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const laneWidth = rect.width / 4;
@@ -1400,6 +1413,27 @@ function initPianoTiles(stage, meta) {
     }
   });
 
+  function showGameOverModal() {
+    active = false;
+    clearInterval(spawnTimer);
+    AudioFX.lose();
+    document.getElementById('modal-piano-score').textContent = score;
+    const modal = document.getElementById('piano-gameover-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  window.restartPianoGame = function() {
+    const modal = document.getElementById('piano-gameover-modal');
+    if (modal) {
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+    }
+    launchGame('pianotiles');
+  };
+
   function update() {
     if (!active) return;
     const boardHeight = board.clientHeight;
@@ -1407,10 +1441,7 @@ function initPianoTiles(stage, meta) {
     tiles.forEach(t => {
       t.y += speed;
       if (!t.hit && t.y > boardHeight) {
-        active = false;
-        AudioFX.lose();
-        alert(`Game Over! Final Score: ${score}`);
-        openHubHome();
+        showGameOverModal();
       }
     });
 
