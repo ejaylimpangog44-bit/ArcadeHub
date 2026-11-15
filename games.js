@@ -1114,115 +1114,306 @@ function initDama(stage) {
 }
 
 function initTicTacToe(stage) {
-  let size = 3, cells = Array(9).fill(null), hardAI = true, over = false, msg = 'Your Turn (X)', winLine = [];
+  let cells = Array(9).fill(null);
+  let gameMode = 'pve'; // 'pve' or 'pvp'
+  let difficulty = 'normal'; // 'easy', 'normal', 'hard'
+  let playerSymbol = 'X'; // 'X' or 'O'
+  let currentTurn = 'X'; // 'X' always starts
+  let over = false;
+  let winLine = [];
+  let msg = '';
+  let setupOpen = true;
 
-  function reset(newSize = size) {
-    size = newSize;
-    cells = Array(size * size).fill(null);
+  function getAiSymbol() {
+    return playerSymbol === 'X' ? 'O' : 'X';
+  }
+
+  function resetGame() {
+    cells = Array(9).fill(null);
+    currentTurn = 'X';
     over = false;
     winLine = [];
-    msg = 'Your Turn (X)';
+    updateStatus();
     render();
+    if (gameMode === 'pve' && currentTurn !== playerSymbol && !over) {
+      setTimeout(aiStep, 350);
+    }
+  }
+
+  function updateStatus() {
+    if (over) return;
+    if (gameMode === 'pvp') {
+      msg = `Player ${currentTurn}'s Turn`;
+    } else {
+      msg = currentTurn === playerSymbol ? `Your Turn (${playerSymbol})` : `AI (${getAiSymbol()}) Thinking...`;
+    }
   }
 
   function checkWinner(arr) {
-    const lines = [];
-    for (let i = 0; i < size; i++) {
-      lines.push(Array.from({ length: size }, (_, k) => i * size + k));
-      lines.push(Array.from({ length: size }, (_, k) => k * size + i));
-    }
-    lines.push(Array.from({ length: size }, (_, k) => k * size + k));
-    lines.push(Array.from({ length: size }, (_, k) => k * size + (size - 1 - k)));
-
+    const lines = [
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
+    ];
     for (const line of lines) {
-      const first = arr[line[0]];
-      if (first && line.every(idx => arr[idx] === first)) return { winner: first, line };
+      const [a, b, c] = line;
+      if (arr[a] && arr[a] === arr[b] && arr[a] === arr[c]) {
+        return { winner: arr[a], line };
+      }
     }
     if (arr.every(Boolean)) return { winner: 'draw', line: [] };
     return null;
   }
 
-  function aiStep() {
-    const empty = cells.map((v, i) => v === null ? i : null).filter(v => v !== null);
-    if (!empty.length) return;
-    let choice = empty[Math.floor(Math.random() * empty.length)];
-    if (hardAI) {
-      for (const sym of ['O', 'X']) {
-        for (const idx of empty) {
-          const copy = [...cells];
-          copy[idx] = sym;
-          if (checkWinner(copy)?.winner === sym) { choice = idx; break; }
-        }
-      }
+  // Minimax algorithm for Hard AI
+  function minimax(newCells, depth, isMaximizing, aiSym, humanSym) {
+    const res = checkWinner(newCells);
+    if (res) {
+      if (res.winner === aiSym) return 10 - depth;
+      if (res.winner === humanSym) return depth - 10;
+      return 0;
     }
-    cells[choice] = 'O';
-    AudioFX.card();
-    const res = checkWinner(cells);
-    if (res) finish(res);
-    else { msg = 'Your Turn (X)'; render(); }
+
+    const empty = newCells.map((v, i) => v === null ? i : null).filter(v => v !== null);
+
+    if (isMaximizing) {
+      let maxEval = -Infinity;
+      for (const idx of empty) {
+        newCells[idx] = aiSym;
+        const evaluation = minimax(newCells, depth + 1, false, aiSym, humanSym);
+        newCells[idx] = null;
+        maxEval = Math.max(maxEval, evaluation);
+      }
+      return maxEval;
+    } else {
+      let minEval = Infinity;
+      for (const idx of empty) {
+        newCells[idx] = humanSym;
+        const evaluation = minimax(newCells, depth + 1, true, aiSym, humanSym);
+        newCells[idx] = null;
+        minEval = Math.min(minEval, evaluation);
+      }
+      return minEval;
+    }
   }
 
-  function finish(res) {
+  function getBestMove(board, aiSym, humanSym) {
+    let bestEval = -Infinity;
+    let bestMove = null;
+    const empty = board.map((v, i) => v === null ? i : null).filter(v => v !== null);
+    for (const idx of empty) {
+      board[idx] = aiSym;
+      const evalScore = minimax(board, 0, false, aiSym, humanSym);
+      board[idx] = null;
+      if (evalScore > bestEval) {
+        bestEval = evalScore;
+        bestMove = idx;
+      }
+    }
+    return bestMove;
+  }
+
+  function aiStep() {
+    if (over || gameMode !== 'pve') return;
+    const aiSym = getAiSymbol();
+    if (currentTurn !== aiSym) return;
+
+    const empty = cells.map((v, i) => v === null ? i : null).filter(v => v !== null);
+    if (!empty.length) return;
+
+    let choice = null;
+
+    if (difficulty === 'easy') {
+      choice = empty[Math.floor(Math.random() * empty.length)];
+    } else if (difficulty === 'normal') {
+      if (Math.random() < 0.65) {
+        for (const sym of [aiSym, playerSymbol]) {
+          for (const idx of empty) {
+            const copy = [...cells];
+            copy[idx] = sym;
+            if (checkWinner(copy)?.winner === sym) { choice = idx; break; }
+          }
+          if (choice !== null) break;
+        }
+      }
+      if (choice === null) {
+        choice = empty[Math.floor(Math.random() * empty.length)];
+      }
+    } else {
+      choice = getBestMove([...cells], aiSym, playerSymbol);
+    }
+
+    if (choice !== null) {
+      cells[choice] = aiSym;
+      AudioFX.card();
+      const res = checkWinner(cells);
+      if (res) {
+        finishGame(res);
+      } else {
+        currentTurn = playerSymbol;
+        updateStatus();
+        render();
+      }
+    }
+  }
+
+  function finishGame(res) {
     over = true;
     winLine = res.line;
-    if (res.winner === 'X') {
-      msg = '⚡ Neon Victory! You Win!';
-      AudioFX.win();
-      addXP(30, window.innerWidth / 2, window.innerHeight / 2, 'VICTORY +30 XP!');
-    } else if (res.winner === 'O') {
-      msg = 'AI Wins this round!';
-      AudioFX.lose();
+    if (res.winner === 'draw') {
+      msg = 'Game Drawn — Stalemate!';
     } else {
-      msg = 'Grid Locked — Draw!';
+      if (gameMode === 'pvp') {
+        msg = `Player ${res.winner} Wins!`;
+      } else {
+        if (res.winner === playerSymbol) {
+          msg = `🎉 Victory! You (${playerSymbol}) Win!`;
+          AudioFX.win();
+          addXP(30, window.innerWidth / 2, window.innerHeight / 2, 'VICTORY +30 XP!');
+        } else {
+          msg = `AI (${res.winner}) Wins!`;
+          AudioFX.lose();
+        }
+      }
     }
     render();
   }
 
   function render() {
     stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-center px-4 gap-4">
-        <div class="flex flex-wrap items-center justify-center gap-2">
-          <button id="ttt-3" class="px-3.5 py-1.5 rounded-full text-xs font-bold ${size === 3 ? 'bg-cyan-500 text-slate-950' : 'bg-white/10 text-slate-300'}">3×3 Classic</button>
-          <button id="ttt-5" class="px-3.5 py-1.5 rounded-full text-xs font-bold ${size === 5 ? 'bg-cyan-500 text-slate-950' : 'bg-white/10 text-slate-300'}">5×5 Arena</button>
-          <button id="ttt-ai" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-fuchsia-500/20 border border-fuchsia-400/40 text-fuchsia-200">AI: ${hardAI ? 'Tactical' : 'Casual'}</button>
+      <div class="relative w-full h-full flex flex-col items-center justify-between p-4 bg-[#f4f1ea] text-stone-900 select-none overflow-y-auto">
+        <div class="flex items-center justify-between w-full max-w-md bg-[#e6e2d3] border-2 border-[#d3c9b1] px-4 py-2.5 rounded-2xl shadow-sm">
+          <span class="text-xs font-bold uppercase tracking-wider text-stone-700">
+            ${gameMode === 'pvp' ? '👥 2-Player PvP' : `🤖 vs AI (${difficulty.toUpperCase()})`}
+          </span>
+          <button id="ttt-settings-btn" class="px-3 py-1 rounded-xl bg-[#d3c9b1] hover:bg-[#c4bac2] text-stone-900 font-bold text-xs shadow transition">
+            ⚙️ Setup
+          </button>
         </div>
 
-        <div class="text-lg sm:text-xl font-black text-cyan-300 tracking-wide">${msg}</div>
+        <div class="text-base sm:text-lg font-black text-stone-800 tracking-wide text-center my-2">
+          ${msg}
+        </div>
 
-        <div class="grid gap-2.5 w-[min(85vw,380px)] aspect-square" style="grid-template-columns: repeat(${size}, minmax(0, 1fr));">
+        <div class="grid grid-cols-3 gap-3 w-[min(85vw,360px)] aspect-square bg-[#8c7b65] p-3 rounded-2xl shadow-xl border-4 border-[#6b5d4b]">
           ${cells.map((v, i) => {
             const isWin = winLine.includes(i);
             return `
-              <button data-i="${i}" class="ttt-cell rounded-2xl bg-slate-900/80 border-2 ${isWin ? 'border-amber-400 bg-amber-400/20 shadow-[0_0_25px_rgba(251,191,36,0.5)]' : 'border-cyan-500/30 hover:border-cyan-400'} flex items-center justify-center font-black ${size === 3 ? 'text-5xl' : 'text-2xl'} transition">
-                ${v === 'X' ? '<span class="text-cyan-400 drop-shadow-[0_0_12px_rgba(34,211,238,0.8)]">✕</span>' : v === 'O' ? '<span class="text-pink-500 drop-shadow-[0_0_12px_rgba(236,72,153,0.8)]">◯</span>' : ''}
+              <button data-i="${i}" class="ttt-cell rounded-xl bg-[#fdfbf7] border-2 ${isWin ? 'border-amber-600 bg-amber-100 shadow-inner scale-[1.02]' : 'border-[#d3c9b1] hover:bg-white'} flex items-center justify-center font-black text-6xl sm:text-7xl transition shadow-sm">
+                ${v === 'X' ? '<span class="text-blue-900 drop-shadow-sm">X</span>' : v === 'O' ? '<span class="text-red-700 drop-shadow-sm">O</span>' : ''}
               </button>
             `;
           }).join('')}
         </div>
 
-        <button id="ttt-reset" class="px-6 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs">Clear Grid</button>
+        <div class="flex items-center gap-3 my-2">
+          <button id="ttt-reset" class="px-6 py-2.5 rounded-xl bg-[#d3c9b1] hover:bg-[#c4bac2] text-stone-900 font-bold text-xs shadow transition">
+            New Round
+          </button>
+        </div>
+
+        <!-- Setup Modal Overlay -->
+        <div id="ttt-setup-modal" class="fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-sm ${setupOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
+          <div class="max-w-md w-full bg-[#fdfbf7] border-4 border-[#8c7b65] rounded-3xl p-6 shadow-2xl flex flex-col gap-5 text-stone-900">
+            <div class="text-center">
+              <div class="text-3xl mb-1">❌⭕</div>
+              <h2 class="text-xl font-black text-stone-900">Tic-Tac-Toe Setup</h2>
+              <p class="text-xs text-stone-600">Configure your match preferences</p>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-stone-700 uppercase tracking-wider">Game Mode</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" id="mode-pve" class="py-2.5 px-3 rounded-xl font-bold text-xs border-2 transition ${gameMode === 'pve' ? 'bg-blue-900 text-white border-blue-900 shadow' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" onclick="setModalMode('pve')">
+                  🤖 Player vs AI
+                </button>
+                <button type="button" id="mode-pvp" class="py-2.5 px-3 rounded-xl font-bold text-xs border-2 transition ${gameMode === 'pvp' ? 'bg-blue-900 text-white border-blue-900 shadow' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" onclick="setModalMode('pvp')">
+                  👥 2-Player (PvP)
+                </button>
+              </div>
+            </div>
+
+            <div id="ai-settings-container" class="flex flex-col gap-1.5 ${gameMode === 'pvp' ? 'hidden' : ''}">
+              <label class="text-xs font-bold text-stone-700 uppercase tracking-wider">AI Difficulty</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" class="diff-btn py-2 rounded-xl font-bold text-xs border-2 transition ${difficulty === 'easy' ? 'bg-amber-600 text-white border-amber-600' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" data-diff="easy">Easy</button>
+                <button type="button" class="diff-btn py-2 rounded-xl font-bold text-xs border-2 transition ${difficulty === 'normal' ? 'bg-amber-600 text-white border-amber-600' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" data-diff="normal">Normal</button>
+                <button type="button" class="diff-btn py-2 rounded-xl font-bold text-xs border-2 transition ${difficulty === 'hard' ? 'bg-amber-600 text-white border-amber-600' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" data-diff="hard">Hard</button>
+              </div>
+            </div>
+
+            <div id="symbol-settings-container" class="flex flex-col gap-1.5 ${gameMode === 'pvp' ? 'hidden' : ''}">
+              <label class="text-xs font-bold text-stone-700 uppercase tracking-wider">Play As</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" class="sym-btn py-2.5 rounded-xl font-bold text-sm border-2 transition ${playerSymbol === 'X' ? 'bg-blue-900 text-white border-blue-900' : 'bg-[#f4f1ea] text-blue-900 border-[#d3c9b1]'}" data-sym="X">X (First)</button>
+                <button type="button" class="sym-btn py-2.5 rounded-xl font-bold text-sm border-2 transition ${playerSymbol === 'O' ? 'bg-red-700 text-white border-red-700' : 'bg-[#f4f1ea] text-red-700 border-[#d3c9b1]'}" data-sym="O">O (Second)</button>
+              </div>
+            </div>
+
+            <button id="start-game-btn" class="w-full py-3 rounded-2xl bg-[#8c7b65] hover:bg-[#786955] text-white font-black text-sm shadow-md transition">
+              Start Game ⚔️
+            </button>
+          </div>
+        </div>
       </div>
     `;
 
-    document.getElementById('ttt-3').onclick = () => reset(3);
-    document.getElementById('ttt-5').onclick = () => reset(5);
-    document.getElementById('ttt-ai').onclick = () => { hardAI = !hardAI; render(); };
-    document.getElementById('ttt-reset').onclick = () => reset(size);
+    document.getElementById('ttt-reset')?.addEventListener('click', resetGame);
+    document.getElementById('ttt-settings-btn')?.addEventListener('click', () => {
+      setupOpen = true;
+      render();
+    });
+
+    window.setModalMode = (mode) => {
+      gameMode = mode;
+      render();
+    };
+
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+      btn.onclick = () => {
+        difficulty = btn.dataset.diff;
+        render();
+      };
+    });
+
+    document.querySelectorAll('.sym-btn').forEach(btn => {
+      btn.onclick = () => {
+        playerSymbol = btn.dataset.sym;
+        render();
+      };
+    });
+
+    document.getElementById('start-game-btn')?.addEventListener('click', () => {
+      setupOpen = false;
+      resetGame();
+    });
 
     document.querySelectorAll('.ttt-cell').forEach(btn => {
       btn.onclick = () => {
+        if (setupOpen) return;
         const i = Number(btn.dataset.i);
         if (over || cells[i] !== null) return;
-        cells[i] = 'X';
+        if (gameMode === 'pve' && currentTurn !== playerSymbol) return;
+
+        cells[i] = currentTurn;
         AudioFX.click();
         const res = checkWinner(cells);
-        if (res) finish(res);
-        else { msg = 'AI responding...'; render(); setTimeout(aiStep, 200); }
+        if (res) {
+          finishGame(res);
+        } else {
+          currentTurn = currentTurn === 'X' ? 'O' : 'X';
+          updateStatus();
+          render();
+
+          if (gameMode === 'pve' && currentTurn !== playerSymbol && !over) {
+            setTimeout(aiStep, 350);
+          }
+        }
       };
     });
   }
 
-  render();
+  resetGame();
 }
 
 function initNumberGuess(stage) {
