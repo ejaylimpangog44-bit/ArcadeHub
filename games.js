@@ -3,40 +3,6 @@
    ========================================================================== */
 
 // ===================================================
-// MODERN 3D BLOCK RENDERING HELPER (App-Store Aesthetic)
-// ===================================================
-function drawModern3DBlock(ctx, x, y, width, height, baseColor = "#ef4444", glowColor = "rgba(248, 113, 113, 0.6)") {
-    ctx.save();
-
-    // 1. Add atmospheric neon glow behind the object
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = glowColor;
-
-    // 2. Create 3D Volumetric Gradient (Top light highlight to bottom shadow)
-    const blockGradient = ctx.createLinearGradient(x, y, x, y + height);
-    blockGradient.addColorStop(0.0, "#fca5a5"); // Bright top highlight (Light source)
-    blockGradient.addColorStop(0.3, baseColor);  // Vibrant primary color
-    blockGradient.addColorStop(1.0, "#991b1b");  // Deep bottom shadow
-
-    ctx.fillStyle = blockGradient;
-
-    // 3. Draw with smooth rounded corners (if supported)
-    if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(x, y, width, height, 8); // Soft rounded 3D edges
-        ctx.fill();
-    } else {
-        ctx.fillRect(x, y, width, height);
-    }
-
-    // 4. Add a subtle top glossy glass reflection line
-    ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
-    ctx.fillRect(x + 4, y + 3, width - 8, height * 0.25);
-
-    ctx.restore();
-}
-
-// ===================================================
 // WORDSCAPE PRO ENGINE
 // ===================================================
 const wordscapeLevels = [
@@ -914,13 +880,14 @@ function carLoop() {
 
     trafficCars.forEach(tc => {
         let tx = lanes[tc.lane] - playerCar.width / 2;
-        // UPGRADED WITH 3D SHADING
-        drawModern3DBlock(carCtx, tx, tc.y, playerCar.width, playerCar.height, tc.color, tc.color);
+        carCtx.fillStyle = tc.color;
+        carCtx.beginPath(); carCtx.roundRect(tx, tc.y, playerCar.width, playerCar.height, 6); carCtx.fill();
+        carCtx.fillStyle = '#020617'; carCtx.fillRect(tx + 5, tc.y + 10, playerCar.width - 10, 12);
     });
 
-    // UPGRADED PLAYER CAR WITH 3D SHADING
-    let pColor = carBoostActive > 0 ? '#38bdf8' : '#8b5cf6';
-    drawModern3DBlock(carCtx, playerCar.x, playerCar.y, playerCar.width, playerCar.height, pColor, '#38bdf8');
+    carCtx.fillStyle = carBoostActive > 0 ? '#38bdf8' : 'var(--primary, #8b5cf6)';
+    carCtx.beginPath(); carCtx.roundRect(playerCar.x, playerCar.y, playerCar.width, playerCar.height, 6); carCtx.fill();
+    carCtx.fillStyle = '#38bdf8'; carCtx.fillRect(playerCar.x + 5, playerCar.y + 12, playerCar.width - 10, 14);
 
     if(playerCar.shieldTimer > 0) {
         carCtx.strokeStyle = '#38bdf8'; carCtx.lineWidth = 3;
@@ -1195,11 +1162,7 @@ function fruitLoop() {
             fruitCtx.font = '28px sans-serif'; 
             fruitCtx.textAlign = 'center'; 
             fruitCtx.textBaseline = 'middle'; 
-            // UPGRADED WITH GLOW EFFECT
-            fruitCtx.shadowBlur = 12;
-            fruitCtx.shadowColor = f.isBomb ? '#ef4444' : '#10b981';
             fruitCtx.fillText(f.emoji, f.x, f.y);
-            fruitCtx.shadowBlur = 0;
         }
     });
     flyingFruits = flyingFruits.filter(f => f.y < 360);
@@ -1534,10 +1497,15 @@ function drawRealSnake() {
     snakeCtx.shadowBlur = 0;
 
     snake.forEach((part, idx) => {
-        let bColor = snakeGhostTimer > 0 ? (idx === 0 ? '#38bdf8' : 'rgba(56, 189, 248, 0.45)') : (idx === 0 ? '#34d399' : '#059669');
+        if (snakeGhostTimer > 0) {
+            snakeCtx.fillStyle = idx === 0 ? '#38bdf8' : 'rgba(56, 189, 248, 0.45)';
+        } else {
+            snakeCtx.fillStyle = idx === 0 ? '#34d399' : '#059669';
+        }
         let sz = idx === 0 ? 9 : 8;
-        // UPGRADED WITH 3D SHADING
-        drawModern3DBlock(snakeCtx, part.x * 10 + 1, part.y * 10 + 1, sz, sz, bColor, bColor);
+        snakeCtx.beginPath();
+        snakeCtx.roundRect(part.x * 10 + 1, part.y * 10 + 1, sz, sz, 3);
+        snakeCtx.fill();
     });
 
     snakeParticles.forEach(p => {
@@ -1630,8 +1598,8 @@ function frostLoop() {
     frostBricks.forEach(b => {
         if (b.status > 0) {
             activeBricks++;
-            // UPGRADED BRICKS WITH 3D SHADING
-            drawModern3DBlock(frostCtx, b.x, b.y, b.width, b.height, '#8b5cf6', '#a855f7');
+            frostCtx.fillStyle = '#8b5cf6';
+            frostCtx.fillRect(b.x, b.y, b.width, b.height);
         }
     });
 
@@ -1643,13 +1611,15 @@ function frostLoop() {
         updateFrostHUD();
     }
 
-    // UPGRADED PADDLE WITH 3D SHADING
-    drawModern3DBlock(frostCtx, frostPaddle.x, frostPaddle.y, frostPaddle.width, frostPaddle.height, '#38bdf8', '#0ea5e9');
+    frostCtx.fillStyle = '#38bdf8'; 
+    frostCtx.fillRect(frostPaddle.x, frostPaddle.y, frostPaddle.width, frostPaddle.height);
 
     frostPowerUps.forEach(p => {
         p.y += 2.5;
-        let pColor = p.type === 'x3' ? '#10b981' : p.type === 'longer' ? '#38bdf8' : p.type === 'shorter' ? '#f59e0b' : '#ef4444';
-        drawModern3DBlock(frostCtx, p.x, p.y, 22, 22, pColor, pColor);
+        frostCtx.fillStyle = p.type === 'x3' ? '#10b981' : p.type === 'longer' ? '#38bdf8' : p.type === 'shorter' ? '#f59e0b' : '#ef4444';
+        frostCtx.beginPath();
+        frostCtx.roundRect(p.x, p.y, 22, 22, 6);
+        frostCtx.fill();
         frostCtx.fillStyle = '#ffffff';
         frostCtx.font = 'bold 10px sans-serif';
         frostCtx.fillText(p.label, p.x + 3, p.y + 15);
@@ -1867,8 +1837,24 @@ function srGameLoop() {
 
     srObstacles.forEach(o => {
         if(o.type === 'crate' || o.type === 'double_crate') {
-            // UPGRADED CRATES WITH 3D SHADING
-            drawModern3DBlock(srCtx, o.x, o.type === 'double_crate' ? 254 : 310, o.w, o.type === 'double_crate' ? 112 : 56, '#b47535', '#d97706');
+            srCtx.fillStyle = '#b47535';
+            srCtx.fillRect(o.x, 310, o.w, 56);
+            srCtx.strokeStyle = '#6e441a'; srCtx.lineWidth = 3;
+            srCtx.strokeRect(o.x, 310, o.w, 56);
+            srCtx.beginPath();
+            srCtx.moveTo(o.x, 310); srCtx.lineTo(o.x + o.w, 366);
+            srCtx.moveTo(o.x + o.w, 310); srCtx.lineTo(o.x, 366);
+            srCtx.stroke();
+
+            if(o.type === 'double_crate') {
+                srCtx.fillStyle = '#b47535';
+                srCtx.fillRect(o.x, 254, o.w, 56);
+                srCtx.strokeRect(o.x, 254, o.w, 56);
+                srCtx.beginPath();
+                srCtx.moveTo(o.x, 254); srCtx.lineTo(o.x + o.w, 310);
+                srCtx.moveTo(o.x + o.w, 254); srCtx.lineTo(o.x, 310);
+                srCtx.stroke();
+            }
         } else {
             srCtx.save();
             srCtx.translate(o.x + o.w/2, o.y + o.h/2);
@@ -2174,12 +2160,17 @@ function tsLoop() {
     tsCtx.translate(0, tsCameraY);
 
     tsBlocks.forEach(b => {
-        // UPGRADED TOWER STACK BLOCKS WITH 3D SHADING
-        drawModern3DBlock(tsCtx, b.x, b.y, b.w, TS_BLOCK_HEIGHT - 2, `hsl(${b.hue}, 78%, 58%)`, `hsl(${b.hue}, 85%, 65%)`);
+        tsCtx.fillStyle = `hsl(${b.hue}, 78%, 58%)`;
+        tsCtx.beginPath();
+        tsCtx.roundRect(b.x, b.y, b.w, TS_BLOCK_HEIGHT - 2, 4);
+        tsCtx.fill();
     });
 
     if (tsRunning && tsCurrentBlock) {
-        drawModern3DBlock(tsCtx, tsCurrentBlock.x, tsCurrentBlock.y, tsCurrentBlock.w, TS_BLOCK_HEIGHT - 2, `hsl(${tsCurrentBlock.hue}, 85%, 65%)`, `hsl(${tsCurrentBlock.hue}, 90%, 75%)`);
+        tsCtx.fillStyle = `hsl(${tsCurrentBlock.hue}, 85%, 65%)`;
+        tsCtx.beginPath();
+        tsCtx.roundRect(tsCurrentBlock.x, tsCurrentBlock.y, tsCurrentBlock.w, TS_BLOCK_HEIGHT - 2, 4);
+        tsCtx.fill();
     }
 
     tsDebris.forEach(d => {
