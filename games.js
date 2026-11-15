@@ -842,7 +842,6 @@ function initChess(stage) {
 
     document.getElementById('chess-reset').onclick = reset;
     document.querySelectorAll('.ch-sq').forEach(btn => {
-      // Use pointerup for silky smooth mobile touch response without double-firing
       btn.onpointerup = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -896,7 +895,6 @@ function initDama(stage) {
     const capDirs = [[-1,-1],[-1,1],[1,-1],[1,1]];
     const stepDirs = p.king ? [[-1,-1],[-1,1],[1,-1],[1,1]] : (p.side === 'r' ? [[-1,-1],[-1,1]] : [[1,-1],[1,1]]);
 
-    // 1. Check Captures (Backwards and Forwards for both player and AI, chain jumps supported)
     capDirs.forEach(([dr, dc]) => {
       if (!p.king) {
         const mr = r + dr, mc = c + dc, jr = r + dr * 2, jc = c + dc * 2;
@@ -922,7 +920,6 @@ function initDama(stage) {
       }
     });
 
-    // 2. Freedom Rule: Include regular/normal non-capture moves as well (optional capture)
     stepDirs.forEach(([dr, dc]) => {
       let step = 1;
       while (true) {
@@ -963,7 +960,6 @@ function initDama(stage) {
     if (pick.cap) {
       board[pick.cap[0]][pick.cap[1]] = null;
       AudioFX.coin();
-      // Check if another capture is available for this piece (Chain Jump)
       const nextMoves = getPieceMoves(pick.dr, pick.dc).filter(m => m.cap);
       if (nextMoves.length > 0) {
         chained = true;
@@ -1039,7 +1035,6 @@ function initDama(stage) {
             AudioFX.coin();
             addXP(15, window.innerWidth / 2, window.innerHeight / 2, 'CAPTURE!');
             
-            // Chain jump check for player
             const nextMoves = getPieceMoves(r, c).filter(m => m.cap);
             if (nextMoves.length > 0) {
               chained = true;
@@ -1520,6 +1515,7 @@ function initFruitMaster(stage) {
   loop();
 
   return () => {
+    running = false;
     clearInterval(spawner);
     cancelAnimationFrame(raf);
     window.removeEventListener('resize', onResize);
@@ -1614,16 +1610,7 @@ function initCyberSnakePreserved(stage, meta) {
         <canvas id="snake-canvas" width="360" height="360" class="block w-[320px] h-[320px] sm:w-[360px] sm:h-[360px] rounded-2xl touch-none"></canvas>
       </div>
 
-      <!-- On-Screen Touch D-Pad Controls for Mobile -->
-      <div class="grid grid-cols-3 gap-2 max-w-[220px] w-full my-2">
-        <div></div>
-        <button id="btn-up" class="py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-white/15 text-emerald-300 font-black text-lg active:scale-95 shadow">▲</button>
-        <div></div>
-        <button id="btn-left" class="py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-white/15 text-emerald-300 font-black text-lg active:scale-95 shadow">◀</button>
-        <button id="btn-down" class="py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-white/15 text-emerald-300 font-black text-lg active:scale-95 shadow">▼</button>
-        <button id="btn-right" class="py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-white/15 text-emerald-300 font-black text-lg active:scale-95 shadow">▶</button>
-      </div>
-      <p class="text-[11px] text-slate-400 font-semibold text-center">Use Touch D-Pad, Swipe, or Arrow Keys</p>
+      <p class="text-[11px] text-slate-400 font-semibold text-center mt-2">Swipe anywhere on canvas or use Arrow / WASD Keys</p>
     </div>
   `;
 
@@ -1680,7 +1667,6 @@ function initCyberSnakePreserved(stage, meta) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Subtle background grid
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
     ctx.lineWidth = 1;
     for (let x = 0; x < canvas.width; x += grid) {
@@ -1701,7 +1687,6 @@ function initCyberSnakePreserved(stage, meta) {
     snake.cells.unshift({ x: snake.x, y: snake.y });
     if (snake.cells.length > snake.maxLen) snake.cells.pop();
 
-    // Draw glowing apple/orb
     const ax = apple.x + grid / 2;
     const ay = apple.y + grid / 2;
     ctx.save();
@@ -1716,7 +1701,6 @@ function initCyberSnakePreserved(stage, meta) {
     ctx.fill();
     ctx.restore();
 
-    // Draw Organic Biological Snake Body & Head
     snake.cells.forEach((cell, index) => {
       const isHead = index === 0;
       const cx = cell.x + grid / 2;
@@ -1727,7 +1711,6 @@ function initCyberSnakePreserved(stage, meta) {
       ctx.shadowColor = '#10b981';
       ctx.shadowBlur = isHead ? 12 : 4;
 
-      // Segment fill gradient
       let sGrad = ctx.createRadialGradient(cx - 3, cy - 3, 1, cx, cy, radius);
       if (isHead) {
         sGrad.addColorStop(0, '#34d399');
@@ -1742,13 +1725,11 @@ function initCyberSnakePreserved(stage, meta) {
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Highlight sheen
       ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
       ctx.beginPath();
       ctx.arc(cx - 2, cy - 2, radius * 0.3, 0, Math.PI * 2);
       ctx.fill();
 
-      // Draw eyes on head
       if (isHead) {
         ctx.fillStyle = '#0f172a';
         let eyeOffsetX1 = 3, eyeOffsetY1 = -4;
@@ -1764,7 +1745,6 @@ function initCyberSnakePreserved(stage, meta) {
       }
       ctx.restore();
 
-      // Collision with apple
       if (cell.x === apple.x && cell.y === apple.y) {
         snake.maxLen++;
         score += 10;
@@ -1777,7 +1757,6 @@ function initCyberSnakePreserved(stage, meta) {
         apple.y = getRandomInt(0, canvas.height / grid) * grid;
       }
 
-      // Self collision
       for (let i = index + 1; i < snake.cells.length; i++) {
         if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
           AudioFX.lose();
@@ -1805,16 +1784,6 @@ function initCyberSnakePreserved(stage, meta) {
   };
 
   window.addEventListener('keydown', handleKey);
-
-  const btnUp = document.getElementById('btn-up');
-  const btnDown = document.getElementById('btn-down');
-  const btnLeft = document.getElementById('btn-left');
-  const btnRight = document.getElementById('btn-right');
-
-  if (btnUp) btnUp.onclick = () => setDir(0, -grid);
-  if (btnDown) btnDown.onclick = () => setDir(0, grid);
-  if (btnLeft) btnLeft.onclick = () => setDir(-grid, 0);
-  if (btnRight) btnRight.onclick = () => setDir(grid, 0);
 
   let touchStartX = 0, touchStartY = 0;
   canvas.ontouchstart = (e) => {
@@ -1959,7 +1928,9 @@ function initTowerStack(stage) {
 
   reset();
   loop();
+
   return () => {
+    alive = false;
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResize);
@@ -2105,6 +2076,7 @@ function initCarRacing(stage) {
   loop();
 
   return () => {
+    alive = false;
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResize);
@@ -2245,6 +2217,7 @@ function initBrickBreaker(stage) {
   loop();
 
   return () => {
+    alive = false;
     cancelAnimationFrame(raf);
     window.removeEventListener('resize', onResize);
   };
@@ -2258,7 +2231,7 @@ function initStickRun(stage) {
           <span id="sr-dist" class="px-4 py-1.5 rounded-full bg-slate-900/75 border border-sky-300/40 text-white font-black text-sm">🏃 0m</span>
           <span id="sr-coins" class="px-3.5 py-1.5 rounded-full bg-slate-900/75 border border-amber-300/40 text-amber-300 font-bold text-xs">🪙 0</span>
         </div>
-        <span class="px-3 py-1 rounded-full bg-slate-900/75 text-sky-200 text-xs font-bold">TAP / SPACE TO JUMP (DOUBLE JUMP!)</span>
+        <span class="px-3 py-1 rounded-full bg-slate-900/75 text-sky-200 text-xs font-bold">UP: JUMP • DOWN: SLIDE</span>
       </div>
       <canvas id="sr-canvas" class="w-full h-full block touch-none cursor-pointer"></canvas>
     </div>
@@ -2269,13 +2242,13 @@ function initStickRun(stage) {
   let w = canvas.width = stage.clientWidth;
   let h = canvas.height = stage.clientHeight;
 
-  let player = { x: 90, y: 0, vy: 0, jumps: 0, runCycle: 0 };
+  let player = { x: 90, y: 0, vy: 0, jumps: 0, runCycle: 0, sliding: false, slideTimer: 0 };
   let obstacles = [], coins = [], dist = 0, coinCount = 0, scroll = 0, alive = true, raf;
 
   function groundY() { return h * 0.75; }
 
   function reset() {
-    player = { x: Math.min(110, w * 0.18), y: groundY(), vy: 0, jumps: 0, runCycle: 0 };
+    player = { x: Math.min(110, w * 0.18), y: groundY(), vy: 0, jumps: 0, runCycle: 0, sliding: false, slideTimer: 0 };
     obstacles = []; coins = []; dist = 0; coinCount = 0; alive = true;
   }
 
@@ -2284,55 +2257,110 @@ function initStickRun(stage) {
     if (player.jumps < 2) {
       player.vy = -13.5;
       player.jumps++;
+      player.sliding = false;
       AudioFX.jump();
     }
   }
 
+  function slide() {
+    if (!alive) { reset(); return; }
+    if (player.y === groundY() && !player.sliding) {
+      player.sliding = true;
+      player.slideTimer = 32;
+      AudioFX.click();
+    }
+  }
+
   canvas.onpointerdown = jump;
-  const onKey = (e) => { if (e.code === 'Space' || e.key === 'ArrowUp') { e.preventDefault(); jump(); } };
+  
+  let touchStartX = 0, touchStartY = 0;
+  canvas.ontouchstart = (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    e.preventDefault();
+  };
+  canvas.ontouchend = (e) => {
+    if (!touchStartX || !touchStartY) return;
+    let diffX = e.changedTouches[0].clientX - touchStartX;
+    let diffY = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(diffY) > Math.abs(diffX)) {
+      if (diffY < -25) jump();
+      else if (diffY > 25) slide();
+    } else {
+      jump();
+    }
+    touchStartX = 0; touchStartY = 0;
+    e.preventDefault();
+  };
+
+  const onKey = (e) => { 
+    if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'w') { e.preventDefault(); jump(); }
+    if (e.key === 'ArrowDown' || e.key === 's') { e.preventDefault(); slide(); }
+  };
   window.addEventListener('keydown', onKey);
   const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
   window.addEventListener('resize', onResize);
 
-  function drawStickman(x, y, phase, inAir) {
+  function drawStickman(x, y, phase, inAir, sliding) {
     ctx.save();
     ctx.strokeStyle = '#0f172a';
     ctx.lineWidth = 4.5;
     ctx.lineCap = 'round';
 
-    ctx.fillStyle = '#0f172a';
-    ctx.beginPath();
-    ctx.arc(x, y - 48, 9, 0, Math.PI * 2);
-    ctx.fill();
+    if (sliding) {
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(x + 10, y - 26, 8, 0, Math.PI * 2);
+      ctx.fill();
 
-    ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(x - 6, y - 51);
-    ctx.lineTo(x - 22, y - 48 + Math.sin(phase * 2) * 4);
-    ctx.stroke();
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + 6, y - 26);
+      ctx.lineTo(x - 12, y - 20);
+      ctx.stroke();
 
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 4.5;
-    ctx.beginPath();
-    ctx.moveTo(x, y - 39);
-    ctx.lineTo(x - 3, y - 18);
-    ctx.stroke();
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 4.5;
+      ctx.beginPath();
+      ctx.moveTo(x, y - 22);
+      ctx.lineTo(x + 18, y - 10);
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(x, y - 48, 9, 0, Math.PI * 2);
+      ctx.fill();
 
-    const swing = inAir ? 0.75 : Math.sin(phase) * 0.9;
-    ctx.beginPath();
-    ctx.moveTo(x, y - 35);
-    ctx.lineTo(x + Math.sin(swing) * 14, y - 22);
-    ctx.moveTo(x, y - 35);
-    ctx.lineTo(x - Math.sin(swing) * 14, y - 22);
-    ctx.stroke();
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x - 6, y - 51);
+      ctx.lineTo(x - 22, y - 48 + Math.sin(phase * 2) * 4);
+      ctx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(x - 3, y - 18);
-    ctx.lineTo(x + Math.sin(swing) * 16, y);
-    ctx.moveTo(x - 3, y - 18);
-    ctx.lineTo(x - Math.sin(swing) * 16, y);
-    ctx.stroke();
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 4.5;
+      ctx.beginPath();
+      ctx.moveTo(x, y - 39);
+      ctx.lineTo(x - 3, y - 18);
+      ctx.stroke();
+
+      const swing = inAir ? 0.75 : Math.sin(phase) * 0.9;
+      ctx.beginPath();
+      ctx.moveTo(x, y - 35);
+      ctx.lineTo(x + Math.sin(swing) * 14, y - 22);
+      ctx.moveTo(x, y - 35);
+      ctx.lineTo(x - Math.sin(swing) * 14, y - 22);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(x - 3, y - 18);
+      ctx.lineTo(x + Math.sin(swing) * 16, y);
+      ctx.moveTo(x - 3, y - 18);
+      ctx.lineTo(x - Math.sin(swing) * 16, y);
+      ctx.stroke();
+    }
 
     ctx.restore();
   }
@@ -2346,6 +2374,12 @@ function initStickRun(stage) {
       scroll += speed;
       dist += 1;
       player.runCycle += 0.26;
+      
+      if (player.sliding) {
+        player.slideTimer--;
+        if (player.slideTimer <= 0) player.sliding = false;
+      }
+
       player.y += player.vy;
       if (player.y < gy) {
         player.vy += 0.68;
@@ -2357,10 +2391,16 @@ function initStickRun(stage) {
 
       if (dist % 8 === 0) document.getElementById('sr-dist').textContent = `🏃 ${Math.floor(dist / 4)}m`;
 
-      if (Math.random() < 0.022 && !obstacles.some(o => o.x > w - 240)) {
-        const tall = Math.random() < 0.35;
-        obstacles.push({ x: w + 40, w: tall ? 26 : 34, h: tall ? 54 : 34 });
+      if (Math.random() < 0.024 && !obstacles.some(o => o.x > w - 240)) {
+        const types = ['box', 'saw', 'floatingSaw', 'combo'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        let obsW = 34, obsH = 34, obsYOffset = 0;
+        if (type === 'saw') { obsW = 32; obsH = 32; }
+        else if (type === 'floatingSaw') { obsW = 32; obsH = 32; obsYOffset = 52; }
+        else if (type === 'combo') { obsW = 42; obsH = 68; }
+        obstacles.push({ x: w + 40, w: obsW, h: obsH, type, yOffset: obsYOffset, rot: 0 });
       }
+
       if (Math.random() < 0.028) {
         coins.push({ x: w + 40, y: gy - (Math.random() < 0.5 ? 28 : 85) });
       }
@@ -2400,22 +2440,81 @@ function initStickRun(stage) {
     coins = coins.filter(c => c.x > -40 && !c.taken);
 
     obstacles.forEach(o => {
-      if (alive) o.x -= speed;
-      ctx.fillStyle = '#dc2626';
-      ctx.beginPath();
-      ctx.roundRect(o.x, gy - o.h, o.w, o.h, 6);
-      ctx.fill();
-      ctx.fillStyle = '#fef08a';
-      ctx.fillRect(o.x + 4, gy - o.h + 6, o.w - 8, 6);
+      if (alive) {
+        o.x -= speed;
+        o.rot += 0.15;
+      }
 
-      if (alive && player.x + 10 > o.x && player.x - 10 < o.x + o.w && player.y > gy - o.h + 6) {
-        alive = false;
-        AudioFX.lose();
+      ctx.save();
+      if (o.type === 'saw' || o.type === 'floatingSaw') {
+        const cx = o.x + o.w / 2;
+        const cy = gy - o.h - o.yOffset + o.h / 2;
+        ctx.translate(cx, cy);
+        ctx.rotate(o.rot);
+        ctx.fillStyle = '#94a3b8';
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, o.w / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        for (let t = 0; t < 8; t++) {
+          ctx.rotate(Math.PI / 4);
+          ctx.fillStyle = '#e2e8f0';
+          ctx.fillRect(-3, -o.w / 2 - 4, 6, 6);
+        }
+        ctx.restore();
+      } else if (o.type === 'combo') {
+        ctx.fillStyle = '#b91c1c';
+        ctx.beginPath();
+        ctx.roundRect(o.x, gy - o.h, o.w, o.h, 6);
+        ctx.fill();
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(o.x + 4, gy - o.h + 6, o.w - 8, 6);
+        
+        const cx = o.x + o.w / 2;
+        const cy = gy - o.h - 16;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(o.rot);
+        ctx.fillStyle = '#94a3b8';
+        ctx.beginPath();
+        ctx.arc(0, 0, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else {
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.roundRect(o.x, gy - o.h, o.w, o.h, 6);
+        ctx.fill();
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(o.x + 4, gy - o.h + 6, o.w - 8, 6);
+      }
+
+      if (alive) {
+        const pBox = {
+          x: player.x - 12,
+          y: player.sliding ? gy - 24 : player.y - 45,
+          w: 24,
+          h: player.sliding ? 24 : 45
+        };
+        const oBox = {
+          x: o.x,
+          y: gy - o.h - o.yOffset,
+          w: o.w,
+          h: o.h
+        };
+
+        if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
+            pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
+          alive = false;
+          AudioFX.lose();
+        }
       }
     });
     obstacles = obstacles.filter(o => o.x > -60);
 
-    drawStickman(player.x, player.y, player.runCycle, player.y < gy - 2);
+    drawStickman(player.x, player.y, player.runCycle, player.y < gy - 2, player.sliding);
 
     if (!alive) {
       ctx.fillStyle = 'rgba(15, 23, 42, 0.72)';
@@ -2436,6 +2535,7 @@ function initStickRun(stage) {
   loop();
 
   return () => {
+    alive = false;
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResize);
