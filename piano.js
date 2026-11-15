@@ -17,95 +17,202 @@ const SONG_ALBUM = [
 ];
 
 function initPianoTiles(stage) {
-  let currentSongIdx = 0;
-  let rows = [], score = 0, noteIdx = 0, alive = true;
+  // 1. Automatically pause global ambient BGM when entering Piano Tiles
+  const bgm = document.getElementById('bgm-audio');
+  const wasBgmPlaying = bgm && !bgm.paused;
+  if (bgm && wasBgmPlaying) bgm.pause();
 
-  function reset() {
-    rows = Array.from({ length: 5 }, (_, i) => ({ id: i, blackCol: Math.floor(Math.random() * 4), hit: false }));
-    score = 0;
-    noteIdx = 0;
-    alive = true;
-    render();
-  }
-
-  function tapCell(rowIdx, col) {
-    if (!alive) return;
-    const targetRowIdx = rows.length - 1;
-    if (rowIdx !== targetRowIdx) return;
-    const row = rows[targetRowIdx];
-    if (col === row.blackCol) {
-      const activeMelody = SONG_ALBUM[currentSongIdx].melody;
-      AudioFX.note(activeMelody[noteIdx % activeMelody.length]);
-      noteIdx++;
-      score++;
-      if (score % 10 === 0) addXP(15, window.innerWidth / 2, window.innerHeight * 0.3, `${score} STREAK!`);
-      rows.pop();
-      rows.unshift({ id: Date.now() + Math.random(), blackCol: Math.floor(Math.random() * 4), hit: false });
-      render();
-    } else {
-      alive = false;
-      AudioFX.lose();
-      render();
-    }
-  }
-
-  function onKey(e) {
-    const map = { d: 0, f: 1, j: 2, k: 3, '1': 0, '2': 1, '3': 2, '4': 3 };
-    if (e.key.toLowerCase() in map) tapCell(rows.length - 1, map[e.key.toLowerCase()]);
-  }
-  window.addEventListener('keydown', onKey);
-
-  function render() {
-    const fever = score >= 20;
-    const currentSong = SONG_ALBUM[currentSongIdx];
-    stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-between px-4 py-3">
-        <div class="flex flex-wrap items-center justify-center gap-2 max-w-lg w-full">
-          <select id="piano-song-select" class="px-3 py-1.5 rounded-xl bg-indigo-950/90 border border-indigo-400/40 text-indigo-200 font-bold text-xs outline-none cursor-pointer">
-            ${SONG_ALBUM.map((s, idx) => `<option value="${idx}" ${idx === currentSongIdx ? 'selected' : ''}>🎵 ${s.name}</option>`).join('')}
-          </select>
-          <span class="px-3 py-1.5 rounded-full bg-indigo-950/90 border border-indigo-400/40 text-indigo-200 font-black text-xs">NOTES: ${score}</span>
-          ${fever ? '<span class="px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-amber-400 text-slate-950 font-black text-xs animate-pulse">🔥 FEVER</span>' : ''}
-        </div>
-
-        ${!alive ? `
-          <div class="my-auto text-center">
-            <div class="text-5xl mb-2">🎹</div>
-            <h2 class="text-3xl font-black text-white">Wrong Key!</h2>
-            <p class="text-indigo-200 text-sm mb-4">Concert Score: ${score} Notes</p>
-            <button id="pt-retry" class="px-8 py-3 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-white font-black">Encore (Play Again)</button>
-          </div>
-        ` : `
-          <div class="w-[min(92vw,400px)] flex-1 my-2 rounded-3xl overflow-hidden border-2 ${fever ? 'border-amber-400 shadow-[0_0_40px_rgba(251,191,36,0.35)]' : 'border-indigo-400/30'} grid grid-rows-5 bg-white/95">
-            ${rows.map((r, rIdx) => `
-              <div class="grid grid-cols-4 border-b border-slate-300">
-                ${[0,1,2,3].map(c => {
-                  const isBlack = c === r.blackCol;
-                  const isBottom = rIdx === rows.length - 1;
-                  return `
-                    <button data-r="${rIdx}" data-c="${c}" class="pt-cell border-r border-slate-200 flex items-end justify-center pb-2 transition-colors ${isBlack ? (fever ? 'bg-gradient-to-b from-indigo-950 via-purple-900 to-pink-700' : 'bg-slate-950 hover:bg-slate-800') : 'bg-white active:bg-rose-200'}">
-                      ${isBlack && isBottom ? '<span class="text-[10px] font-black text-amber-300 tracking-widest animate-bounce">TAP</span>' : ''}
-                    </button>
-                  `;
-                }).join('')}
-              </div>
-            `).join('')}
-          </div>
-          <div class="text-[11px] text-indigo-200/70 text-center">Tap the bottom black tile or press keys D • F • J • K</div>
-        `}
+  stage.innerHTML = `
+    <div class="w-full h-full flex flex-col items-center justify-between px-3 py-2 select-none overflow-hidden">
+      <div class="flex flex-wrap items-center justify-between gap-2 max-w-lg w-full z-10">
+        <select id="piano-song-select" class="px-3 py-1.5 rounded-xl bg-indigo-950/90 border border-indigo-400/40 text-indigo-200 font-bold text-xs outline-none cursor-pointer">
+          ${SONG_ALBUM.map((s, idx) => `<option value="${idx}">🎵 ${s.name}</option>`).join('')}
+        </select>
+        <span id="pt-score" class="px-3 py-1.5 rounded-full bg-indigo-950/90 border border-indigo-400/40 text-indigo-200 font-black text-xs">SCORE: 0</span>
       </div>
-    `;
 
-    document.getElementById('piano-song-select')?.addEventListener('change', (e) => {
-      currentSongIdx = Number(e.target.value);
-      reset();
-    });
-    document.getElementById('pt-retry')?.addEventListener('click', reset);
-    document.querySelectorAll('.pt-cell').forEach(btn => {
-      btn.onpointerdown = () => tapCell(Number(btn.dataset.r), Number(btn.dataset.c));
+      <div class="relative w-[min(92vw,380px)] flex-1 my-2 rounded-3xl overflow-hidden border-2 border-indigo-400/40 bg-slate-950 shadow-2xl">
+        <canvas id="pt-canvas" class="w-full h-full block touch-none"></canvas>
+      </div>
+
+      <div class="text-[11px] text-indigo-200/70 text-center z-10">Tap falling piano tiles • Hold purple tiles • Speed scales with score</div>
+    </div>
+  `;
+
+  const canvas = document.getElementById('pt-canvas');
+  const ctx = canvas.getContext('2d');
+  let w = canvas.width = canvas.parentElement.clientWidth;
+  let h = canvas.height = canvas.parentElement.clientHeight;
+
+  const onResize = () => {
+    if (!canvas.parentElement) return;
+    w = canvas.width = canvas.parentElement.clientWidth;
+    h = canvas.height = canvas.parentElement.clientHeight;
+  };
+  window.addEventListener('resize', onResize);
+
+  let currentSongIdx = 0;
+  let score = 0, combo = 0, noteIdx = 0, alive = true, running = true;
+  let tiles = [];
+  let spawnTimer = 0;
+
+  document.getElementById('piano-song-select')?.addEventListener('change', (e) => {
+    currentSongIdx = Number(e.target.value);
+    resetGame();
+  });
+
+  function resetGame() {
+    score = 0; combo = 0; noteIdx = 0; alive = true; running = true;
+    tiles = [];
+    spawnTimer = 0;
+  }
+
+  function spawnTile() {
+    const col = Math.floor(Math.random() * 4);
+    const isHold = Math.random() < 0.22; // 22% chance for a Hold Tile
+    tiles.push({
+      col,
+      y: -140,
+      height: isHold ? 150 : 85,
+      isHold,
+      hit: false,
+      missed: false
     });
   }
 
-  reset();
-  return () => window.removeEventListener('keydown', onKey);
+  let raf;
+  function loop() {
+    ctx.clearRect(0, 0, w, h);
+    const colWidth = w / 4;
+
+    // Draw vertical column divider lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < 4; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * colWidth, 0);
+      ctx.lineTo(i * colWidth, h);
+      ctx.stroke();
+    }
+
+    // Draw hit line indicator
+    const hitLineY = h - 110;
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, hitLineY);
+    ctx.lineTo(w, hitLineY);
+    ctx.stroke();
+
+    if (running && alive) {
+      spawnTimer++;
+      // Spawn interval decreases slightly as score increases
+      const spawnInterval = Math.max(30, 75 - Math.floor(score / 15) * 4);
+      if (spawnTimer >= spawnInterval) {
+        spawnTimer = 0;
+        spawnTile();
+      }
+
+      // Progressive speed scaling: slower at start, faster as score grows
+      const speed = 3.8 + Math.min(8.5, score * 0.07);
+
+      tiles.forEach(t => {
+        if (!t.hit) {
+          t.y += speed;
+        }
+
+        // Check if tile passed the bottom without being tapped (Missed)
+        if (!t.hit && !t.missed && t.y > h + 20) {
+          t.missed = true;
+          alive = false;
+          running = false;
+          AudioFX.lose();
+          if (navigator.vibrate) navigator.vibrate([120, 60, 120]); // Haptic vibration on miss
+        }
+      });
+    }
+
+    // Render tiles
+    tiles.forEach(t => {
+      if (t.missed || (t.hit && !t.isHold)) return;
+      const x = t.col * colWidth + 4;
+      const tileW = colWidth - 8;
+
+      ctx.fillStyle = t.isHold ? '#9333ea' : '#0f172a';
+      ctx.shadowColor = t.isHold ? '#c084fc' : '#38bdf8';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.roundRect(x, t.y, tileW, t.height, 10);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#fde047';
+      ctx.font = 'bold 11px Inter';
+      ctx.textAlign = 'center';
+      ctx.fillText(t.isHold ? 'HOLD' : 'TAP', x + tileW / 2, t.y + 28);
+    });
+
+    if (!running && !alive) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#fff';
+      ctx.font = '900 26px Inter';
+      ctx.textAlign = 'center';
+      ctx.fillText('Note Missed / Wrong Key!', w / 2, h / 2 - 20);
+      ctx.font = '700 15px Inter';
+      ctx.fillStyle = '#fde047';
+      ctx.fillText(`Final Score: ${score} Notes — Tap to Retry`, w / 2, h / 2 + 20);
+    }
+
+    raf = requestAnimationFrame(loop);
+  }
+  loop();
+
+  // Tap / click handler with vibration feedback
+  canvas.onpointerdown = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.clientX - rect.left;
+    const colWidth = w / 4;
+    const tappedCol = Math.floor(clientX / colWidth);
+    const hitLineY = h - 110;
+
+    if (!alive) {
+      resetGame();
+      return;
+    }
+
+    let hitFound = false;
+    tiles.forEach(t => {
+      if (!t.hit && !t.missed && t.col === tappedCol) {
+        if (t.y + t.height >= hitLineY - 45 && t.y <= hitLineY + 50) {
+          hitFound = true;
+          t.hit = true;
+          score++;
+          combo++;
+          const activeMelody = SONG_ALBUM[currentSongIdx].melody;
+          AudioFX.note(activeMelody[noteIdx % activeMelody.length]);
+          noteIdx++;
+          document.getElementById('pt-score').textContent = `SCORE: ${score}`;
+          if (score % 10 === 0) addXP(15, w / 2, h * 0.3, `${score} STREAK!`);
+        }
+      }
+    });
+
+    if (!hitFound) {
+      // Wrong tap or tapping empty lane -> Trigger Vibration & Game Over
+      alive = false;
+      running = false;
+      AudioFX.lose();
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // 📳 Haptic vibration feedback
+    }
+  };
+
+  return () => {
+    cancelAnimationFrame(raf);
+    window.removeEventListener('resize', onResize);
+    // Automatically resume global BGM when leaving Piano Tiles
+    if (bgm && wasBgmPlaying) {
+      bgm.play().catch(() => {});
+    }
+  };
 }
