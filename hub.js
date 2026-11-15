@@ -1,6 +1,6 @@
 const AudioFX = (() => {
   let ctx = null;
-  let enabled = true;
+  let sfxEnabled = true;
 
   function ensure() {
     if (!ctx) {
@@ -11,7 +11,7 @@ const AudioFX = (() => {
   }
 
   function playTone(freq = 440, type = 'sine', duration = 0.12, gainVal = 0.12, slideTo = null) {
-    if (!enabled) return;
+    if (!sfxEnabled) return;
     try {
       ensure();
       if (!ctx) return;
@@ -32,8 +32,8 @@ const AudioFX = (() => {
   }
 
   return {
-    get enabled() { return enabled; },
-    toggle() { enabled = !enabled; return enabled; },
+    get enabled() { return sfxEnabled; },
+    toggle() { sfxEnabled = !sfxEnabled; return sfxEnabled; },
     click() { playTone(620, 'triangle', 0.06, 0.08); },
     card() { playTone(380, 'sine', 0.07, 0.09, 520); },
     coin() { playTone(987.77, 'sine', 0.08, 0.1); setTimeout(() => playTone(1318.5, 'sine', 0.16, 0.1), 65); },
@@ -88,18 +88,134 @@ const SupabaseDB = (() => {
   return { submitScore, fetchHighScores };
 })();
 
-function toggleSound() {
-  const on = AudioFX.toggle();
+let bgmEnabled = true;
+
+function toggleBGM() {
+  bgmEnabled = !bgmEnabled;
   const bgm = document.getElementById('bgm-audio');
+  const btn = document.getElementById('bgm-toggle-btn');
   if (bgm) {
-    if (on) {
-      bgm.play().catch(e => {});
+    if (bgmEnabled) {
+      bgm.play().catch(() => {});
     } else {
       bgm.pause();
     }
   }
-  document.getElementById('sound-btn').textContent = on ? '🔊' : '🔇';
+  if (btn) {
+    btn.textContent = bgmEnabled ? 'ON' : 'OFF';
+    btn.className = bgmEnabled
+      ? 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition'
+      : 'px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-extrabold text-xs transition';
+  }
+  AudioFX.click();
 }
+
+function updateBGMVolume(val) {
+  const bgm = document.getElementById('bgm-audio');
+  const label = document.getElementById('bgm-vol-label');
+  if (bgm) bgm.volume = Number(val) / 100;
+  if (label) label.textContent = `${val}%`;
+}
+
+function toggleSFX() {
+  const on = AudioFX.toggle();
+  const btn = document.getElementById('sfx-toggle-btn');
+  if (btn) {
+    btn.textContent = on ? 'ON' : 'OFF';
+    btn.className = on
+      ? 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition'
+      : 'px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-extrabold text-xs transition';
+  }
+  if (on) AudioFX.click();
+}
+
+function openSettingsModal() {
+  AudioFX.click();
+  const modal = document.getElementById('settings-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+}
+
+function closeSettingsModal() {
+  AudioFX.click();
+  const modal = document.getElementById('settings-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
+let qrGenerated = false;
+function openQrModal() {
+  AudioFX.click();
+  const modal = document.getElementById('qr-modal');
+  if (!qrGenerated && window.QRCode) {
+    const container = document.getElementById('qrcode-container');
+    container.innerHTML = '';
+    new QRCode(container, {
+      text: 'https://arcadehubgames-july12.vercel.app/',
+      width: 190,
+      height: 190,
+      colorDark: '#0f172a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    qrGenerated = true;
+  }
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+}
+
+function closeQrModal() {
+  AudioFX.click();
+  const modal = document.getElementById('qr-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
+function copyHubLink() {
+  navigator.clipboard?.writeText('https://arcadehubgames-july12.vercel.app/');
+  const btn = document.getElementById('copy-link-btn');
+  if (btn) {
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = '📋 Copy URL'; }, 1600);
+  }
+  AudioFX.coin();
+}
+
+function toggleFullScreen() {
+  AudioFX.click();
+  const docEl = document.documentElement;
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    if (docEl.requestFullscreen) {
+      docEl.requestFullscreen().catch(() => {});
+    } else if (docEl.webkitRequestFullscreen) {
+      docEl.webkitRequestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  }
+}
+
+function syncFullscreenLabel() {
+  const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  const label = document.getElementById('fs-label');
+  const icon = document.getElementById('fs-icon');
+  if (label) label.textContent = isFs ? 'Exit Full' : 'Fullscreen';
+  if (icon) icon.textContent = isFs ? '🗗' : '⛶';
+}
+document.addEventListener('fullscreenchange', syncFullscreenLabel);
+document.addEventListener('webkitfullscreenchange', syncFullscreenLabel);
 
 window.playerName = 'AJ';
 const RANDOM_NAMES = ['CyberGamer', 'PixelNinja', 'ArcadeLegend', 'NeonFox', 'RetroMaster', 'BitHero', 'SpeedRunner', 'GlitchWizard'];
@@ -121,7 +237,10 @@ function submitPlayerName() {
   document.getElementById('app-shell').classList.remove('hidden');
   AudioFX.click();
   const bgm = document.getElementById('bgm-audio');
-  if (bgm) bgm.play().catch(e => {});
+  if (bgm && bgmEnabled) {
+    bgm.volume = 0.5;
+    bgm.play().catch(() => {});
+  }
   openHubHome();
 }
 
@@ -129,8 +248,10 @@ let userXP = 2118;
 function addXP(amount, x = window.innerWidth / 2, y = window.innerHeight / 2, label = null) {
   userXP += amount;
   const lvl = Math.floor(userXP / 350) + 1;
-  document.getElementById('hud-xp').textContent = userXP.toLocaleString();
-  document.getElementById('hud-lvl').textContent = lvl;
+  const xpEl = document.getElementById('hud-xp');
+  const lvlEl = document.getElementById('hud-lvl');
+  if (xpEl) xpEl.textContent = userXP.toLocaleString();
+  if (lvlEl) lvlEl.textContent = lvl;
   spawnPopup(label || `+${amount} XP`, x, y, '#fbbf24');
 }
 
@@ -240,7 +361,7 @@ const BgEngine = (() => {
       particles.forEach(p => {
         p.y += 0.8;
         p.x += Math.sin(tick * 1.2 + p.phase) * 0.9;
-        if (p.y > h + 15) { p.y = -15; p.x = Math.random() * w; }
+        if (p.y > h + 15) p.y = -15; p.x = Math.random() * w;
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(tick + p.phase);
@@ -288,46 +409,22 @@ const BgEngine = (() => {
   return { setTheme };
 })();
 
-function buildDrawerGrid() {
-  const grid = document.getElementById('drawer-grid');
-  grid.innerHTML = '';
-
-  GAMES.forEach(g => {
-    const card = document.createElement('button');
-    card.className = 'text-left p-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/10 transition flex flex-col justify-between gap-2 group';
-    card.innerHTML = `
-      <div class="flex items-center justify-between">
-        <span class="text-2xl group-hover:scale-110 transition-transform">${g.icon}</span>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${g.locked ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'}">
-          ${g.locked ? 'PRESERVED' : 'UPGRADED'}
-        </span>
-      </div>
-      <div>
-        <div class="font-bold text-sm text-white">${g.num}. ${g.name}</div>
-        <div class="text-[11px] text-slate-400 line-clamp-1">${g.envName}</div>
-      </div>
-    `;
-    card.onclick = () => { toggleDrawer(false); launchGame(g.id); };
-    grid.appendChild(card);
-  });
-}
-
-function toggleDrawer(force) {
-  const drawer = document.getElementById('game-drawer');
-  const show = typeof force === 'boolean' ? force : drawer.classList.contains('hidden');
-  drawer.classList.toggle('hidden', !show);
-  drawer.classList.toggle('flex', show);
-}
-
 function openHubHome() {
-  if (activeCleanup) { try { activeCleanup(); } catch (e) {} activeCleanup = null; }
+  if (activeCleanup) {
+    try { activeCleanup(); } catch (e) {}
+    activeCleanup = null;
+  }
   activeGameId = null;
-  document.getElementById('app-shell').style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
-  BgEngine.setTheme('hub');
-  document.getElementById('env-badge').textContent = 'Hub Lobby';
+
+  document.getElementById('hub-header').classList.remove('hidden');
+  document.getElementById('universal-game-bar').classList.add('hidden');
 
   const stage = document.getElementById('game-stage');
-  // Banner header removed completely per your request!
+  stage.classList.remove('in-game');
+
+  document.getElementById('app-shell').style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
+  BgEngine.setTheme('hub');
+
   stage.innerHTML = `
     <div class="w-full h-full overflow-y-auto px-4 sm:px-8 py-6">
       <div class="max-w-6xl mx-auto">
@@ -367,13 +464,15 @@ function launchGame(id) {
   }
 
   activeGameId = id;
+
+  document.getElementById('hub-header').classList.add('hidden');
+  document.getElementById('universal-game-bar').classList.remove('hidden');
+
   document.getElementById('app-shell').style.background = meta.bg;
   BgEngine.setTheme(meta.theme);
-  const badge = document.getElementById('env-badge');
-  badge.textContent = meta.envName;
-  badge.classList.remove('hidden');
 
   const stage = document.getElementById('game-stage');
+  stage.classList.add('in-game');
   stage.innerHTML = '';
 
   const runners = {
@@ -402,6 +501,4 @@ function launchGame(id) {
 }
 
 window.onload = () => {
-  buildDrawerGrid();
-  // Lobby starts hidden behind the login screen until the user enters their name.
 };
