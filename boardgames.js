@@ -7,9 +7,12 @@ const BOARD_SYMBOLS = {
     bk: '♚', bq: '♛', br: '♜', bb: '♝', bn: '♞', bp: '♟'
 };
 
-// --- Game State Variables ---
+// --- Game State & Capture Variables ---
 let chessBoard = [], chessTurn = 'w', chessSelected = null, chessLegal = [], chessMode = 'normal', chessOver = false;
+let chessCapturedByWhite = [], chessCapturedByBlack = [];
+
 let damaBoard = [], damaTurn = 'w', damaSelected = null, damaMoves = [], damaChain = null, damaMode = 'normal', damaOver = false;
+let damaCapturedByWhite = [], damaCapturedByBlack = []; // White = Red player, Black = Black player/AI
 
 const cloneBoard = b => b.map(r => r.slice());
 
@@ -113,6 +116,8 @@ function newChessGame() {
     chessSelected = null;
     chessLegal = [];
     chessOver = false;
+    chessCapturedByWhite = [];
+    chessCapturedByBlack = [];
     const statusEl = document.getElementById('chess-status');
     if (statusEl) statusEl.textContent = 'Your turn — White';
     drawChess();
@@ -217,6 +222,11 @@ function allChessMoves(b, color) {
 
 function applyChess(b, m) {
     const n = cloneBoard(b), p = n[m.from[0]][m.from[1]];
+    const target = n[m.to[0]][m.to[1]];
+    if (target) {
+        if (target[0] === 'b') chessCapturedByWhite.push(target);
+        else chessCapturedByBlack.push(target);
+    }
     n[m.to[0]][m.to[1]] = p;
     n[m.from[0]][m.from[1]] = null;
     if (p[1] === 'p' && (m.to[0] === 0 || m.to[0] === 7)) n[m.to[0]][m.to[1]] = p[0] + 'q';
@@ -281,6 +291,14 @@ function finishChess() {
     const checked = king && attacked(chessBoard, king[0], king[1], chessTurn === 'w' ? 'b' : 'w');
     const statusEl = document.getElementById('chess-status');
     if (statusEl) statusEl.textContent = checked ? (chessTurn === 'w' ? 'Checkmate — AI wins' : 'Checkmate — You win!') : 'Draw — no legal moves';
+    
+    const isWin = chessTurn === 'b';
+    showVictoryModal(
+        isWin ? "You Defeated AI!" : "AI Wins!",
+        checked ? "Checkmate victory!" : "Match concluded.",
+        isWin,
+        'chess'
+    );
     drawChess();
 }
 
@@ -300,6 +318,25 @@ function drawChess() {
             el.appendChild(q);
         }
     }
+    updateChessCaptureUI();
+}
+
+function updateChessCaptureUI() {
+    const container = document.getElementById('chess-container');
+    if (!container) return;
+    let bar = container.querySelector('.capture-scorer-bar');
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.className = 'capture-scorer-bar';
+        bar.style.cssText = 'display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 480px; margin: 10px auto; padding: 8px 12px; background: rgba(30, 41, 59, 0.7); border-radius: 8px; color: #cbd5e1; font-size: 0.9rem; font-weight: bold;';
+        container.insertBefore(bar, container.querySelector('#chess-board') || container.firstChild);
+    }
+    const whiteCaps = chessCapturedByWhite.map(p => BOARD_SYMBOLS[p] || '').join(' ');
+    const blackCaps = chessCapturedByBlack.map(p => BOARD_SYMBOLS[p] || '').join(' ');
+    bar.innerHTML = `
+        <div>⚪ White Captures: <span style="letter-spacing: 2px;">${whiteCaps || 'None'}</span></div>
+        <div>⚫ Black Captures: <span style="letter-spacing: 2px;">${blackCaps || 'None'}</span></div>
+    `;
 }
 
 function clickChess(r, c) {
@@ -325,7 +362,7 @@ function clickChess(r, c) {
 
 
 /* ==========================================================================
-   DAMA / CHECKERS ENGINE & CHAIN JUMP LOGIC (Bulletproof PvP & Chain Jumps)
+   PINOY DAMA / CHECKERS ENGINE (Flying Kings & Omni-directional Captures)
    ========================================================================== */
 
 function damaInitial() {
@@ -342,6 +379,8 @@ function newDamaGame() {
     damaMoves = [];
     damaChain = null;
     damaOver = false;
+    damaCapturedByWhite = [];
+    damaCapturedByBlack = [];
     const statusEl = document.getElementById('dama-status');
     if (statusEl) {
         statusEl.textContent = damaSetupMode === 'ai' ? 'Your turn — Red' : "Red Player's Turn";
@@ -353,12 +392,35 @@ function damaCaptures(b, r, c) {
     const p = b[r][c];
     if (!p) return [];
     const color = p[0], isKing = p.length > 1;
-    const dirs = isKing ? [-1, 1] : [color === 'w' ? -1 : 1], out = [];
-    for (const dr of dirs) {
-        for (const dc of [-1, 1]) {
-            const mr = r + dr, mc = c + dc, lr = r + 2 * dr, lc = c + 2 * dc;
+    const out = [];
+    const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+
+    if (!isKing) {
+        for (const [dr, dc] of directions) {
+            const mr = r + dr, mc = c + dc;
+            const lr = r + 2 * dr, lc = c + 2 * dc;
             if (inside(lr, lc) && b[mr]?.[mc] && b[mr][mc][0] !== color && !b[lr][lc]) {
                 out.push({ from: [r, c], to: [lr, lc], cap: [mr, mc] });
+            }
+        }
+    } else {
+        for (const [dr, dc] of directions) {
+            let yy = r + dr, xx = c + dc;
+            let enemy = null;
+            while (inside(yy, xx)) {
+                const target = b[yy][xx];
+                if (!target) {
+                    if (enemy) {
+                        out.push({ from: [r, c], to: [yy, xx], cap: enemy });
+                    }
+                } else if (target[0] === color) {
+                    break;
+                } else {
+                    if (enemy) break;
+                    enemy = [yy, xx];
+                }
+                yy += dr;
+                xx += dc;
             }
         }
     }
@@ -369,11 +431,23 @@ function damaSimple(b, r, c) {
     const p = b[r][c], out = [];
     if (!p) return out;
     const color = p[0], isKing = p.length > 1;
-    const dirs = isKing ? [-1, 1] : [color === 'w' ? -1 : 1];
-    for (const dr of dirs) {
-        for (const dc of [-1, 1]) {
-            if (inside(r + dr, c + dc) && !b[r + dr][c + dc]) {
-                out.push({ from: [r, c], to: [r + dr, c + dc] });
+    const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+
+    if (!isKing) {
+        const forwardDirs = color === 'w' ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+        for (const [dr, dc] of forwardDirs) {
+            const nr = r + dr, nc = c + dc;
+            if (inside(nr, nc) && !b[nr][nc]) {
+                out.push({ from: [r, c], to: [nr, nc] });
+            }
+        }
+    } else {
+        for (const [dr, dc] of directions) {
+            let yy = r + dr, xx = c + dc;
+            while (inside(yy, xx) && !b[yy][xx]) {
+                out.push({ from: [r, c], to: [yy, xx] });
+                yy += dr;
+                xx += dc;
             }
         }
     }
@@ -396,7 +470,14 @@ function damaAll(b, color) {
 function applyDama(b, m) {
     const n = cloneBoard(b), p = n[m.from[0]][m.from[1]];
     n[m.from[0]][m.from[1]] = null;
-    if (m.cap) n[m.cap[0]][m.cap[1]] = null;
+    if (m.cap) {
+        const capPiece = n[m.cap[0]][m.cap[1]];
+        if (capPiece) {
+            if (p[0] === 'w') damaCapturedByWhite.push(capPiece);
+            else damaCapturedByBlack.push(capPiece);
+        }
+        n[m.cap[0]][m.cap[1]] = null;
+    }
     n[m.to[0]][m.to[1]] = p;
     if (p === 'w' && m.to[0] === 0) n[m.to[0]][m.to[1]] = 'wk';
     else if (p === 'b' && m.to[0] === 7) n[m.to[0]][m.to[1]] = 'bk';
@@ -448,10 +529,12 @@ function damaAI() {
 function damaAfter() {
     const moves = damaAll(damaBoard, damaTurn);
     if (!moves.length) {
-        let winMsg;
+        let winMsg, isPlayerWin;
         if (damaSetupMode === 'ai') {
+            isPlayerWin = damaTurn === 'b';
             winMsg = damaTurn === 'w' ? 'AI wins!' : 'You win!';
         } else {
+            isPlayerWin = damaTurn === 'b';
             winMsg = damaTurn === 'w' ? 'Black Wins!' : 'Red Wins!';
         }
         endDama(winMsg);
@@ -482,12 +565,9 @@ function endDama(msg) {
     showVictoryModal(
         damaSetupMode === 'ai' ? (isPlayerWin ? "You Defeated AI!" : "AI Wins!") : msg,
         damaSetupMode === 'ai' ? (isPlayerWin ? "Outstanding victory!" : "The AI outmaneuvered you.") : "Match concluded!",
-        isPlayerWin
+        isPlayerWin,
+        'dama'
     );
-
-    if (isPlayerWin && typeof ScoreManager !== 'undefined') {
-        ScoreManager.saveScore('dama', 300);
-    }
     drawDama();
 }
 
@@ -495,81 +575,48 @@ function clickDama(r, c) {
     if (damaOver) return;
     if (damaSetupMode === 'ai' && damaTurn === 'b') return;
 
-    // --- CHAIN JUMP ACTIVE STATE ---
-    if (damaChain) {
-        const captures = damaCaptures(damaBoard, damaChain[0], damaChain[1]);
-        const move = captures.find(m => m.to[0] === r && m.to[1] === c);
-
-        if (move) {
-            damaBoard = applyDama(damaBoard, move);
-            const nextCaptures = damaCaptures(damaBoard, move.to[0], move.to[1]);
-
-            if (move.cap && nextCaptures.length > 0) {
-                damaChain = [move.to[0], move.to[1]];
-                damaSelected = [move.to[0], move.to[1]];
-                damaMoves = nextCaptures;
-                const statusEl = document.getElementById('dama-status');
-                if (statusEl) {
-                    statusEl.textContent = damaSetupMode === 'ai' && damaTurn === 'w' ? 'Chain jump! Capture again.' : `${damaTurn === 'w' ? 'Red' : 'Black'} Chain jump! Capture again.`;
-                }
-                drawDama();
-                return;
-            }
-
-            // End chain & switch turn
-            damaChain = null;
-            damaSelected = null;
-            damaMoves = [];
-            damaTurn = damaTurn === 'w' ? 'b' : 'w';
-            damaAfter();
-            return;
-        } else {
-            if (r === damaChain[0] && c === damaChain[1]) return; // clicked active piece
-            return; // ignore invalid clicks during an active chain
-        }
-    }
-
-    // --- NORMAL TURN STATE ---
-    const candidates = damaAll(damaBoard, damaTurn);
-
-    if (damaSelected) {
+    const candidates = damaChain ? damaCaptures(damaBoard, damaChain[0], damaChain[1]) : damaAll(damaBoard, damaTurn);
+    
+    if (damaSelected && candidates.some(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c)) {
         const move = candidates.find(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c);
-        if (move) {
-            damaBoard = applyDama(damaBoard, move);
-
-            // Check if this move started a chain jump
-            if (move.cap) {
-                const nextCaptures = damaCaptures(damaBoard, move.to[0], move.to[1]);
-                if (nextCaptures.length > 0) {
-                    damaChain = [move.to[0], move.to[1]];
-                    damaSelected = [move.to[0], move.to[1]];
-                    damaMoves = nextCaptures;
-                    const statusEl = document.getElementById('dama-status');
-                    if (statusEl) {
-                        statusEl.textContent = damaSetupMode === 'ai' && damaTurn === 'w' ? 'Chain jump! Capture again.' : `${damaTurn === 'w' ? 'Red' : 'Black'} Chain jump! Capture again.`;
-                    }
-                    drawDama();
-                    return;
-                }
+        damaBoard = applyDama(damaBoard, move);
+        
+        if (move.cap && damaHasFurther(damaBoard, r, c).length) {
+            damaChain = [r, c];
+            damaSelected = [r, c];
+            damaMoves = damaHasFurther(damaBoard, r, c);
+            const statusEl = document.getElementById('dama-status');
+            if (statusEl) {
+                statusEl.textContent = damaSetupMode === 'ai' && damaTurn === 'w' ? 'Chain jump! Capture again.' : `${damaTurn === 'w' ? 'Red' : 'Black'} Chain jump! Capture again.`;
             }
-
-            damaChain = null;
-            damaSelected = null;
-            damaMoves = [];
-            damaTurn = damaTurn === 'w' ? 'b' : 'w';
-            damaAfter();
+            drawDama();
             return;
         }
-    }
-
-    // Piece Selection
-    const piece = damaBoard[r][c];
-    if (piece && piece[0] === damaTurn) {
-        damaSelected = [r, c];
-        damaMoves = candidates.filter(m => m.from[0] === r && m.from[1] === c);
-    } else {
+        
+        damaChain = null;
         damaSelected = null;
         damaMoves = [];
+        damaTurn = damaTurn === 'w' ? 'b' : 'w';
+        damaAfter();
+        return;
+    }
+    
+    const piece = damaBoard[r][c];
+    if (piece && piece[0] === damaTurn) {
+        if (damaChain) {
+            if (r === damaChain[0] && c === damaChain[1]) {
+                damaSelected = [r, c];
+                damaMoves = damaCaptures(damaBoard, r, c);
+            }
+        } else {
+            damaSelected = [r, c];
+            damaMoves = candidates.filter(m => m.from[0] === r && m.from[1] === c);
+        }
+    } else {
+        if (!damaChain) {
+            damaSelected = null;
+            damaMoves = [];
+        }
     }
     drawDama();
 }
@@ -590,13 +637,33 @@ function drawDama() {
             el.appendChild(q);
         }
     }
+    updateDamaCaptureUI();
 }
 
-// ==========================================================================
-// VICTORY / DEFEAT MODAL HANDLERS
-// ==========================================================================
+function updateDamaCaptureUI() {
+    const container = document.getElementById('dama-game-screen');
+    if (!container) return;
+    let bar = container.querySelector('.capture-scorer-bar');
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.className = 'capture-scorer-bar';
+        bar.style.cssText = 'display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 480px; margin: 10px auto; padding: 8px 12px; background: rgba(30, 41, 59, 0.7); border-radius: 8px; color: #cbd5e1; font-size: 0.9rem; font-weight: bold;';
+        container.insertBefore(bar, container.querySelector('#dama-board') || container.firstChild);
+    }
+    const redCaps = damaCapturedByWhite.length;
+    const blackCaps = damaCapturedByBlack.length;
+    bar.innerHTML = `
+        <div>🔴 Red Captures: <span>${redCaps} / 12</span></div>
+        <div>⚫ Black Captures: <span>${blackCaps} / 12</span></div>
+    `;
+}
 
-function showVictoryModal(title, subtitle, isWin) {
+
+/* ==========================================================================
+   VICTORY / DEFEAT MODAL & RESTART HANDLERS
+   ========================================================================== */
+
+function showVictoryModal(title, subtitle, isWin, gameType = 'dama') {
     const modal = document.getElementById('game-victory-modal');
     const titleEl = document.getElementById('victory-title');
     const subEl = document.getElementById('victory-subtitle');
@@ -607,10 +674,24 @@ function showVictoryModal(title, subtitle, isWin) {
     if (iconEl) iconEl.textContent = isWin ? '🎉' : '💀';
 
     if (modal) {
+        let content = modal.querySelector('.arcade-modal-content');
+        if (content) {
+            let btnContainer = content.querySelector('.victory-btn-container');
+            if (!btnContainer) {
+                btnContainer = document.createElement('div');
+                btnContainer.className = 'victory-btn-container';
+                btnContainer.style.cssText = 'display: flex; gap: 12px; justify-content: center; margin-top: 20px;';
+                content.appendChild(btnContainer);
+            }
+            btnContainer.innerHTML = `
+                <button onclick="restartCurrentGame('${gameType}')" class="arcade-btn primary-btn" style="padding: 10px 20px; cursor: pointer; background: #4f46e5; color: white; border: none; border-radius: 8px; font-weight: bold;">Play Again</button>
+                <button onclick="hideVictoryModalOnly(); boardBack();" class="arcade-btn secondary-btn" style="padding: 10px 20px; cursor: pointer; background: #334155; color: white; border: none; border-radius: 8px; font-weight: bold;">Main Menu</button>
+            `;
+        }
+
         modal.style.display = 'flex';
         setTimeout(() => {
             modal.style.opacity = '1';
-            const content = modal.querySelector('.arcade-modal-content');
             if (content) content.style.transform = 'scale(1)';
         }, 10);
     }
@@ -620,7 +701,7 @@ function showVictoryModal(title, subtitle, isWin) {
     }
 }
 
-function closeVictoryModal() {
+function hideVictoryModalOnly() {
     const modal = document.getElementById('game-victory-modal');
     if (modal) {
         modal.style.opacity = '0';
@@ -628,7 +709,23 @@ function closeVictoryModal() {
         if (content) content.style.transform = 'scale(0.7)';
         setTimeout(() => {
             modal.style.display = 'none';
-            boardBack();
         }, 300);
     }
+}
+
+function restartCurrentGame(gameType) {
+    hideVictoryModalOnly();
+    if (gameType === 'chess') {
+        newChessGame();
+    } else {
+        if (damaSetupMode === 'ai') {
+            newDamaGame();
+        } else {
+            restartDamaMatch();
+        }
+    }
+}
+
+function closeVictoryModal() {
+    hideVictoryModalOnly();
 }
