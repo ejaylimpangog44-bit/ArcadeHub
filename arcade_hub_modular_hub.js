@@ -53,8 +53,51 @@ const AudioFX = (() => {
   };
 })();
 
+const SupabaseDB = (() => {
+  const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co'; // Insert your Supabase project URL here
+  const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW'; // Insert your Supabase public anon key here
+  let client = null;
+
+  function init() {
+    if (window.supabase && !client) {
+      try {
+        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      } catch (e) {}
+    }
+  }
+
+  async function submitScore(gameId, score, playerName = 'AJ') {
+    init();
+    if (!client) return;
+    try {
+      await client.from('high_scores').insert([{ game_id: gameId, score, player_name: playerName, created_at: new Date() }]);
+    } catch (e) {}
+  }
+
+  async function fetchHighScores(gameId) {
+    init();
+    if (!client) return [];
+    try {
+      const { data } = await client.from('high_scores').select('*').eq('game_id', gameId).order('score', { ascending: false }).limit(5);
+      return data || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  return { submitScore, fetchHighScores };
+})();
+
 function toggleSound() {
   const on = AudioFX.toggle();
+  const bgm = document.getElementById('bgm-audio');
+  if (bgm) {
+    if (on) {
+      bgm.play().catch(e => {});
+    } else {
+      bgm.pause();
+    }
+  }
   document.getElementById('sound-btn').textContent = on ? '🔊' : '🔇';
 }
 
@@ -138,7 +181,6 @@ const BgEngine = (() => {
     ctx.clearRect(0, 0, w, h);
 
     if (theme === 'casino_green' || theme === 'vip_table') {
-
       ctx.save();
       ctx.font = '28px Inter';
       ctx.textAlign = 'center';
@@ -155,7 +197,6 @@ const BgEngine = (() => {
       });
       ctx.restore();
     } else if (theme === 'gold_vault') {
-
       particles.forEach(p => {
         p.y += p.vy * 1.4;
         p.x += Math.sin(tick + p.phase) * 0.4;
@@ -164,7 +205,6 @@ const BgEngine = (() => {
         ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
       });
     } else if (theme === 'matrix_vault') {
-
       ctx.font = '13px "JetBrains Mono", monospace';
       particles.forEach((p, i) => {
         p.y += 2.2;
@@ -173,7 +213,6 @@ const BgEngine = (() => {
         ctx.fillText((i + Math.floor(tick * 8)) % 2 === 0 ? '1' : '0', p.x, p.y);
       });
     } else if (theme === 'bamboo_dojo') {
-
       particles.forEach(p => {
         p.y += 0.8;
         p.x += Math.sin(tick * 1.2 + p.phase) * 0.9;
@@ -186,7 +225,6 @@ const BgEngine = (() => {
         ctx.restore();
       });
     } else if (theme === 'sunny_meadow' || theme === 'stick_world') {
-
       ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
       for (let i = 0; i < 6; i++) {
         const cx = ((i * 290 + tick * (14 + i * 2)) % (w + 260)) - 130;
@@ -198,7 +236,6 @@ const BgEngine = (() => {
         ctx.fill();
       }
     } else if (theme === 'concert_hall') {
-
       for (let i = 0; i < 4; i++) {
         const bx = w * (0.2 + i * 0.2) + Math.sin(tick * 0.7 + i) * 35;
         const grad = ctx.createLinearGradient(bx, 0, bx, h);
@@ -211,7 +248,6 @@ const BgEngine = (() => {
         ctx.closePath(); ctx.fill();
       }
     } else if (theme === 'cosmic_core' || theme === 'skyline_climb' || theme === 'hub') {
-
       particles.forEach(p => {
         p.y += p.vy * 0.35;
         if (p.y < -10) p.y = h + 10;
@@ -235,7 +271,6 @@ function buildNavigation() {
   grid.innerHTML = '';
 
   GAMES.forEach(g => {
-
     const pill = document.createElement('button');
     pill.id = `pill-${g.id}`;
     pill.className = 'game-pill shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 flex items-center gap-1';
