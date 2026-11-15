@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Arcade Hub — Full-Viewport Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="app-shell">
+
+  <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+  <header class="hud-glass relative z-30 w-full px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0">
+    <div class="flex items-center gap-2.5">
+      <button onclick="openHubHome()" class="flex items-center gap-2.5 group text-left focus:outline-none">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/25 group-hover:scale-105 transition">
+          <span class="text-lg">🎮</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-sm sm:text-base tracking-tight bg-gradient-to-r from-pink-400 to-violet-300 bg-clip-text text-transparent">Arcade Hub</span>
+            <span id="env-badge" class="hidden md:inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-slate-200">Hub Lobby</span>
+          </div>
+          <p class="text-[10px] text-slate-400 tracking-widest uppercase font-semibold">Full-Viewport Environments</p>
+        </div>
+      </button>
+    </div>
+
+    <div id="quick-switcher" class="hidden lg:flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-2xl px-2 py-1 rounded-full bg-black/30 border border-white/10">
+
+    </div>
+
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10">
+        <span class="text-sm">🦊</span>
+        <div class="leading-tight">
+          <div class="text-[10px] font-bold text-amber-400">LVL <span id="hud-lvl">6</span></div>
+          <div class="text-[10px] font-mono text-slate-300"><span id="hud-xp">2,118</span> XP</div>
+        </div>
+      </div>
+
+      <button id="sound-btn" onclick="toggleSound()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition" title="Toggle Sound">
+        🔊
+      </button>
+
+      <button onclick="toggleDrawer()" class="px-3 h-9 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 hover:opacity-95 font-bold text-xs flex items-center gap-1.5 shadow-md">
+        <span>All 17</span>
+        <span class="text-xs">☰</span>
+      </button>
+    </div>
+  </header>
+
+  <div id="game-drawer" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-xl hidden flex-col pt-16 pb-6 px-4 sm:px-8 overflow-y-auto">
+    <div class="max-w-6xl w-full mx-auto">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-black text-white">Select Game &amp; World Environment</h2>
+          <p class="text-xs sm:text-sm text-slate-400">Every game transforms the entire screen into its own dedicated world. Cyber Snake remains untouched as requested.</p>
+        </div>
+        <button onclick="toggleDrawer(false)" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-lg font-bold">✕</button>
+      </div>
+      <div id="drawer-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+
+      </div>
+    </div>
+  </div>
+
+  <main id="game-stage" class="relative z-10 flex-1 w-full h-full overflow-hidden flex flex-col">
+
+  </main>
+</div>
+
+<script src="piano.js"></script>
+<script src="games.js"></script>
+<script src="hub.js"></script>
+</body>
+</html>
