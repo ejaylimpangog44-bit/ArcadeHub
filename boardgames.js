@@ -12,7 +12,7 @@ let chessBoard = [], chessTurn = 'w', chessSelected = null, chessLegal = [], che
 let chessCapturedByWhite = [], chessCapturedByBlack = [];
 
 let damaBoard = [], damaTurn = 'w', damaSelected = null, damaMoves = [], damaChain = null, damaMode = 'normal', damaOver = false;
-let damaCapturedByWhite = [], damaCapturedByBlack = []; // White = Red player, Black = Black player/AI
+let damaCapturedByWhite = [], damaCapturedByBlack = [];
 
 const cloneBoard = b => b.map(r => r.slice());
 
@@ -676,17 +676,17 @@ function showVictoryModal(title, subtitle, isWin, gameType = 'dama') {
     if (modal) {
         let content = modal.querySelector('.arcade-modal-content');
         if (content) {
-            let btnContainer = content.querySelector('.victory-btn-container');
-            if (!btnContainer) {
-                btnContainer = document.createElement('div');
-                btnContainer.className = 'victory-btn-container';
-                btnContainer.style.cssText = 'display: flex; gap: 12px; justify-content: center; margin-top: 20px;';
-                content.appendChild(btnContainer);
-            }
+            // Remove any hardcoded default buttons or old containers from index.html to prevent duplicates
+            content.querySelectorAll('button:not(.arcade-btn), .victory-btn-container').forEach(el => el.remove());
+
+            let btnContainer = document.createElement('div');
+            btnContainer.className = 'victory-btn-container';
+            btnContainer.style.cssText = 'display: flex; gap: 12px; justify-content: center; margin-top: 20px;';
             btnContainer.innerHTML = `
                 <button onclick="restartCurrentGame('${gameType}')" class="arcade-btn primary-btn" style="padding: 10px 20px; cursor: pointer; background: #4f46e5; color: white; border: none; border-radius: 8px; font-weight: bold;">Play Again</button>
                 <button onclick="hideVictoryModalOnly(); boardBack();" class="arcade-btn secondary-btn" style="padding: 10px 20px; cursor: pointer; background: #334155; color: white; border: none; border-radius: 8px; font-weight: bold;">Main Menu</button>
             `;
+            content.appendChild(btnContainer);
         }
 
         modal.style.display = 'flex';
