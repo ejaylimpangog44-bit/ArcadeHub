@@ -48,9 +48,10 @@ if (foxWidget) {
 
   foxWidget.onpointerup = (e) => {
     if (!isDragging) {
-      // Treat as a normal click if not dragged
-      foxModal.classList.remove('hidden');
-      foxModal.classList.add('flex');
+      if (foxModal) {
+        foxModal.classList.remove('hidden');
+        foxModal.classList.add('flex');
+      }
       if (typeof AudioFX !== 'undefined') AudioFX.click();
     }
     startX = null;
@@ -61,17 +62,14 @@ if (foxWidget) {
 // Placeholder functions for Wardrobe, Shop, and Streak & Spin
 function openWardrobe() {
   alert('🧥 Opening Wardrobe: Customize your Fox & Astronaut skins!');
-  // Add your wardrobe UI router or drawer code here
 }
 
 function openShop() {
   alert('🛒 Opening Arcade Shop!');
-  // Add your shop UI router or modal code here
 }
 
 function openStreakSpin() {
   alert('🔥 Opening Streak & Spin Lucky Wheel!');
-  // Add your streak & spin modal code here
 }
 
 const AudioFX = (() => {
