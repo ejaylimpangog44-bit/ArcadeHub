@@ -19,8 +19,9 @@ function openBoardGame(which) {
     document.getElementById('main-menu').classList.remove('active');
     document.querySelectorAll('.game-container').forEach(x => x.classList.remove('active'));
     document.getElementById(which + '-container').classList.add('active');
-    if (which === 'chess') newChessGame();
-    else {
+    if (which === 'chess') {
+        newChessGame();
+    } else {
         const setupScreen = document.getElementById('dama-setup-screen');
         const gameScreen = document.getElementById('dama-game-screen');
         if (setupScreen) setupScreen.style.display = 'flex';
@@ -159,7 +160,7 @@ function pseudoChess(b, r, c) {
     if (!p) return [];
     const color = p[0], t = p[1], out = [];
     const add = (y, x) => { if (inside(y, x) && (!b[y][x] || b[y][x][0] !== color)) out.push([y, x]); };
-
+    
     if (t === 'p') {
         let d = color === 'w' ? -1 : 1;
         if (inside(r + d, c) && !b[r + d][c]) {
@@ -278,13 +279,8 @@ function finishChess() {
     if (typeof DailyChallengeManager !== 'undefined') DailyChallengeManager.trackProgress('chess', 1);
     const king = findKing(chessBoard, chessTurn);
     const checked = king && attacked(chessBoard, king[0], king[1], chessTurn === 'w' ? 'b' : 'w');
-
-    if (chessTurn === 'w') {
-        showVictoryModal("AI Wins!", "Checkmate! The AI outmaneuvered you.", false);
-    } else {
-        showVictoryModal("You Defeated AI!", "Outstanding checkmate victory!", true);
-        if (typeof ScoreManager !== 'undefined') ScoreManager.saveScore('chess', 500);
-    }
+    const statusEl = document.getElementById('chess-status');
+    if (statusEl) statusEl.textContent = checked ? (chessTurn === 'w' ? 'Checkmate — AI wins' : 'Checkmate — You win!') : 'Draw — no legal moves';
     drawChess();
 }
 
@@ -329,7 +325,7 @@ function clickChess(r, c) {
 
 
 /* ==========================================================================
-   DAMA / CHECKERS ENGINE & CHAIN JUMP LOGIC (Fixed PvP & Universal Chain Jumps)
+   DAMA / CHECKERS ENGINE & CHAIN JUMP LOGIC (Fixed King Ownership & PvP)
    ========================================================================== */
 
 function damaInitial() {
@@ -419,7 +415,7 @@ function damaAI() {
     if (damaOver || damaSetupMode !== 'ai' || damaTurn !== 'b') return;
     const moves = damaAll(damaBoard, 'b');
     if (!moves.length) { endDama('You win!'); return; }
-
+    
     let chosen;
     if (damaMode === 'normal') {
         chosen = moves[Math.floor(Math.random() * moves.length)];
@@ -430,9 +426,9 @@ function damaAI() {
             if (v > best) { best = v; chosen = m; }
         }
     }
-
+    
     damaBoard = applyDama(damaBoard, chosen);
-
+    
     let chainPos = chosen.to;
     while (chosen.cap) {
         const more = damaHasFurther(damaBoard, chainPos[0], chainPos[1]);
@@ -442,7 +438,7 @@ function damaAI() {
         chainPos = next.to;
         chosen = next;
     }
-
+    
     damaTurn = 'w';
     damaSelected = null;
     damaMoves = [];
@@ -452,8 +448,13 @@ function damaAI() {
 function damaAfter() {
     const moves = damaAll(damaBoard, damaTurn);
     if (!moves.length) {
-        const winner = damaTurn === 'w' ? (damaSetupMode === 'ai' ? 'AI wins!' : 'Black Wins!') : (damaSetupMode === 'ai' ? 'You win!' : 'Red Wins!');
-        endDama(winner);
+        let winMsg;
+        if (damaSetupMode === 'ai') {
+            winMsg = damaTurn === 'w' ? 'AI wins!' : 'You win!';
+        } else {
+            winMsg = damaTurn === 'w' ? 'Black Wins!' : 'Red Wins!';
+        }
+        endDama(winMsg);
         return;
     }
     const statusEl = document.getElementById('dama-status');
@@ -474,7 +475,9 @@ function endDama(msg) {
     if (damaOver) return;
     damaOver = true;
     if (typeof DailyChallengeManager !== 'undefined') DailyChallengeManager.trackProgress('dama', 1);
-
+    const statusEl = document.getElementById('dama-status');
+    if (statusEl) statusEl.textContent = msg;
+    
     const isPlayerWin = msg.includes('You win!') || msg.includes('Red Wins');
     showVictoryModal(
         damaSetupMode === 'ai' ? (isPlayerWin ? "You Defeated AI!" : "AI Wins!") : msg,
@@ -493,23 +496,14 @@ function clickDama(r, c) {
     // In AI mode, block clicks when it's the AI's turn
     if (damaSetupMode === 'ai' && damaTurn === 'b') return;
 
-    // Get valid moves based on whether a chain jump is active for the current turn color
     const candidates = damaChain ? damaCaptures(damaChain[0], damaChain[1]) : damaAll(damaBoard, damaTurn);
-
-    // Check if the clicked square is a valid destination for the selected piece
-    const validMove = candidates.find(m => 
-        damaSelected && 
-        m.from[0] === damaSelected[0] && 
-        m.from[1] === damaSelected[1] && 
-        m.to[0] === r && 
-        m.to[1] === c
-    );
-
-    if (validMove) {
-        damaBoard = applyDama(damaBoard, validMove);
-
-        // Check if another capture is available from the new landing spot (Chain Jump)
-        if (validMove.cap && damaHasFurther(damaBoard, r, c).length) {
+    
+    if (damaSelected && candidates.some(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c)) {
+        const move = candidates.find(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c);
+        damaBoard = applyDama(damaBoard, move);
+        
+        // Check for continuation chain jumps
+        if (move.cap && damaHasFurther(damaBoard, r, c).length) {
             damaChain = [r, c];
             damaSelected = [r, c];
             damaMoves = damaHasFurther(damaBoard, r, c);
@@ -520,8 +514,7 @@ function clickDama(r, c) {
             drawDama();
             return;
         }
-
-        // Finish turn and switch player/AI turn
+        
         damaChain = null;
         damaSelected = null;
         damaMoves = [];
@@ -529,12 +522,10 @@ function clickDama(r, c) {
         damaAfter();
         return;
     }
-
-    // Piece selection logic
+    
     const piece = damaBoard[r][c];
     if (piece && piece[0] === damaTurn) {
         if (damaChain) {
-            // During an active chain, only the chaining piece can be selected
             if (r === damaChain[0] && c === damaChain[1]) {
                 damaSelected = [r, c];
                 damaMoves = damaCaptures(r, c);
