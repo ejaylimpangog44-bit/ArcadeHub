@@ -35,9 +35,54 @@
   </div>
 </div>
 
-<!-- Compact Assistive Touch Fox & Astronaut Widget -->
+<!-- Compact Assistive Touch Fox Widget -->
 <div id="assistive-touch-fox" class="fixed right-4 bottom-20 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-xl flex items-center justify-center text-xl cursor-pointer select-none touch-none active:scale-95 transition group" title="Fox Companion Hub">
   <span class="transform group-hover:scale-110 transition">🦊👨‍🚀</span>
+</div>
+
+<!-- Fox Hub Modal Menu (Wardrobe, Shop, Streak & Spin) -->
+<div id="fox-menu-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+  <div class="max-w-md w-full bg-slate-950 border-2 border-amber-500/40 rounded-3xl p-6 shadow-2xl flex flex-col gap-5 text-slate-100 relative">
+    <div class="flex items-center justify-between border-b border-white/10 pb-3">
+      <div class="flex items-center gap-2.5">
+        <span class="text-3xl">🦊</span>
+        <div>
+          <h2 class="text-base font-black text-amber-400 tracking-wide">FOX COMPANION HUB</h2>
+          <p class="text-[11px] text-slate-400">Manage custom gear &amp; daily rewards</p>
+        </div>
+      </div>
+      <button id="close-fox-menu" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold flex items-center justify-center transition">✕</button>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3">
+      <button onclick="openWardrobe()" class="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/50 hover:bg-amber-500/10 transition group text-left">
+        <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-2xl group-hover:scale-110 transition">🧥</div>
+        <div class="flex-1">
+          <div class="font-extrabold text-sm text-amber-300">Wardrobe</div>
+          <div class="text-xs text-slate-400">Equip astronaut suits, hats, and fox skins</div>
+        </div>
+        <span class="text-slate-500 group-hover:text-amber-400">→</span>
+      </button>
+
+      <button onclick="openShop()" class="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/50 hover:bg-amber-500/10 transition group text-left">
+        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-2xl group-hover:scale-110 transition">🛒</div>
+        <div class="flex-1">
+          <div class="font-extrabold text-sm text-emerald-300">Arcade Shop</div>
+          <div class="text-xs text-slate-400">Unlock power-ups, coins, and themes</div>
+        </div>
+        <span class="text-slate-500 group-hover:text-emerald-400">→</span>
+      </button>
+
+      <button onclick="openStreakSpin()" class="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/50 hover:bg-amber-500/10 transition group text-left">
+        <div class="w-12 h-12 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-2xl group-hover:scale-110 transition">🔥</div>
+        <div class="flex-1">
+          <div class="font-extrabold text-sm text-rose-300">Streak &amp; Spin</div>
+          <div class="text-xs text-slate-400">Claim daily login streak &amp; lucky wheel spins</div>
+        </div>
+        <span class="text-slate-500 group-hover:text-rose-400">→</span>
+      </button>
+    </div>
+  </div>
 </div>
 
 <div id="hero-modal-backdrop" class="hero-backdrop hidden">
@@ -110,7 +155,6 @@
 </div>
 
 <div id="app-shell" class="hidden flex flex-col h-screen w-screen overflow-hidden">
-
   <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
   <header id="hub-header" class="hud-glass relative z-30 w-full px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0">
@@ -229,50 +273,6 @@
   <source src="https://github.com/ejaylimpangog44-bit/ArcadeHub/releases/download/v1.0.0/bgm.mp3" type="audio/mpeg">
   <source src="./bgm.mp3" type="audio/mpeg">
 </audio>
-
-<script>
-// Assistive Touch Drag & Click Logic for Fox Astronaut Widget
-const foxWidget = document.getElementById('assistive-touch-fox');
-if (foxWidget) {
-  let isDragging = false;
-  let startX, startY, initialX, initialY;
-
-  foxWidget.onpointerdown = (e) => {
-    isDragging = false;
-    startX = e.clientX;
-    startY = e.clientY;
-    initialX = foxWidget.offsetLeft;
-    initialY = foxWidget.offsetTop;
-    foxWidget.setPointerCapture(e.pointerId);
-  };
-
-  foxWidget.onpointermove = (e) => {
-    if (!startX || !startY) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (Math.hypot(dx, dy) > 6) {
-      isDragging = true;
-      foxWidget.style.left = `${initialX + dx}px`;
-      foxWidget.style.top = `${initialY + dy}px`;
-      foxWidget.style.right = 'auto';
-      foxWidget.style.bottom = 'auto';
-    }
-  };
-
-  foxWidget.onpointerup = (e) => {
-    if (!isDragging) {
-      // Open Hero Hub Modal (Wardrobe, Shop, Streak & Spin)
-      const backdrop = document.getElementById('hero-modal-backdrop');
-      if (backdrop) {
-        backdrop.classList.remove('hidden');
-        if (typeof AudioFX !== 'undefined') AudioFX.click();
-      }
-    }
-    startX = null;
-    startY = null;
-  };
-}
-</script>
 
 <script src="hero.js"></script>
 <script src="piano.js"></script>
