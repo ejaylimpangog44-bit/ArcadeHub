@@ -1,5 +1,23 @@
+const SONG_ALBUM = [
+  { name: 'Classical Masterpiece (Fur Elise)', melody: [64, 63, 64, 63, 64, 59, 62, 60, 57] },
+  { name: 'Canon in D (Classical)', melody: [67, 66, 65, 64, 62, 60, 62, 64] },
+  { name: 'Faded - Alan Walker', melody: [60, 63, 65, 67, 68, 67, 65, 63] },
+  { name: 'Believer - Imagine Dragons', melody: [55, 58, 60, 62, 60, 58, 55] },
+  { name: 'Sunflower - Post Malone & Swae Lee', melody: [62, 65, 67, 69, 67, 65, 62] },
+  { name: 'Stay - The Kid LAROI & Justin Bieber', melody: [60, 62, 65, 67, 65, 62, 60] },
+  { name: 'Señorita - Shawn Mendes & Camila Cabello', melody: [65, 67, 69, 72, 69, 67, 65] },
+  { name: 'Bad Guy - Billie Eilish', melody: [58, 60, 62, 60, 58, 53] },
+  { name: 'Blinding Lights - The Weeknd', melody: [60, 62, 65, 67, 65, 62, 60, 57] },
+  { name: 'Levitating - Dua Lipa', melody: [64, 67, 71, 69, 67, 64] },
+  { name: 'As It Was - Harry Styles', melody: [67, 65, 62, 60, 62, 65, 67] },
+  { name: 'Anti-Hero - Taylor Swift', melody: [60, 60, 62, 65, 62, 60, 58] },
+  { name: 'Flowers - Miley Cyrus', melody: [62, 65, 69, 67, 65, 62] },
+  { name: 'Vampire - Olivia Rodrigo', melody: [65, 64, 62, 60, 57, 60, 62] },
+  { name: 'Cupid - FIFTY FIFTY', melody: [60, 62, 64, 67, 64, 62, 60] }
+];
+
 function initPianoTiles(stage) {
-  const MELODY = [60, 62, 64, 67, 69, 67, 64, 60, 62, 64, 62, 60, 57, 60];
+  let currentSongIdx = 0;
   let rows = [], score = 0, noteIdx = 0, alive = true;
 
   function reset() {
@@ -16,7 +34,8 @@ function initPianoTiles(stage) {
     if (rowIdx !== targetRowIdx) return;
     const row = rows[targetRowIdx];
     if (col === row.blackCol) {
-      AudioFX.note(MELODY[noteIdx % MELODY.length]);
+      const activeMelody = SONG_ALBUM[currentSongIdx].melody;
+      AudioFX.note(activeMelody[noteIdx % activeMelody.length]);
       noteIdx++;
       score++;
       if (score % 10 === 0) addXP(15, window.innerWidth / 2, window.innerHeight * 0.3, `${score} STREAK!`);
@@ -38,11 +57,15 @@ function initPianoTiles(stage) {
 
   function render() {
     const fever = score >= 20;
+    const currentSong = SONG_ALBUM[currentSongIdx];
     stage.innerHTML = `
       <div class="w-full h-full flex flex-col items-center justify-between px-4 py-3">
-        <div class="flex items-center gap-3">
-          <span class="px-4 py-1 rounded-full bg-indigo-950/90 border border-indigo-400/40 text-indigo-200 font-black text-sm">NOTES: ${score}</span>
-          ${fever ? '<span class="px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-amber-400 text-slate-950 font-black text-xs animate-pulse">🔥 FEVER MODE</span>' : ''}
+        <div class="flex flex-wrap items-center justify-center gap-2 max-w-lg w-full">
+          <select id="piano-song-select" class="px-3 py-1.5 rounded-xl bg-indigo-950/90 border border-indigo-400/40 text-indigo-200 font-bold text-xs outline-none cursor-pointer">
+            ${SONG_ALBUM.map((s, idx) => `<option value="${idx}" ${idx === currentSongIdx ? 'selected' : ''}>🎵 ${s.name}</option>`).join('')}
+          </select>
+          <span class="px-3 py-1.5 rounded-full bg-indigo-950/90 border border-indigo-400/40 text-indigo-200 font-black text-xs">NOTES: ${score}</span>
+          ${fever ? '<span class="px-3 py-1 rounded-full bg-gradient-to-r from-pink-500 to-amber-400 text-slate-950 font-black text-xs animate-pulse">🔥 FEVER</span>' : ''}
         </div>
 
         ${!alive ? `
@@ -68,11 +91,15 @@ function initPianoTiles(stage) {
               </div>
             `).join('')}
           </div>
-          <div class="text-[11px] text-indigo-200/70">Tap the bottom black tile or press keys D • F • J • K</div>
+          <div class="text-[11px] text-indigo-200/70 text-center">Tap the bottom black tile or press keys D • F • J • K</div>
         `}
       </div>
     `;
 
+    document.getElementById('piano-song-select')?.addEventListener('change', (e) => {
+      currentSongIdx = Number(e.target.value);
+      reset();
+    });
     document.getElementById('pt-retry')?.addEventListener('click', reset);
     document.querySelectorAll('.pt-cell').forEach(btn => {
       btn.onpointerdown = () => tapCell(Number(btn.dataset.r), Number(btn.dataset.c));
