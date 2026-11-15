@@ -476,13 +476,25 @@ function endDama(msg) {
 
 function clickDama(r, c) {
     if (damaOver || damaTurn !== 'w') return;
+
+    // Get valid moves based on whether a chain jump is active
     const candidates = damaChain ? damaCaptures(damaChain[0], damaChain[1]) : damaAll(damaBoard, 'w');
 
-    if (damaSelected && candidates.some(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c)) {
-        const move = candidates.find(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c);
-        damaBoard = applyDama(damaBoard, move);
+    // Check if the clicked square is a valid destination for the selected piece
+    const validMove = candidates.find(m => 
+        damaSelected && 
+        m.from[0] === damaSelected[0] && 
+        m.from[1] === damaSelected[1] && 
+        m.to[0] === r && 
+        m.to[1] === c
+    );
 
-        if (move.cap && damaHasFurther(damaBoard, r, c).length) {
+    if (validMove) {
+        // Execute the jump/move
+        damaBoard = applyDama(damaBoard, validMove);
+
+        // Check if another capture is available from the new landing spot (Chain Jump)
+        if (validMove.cap && damaHasFurther(damaBoard, r, c).length) {
             damaChain = [r, c];
             damaSelected = [r, c];
             damaMoves = damaHasFurther(damaBoard, r, c);
@@ -492,6 +504,7 @@ function clickDama(r, c) {
             return;
         }
 
+        // Finish turn if no more chain jumps are available
         damaChain = null;
         damaSelected = null;
         damaMoves = [];
@@ -500,9 +513,23 @@ function clickDama(r, c) {
         return;
     }
 
-    if (!damaChain && damaBoard[r][c]?.[0] === 'w') {
-        damaSelected = [r, c];
-        damaMoves = candidates.filter(m => m.from[0] === r && m.from[1] === c);
+    // Piece selection logic
+    if (damaBoard[r][c]?.[0] === 'w') {
+        if (damaChain) {
+            // During an active chain, only the chaining piece can be selected
+            if (r === damaChain[0] && c === damaChain[1]) {
+                damaSelected = [r, c];
+                damaMoves = damaCaptures(r, c);
+            }
+        } else {
+            damaSelected = [r, c];
+            damaMoves = candidates.filter(m => m.from[0] === r && m.from[1] === c);
+        }
+    } else {
+        if (!damaChain) {
+            damaSelected = null;
+            damaMoves = [];
+        }
     }
     drawDama();
 }
