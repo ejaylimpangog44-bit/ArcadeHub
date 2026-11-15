@@ -17,7 +17,6 @@ const SONG_ALBUM = [
 ];
 
 function initPianoTiles(stage) {
-  // Automatically pause global ambient BGM when entering Piano Tiles
   const bgm = document.getElementById('bgm-audio');
   const wasBgmPlaying = bgm && !bgm.paused;
   if (bgm && wasBgmPlaying) bgm.pause();
@@ -83,7 +82,6 @@ function initPianoTiles(stage) {
     ctx.clearRect(0, 0, w, h);
     const colWidth = w / 4;
 
-    // Draw subtle vertical column divider lines
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 1;
     for (let i = 1; i < 4; i++) {
@@ -108,21 +106,19 @@ function initPianoTiles(stage) {
           t.y += speed;
         }
 
-        // Check if tile passed the bottom of the screen without being tapped
         if (!t.hit && !t.missed && t.y > h) {
           t.missed = true;
           alive = false;
           running = false;
           AudioFX.lose();
-          if (navigator.vibrate) navigator.vibrate([120, 60, 120]); // Haptic vibration on miss
+          if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+          window.ArcadeHero?.awardGameScore('piano-tiles', score);
         }
       });
 
-      // Remove hit or missed tiles immediately
       tiles = tiles.filter(t => !t.missed && !t.hit);
     }
 
-    // Render falling tiles
     tiles.forEach(t => {
       const x = t.col * colWidth + 4;
       const tileW = colWidth - 8;
@@ -157,7 +153,6 @@ function initPianoTiles(stage) {
   }
   loop();
 
-  // Direct touch handler: Tap the tile directly anywhere on screen
   canvas.onpointerdown = (e) => {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.clientX - rect.left;
@@ -191,7 +186,8 @@ function initPianoTiles(stage) {
       alive = false;
       running = false;
       AudioFX.lose();
-      if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Haptic vibration on wrong tap
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      window.ArcadeHero?.awardGameScore('piano-tiles', score);
     }
   };
 
