@@ -263,9 +263,7 @@ function initSpeedSolitaire(stage) {
 function initCoinScatter(stage, meta) {
   stage.innerHTML = `
     <div class="relative w-full h-full flex flex-col items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
-
       <div class="max-w-xl w-full bg-slate-950/80 backdrop-blur-xl border border-white/15 rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col gap-5 text-center mt-12 sm:mt-0">
-        
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <div class="px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-xs font-bold text-amber-300">
             🪙 COINS: <span id="scatter-coins">3,250</span>
@@ -871,7 +869,7 @@ function initChess(stage) {
 }
 
 function initDama(stage) {
-  let board = [], turn = 'r', sel = null, moves = [], status = 'Your Turn (Red Dama)';
+  let board = [], turn = 'r', sel = null, moves = [], vsAI = true, status = 'Your Turn (Red Dama)';
 
   function reset() {
     board = Array.from({ length: 8 }, (_, r) => Array.from({ length: 8 }, (_, c) => {
@@ -882,7 +880,7 @@ function initDama(stage) {
       return null;
     }));
     turn = 'r'; sel = null; moves = [];
-    status = 'Your Turn (Red Dama)';
+    status = vsAI ? 'Your Turn (Red Dama vs AI)' : 'Red Dama (Player 1) Turn';
     render();
   }
 
@@ -890,9 +888,10 @@ function initDama(stage) {
     const p = board[r][c];
     if (!p) return [];
     const res = [];
-    const dirs = p.king ? [[-1,-1],[-1,1],[1,-1],[1,1]] : (p.side === 'r' ? [[-1,-1],[-1,1]] : [[1,-1],[1,1]]);
     const capDirs = [[-1,-1],[-1,1],[1,-1],[1,1]];
+    const stepDirs = p.king ? [[-1,-1],[-1,1],[1,-1],[1,1]] : (p.side === 'r' ? [[-1,-1],[-1,1]] : [[1,-1],[1,1]]);
 
+    // 1. Check Captures (Backwards and Forwards for both player and AI, chain jumps supported)
     capDirs.forEach(([dr, dc]) => {
       if (!p.king) {
         const mr = r + dr, mc = c + dc, jr = r + dr * 2, jc = c + dc * 2;
@@ -918,9 +917,8 @@ function initDama(stage) {
       }
     });
 
-    if (res.length > 0) return res;
-
-    dirs.forEach(([dr, dc]) => {
+    // 2. Freedom Rule: Include regular/normal non-capture moves as well (optional capture)
+    stepDirs.forEach(([dr, dc]) => {
       let step = 1;
       while (true) {
         const nr = r + dr * step, nc = c + dc * step;
@@ -930,6 +928,7 @@ function initDama(stage) {
         step++;
       }
     });
+
     return res;
   }
 
@@ -943,7 +942,7 @@ function initDama(stage) {
       }
     }
     if (!all.length) {
-      status = 'Panlo! You Won Dama!';
+      status = 'Panlo! Red Dama Wins!';
       AudioFX.win();
       addXP(50, window.innerWidth / 2, window.innerHeight / 2, 'DAMA VICTORY!');
       render();
@@ -954,23 +953,43 @@ function initDama(stage) {
     const piece = board[pick.sr][pick.sc];
     board[pick.dr][pick.dc] = piece;
     board[pick.sr][pick.sc] = null;
-    if (pick.cap) board[pick.cap[0]][pick.cap[1]] = null;
+    
+    let chained = false;
+    if (pick.cap) {
+      board[pick.cap[0]][pick.cap[1]] = null;
+      AudioFX.coin();
+      // Check if another capture is available for this piece (Chain Jump)
+      const nextMoves = getPieceMoves(pick.dr, pick.dc).filter(m => m.cap);
+      if (nextMoves.length > 0) {
+        chained = true;
+      }
+    }
+
     if (pick.dr === 7) piece.king = true;
     AudioFX.card();
-    turn = 'r';
-    status = 'Your Turn (Red Dama)';
+
+    if (!chained) {
+      turn = 'r';
+      status = vsAI ? 'Your Turn (Red Dama)' : 'Red Dama (Player 1) Turn';
+    } else {
+      status = 'AI Chain Jumping!';
+      setTimeout(aiTurn, 500);
+    }
     render();
   }
 
   function render() {
     stage.innerHTML = `
       <div class="w-full h-full flex flex-col items-center justify-center px-3 py-2 gap-3">
-        <div class="flex items-center justify-between w-full max-w-[min(86vw,460px)]">
-          <span class="px-3.5 py-1 rounded-full bg-amber-950/90 border border-amber-400/35 text-amber-200 font-bold text-xs">${status}</span>
-          <button id="dama-reset" class="px-3 py-1 rounded-xl bg-amber-400 text-slate-950 font-extrabold text-xs">Reset Board</button>
+        <div class="flex flex-wrap items-center justify-between w-full max-w-[min(86vw,460px)] gap-2">
+          <span class="px-3 py-1 rounded-full bg-amber-950/90 border border-amber-400/35 text-amber-200 font-bold text-xs">${status}</span>
+          <div class="flex items-center gap-2">
+            <button id="dama-mode" class="px-3 py-1 rounded-xl bg-fuchsia-600 text-white font-bold text-xs">${vsAI ? '🤖 vs AI' : '👥 2P PvP'}</button>
+            <button id="dama-reset" class="px-3 py-1 rounded-xl bg-amber-400 text-slate-950 font-extrabold text-xs">Reset</button>
+          </div>
         </div>
 
-        <div class="grid grid-cols-8 aspect-square w-[min(86vw,460px)] rounded-2xl overflow-hidden border-4 border-[#3d1f0d] shadow-[0_20px_50px_rgba(0,0,0,0.75)]">
+        <div class="grid grid-cols-8 aspect-square w-[min(82vw,420px)] rounded-2xl overflow-hidden border-4 border-[#3d1f0d] shadow-[0_20px_50px_rgba(0,0,0,0.75)]">
           ${board.map((row, r) => row.map((cell, c) => {
             const dark = (r + c) % 2 === 1;
             const isSel = sel && sel[0] === r && sel[1] === c;
@@ -987,35 +1006,66 @@ function initDama(stage) {
             `;
           }).join('')).join('')}
         </div>
-        <div class="text-[11px] text-amber-200/75">Filipino Dama Rules • Reach the far row to crown a Flying King (👑)</div>
+        <div class="text-[11px] text-amber-200/75 text-center">Filipino Dama • Freedom Rule (Optional Capture) • Backwards &amp; Chain Jumps Enabled</div>
       </div>
     `;
 
     document.getElementById('dama-reset').onclick = reset;
+    document.getElementById('dama-mode').onclick = () => {
+      vsAI = !vsAI;
+      reset();
+    };
+
     document.querySelectorAll('.dm-sq').forEach(btn => {
       btn.onclick = () => {
-        if (turn !== 'r') return;
         const r = Number(btn.dataset.r), c = Number(btn.dataset.c);
+        const currentSide = turn;
+        if (vsAI && currentSide !== 'r') return;
+
         const mv = moves.find(m => m.dr === r && m.dc === c);
         if (sel && mv) {
           const piece = board[sel[0]][sel[1]];
           board[r][c] = piece;
           board[sel[0]][sel[1]] = null;
+          
+          let chained = false;
           if (mv.cap) {
             board[mv.cap[0]][mv.cap[1]] = null;
             AudioFX.coin();
             addXP(15, window.innerWidth / 2, window.innerHeight / 2, 'CAPTURE!');
+            
+            // Chain jump check for player
+            const nextMoves = getPieceMoves(r, c).filter(m => m.cap);
+            if (nextMoves.length > 0) {
+              chained = true;
+              sel = [r, c];
+              moves = nextMoves;
+              status = `${currentSide === 'r' ? 'Red' : 'Blue'} Chain Jump! Pick target`;
+              AudioFX.click();
+              render();
+              return;
+            }
           } else {
             AudioFX.card();
           }
-          if (r === 0) piece.king = true;
-          sel = null; moves = []; turn = 'b';
-          status = 'Opponent moving...';
+
+          if (currentSide === 'r' && r === 0) piece.king = true;
+          if (currentSide === 'b' && r === 7) piece.king = true;
+
+          sel = null; moves = [];
+          if (!chained) {
+            turn = currentSide === 'r' ? 'b' : 'r';
+            status = vsAI ? 'Opponent moving...' : (turn === 'r' ? 'Red Dama (Player 1) Turn' : 'Blue Dama (Player 2) Turn');
+          }
           render();
-          setTimeout(aiTurn, 260);
+
+          if (vsAI && turn === 'b') {
+            setTimeout(aiTurn, 350);
+          }
           return;
         }
-        if (board[r][c]?.side === 'r') {
+
+        if (board[r][c]?.side === currentSide) {
           sel = [r, c];
           moves = getPieceMoves(r, c);
           AudioFX.click();
