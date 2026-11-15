@@ -4,13 +4,14 @@ function initPianoTiles(stage) {
 
   function reset() {
     rows = Array.from({ length: 5 }, (_, i) => ({ id: i, blackCol: Math.floor(Math.random() * 4), hit: false }));
-    score = 0; noteIdx = 0; alive = true;
+    score = 0;
+    noteIdx = 0;
+    alive = true;
     render();
   }
 
   function tapCell(rowIdx, col) {
     if (!alive) return;
-
     const targetRowIdx = rows.length - 1;
     if (rowIdx !== targetRowIdx) return;
     const row = rows[targetRowIdx];
