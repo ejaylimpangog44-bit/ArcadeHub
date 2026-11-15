@@ -464,7 +464,8 @@ function damaAll(b, color) {
             }
         }
     }
-    return caps.length ? caps : steps;
+    // Mandatory capture rule removed: Both captures and simple moves are fully available to choose from
+    return [...caps, ...steps];
 }
 
 function applyDama(b, m) {
@@ -676,7 +677,6 @@ function showVictoryModal(title, subtitle, isWin, gameType = 'dama') {
     if (modal) {
         let content = modal.querySelector('.arcade-modal-content');
         if (content) {
-            // Remove any hardcoded default buttons or old containers from index.html to prevent duplicates
             content.querySelectorAll('button:not(.arcade-btn), .victory-btn-container').forEach(el => el.remove());
 
             let btnContainer = document.createElement('div');
