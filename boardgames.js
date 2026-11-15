@@ -325,7 +325,7 @@ function clickChess(r, c) {
 
 
 /* ==========================================================================
-   DAMA / CHECKERS ENGINE & CHAIN JUMP LOGIC (Fixed King Ownership & PvP)
+   DAMA / CHECKERS ENGINE & CHAIN JUMP LOGIC (Bulletproof PvP & Chain Jumps)
    ========================================================================== */
 
 function damaInitial() {
@@ -493,52 +493,83 @@ function endDama(msg) {
 
 function clickDama(r, c) {
     if (damaOver) return;
-    // In AI mode, block clicks when it's the AI's turn
     if (damaSetupMode === 'ai' && damaTurn === 'b') return;
 
-    const candidates = damaChain ? damaCaptures(damaChain[0], damaChain[1]) : damaAll(damaBoard, damaTurn);
-    
-    if (damaSelected && candidates.some(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c)) {
-        const move = candidates.find(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c);
-        damaBoard = applyDama(damaBoard, move);
-        
-        // Check for continuation chain jumps
-        if (move.cap && damaHasFurther(damaBoard, r, c).length) {
-            damaChain = [r, c];
-            damaSelected = [r, c];
-            damaMoves = damaHasFurther(damaBoard, r, c);
-            const statusEl = document.getElementById('dama-status');
-            if (statusEl) {
-                statusEl.textContent = damaSetupMode === 'ai' && damaTurn === 'w' ? 'Chain jump! Capture again.' : `${damaTurn === 'w' ? 'Red' : 'Black'} Chain jump! Capture again.`;
+    // --- CHAIN JUMP ACTIVE STATE ---
+    if (damaChain) {
+        const captures = damaCaptures(damaBoard, damaChain[0], damaChain[1]);
+        const move = captures.find(m => m.to[0] === r && m.to[1] === c);
+
+        if (move) {
+            damaBoard = applyDama(damaBoard, move);
+            const nextCaptures = damaCaptures(damaBoard, move.to[0], move.to[1]);
+
+            if (move.cap && nextCaptures.length > 0) {
+                damaChain = [move.to[0], move.to[1]];
+                damaSelected = [move.to[0], move.to[1]];
+                damaMoves = nextCaptures;
+                const statusEl = document.getElementById('dama-status');
+                if (statusEl) {
+                    statusEl.textContent = damaSetupMode === 'ai' && damaTurn === 'w' ? 'Chain jump! Capture again.' : `${damaTurn === 'w' ? 'Red' : 'Black'} Chain jump! Capture again.`;
+                }
+                drawDama();
+                return;
             }
-            drawDama();
-            return;
-        }
-        
-        damaChain = null;
-        damaSelected = null;
-        damaMoves = [];
-        damaTurn = damaTurn === 'w' ? 'b' : 'w';
-        damaAfter();
-        return;
-    }
-    
-    const piece = damaBoard[r][c];
-    if (piece && piece[0] === damaTurn) {
-        if (damaChain) {
-            if (r === damaChain[0] && c === damaChain[1]) {
-                damaSelected = [r, c];
-                damaMoves = damaCaptures(r, c);
-            }
-        } else {
-            damaSelected = [r, c];
-            damaMoves = candidates.filter(m => m.from[0] === r && m.from[1] === c);
-        }
-    } else {
-        if (!damaChain) {
+
+            // End chain & switch turn
+            damaChain = null;
             damaSelected = null;
             damaMoves = [];
+            damaTurn = damaTurn === 'w' ? 'b' : 'w';
+            damaAfter();
+            return;
+        } else {
+            if (r === damaChain[0] && c === damaChain[1]) return; // clicked active piece
+            return; // ignore invalid clicks during an active chain
         }
+    }
+
+    // --- NORMAL TURN STATE ---
+    const candidates = damaAll(damaBoard, damaTurn);
+
+    if (damaSelected) {
+        const move = candidates.find(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c);
+        if (move) {
+            damaBoard = applyDama(damaBoard, move);
+
+            // Check if this move started a chain jump
+            if (move.cap) {
+                const nextCaptures = damaCaptures(damaBoard, move.to[0], move.to[1]);
+                if (nextCaptures.length > 0) {
+                    damaChain = [move.to[0], move.to[1]];
+                    damaSelected = [move.to[0], move.to[1]];
+                    damaMoves = nextCaptures;
+                    const statusEl = document.getElementById('dama-status');
+                    if (statusEl) {
+                        statusEl.textContent = damaSetupMode === 'ai' && damaTurn === 'w' ? 'Chain jump! Capture again.' : `${damaTurn === 'w' ? 'Red' : 'Black'} Chain jump! Capture again.`;
+                    }
+                    drawDama();
+                    return;
+                }
+            }
+
+            damaChain = null;
+            damaSelected = null;
+            damaMoves = [];
+            damaTurn = damaTurn === 'w' ? 'b' : 'w';
+            damaAfter();
+            return;
+        }
+    }
+
+    // Piece Selection
+    const piece = damaBoard[r][c];
+    if (piece && piece[0] === damaTurn) {
+        damaSelected = [r, c];
+        damaMoves = candidates.filter(m => m.from[0] === r && m.from[1] === c);
+    } else {
+        damaSelected = null;
+        damaMoves = [];
     }
     drawDama();
 }
