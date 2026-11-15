@@ -1,3 +1,79 @@
+// Toggle Assistive Touch Fox Menu
+const foxWidget = document.getElementById('assistive-touch-fox');
+const foxModal = document.getElementById('fox-menu-modal');
+const closeFoxBtn = document.getElementById('close-fox-menu');
+
+if (foxWidget && foxModal) {
+  foxWidget.onclick = () => {
+    foxModal.classList.remove('hidden');
+    foxModal.classList.add('flex');
+    if (typeof AudioFX !== 'undefined') AudioFX.click();
+  };
+}
+
+if (closeFoxBtn && foxModal) {
+  closeFoxBtn.onclick = () => {
+    foxModal.classList.remove('flex');
+    foxModal.classList.add('hidden');
+    if (typeof AudioFX !== 'undefined') AudioFX.click();
+  };
+}
+
+// Make the Assistive Touch Fox draggable anywhere on screen
+if (foxWidget) {
+  let isDragging = false;
+  let startX, startY, initialX, initialY;
+
+  foxWidget.onpointerdown = (e) => {
+    isDragging = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    initialX = foxWidget.offsetLeft;
+    initialY = foxWidget.offsetTop;
+    foxWidget.setPointerCapture(e.pointerId);
+  };
+
+  foxWidget.onpointermove = (e) => {
+    if (!startX || !startY) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.hypot(dx, dy) > 6) {
+      isDragging = true;
+      foxWidget.style.left = `${initialX + dx}px`;
+      foxWidget.style.top = `${initialY + dy}px`;
+      foxWidget.style.right = 'auto';
+      foxWidget.style.bottom = 'auto';
+    }
+  };
+
+  foxWidget.onpointerup = (e) => {
+    if (!isDragging) {
+      // Treat as a normal click if not dragged
+      foxModal.classList.remove('hidden');
+      foxModal.classList.add('flex');
+      if (typeof AudioFX !== 'undefined') AudioFX.click();
+    }
+    startX = null;
+    startY = null;
+  };
+}
+
+// Placeholder functions for Wardrobe, Shop, and Streak & Spin
+function openWardrobe() {
+  alert('🧥 Opening Wardrobe: Customize your Fox & Astronaut skins!');
+  // Add your wardrobe UI router or drawer code here
+}
+
+function openShop() {
+  alert('🛒 Opening Arcade Shop!');
+  // Add your shop UI router or modal code here
+}
+
+function openStreakSpin() {
+  alert('🔥 Opening Streak & Spin Lucky Wheel!');
+  // Add your streak & spin modal code here
+}
+
 const AudioFX = (() => {
   let ctx = null;
   let sfxEnabled = true;
