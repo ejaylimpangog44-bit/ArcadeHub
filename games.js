@@ -286,7 +286,9 @@ function initCoinScatter(stage, meta) {
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-2">
             <span class="text-xs text-slate-400 font-semibold">Bet:</span>
-            <span class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-white">50 🔼</span>
+            <button id="bet-tier-btn" class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition">
+              50 🔼
+            </button>
           </div>
           <button id="spin-btn" onclick="triggerScatterSpin()" class="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-400 font-black text-sm text-slate-950 shadow-lg shadow-amber-500/30 hover:scale-[1.02] active:scale-95 transition">
             SPIN THE REELS 🎰
@@ -297,13 +299,13 @@ function initCoinScatter(stage, meta) {
       <div id="scatter-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
         <div class="max-w-md w-full bg-slate-900 border border-amber-500/40 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-4">
           <div class="text-4xl">🎉</div>
-          <h2 class="text-xl font-black text-amber-400">FREE SPINS FEATURE COMPLETE!</h2>
-          <p class="text-xs text-slate-300">Total Winnings Collected from Bonus Rounds:</p>
+          <h2 id="modal-title" class="text-xl font-black text-amber-400">SPIN WIN COLLECTED!</h2>
+          <p class="text-xs text-slate-300">Total Winnings Added to Vault:</p>
           <div class="text-3xl font-black text-white font-mono bg-black/40 py-3 rounded-2xl border border-white/10">
             🪙 <span id="modal-win-tally" class="text-amber-300">0</span> Coins
           </div>
           <button onclick="closeScatterModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 font-extrabold text-xs text-slate-950 hover:opacity-95 transition">
-            Collect & Return to Vault
+            Collect & Continue
           </button>
         </div>
       </div>
@@ -312,14 +314,30 @@ function initCoinScatter(stage, meta) {
 
   const symbols = ['👑', '⚡', '🔔', '💎', '🪙', '7️⃣'];
   let coins = 3250;
+  const betTiers = [50, 500, 1000, 1500, 5000, 10000];
+  let currentBetIdx = 0;
+  let currentBet = betTiers[currentBetIdx];
+
   let freeSpinsLeft = 0;
   let totalBonusWon = 0;
+  let lastSessionWin = 0;
   let isAutoSpinning = false;
   let currentGrid = [
     ['👑', '⚡', '🔔', '7️⃣', '🪙'],
     ['⚡', '🪙', '💎', '🪙', '👑'],
     ['🔔', '💎', '7️⃣', '7️⃣', '👑']
   ];
+
+  const betBtn = document.getElementById('bet-tier-btn');
+  if (betBtn) {
+    betBtn.onclick = () => {
+      if (isAutoSpinning) return;
+      currentBetIdx = (currentBetIdx + 1) % betTiers.length;
+      currentBet = betTiers[currentBetIdx];
+      betBtn.textContent = `${currentBet >= 1000 ? (currentBet/1000) + 'k' : currentBet} 🔼`;
+      AudioFX.click();
+    };
+  }
 
   window.renderScatterGrid = function(highlightScatters = false) {
     const gridEl = document.getElementById('slot-grid');
@@ -342,6 +360,17 @@ function initCoinScatter(stage, meta) {
 
   window.triggerScatterSpin = function() {
     if (isAutoSpinning) return;
+    if (coins < currentBet && freeSpinsLeft === 0) {
+      document.getElementById('scatter-msg').textContent = '⚠️ Not enough coins for this bet!';
+      AudioFX.lose();
+      return;
+    }
+
+    if (freeSpinsLeft === 0) {
+      coins -= currentBet;
+      document.getElementById('scatter-coins').textContent = coins.toLocaleString();
+    }
+
     AudioFX.click();
 
     if (freeSpinsLeft > 0) {
@@ -372,10 +401,12 @@ function initCoinScatter(stage, meta) {
 
     renderScatterGrid(true);
 
+    const multiplier = currentBet >= 5000 ? 5 : currentBet >= 1000 ? 2 : 1;
+
     if (scatterCount >= 3 && freeSpinsLeft === 0) {
       const possibleSpins = [3, 5, 10, 15];
       freeSpinsLeft = possibleSpins[Math.floor(Math.random() * possibleSpins.length)];
-      totalBonusWon = freeSpinsLeft * 45;
+      totalBonusWon = freeSpinsLeft * 45 * multiplier;
       document.getElementById('scatter-spins').textContent = freeSpinsLeft;
       document.getElementById('scatter-msg').textContent = `⚡ 3+ SCATTERS! Won ${freeSpinsLeft} Free Spins! Auto-spinning...`;
       AudioFX.win();
@@ -388,10 +419,8 @@ function initCoinScatter(stage, meta) {
         runAutoBonusSpins();
       }, 1200);
     } else {
-      const spinWin = Math.floor(Math.random() * 120) + 20;
-      coins += spinWin;
-      totalBonusWon += spinWin;
-      document.getElementById('scatter-coins').textContent = coins.toLocaleString();
+      const spinWin = (Math.floor(Math.random() * 120) + 20) * multiplier;
+      lastSessionWin = spinWin;
       document.getElementById('scatter-msg').textContent = `Spin Win: +${spinWin} Coins!`;
       AudioFX.coin();
 
@@ -405,48 +434,52 @@ function initCoinScatter(stage, meta) {
         }, 800);
       } else {
         document.getElementById('spin-btn').textContent = "SPIN THE REELS 🎰";
+        showWinModal(spinWin, "SPIN WIN COLLECTED!");
       }
     }
   }
 
   function runAutoBonusSpins() {
     if (freeSpinsLeft <= 0) {
-      showVictoryModal();
+      showWinModal(totalBonusWon, "FREE SPINS FEATURE COMPLETE!");
       return;
     }
     triggerScatterSpin();
   }
 
-  function showVictoryModal() {
+  function showWinModal(targetWin, titleText) {
+    document.getElementById('modal-title').textContent = titleText;
     document.getElementById('scatter-modal').classList.remove('hidden');
     document.getElementById('scatter-modal').classList.add('flex');
     document.getElementById('spin-btn').textContent = "SPIN THE REELS 🎰";
     
     let currentCount = 0;
-    const targetCount = totalBonusWon;
-    const step = Math.max(1, Math.floor(targetCount / 25));
+    const step = Math.max(1, Math.floor(targetWin / 25));
     const tallyEl = document.getElementById('modal-win-tally');
+    tallyEl.textContent = "0";
     
     const countInterval = setInterval(() => {
       currentCount += step;
-      if (currentCount >= targetCount) {
-        currentCount = targetCount;
+      if (currentCount >= targetWin) {
+        currentCount = targetWin;
         clearInterval(countInterval);
       }
       tallyEl.textContent = currentCount.toLocaleString();
     }, 40);
 
     AudioFX.win();
-    addXP(100);
+    addXP(75);
   }
 
   window.closeScatterModal = function() {
     document.getElementById('scatter-modal').classList.remove('flex');
     document.getElementById('scatter-modal').classList.add('hidden');
-    coins += totalBonusWon;
+    const prizeToAdd = totalBonusWon > 0 ? totalBonusWon : lastSessionWin;
+    coins += prizeToAdd;
     totalBonusWon = 0;
+    lastSessionWin = 0;
     document.getElementById('scatter-coins').textContent = coins.toLocaleString();
-    document.getElementById('scatter-msg').textContent = 'Bonus feature completed! Ready for regular play.';
+    document.getElementById('scatter-msg').textContent = 'Prize collected! Ready for next spin.';
   };
 
   renderScatterGrid(false);
