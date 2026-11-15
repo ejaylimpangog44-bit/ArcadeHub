@@ -17,7 +17,7 @@ const SONG_ALBUM = [
 ];
 
 function initPianoTiles(stage) {
-  // 1. Automatically pause global ambient BGM when entering Piano Tiles
+  // Automatically pause global ambient BGM when entering Piano Tiles
   const bgm = document.getElementById('bgm-audio');
   const wasBgmPlaying = bgm && !bgm.paused;
   if (bgm && wasBgmPlaying) bgm.pause();
@@ -35,7 +35,7 @@ function initPianoTiles(stage) {
         <canvas id="pt-canvas" class="w-full h-full block touch-none"></canvas>
       </div>
 
-      <div class="text-[11px] text-indigo-200/70 text-center z-10">Tap falling piano tiles • Hold purple tiles • Speed scales with score</div>
+      <div class="text-[11px] text-indigo-200/70 text-center z-10">Tap falling tiles directly anywhere on screen • Speed scales with score</div>
     </div>
   `;
 
@@ -69,7 +69,7 @@ function initPianoTiles(stage) {
 
   function spawnTile() {
     const col = Math.floor(Math.random() * 4);
-    const isHold = Math.random() < 0.22; // 22% chance for a Hold Tile
+    const isHold = Math.random() < 0.22;
     tiles.push({
       col,
       y: -140,
@@ -85,7 +85,7 @@ function initPianoTiles(stage) {
     ctx.clearRect(0, 0, w, h);
     const colWidth = w / 4;
 
-    // Draw vertical column divider lines
+    // Draw subtle vertical column divider lines
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 1;
     for (let i = 1; i < 4; i++) {
@@ -95,25 +95,14 @@ function initPianoTiles(stage) {
       ctx.stroke();
     }
 
-    // Draw hit line indicator
-    const hitLineY = h - 110;
-    ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, hitLineY);
-    ctx.lineTo(w, hitLineY);
-    ctx.stroke();
-
     if (running && alive) {
       spawnTimer++;
-      // Spawn interval decreases slightly as score increases
       const spawnInterval = Math.max(30, 75 - Math.floor(score / 15) * 4);
       if (spawnTimer >= spawnInterval) {
         spawnTimer = 0;
         spawnTile();
       }
 
-      // Progressive speed scaling: slower at start, faster as score grows
       const speed = 3.8 + Math.min(8.5, score * 0.07);
 
       tiles.forEach(t => {
@@ -121,8 +110,8 @@ function initPianoTiles(stage) {
           t.y += speed;
         }
 
-        // Check if tile passed the bottom without being tapped (Missed)
-        if (!t.hit && !t.missed && t.y > h + 20) {
+        // Check if tile passed the bottom of the screen without being tapped
+        if (!t.hit && !t.missed && t.y > h) {
           t.missed = true;
           alive = false;
           running = false;
@@ -132,7 +121,7 @@ function initPianoTiles(stage) {
       });
     }
 
-    // Render tiles
+    // Render falling tiles
     tiles.forEach(t => {
       if (t.missed || (t.hit && !t.isHold)) return;
       const x = t.col * colWidth + 4;
@@ -158,7 +147,7 @@ function initPianoTiles(stage) {
       ctx.fillStyle = '#fff';
       ctx.font = '900 26px Inter';
       ctx.textAlign = 'center';
-      ctx.fillText('Note Missed / Wrong Key!', w / 2, h / 2 - 20);
+      ctx.fillText('Note Missed / Wrong Tap!', w / 2, h / 2 - 20);
       ctx.font = '700 15px Inter';
       ctx.fillStyle = '#fde047';
       ctx.fillText(`Final Score: ${score} Notes — Tap to Retry`, w / 2, h / 2 + 20);
@@ -168,13 +157,13 @@ function initPianoTiles(stage) {
   }
   loop();
 
-  // Tap / click handler with vibration feedback
+  // Direct touch handler: Tap the tile directly wherever it is on screen!
   canvas.onpointerdown = (e) => {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.clientX - rect.left;
+    const clientY = e.clientY - rect.top;
     const colWidth = w / 4;
     const tappedCol = Math.floor(clientX / colWidth);
-    const hitLineY = h - 110;
 
     if (!alive) {
       resetGame();
@@ -183,8 +172,9 @@ function initPianoTiles(stage) {
 
     let hitFound = false;
     tiles.forEach(t => {
+      // Check if user tapped inside this tile's exact column and vertical bounds
       if (!t.hit && !t.missed && t.col === tappedCol) {
-        if (t.y + t.height >= hitLineY - 45 && t.y <= hitLineY + 50) {
+        if (clientY >= t.y - 15 && clientY <= t.y + t.height + 15) {
           hitFound = true;
           t.hit = true;
           score++;
@@ -199,18 +189,17 @@ function initPianoTiles(stage) {
     });
 
     if (!hitFound) {
-      // Wrong tap or tapping empty lane -> Trigger Vibration & Game Over
+      // Tapped empty space or wrong lane -> Vibration & Game Over
       alive = false;
       running = false;
       AudioFX.lose();
-      if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // 📳 Haptic vibration feedback
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     }
   };
 
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('resize', onResize);
-    // Automatically resume global BGM when leaving Piano Tiles
     if (bgm && wasBgmPlaying) {
       bgm.play().catch(() => {});
     }
