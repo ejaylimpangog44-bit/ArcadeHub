@@ -21,7 +21,6 @@ function openBoardGame(which) {
     document.getElementById(which + '-container').classList.add('active');
     if (which === 'chess') newChessGame();
     else {
-        // Ensure setup screen is shown and game screen is hidden when opening Dama
         const setupScreen = document.getElementById('dama-setup-screen');
         const gameScreen = document.getElementById('dama-game-screen');
         if (setupScreen) setupScreen.style.display = 'flex';
@@ -61,7 +60,7 @@ function setDamaSetupMode(mode) {
 function setDamaSetupDiff(diff) {
     if (typeof audio !== 'undefined') audio.playSFX('move');
     damaSetupDiff = diff;
-    damaMode = diff; // Syncs with the Dama AI difficulty variable
+    damaMode = diff;
     const normalBtn = document.getElementById('dama-setup-normal');
     const hardBtn = document.getElementById('dama-setup-hard');
     if (normalBtn) normalBtn.classList.toggle('active', diff === 'normal');
@@ -330,7 +329,7 @@ function clickChess(r, c) {
 
 
 /* ==========================================================================
-   DAMA / CHECKERS ENGINE & CHAIN JUMP LOGIC (Fixed King Ownership)
+   DAMA / CHECKERS ENGINE & CHAIN JUMP LOGIC (Fixed PvP & Universal Chain Jumps)
    ========================================================================== */
 
 function damaInitial() {
@@ -348,7 +347,9 @@ function newDamaGame() {
     damaChain = null;
     damaOver = false;
     const statusEl = document.getElementById('dama-status');
-    if (statusEl) statusEl.textContent = 'Your turn — Red';
+    if (statusEl) {
+        statusEl.textContent = damaSetupMode === 'ai' ? 'Your turn — Red' : "Red Player's Turn";
+    }
     drawDama();
 }
 
@@ -415,7 +416,7 @@ function damaScore(b) {
 }
 
 function damaAI() {
-    if (damaOver || damaTurn !== 'b') return;
+    if (damaOver || damaSetupMode !== 'ai' || damaTurn !== 'b') return;
     const moves = damaAll(damaBoard, 'b');
     if (!moves.length) { endDama('You win!'); return; }
 
@@ -451,13 +452,22 @@ function damaAI() {
 function damaAfter() {
     const moves = damaAll(damaBoard, damaTurn);
     if (!moves.length) {
-        endDama(damaTurn === 'w' ? 'AI wins!' : 'You win!');
+        const winner = damaTurn === 'w' ? (damaSetupMode === 'ai' ? 'AI wins!' : 'Black Wins!') : (damaSetupMode === 'ai' ? 'You win!' : 'Red Wins!');
+        endDama(winner);
         return;
     }
     const statusEl = document.getElementById('dama-status');
-    if (statusEl) statusEl.textContent = damaTurn === 'w' ? 'Your turn — Red' : 'AI thinking…';
+    if (statusEl) {
+        if (damaSetupMode === 'ai') {
+            statusEl.textContent = damaTurn === 'w' ? 'Your turn — Red' : 'AI thinking…';
+        } else {
+            statusEl.textContent = damaTurn === 'w' ? "Red Player's Turn" : "Black Player's Turn";
+        }
+    }
     drawDama();
-    if (damaTurn === 'b') setTimeout(damaAI, 300);
+    if (damaSetupMode === 'ai' && damaTurn === 'b') {
+        setTimeout(damaAI, 300);
+    }
 }
 
 function endDama(msg) {
@@ -466,7 +476,11 @@ function endDama(msg) {
     if (typeof DailyChallengeManager !== 'undefined') DailyChallengeManager.trackProgress('dama', 1);
 
     const isPlayerWin = msg.includes('You win!') || msg.includes('Red Wins');
-    showVictoryModal(isPlayerWin ? "You Defeated AI!" : "AI Wins!", msg, isPlayerWin);
+    showVictoryModal(
+        damaSetupMode === 'ai' ? (isPlayerWin ? "You Defeated AI!" : "AI Wins!") : msg,
+        damaSetupMode === 'ai' ? (isPlayerWin ? "Outstanding victory!" : "The AI outmaneuvered you.") : "Match concluded!",
+        isPlayerWin
+    );
 
     if (isPlayerWin && typeof ScoreManager !== 'undefined') {
         ScoreManager.saveScore('dama', 300);
@@ -475,10 +489,12 @@ function endDama(msg) {
 }
 
 function clickDama(r, c) {
-    if (damaOver || damaTurn !== 'w') return;
+    if (damaOver) return;
+    // In AI mode, block clicks when it's the AI's turn
+    if (damaSetupMode === 'ai' && damaTurn === 'b') return;
 
-    // Get valid moves based on whether a chain jump is active
-    const candidates = damaChain ? damaCaptures(damaChain[0], damaChain[1]) : damaAll(damaBoard, 'w');
+    // Get valid moves based on whether a chain jump is active for the current turn color
+    const candidates = damaChain ? damaCaptures(damaChain[0], damaChain[1]) : damaAll(damaBoard, damaTurn);
 
     // Check if the clicked square is a valid destination for the selected piece
     const validMove = candidates.find(m => 
@@ -490,7 +506,6 @@ function clickDama(r, c) {
     );
 
     if (validMove) {
-        // Execute the jump/move
         damaBoard = applyDama(damaBoard, validMove);
 
         // Check if another capture is available from the new landing spot (Chain Jump)
@@ -499,22 +514,25 @@ function clickDama(r, c) {
             damaSelected = [r, c];
             damaMoves = damaHasFurther(damaBoard, r, c);
             const statusEl = document.getElementById('dama-status');
-            if (statusEl) statusEl.textContent = 'Chain jump! Capture again.';
+            if (statusEl) {
+                statusEl.textContent = damaSetupMode === 'ai' && damaTurn === 'w' ? 'Chain jump! Capture again.' : `${damaTurn === 'w' ? 'Red' : 'Black'} Chain jump! Capture again.`;
+            }
             drawDama();
             return;
         }
 
-        // Finish turn if no more chain jumps are available
+        // Finish turn and switch player/AI turn
         damaChain = null;
         damaSelected = null;
         damaMoves = [];
-        damaTurn = 'b';
+        damaTurn = damaTurn === 'w' ? 'b' : 'w';
         damaAfter();
         return;
     }
 
     // Piece selection logic
-    if (damaBoard[r][c]?.[0] === 'w') {
+    const piece = damaBoard[r][c];
+    if (piece && piece[0] === damaTurn) {
         if (damaChain) {
             // During an active chain, only the chaining piece can be selected
             if (r === damaChain[0] && c === damaChain[1]) {
@@ -588,7 +606,7 @@ function closeVictoryModal() {
         if (content) content.style.transform = 'scale(0.7)';
         setTimeout(() => {
             modal.style.display = 'none';
-            boardBack(); // Automatically return to the Hub menu when closed
+            boardBack();
         }, 300);
     }
 }
