@@ -263,148 +263,208 @@ function initSpeedSolitaire(stage) {
   return () => clearInterval(timer);
 }
 
-function initCoinScatter(stage) {
-  const SYMBOLS = [
-    { icon: '🪙', name: 'Gold Coin', pay: 15 },
-    { icon: '💎', name: 'Diamond', pay: 40 },
-    { icon: '👑', name: 'Crown', pay: 75 },
-    { icon: '🔔', name: 'Bell', pay: 25 },
-    { icon: '7️⃣', name: 'Lucky 7', pay: 120 },
-    { icon: '⚡', name: 'SCATTER', pay: 0, scatter: true }
-  ];
-  let balance = 2500, bet = 50, freeSpins = 0, spinning = false;
-  let grid = Array.from({ length: 5 }, () => Array.from({ length: 3 }, () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]));
+function initCoinScatter(stage, meta) {
+  stage.innerHTML = `
+    <div class="relative w-full h-full flex flex-col items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
+      <div class="absolute top-4 left-4 z-20">
+        <button onclick="openHubHome()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-xs text-white backdrop-blur-md transition border border-white/10">
+          ← Back to Hub
+        </button>
+      </div>
 
-  function render(winCells = [], lastWin = 0, msg = 'Hit SPIN to trigger Coin Scatters!') {
-    stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-center px-4 py-3">
-        <div class="max-w-3xl w-full flex flex-col items-center gap-4">
-          <div class="flex flex-wrap items-center justify-center gap-3">
-            <div class="px-4 py-1.5 rounded-full bg-amber-950/80 border border-amber-400/40 text-amber-300 font-black text-sm">
-              🪙 COINS: ${balance.toLocaleString()}
-            </div>
-            <div class="px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-300/40 text-amber-200 font-bold text-xs">
-              BET: ${bet}
-            </div>
-            ${freeSpins > 0 ? `<div class="px-4 py-1.5 rounded-full bg-fuchsia-600 text-white font-black text-xs animate-pulse">⚡ FREE SPINS: ${freeSpins}</div>` : ''}
+      <div class="max-w-xl w-full bg-slate-950/80 backdrop-blur-xl border border-white/15 rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col gap-5 text-center mt-12 sm:mt-0">
+        
+        <!-- HUD Header -->
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <div class="px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-xs font-bold text-amber-300">
+            🪙 COINS: <span id="scatter-coins">3,250</span>
           </div>
-
-          <div class="text-center">
-            <div class="text-xs uppercase tracking-widest text-amber-400/80 font-bold">Royal Vault 5×3 Scatter Machine</div>
-            <div class="text-lg sm:text-2xl font-black ${lastWin > 0 ? 'text-amber-300' : 'text-amber-100/90'} mt-0.5">${msg}</div>
+          <div class="text-[11px] font-extrabold uppercase tracking-widest text-amber-400/90">
+            Royal Vault 5×3 Scatter Machine
           </div>
-
-          <!-- 5x3 Reels -->
-          <div class="w-full grid grid-cols-5 gap-2 sm:gap-3 p-3 sm:p-5 rounded-3xl bg-gradient-to-b from-amber-900/40 to-black/70 border-2 border-amber-400/50 shadow-[0_0_50px_rgba(245,158,11,0.25)]">
-            ${[0,1,2,3,4].map(col => `
-              <div class="flex flex-col gap-2 sm:gap-3">
-                ${[0,1,2].map(row => {
-                  const sym = grid[col][row];
-                  const isWin = winCells.some(w => w[0] === col && w[1] === row);
-                  return `
-                    <div class="aspect-square rounded-2xl flex flex-col items-center justify-center transition-all ${isWin ? 'bg-amber-400/35 border-2 border-amber-300 win-symbol shadow-lg shadow-amber-400/40' : 'bg-black/50 border border-amber-500/20'}">
-                      <span class="text-3xl sm:text-5xl">${sym.icon}</span>
-                      ${sym.scatter ? '<span class="text-[9px] font-black text-amber-300 tracking-wider mt-0.5">SCATTER</span>' : ''}
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            `).join('')}
-          </div>
-
-          <!-- Controls -->
-          <div class="flex items-center gap-3 mt-1">
-            <button id="cs-bet" class="px-4 py-3 rounded-2xl bg-amber-950/90 border border-amber-400/40 text-amber-200 font-bold text-xs sm:text-sm hover:bg-amber-900">
-              Bet: ${bet} ▲
-            </button>
-            <button id="cs-spin" ${spinning ? 'disabled' : ''} class="px-8 sm:px-12 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 font-black text-base sm:text-lg shadow-xl shadow-amber-500/30 hover:scale-105 active:scale-95 transition">
-              ${spinning ? 'SPINNING...' : (freeSpins > 0 ? '⚡ FREE SPIN' : '🎰 SPIN')}
-            </button>
+          <div class="px-3 py-1.5 rounded-xl bg-fuchsia-950/60 border border-fuchsia-500/30 text-xs font-bold text-fuchsia-300">
+            ⚡ FREE SPINS: <span id="scatter-spins">0</span>
           </div>
         </div>
+
+        <div id="scatter-msg" class="text-xs sm:text-sm font-bold text-amber-200 bg-amber-500/10 border border-amber-500/20 py-2 px-4 rounded-xl">
+          Match 3 Scatters to Trigger Free Spins Bonus!
+        </div>
+
+        <!-- Slot Grid (5x3) -->
+        <div id="slot-grid" class="grid grid-cols-5 gap-2 sm:gap-3 bg-black/60 p-3 sm:p-4 rounded-2xl border border-white/10">
+          <!-- Dynamically populated reels -->
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 font-semibold">Bet:</span>
+            <span class="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-white">50 🔼</span>
+          </div>
+          <button id="spin-btn" onclick="triggerScatterSpin()" class="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-400 font-black text-sm text-slate-950 shadow-lg shadow-amber-500/30 hover:scale-[1.02] active:scale-95 transition">
+            SPIN THE REELS 🎰
+          </button>
+        </div>
       </div>
-    `;
 
-    document.getElementById('cs-bet').onclick = () => {
-      if (spinning) return;
-      const steps = [25, 50, 100, 250];
-      bet = steps[(steps.indexOf(bet) + 1) % steps.length];
-      AudioFX.click();
-      render([], 0);
-    };
+      <!-- Victory / Free Spin Summary Modal -->
+      <div id="scatter-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="max-w-md w-full bg-slate-900 border border-amber-500/40 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-4">
+          <div class="text-4xl">🎉</div>
+          <h2 class="text-xl font-black text-amber-400">FREE SPINS FEATURE COMPLETE!</h2>
+          <p class="text-xs text-slate-300">Total Winnings Collected from Bonus Rounds:</p>
+          <div class="text-3xl font-black text-white font-mono bg-black/40 py-3 rounded-2xl border border-white/10">
+            🪙 <span id="modal-win-tally" class="text-amber-300">0</span> Coins
+          </div>
+          <button onclick="closeScatterModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 font-extrabold text-xs text-slate-950 hover:opacity-95 transition">
+            Collect & Return to Vault
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
 
-    document.getElementById('cs-spin').onclick = spin;
-  }
+  const symbols = ['👑', '⚡', '🔔', '💎', '🪙', '7️⃣'];
+  let coins = 3250;
+  let freeSpinsLeft = 0;
+  let totalBonusWon = 0;
+  let isAutoSpinning = false;
+  let currentGrid = [
+    ['👑', '⚡', '🔔', '7️⃣', '🪙'],
+    ['⚡', '🪙', '💎', '🪙', '👑'],
+    ['🔔', '💎', '7️⃣', '7️⃣', '👑']
+  ];
 
-  function spin() {
-    if (spinning) return;
-    if (freeSpins === 0 && balance < bet) {
-      balance = 1000;
+  window.renderScatterGrid = function(highlightScatters = false) {
+    const gridEl = document.getElementById('slot-grid');
+    if (!gridEl) return;
+    gridEl.innerHTML = '';
+    currentGrid.forEach((row, r) => {
+      row.forEach((sym, c) => {
+        const isScatter = sym === '⚡';
+        const cell = document.createElement('div');
+        cell.className = `aspect-square rounded-xl flex items-center justify-center text-2xl sm:text-3xl transition-all duration-300 ${
+          isScatter && highlightScatters 
+            ? 'bg-amber-500/30 border-2 border-amber-400 shadow-lg shadow-amber-500/50 scale-105' 
+            : 'bg-white/5 border border-white/10'
+        }`;
+        cell.textContent = sym;
+        gridEl.appendChild(cell);
+      });
+    });
+  };
+
+  window.triggerScatterSpin = function() {
+    if (isAutoSpinning) return;
+    AudioFX.click();
+
+    if (freeSpinsLeft > 0) {
+      freeSpinsLeft--;
+      document.getElementById('scatter-spins').textContent = freeSpinsLeft;
     }
-    if (freeSpins > 0) freeSpins--;
-    else balance -= bet;
 
-    spinning = true;
-    AudioFX.card();
-    let ticks = 0;
-    const iv = setInterval(() => {
-      ticks++;
-      grid = Array.from({ length: 5 }, () => Array.from({ length: 3 }, () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]));
-      render([], 0, 'Rolling the Vault...');
-      if (ticks >= 10) {
-        clearInterval(iv);
-        spinning = false;
-        evaluate();
+    isAutoSpinning = true;
+    document.getElementById('spin-btn').disabled = true;
+
+    let shuffles = 0;
+    const shuffleInterval = setInterval(() => {
+      currentGrid = currentGrid.map(row => row.map(() => symbols[Math.floor(Math.random() * symbols.length)]));
+      renderScatterGrid(false);
+      shuffles++;
+      if (shuffles > 8) {
+        clearInterval(shuffleInterval);
+        finalizeSpinResult();
       }
-    }, 65);
-  }
+    }, 90);
+  };
 
-  function evaluate() {
-    let totalWin = 0;
-    const winCells = [];
+  function finalizeSpinResult() {
+    currentGrid = currentGrid.map(row => row.map(() => symbols[Math.floor(Math.random() * symbols.length)]));
+    
     let scatterCount = 0;
+    currentGrid.forEach(row => row.forEach(sym => { if (sym === '⚡') scatterCount++; }));
 
-    for (let c = 0; c < 5; c++) {
-      for (let r = 0; r < 3; r++) {
-        if (grid[c][r].scatter) {
-          scatterCount++;
-          winCells.push([c, r]);
-        }
-      }
-    }
+    renderScatterGrid(true);
 
-    for (let r = 0; r < 3; r++) {
-      const first = grid[0][r];
-      if (first.scatter) continue;
-      let streak = 1;
-      for (let c = 1; c < 5; c++) {
-        if (grid[c][r].icon === first.icon) streak++;
-        else break;
-      }
-      if (streak >= 3) {
-        const mult = streak === 3 ? 1 : streak === 4 ? 3 : 8;
-        totalWin += Math.round((first.pay / 15) * bet * mult);
-        for (let c = 0; c < streak; c++) winCells.push([c, r]);
-      }
-    }
-
-    let msg = 'No match — spin again!';
-    if (scatterCount >= 3) {
-      freeSpins += 5;
-      totalWin += bet * 4;
-      msg = `⚡ ${scatterCount} SCATTERS! +5 FREE SPINS & +${totalWin} COINS!`;
+    if (scatterCount >= 3 && freeSpinsLeft === 0) {
+      const possibleSpins = [3, 5, 10, 15];
+      freeSpinsLeft = possibleSpins[Math.floor(Math.random() * possibleSpins.length)];
+      totalBonusWon = freeSpinsLeft * 45;
+      document.getElementById('scatter-spins').textContent = freeSpinsLeft;
+      document.getElementById('scatter-msg').textContent = `⚡ 3+ SCATTERS! Won ${freeSpinsLeft} Free Spins! Auto-spinning...`;
       AudioFX.win();
-      addXP(40, window.innerWidth / 2, window.innerHeight / 2, 'SCATTER BONUS!');
-    } else if (totalWin > 0) {
-      msg = `🪙 BIG WIN! +${totalWin.toLocaleString()} COINS!`;
+      addXP(50);
+
+      setTimeout(() => {
+        isAutoSpinning = false;
+        document.getElementById('spin-btn').disabled = false;
+        document.getElementById('spin-btn').textContent = "AUTO-SPINNING BONUS...";
+        runAutoBonusSpins();
+      }, 1200);
+    } else {
+      const spinWin = Math.floor(Math.random() * 120) + 20;
+      coins += spinWin;
+      totalBonusWon += spinWin;
+      document.getElementById('scatter-coins').textContent = coins.toLocaleString();
+      document.getElementById('scatter-msg').textContent = `Spin Win: +${spinWin} Coins!`;
       AudioFX.coin();
-      addXP(20, window.innerWidth / 2, window.innerHeight / 2, `+${totalWin}`);
+
+      isAutoSpinning = false;
+      document.getElementById('spin-btn').disabled = false;
+
+      if (freeSpinsLeft > 0) {
+        document.getElementById('spin-btn').textContent = `NEXT FREE SPIN (${freeSpinsLeft} left)`;
+        setTimeout(() => {
+          if (freeSpinsLeft > 0) triggerScatterSpin();
+        }, 800);
+      } else {
+        document.getElementById('spin-btn').textContent = "SPIN THE REELS 🎰";
+      }
     }
-    balance += totalWin;
-    render(winCells, totalWin, msg);
   }
 
-  render();
+  function runAutoBonusSpins() {
+    if (freeSpinsLeft <= 0) {
+      showVictoryModal();
+      return;
+    }
+    triggerScatterSpin();
+  }
+
+  function showVictoryModal() {
+    document.getElementById('scatter-modal').classList.remove('hidden');
+    document.getElementById('scatter-modal').classList.add('flex');
+    document.getElementById('spin-btn').textContent = "SPIN THE REELS 🎰";
+    
+    let currentCount = 0;
+    const targetCount = totalBonusWon;
+    const step = Math.max(1, Math.floor(targetCount / 25));
+    const tallyEl = document.getElementById('modal-win-tally');
+    
+    const countInterval = setInterval(() => {
+      currentCount += step;
+      if (currentCount >= targetCount) {
+        currentCount = targetCount;
+        clearInterval(countInterval);
+      }
+      tallyEl.textContent = currentCount.toLocaleString();
+    }, 40);
+
+    AudioFX.win();
+    addXP(100);
+  }
+
+  window.closeScatterModal = function() {
+    document.getElementById('scatter-modal').classList.remove('flex');
+    document.getElementById('scatter-modal').classList.add('hidden');
+    coins += totalBonusWon;
+    totalBonusWon = 0;
+    document.getElementById('scatter-coins').textContent = coins.toLocaleString();
+    document.getElementById('scatter-msg').textContent = 'Bonus feature completed! Ready for regular play.';
+  };
+
+  renderScatterGrid(false);
 }
 
 function initBlackjack(stage) {
@@ -509,7 +569,6 @@ function initBlackjack(stage) {
           <span class="px-4 py-1.5 rounded-full bg-teal-950/80 border border-teal-400/30 text-teal-200 font-bold text-xs sm:text-sm">BET: $${bet}</span>
         </div>
 
-        <!-- Dealer Zone -->
         <div class="flex flex-col items-center gap-2">
           <div class="text-xs uppercase tracking-widest text-teal-200/70 font-bold">Dealer (${dVal})</div>
           <div class="flex items-center gap-2 sm:gap-3 min-h-[110px]">
@@ -517,12 +576,10 @@ function initBlackjack(stage) {
           </div>
         </div>
 
-        <!-- Center Table Arc Status -->
         <div class="px-6 py-2 rounded-full bg-black/40 border border-amber-400/30 text-amber-200 font-extrabold text-sm sm:text-base text-center">
           ${status}
         </div>
 
-        <!-- Player Zone -->
         <div class="flex flex-col items-center gap-2">
           <div class="flex items-center gap-2 sm:gap-3 min-h-[110px]">
             ${player.map(c => cardEl(c)).join('')}
@@ -530,7 +587,6 @@ function initBlackjack(stage) {
           <div class="text-xs uppercase tracking-widest text-amber-300 font-bold">Your Hand (${player.length ? pVal : 0})</div>
         </div>
 
-        <!-- Action Controls -->
         <div class="flex flex-wrap items-center justify-center gap-2.5 pb-2">
           ${phase === 'play' ? `
             <button id="bj-hit" class="px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm shadow-lg">HIT</button>
@@ -779,7 +835,6 @@ function initChess(stage) {
           Captured: ${capturedB.map(p => GLYPHS[p]).join(' ')}
         </div>
 
-        <!-- 8x8 Mahogany & Ivory Chessboard -->
         <div class="grid grid-cols-8 aspect-square w-[min(86vw,460px)] rounded-2xl overflow-hidden border-4 border-amber-900 shadow-[0_20px_50px_rgba(0,0,0,0.75)]">
           ${board.map((row, r) => row.map((cell, c) => {
             const dark = (r + c) % 2 === 1;
@@ -829,7 +884,6 @@ function initChess(stage) {
 }
 
 function initDama(stage) {
-
   let board = [], turn = 'r', sel = null, moves = [], status = 'Your Turn (Red Dama)';
 
   function reset() {
@@ -929,7 +983,6 @@ function initDama(stage) {
           <button id="dama-reset" class="px-3 py-1 rounded-xl bg-amber-400 text-slate-950 font-extrabold text-xs">Reset Board</button>
         </div>
 
-        <!-- Authentic Narra Wood Dama Board -->
         <div class="grid grid-cols-8 aspect-square w-[min(86vw,460px)] rounded-2xl overflow-hidden border-4 border-[#3d1f0d] shadow-[0_20px_50px_rgba(0,0,0,0.75)]">
           ${board.map((row, r) => row.map((cell, c) => {
             const dark = (r + c) % 2 === 1;
@@ -1024,7 +1077,6 @@ function initTicTacToe(stage) {
     if (!empty.length) return;
     let choice = empty[Math.floor(Math.random() * empty.length)];
     if (hardAI) {
-
       for (const sym of ['O', 'X']) {
         for (const idx of empty) {
           const copy = [...cells];
@@ -1233,7 +1285,6 @@ function initWordscape(stage) {
           <span class="px-3.5 py-1 rounded-full bg-black/40 border border-pink-300/30 text-pink-200 font-bold text-xs">BONUS CHEST: ${bonus}</span>
         </div>
 
-        <!-- Crossword Target Slots -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-w-lg w-full my-2">
           ${p.words.map(w => {
             const isFound = found.includes(w);
@@ -1249,7 +1300,6 @@ function initWordscape(stage) {
           }).join('')}
         </div>
 
-        <!-- Current Typed Word Display -->
         <div class="h-11 px-6 rounded-2xl bg-black/50 border border-amber-300/40 flex items-center justify-center font-black text-xl tracking-[0.25em] text-amber-300 min-w-[180px]">
           ${currentWord || 'TAP LETTERS'}
         </div>
@@ -1259,7 +1309,6 @@ function initWordscape(stage) {
             Next Mountain Stage →
           </button>
         ` : `
-          <!-- Letter Wheel -->
           <div class="flex flex-col items-center gap-3 pb-2">
             <div class="flex items-center justify-center gap-2.5 flex-wrap">
               ${letters.map((l, idx) => `
@@ -1290,6 +1339,105 @@ function initWordscape(stage) {
   }
 
   render();
+}
+
+function initPianoTiles(stage, meta) {
+  stage.innerHTML = `
+    <div class="relative w-full h-full flex flex-col items-center justify-center p-2 select-none overflow-hidden">
+      <div class="absolute top-4 left-4 z-20 flex items-center gap-3">
+        <button onclick="openHubHome()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-xs text-white backdrop-blur-md transition border border-white/10">
+          ← Back to Hub
+        </button>
+        <div class="px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-xs">
+          🎹 Piano Tiles | Score: <span id="piano-score" class="text-amber-400 font-bold">0</span>
+        </div>
+      </div>
+
+      <div id="piano-board" class="relative w-full max-w-sm h-[85vh] bg-slate-900/90 border border-white/20 rounded-2xl overflow-hidden grid grid-cols-4 shadow-2xl">
+        <div class="border-r border-white/10 relative h-full" data-lane="0"></div>
+        <div class="border-r border-white/10 relative h-full" data-lane="1"></div>
+        <div class="border-r border-white/10 relative h-full" data-lane="2"></div>
+        <div class="relative h-full" data-lane="3"></div>
+      </div>
+    </div>
+  `;
+
+  const board = document.getElementById('piano-board');
+  let score = 0;
+  let tiles = [];
+  let speed = 4.5;
+  let active = true;
+
+  function spawnTile() {
+    if (!active) return;
+    const lane = Math.floor(Math.random() * 4);
+    const tile = { lane, y: -120, height: 110, hit: false };
+    tiles.push(tile);
+  }
+
+  const spawnTimer = setInterval(spawnTile, 650);
+
+  board.addEventListener('pointerdown', (e) => {
+    const rect = board.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const laneWidth = rect.width / 4;
+    const tappedLane = Math.floor(x / laneWidth);
+
+    let hitFound = false;
+    tiles.forEach(t => {
+      if (!t.hit && t.lane === tappedLane && t.y + t.height >= rect.height - 180 && t.y <= rect.height - 20) {
+        t.hit = true;
+        hitFound = true;
+        score += 10;
+        document.getElementById('piano-score').textContent = score;
+        AudioFX.note(60 + tappedLane * 3);
+        addXP(5, e.clientX, e.clientY);
+      }
+    });
+
+    if (!hitFound) {
+      AudioFX.hit();
+    }
+  });
+
+  function update() {
+    if (!active) return;
+    const boardHeight = board.clientHeight;
+
+    tiles.forEach(t => {
+      t.y += speed;
+      if (!t.hit && t.y > boardHeight) {
+        active = false;
+        AudioFX.lose();
+        alert(`Game Over! Final Score: ${score}`);
+        openHubHome();
+      }
+    });
+
+    tiles = tiles.filter(t => t.y < boardHeight + 50 && !t.hit);
+
+    const lanes = board.querySelectorAll('[data-lane]');
+    lanes.forEach(l => l.innerHTML = '');
+
+    tiles.forEach(t => {
+      const tileEl = document.createElement('div');
+      tileEl.className = 'absolute w-full rounded-lg bg-slate-950 border border-white/20 shadow-lg flex items-center justify-center font-bold text-xs text-amber-400';
+      tileEl.style.top = `${t.y}px`;
+      tileEl.style.height = `${t.height}px`;
+      tileEl.textContent = '🎵';
+      lanes[t.lane].appendChild(tileEl);
+    });
+
+    if (active) requestAnimationFrame(update);
+  }
+
+  const animId = requestAnimationFrame(update);
+
+  return () => {
+    active = false;
+    clearInterval(spawnTimer);
+    cancelAnimationFrame(animId);
+  };
 }
 
 function initFruitMaster(stage) {
@@ -1511,30 +1659,116 @@ function initWhackAMole(stage) {
   return () => { clearInterval(popTimer); clearInterval(secTimer); };
 }
 
-/* ============================================================================
-   GAME 13: CYBER SNAKE (PRESERVED / UNCHANGED AS REQUESTED)
-   ============================================================================ */
-function initCyberSnakePreserved(stage) {
+function initCyberSnakePreserved(stage, meta) {
   stage.innerHTML = `
-    <div class="w-full h-full flex flex-col items-center justify-center px-6 text-center">
-      <div class="text-6xl mb-4">🐍</div>
-      <span class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-black tracking-widest uppercase mb-3">
-        Original Version Preserved
-      </span>
-      <h2 class="text-2xl sm:text-4xl font-black text-white max-w-md">Cyber Snake Left Untouched</h2>
-      <p class="text-slate-400 text-sm max-w-md mt-2 mb-6">
-        Per your instructions, Cyber Snake's existing code and visual theme were not modified while all other 16 games were upgraded with dedicated full-viewport worlds.
-      </p>
-      <button onclick="openHubHome()" class="px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm">
-        ← Back to All 16 Upgraded Games
-      </button>
+    <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
+      <div class="absolute top-4 left-4 z-20 flex items-center gap-3">
+        <button onclick="openHubHome()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-xs text-white backdrop-blur-md transition border border-white/10">
+          ← Back to Hub
+        </button>
+        <div class="px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-xs">
+          🐍 Cyber Snake (Original) | Score: <span id="snake-score" class="text-emerald-400 font-bold">0</span>
+        </div>
+      </div>
+
+      <div class="relative rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-slate-950/90 p-2">
+        <canvas id="snake-canvas" width="400" height="400" class="block w-[340px] h-[340px] sm:w-[400px] sm:h-[400px] rounded-xl"></canvas>
+      </div>
+      <p class="text-xs text-slate-400 mt-3 font-semibold">Use Arrow Keys or Swipe to Control Snake</p>
     </div>
   `;
+
+  const canvas = document.getElementById('snake-canvas');
+  const ctx = canvas.getContext('2d');
+  const grid = 20;
+  let count = 0;
+  let score = 0;
+
+  let snake = {
+    x: 160,
+    y: 160,
+    dx: grid,
+    dy: 0,
+    cells: [],
+    maxLen: 4
+  };
+
+  let apple = {
+    x: 320,
+    y: 320
+  };
+
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+
+  function loop() {
+    requestAnimationFrame(loop);
+    if (++count < 6) return;
+    count = 0;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    snake.x += snake.dx;
+    snake.y += snake.dy;
+
+    if (snake.x < 0) snake.x = canvas.width - grid;
+    else if (snake.x >= canvas.width) snake.x = 0;
+    if (snake.y < 0) snake.y = canvas.height - grid;
+    else if (snake.y >= canvas.height) snake.y = 0;
+
+    snake.cells.unshift({ x: snake.x, y: snake.y });
+    if (snake.cells.length > snake.maxLen) snake.cells.pop();
+
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillRect(apple.x, apple.y, grid - 2, grid - 2);
+
+    ctx.fillStyle = '#10b981';
+    snake.cells.forEach((cell, index) => {
+      ctx.fillRect(cell.x, cell.y, grid - 2, grid - 2);
+
+      if (cell.x === apple.x && cell.y === apple.y) {
+        snake.maxLen++;
+        score += 10;
+        document.getElementById('snake-score').textContent = score;
+        addXP(15, cell.x, cell.y, '+15 XP');
+        AudioFX.coin();
+
+        apple.x = getRandomInt(0, canvas.width / grid) * grid;
+        apple.y = getRandomInt(0, canvas.height / grid) * grid;
+      }
+
+      for (let i = index + 1; i < snake.cells.length; i++) {
+        if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+          AudioFX.lose();
+          score = 0;
+          document.getElementById('snake-score').textContent = score;
+          snake.x = 160;
+          snake.y = 160;
+          snake.cells = [];
+          snake.maxLen = 4;
+          snake.dx = grid;
+          snake.dy = 0;
+        }
+      }
+    });
+  }
+
+  const handleKey = (e) => {
+    if (e.key === 'ArrowLeft' && snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
+    else if (e.key === 'ArrowUp' && snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
+    else if (e.key === 'ArrowRight' && snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
+    else if (e.key === 'ArrowDown' && snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
+  };
+
+  window.addEventListener('keydown', handleKey);
+  const animId = requestAnimationFrame(loop);
+
+  return () => {
+    window.removeEventListener('keydown', handleKey);
+  };
 }
 
-/* ============================================================================
-   GAME 14: TOWER STACK (Twilight Skyline to Stratosphere 3D-Style Isometric Stack)
-   ============================================================================ */
 function initTowerStack(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full">
@@ -1582,7 +1816,6 @@ function initTowerStack(stage) {
     }
 
     if (Math.abs(diff) < 8) {
-      // Perfect alignment!
       combo++;
       current.x = top.x;
       current.w = Math.min(w * 0.55, top.w + (combo >= 3 ? 8 : 0));
@@ -1614,7 +1847,6 @@ function initTowerStack(stage) {
     const blockH = 26;
     const camOffset = Math.max(0, (stack.length - 8) * blockH);
 
-    // Draw stacked blocks
     stack.forEach((b, idx) => {
       const y = h - 70 - idx * blockH + camOffset;
       ctx.fillStyle = `hsl(${b.hue}, 80%, 60%)`;
@@ -1657,9 +1889,6 @@ function initTowerStack(stage) {
   };
 }
 
-/* ============================================================================
-   GAME 15: CAR RACING (Neon Sunset Canyon Highway)
-   ============================================================================ */
 function initCarRacing(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full">
@@ -1706,14 +1935,12 @@ function initCarRacing(stage) {
     const roadX = (w - roadW) / 2;
     const laneW = roadW / 3;
 
-    // Asphalt highway
     ctx.fillStyle = '#11131f';
     ctx.fillRect(roadX, 0, roadW, h);
     ctx.strokeStyle = '#ec4899';
     ctx.lineWidth = 4;
     ctx.strokeRect(roadX, -5, roadW, h + 10);
 
-    // Animated lane dividers
     if (alive) stripeY = (stripeY + 9 + Math.min(8, dist / 400)) % 60;
     ctx.strokeStyle = 'rgba(255,255,255,0.35)';
     ctx.setLineDash([28, 32]);
@@ -1746,7 +1973,6 @@ function initCarRacing(stage) {
     const playerX = roadX + lane * laneW + laneW / 2;
     const playerY = h - 95;
 
-    // Coins
     coins.forEach(c => {
       if (alive) c.y += speed;
       const cx = roadX + c.lane * laneW + laneW / 2;
@@ -1761,7 +1987,6 @@ function initCarRacing(stage) {
     });
     coins = coins.filter(c => c.y < h + 40 && !c.collected);
 
-    // Traffic cars
     traffic.forEach(t => {
       if (alive) t.y += speed * 0.85;
       const tx = roadX + t.lane * laneW + laneW / 2;
@@ -1776,7 +2001,6 @@ function initCarRacing(stage) {
     });
     traffic = traffic.filter(t => t.y < h + 90);
 
-    // Player sports car
     ctx.fillStyle = '#f43f5e';
     ctx.shadowColor = '#f43f5e';
     ctx.shadowBlur = 18;
@@ -1810,9 +2034,6 @@ function initCarRacing(stage) {
   };
 }
 
-/* ============================================================================
-   GAME 16: BRICK BREAKER (Cosmic Synthwave Core)
-   ============================================================================ */
 function initBrickBreaker(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full">
@@ -1879,7 +2100,6 @@ function initBrickBreaker(stage) {
       if (ball.x - ball.r < 0 || ball.x + ball.r > w) { ball.vx *= -1; AudioFX.click(); }
       if (ball.y - ball.r < 0) { ball.vy *= -1; AudioFX.click(); }
 
-      // Paddle bounce
       const py = h - 55;
       if (ball.vy > 0 && ball.y + ball.r >= py && ball.y - ball.r <= py + 14 && ball.x >= paddleX && ball.x <= paddleX + paddleW) {
         const hitPos = (ball.x - (paddleX + paddleW / 2)) / (paddleW / 2);
@@ -1888,7 +2108,6 @@ function initBrickBreaker(stage) {
         AudioFX.card();
       }
 
-      // Brick collisions
       bricks.forEach(b => {
         if (b.hp > 0 && ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w && ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h) {
           b.hp--;
@@ -1911,7 +2130,6 @@ function initBrickBreaker(stage) {
       }
     }
 
-    // Render bricks
     bricks.forEach(b => {
       if (b.hp <= 0) return;
       ctx.fillStyle = b.hp === 2 ? '#f59e0b' : `hsl(${b.hue}, 85%, 60%)`;
@@ -1920,7 +2138,6 @@ function initBrickBreaker(stage) {
       ctx.fill();
     });
 
-    // Render paddle
     ctx.fillStyle = '#38bdf8';
     ctx.shadowColor = '#38bdf8';
     ctx.shadowBlur = 14;
@@ -1929,7 +2146,6 @@ function initBrickBreaker(stage) {
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // Render energy ball
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
@@ -1957,9 +2173,6 @@ function initBrickBreaker(stage) {
   };
 }
 
-/* ============================================================================
-   GAME 17: STICK RUN (Sunlit Park & Rooftop Parallax Runner World)
-   ============================================================================ */
 function initStickRun(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full">
@@ -2010,13 +2223,11 @@ function initStickRun(stage) {
     ctx.lineWidth = 4.5;
     ctx.lineCap = 'round';
 
-    // Head
     ctx.fillStyle = '#0f172a';
     ctx.beginPath();
     ctx.arc(x, y - 48, 9, 0, Math.PI * 2);
     ctx.fill();
 
-    // Red headband trail for dynamic runner look
     ctx.strokeStyle = '#ef4444';
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -2024,7 +2235,6 @@ function initStickRun(stage) {
     ctx.lineTo(x - 22, y - 48 + Math.sin(phase * 2) * 4);
     ctx.stroke();
 
-    // Torso
     ctx.strokeStyle = '#0f172a';
     ctx.lineWidth = 4.5;
     ctx.beginPath();
@@ -2032,9 +2242,7 @@ function initStickRun(stage) {
     ctx.lineTo(x - 3, y - 18);
     ctx.stroke();
 
-    // Arms & Legs animated stride
     const swing = inAir ? 0.75 : Math.sin(phase) * 0.9;
-    // Arms
     ctx.beginPath();
     ctx.moveTo(x, y - 35);
     ctx.lineTo(x + Math.sin(swing) * 14, y - 22);
@@ -2042,7 +2250,6 @@ function initStickRun(stage) {
     ctx.lineTo(x - Math.sin(swing) * 14, y - 22);
     ctx.stroke();
 
-    // Legs
     ctx.beginPath();
     ctx.moveTo(x - 3, y - 18);
     ctx.lineTo(x + Math.sin(swing) * 16, y);
@@ -2082,7 +2289,6 @@ function initStickRun(stage) {
       }
     }
 
-    // Parallax Distant Cityscape & Park Trees
     ctx.fillStyle = 'rgba(30, 41, 59, 0.25)';
     for (let i = 0; i < 12; i++) {
       const bx = ((i * 160 - scroll * 0.25) % (w + 200) + (w + 200)) % (w + 200) - 100;
@@ -2090,20 +2296,17 @@ function initStickRun(stage) {
       ctx.fillRect(bx, gy - bh, 85, bh);
     }
 
-    // Lush Green Park Ground & Track
     ctx.fillStyle = '#15803d';
     ctx.fillRect(0, gy, w, 14);
     ctx.fillStyle = '#1e293b';
     ctx.fillRect(0, gy + 14, w, h - gy);
 
-    // Track speed dashes
     ctx.fillStyle = 'rgba(255,255,255,0.22)';
     for (let i = 0; i < 16; i++) {
       const dx = ((i * 110 - scroll) % (w + 110) + (w + 110)) % (w + 110) - 55;
       ctx.fillRect(dx, gy + 28, 46, 5);
     }
 
-    // Coins
     coins.forEach(c => {
       if (alive) c.x -= speed;
       ctx.font = '24px Inter';
@@ -2119,7 +2322,6 @@ function initStickRun(stage) {
     });
     coins = coins.filter(c => c.x > -40 && !c.taken);
 
-    // Hurdles / Obstacles
     obstacles.forEach(o => {
       if (alive) o.x -= speed;
       ctx.fillStyle = '#dc2626';
@@ -2136,7 +2338,6 @@ function initStickRun(stage) {
     });
     obstacles = obstacles.filter(o => o.x > -60);
 
-    // Draw animated Stickman
     drawStickman(player.x, player.y, player.runCycle, player.y < gy - 2);
 
     if (!alive) {
@@ -2161,120 +2362,5 @@ function initStickRun(stage) {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResize);
-  };
-}
-
-function initCyberSnakePreserved(stage, meta) {
-  stage.innerHTML = `
-    <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
-      <div class="absolute top-4 left-4 z-20 flex items-center gap-3">
-        <button onclick="openHubHome()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-xs text-white backdrop-blur-md transition border border-white/10">
-          ← Back to Hub
-        </button>
-        <div class="px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-xs">
-          🐍 Cyber Snake (Original) | Score: <span id="snake-score" class="text-emerald-400 font-bold">0</span>
-        </div>
-      </div>
-
-      <div class="relative rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-slate-950/90 p-2">
-        <canvas id="snake-canvas" width="400" height="400" class="block w-[340px] h-[340px] sm:w-[400px] sm:h-[400px] rounded-xl"></canvas>
-      </div>
-      <p class="text-xs text-slate-400 mt-3 font-semibold">Use Arrow Keys or Swipe to Control Snake</p>
-    </div>
-  `;
-
-  const canvas = document.getElementById('snake-canvas');
-  const ctx = canvas.getContext('2d');
-  const grid = 20;
-  let count = 0;
-  let score = 0;
-
-  let snake = {
-    x: 160,
-    y: 160,
-    dx: grid,
-    dy: 0,
-    cells: [],
-    maxLen: 4
-  };
-
-  let apple = {
-    x: 320,
-    y: 320
-  };
-
-  function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-  }
-
-  function loop() {
-    requestAnimationFrame(loop);
-    if (++count < 6) return; // game speed
-    count = 0;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    snake.x += snake.dx;
-    snake.y += snake.dy;
-
-    // wrap screen edges
-    if (snake.x < 0) snake.x = canvas.width - grid;
-    else if (snake.x >= canvas.width) snake.x = 0;
-    if (snake.y < 0) snake.y = canvas.height - grid;
-    else if (snake.y >= canvas.height) snake.y = 0;
-
-    snake.cells.unshift({ x: snake.x, y: snake.y });
-    if (snake.cells.length > snake.maxLen) snake.cells.pop();
-
-    // draw apple
-    ctx.fillStyle = '#f43f5e';
-    ctx.fillRect(apple.x, apple.y, grid - 2, grid - 2);
-
-    // draw snake
-    ctx.fillStyle = '#10b981';
-    snake.cells.forEach((cell, index) => {
-      ctx.fillRect(cell.x, cell.y, grid - 2, grid - 2);
-
-      // collision with apple
-      if (cell.x === apple.x && cell.y === apple.y) {
-        snake.maxLen++;
-        score += 10;
-        document.getElementById('snake-score').textContent = score;
-        addXP(15, cell.x, cell.y, '+15 XP');
-        AudioFX.coin();
-
-        apple.x = getRandomInt(0, canvas.width / grid) * grid;
-        apple.y = getRandomInt(0, canvas.height / grid) * grid;
-      }
-
-      // self collision
-      for (let i = index + 1; i < snake.cells.length; i++) {
-        if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
-          AudioFX.lose();
-          score = 0;
-          document.getElementById('snake-score').textContent = score;
-          snake.x = 160;
-          snake.y = 160;
-          snake.cells = [];
-          snake.maxLen = 4;
-          snake.dx = grid;
-          snake.dy = 0;
-        }
-      }
-    });
-  }
-
-  const handleKey = (e) => {
-    if (e.key === 'ArrowLeft' && snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
-    else if (e.key === 'ArrowUp' && snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
-    else if (e.key === 'ArrowRight' && snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
-    else if (e.key === 'ArrowDown' && snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
-  };
-
-  window.addEventListener('keydown', handleKey);
-  const animId = requestAnimationFrame(loop);
-
-  return () => {
-    window.removeEventListener('keydown', handleKey);
   };
 }
