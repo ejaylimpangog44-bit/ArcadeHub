@@ -35,6 +35,87 @@
   </div>
 </div>
 
+<div id="hero-companion" class="hero-pill edge-right" role="button" tabindex="0" aria-label="Open Hero Hub">
+  <div id="hero-greeting" class="hero-speech"></div>
+  <div class="hero-avatar-wrap" id="hero-pill-border">
+    <span id="hero-pill-avatar" class="hero-emoji">🦊</span>
+    <span id="hero-pill-outfit" class="hero-outfit-badge">🦺</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-lvl" id="hero-pill-lvl">LVL 1</div>
+    <div class="hero-xp" id="hero-pill-xp">0 XP</div>
+  </div>
+</div>
+
+<div id="hero-modal-backdrop" class="hero-backdrop hidden">
+  <div id="hero-modal" class="hero-modal">
+    <div class="hero-modal-header">
+      <div class="hero-profile-summary">
+        <div class="hero-avatar-wrap large" id="modal-avatar-border">
+          <span id="modal-avatar-icon" class="hero-emoji">🦊</span>
+          <span id="modal-outfit-icon" class="hero-outfit-badge">🦺</span>
+        </div>
+        <div>
+          <h2 id="modal-lvl-title">LVL 1 Hero</h2>
+          <p id="modal-xp-sub">0 / 500 XP</p>
+          <div class="xp-bar-track"><div id="modal-xp-fill" class="xp-bar-fill"></div></div>
+        </div>
+      </div>
+      <div class="hero-wallet">
+        <span class="coin-pill">🪙 <strong id="hero-coin-balance">0</strong></span>
+        <button id="close-hero-modal" class="hero-close-btn" aria-label="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="hero-tabs">
+      <button class="hero-tab active" data-tab="wardrobe">Wardrobe</button>
+      <button class="hero-tab" data-tab="shop">Shop</button>
+      <button class="hero-tab" data-tab="rewards">Streak & Spin</button>
+    </div>
+
+    <div id="tab-wardrobe" class="hero-tab-panel active">
+      <h3>Avatars</h3>
+      <div id="grid-avatars" class="cosmetic-grid"></div>
+      <h3>Avatar Borders</h3>
+      <div id="grid-borders" class="cosmetic-grid"></div>
+      <h3>Hero Outfits</h3>
+      <div id="grid-outfits" class="cosmetic-grid"></div>
+    </div>
+
+    <div id="tab-shop" class="hero-tab-panel">
+      <div class="shop-xp-banner">
+        <div>
+          <strong>⚡ Instant +250 XP Boost</strong>
+          <p>Level up your Hero rank faster</p>
+        </div>
+        <button id="buy-xp-btn" class="action-btn">Buy (150 🪙)</button>
+      </div>
+      <h3>Cosmetic Store</h3>
+      <div id="grid-shop" class="cosmetic-grid"></div>
+    </div>
+
+    <div id="tab-rewards" class="hero-tab-panel">
+      <div class="rewards-split">
+        <div class="reward-card">
+          <h3>🔥 Daily PHT Streak</h3>
+          <p id="streak-status-text">Day 1 Reward Ready</p>
+          <div id="streak-days-row" class="streak-row"></div>
+          <button id="claim-streak-btn" class="action-btn">Claim Daily</button>
+        </div>
+        <div class="reward-card">
+          <h3>🎡 5-Hour Lucky Wheel</h3>
+          <div class="wheel-stage">
+            <div class="wheel-pointer">▼</div>
+            <div id="lucky-wheel" class="lucky-wheel"></div>
+          </div>
+          <p id="wheel-timer-text">Ready to Spin!</p>
+          <button id="spin-wheel-btn" class="action-btn">Spin Free</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="app-shell" class="hidden flex flex-col h-screen w-screen overflow-hidden">
 
   <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
@@ -156,6 +237,7 @@
   <source src="./bgm.mp3" type="audio/mpeg">
 </audio>
 
+<script src="Hero.js"></script>
 <script src="piano.js"></script>
 <script src="games.js"></script>
 <script src="hub.js"></script>
