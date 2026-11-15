@@ -2231,7 +2231,6 @@ function initStickRun(stage) {
           <span id="sr-dist" class="px-4 py-1.5 rounded-full bg-slate-900/75 border border-sky-300/40 text-white font-black text-sm">🏃 0m</span>
           <span id="sr-coins" class="px-3.5 py-1.5 rounded-full bg-slate-900/75 border border-amber-300/40 text-amber-300 font-bold text-xs">🪙 0</span>
         </div>
-        <span class="px-3 py-1 rounded-full bg-slate-900/75 text-sky-200 text-xs font-bold">UP: JUMP • DOWN: SLIDE</span>
       </div>
       <canvas id="sr-canvas" class="w-full h-full block touch-none cursor-pointer"></canvas>
     </div>
@@ -2270,8 +2269,6 @@ function initStickRun(stage) {
       AudioFX.click();
     }
   }
-
-  canvas.onpointerdown = jump;
   
   let touchStartX = 0, touchStartY = 0;
   canvas.ontouchstart = (e) => {
@@ -2279,15 +2276,24 @@ function initStickRun(stage) {
     touchStartY = e.touches[0].clientY;
     e.preventDefault();
   };
+  
   canvas.ontouchend = (e) => {
     if (!touchStartX || !touchStartY) return;
     let diffX = e.changedTouches[0].clientX - touchStartX;
     let diffY = e.changedTouches[0].clientY - touchStartY;
+    
     if (Math.abs(diffY) > Math.abs(diffX)) {
-      if (diffY < -25) jump();
-      else if (diffY > 25) slide();
+      if (diffY < -20) {
+        jump();
+      } else if (diffY > 20) {
+        slide();
+      } else {
+        jump(); // Tap
+      }
     } else {
-      jump();
+      if (Math.abs(diffX) < 20) {
+        jump(); // Tap
+      }
     }
     touchStartX = 0; touchStartY = 0;
     e.preventDefault();
@@ -2424,11 +2430,16 @@ function initStickRun(stage) {
       ctx.fillRect(dx, gy + 28, 46, 5);
     }
 
+    // Render Coins with 100% Opacity
     coins.forEach(c => {
       if (alive) c.x -= speed;
+      ctx.save();
+      ctx.globalAlpha = 1.0;
       ctx.font = '24px Inter';
       ctx.textAlign = 'center';
       ctx.fillText('🪙', c.x, c.y);
+      ctx.restore();
+
       if (alive && Math.hypot(c.x - player.x, c.y - (player.y - 26)) < 32) {
         c.taken = true;
         coinCount++;
@@ -2535,7 +2546,6 @@ function initStickRun(stage) {
   loop();
 
   return () => {
-    alive = false;
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResize);
