@@ -1413,12 +1413,13 @@ function initWordscape(stage) {
 
 function initFruitMaster(stage) {
   stage.innerHTML = `
-    <div class="relative w-full h-full">
-      <div class="absolute top-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
-        <span id="fm-score" class="px-4 py-1.5 rounded-full bg-black/50 border border-emerald-400/40 text-emerald-300 font-black text-sm">🍉 SLICED: 0</span>
-        <span id="fm-lives" class="px-4 py-1.5 rounded-full bg-black/50 border border-rose-400/40 text-rose-300 font-black text-sm">❤️❤️❤️</span>
+    <div class="relative w-full h-full bg-slate-950 overflow-hidden select-none">
+      <div class="absolute top-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none gap-2 flex-wrap">
+        <span id="fm-score" class="px-4 py-1.5 rounded-full bg-black/60 border border-emerald-400/40 text-emerald-300 font-black text-sm shadow">🍉 SLICED: 0</span>
+        <div id="fm-boosters" class="flex items-center gap-1.5"></div>
+        <span id="fm-lives" class="px-4 py-1.5 rounded-full bg-black/60 border border-rose-400/40 text-rose-300 font-black text-sm shadow">❤️❤️❤️</span>
       </div>
-      <canvas id="fm-canvas" class="w-full h-full block touch-none"></canvas>
+      <canvas id="fm-canvas" class="w-full h-full block touch-none cursor-crosshair"></canvas>
     </div>
   `;
 
@@ -1427,53 +1428,110 @@ function initFruitMaster(stage) {
   let w = canvas.width = stage.clientWidth;
   let h = canvas.height = stage.clientHeight;
 
-  const FRUITS = ['🍉','🍍','🍊','🍎','🥝','🍓','💣'];
-  let items = [], slashes = [], splashes = [], score = 0, lives = 3, running = true, pointerDown = false;
+  const FRUITS = [
+    { icon: '🍉', pts: 10 },
+    { icon: '🍍', pts: 15 },
+    { icon: '🍊', pts: 10 },
+    { icon: '🍎', pts: 10 },
+    { icon: '🥝', pts: 12 },
+    { icon: '🍓', pts: 12 }
+  ];
 
-  const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
+  let items = [], slicedHalves = [], slashes = [], splashes = [], score = 0, lives = 3, running = true, pointerDown = false;
+  let screenShake = 0;
+  let freezeTimer = 0; 
+  let doubleTimer = 0; 
+
+  const onResize = () => { 
+    w = canvas.width = stage.clientWidth; 
+    h = canvas.height = stage.clientHeight; 
+  };
   window.addEventListener('resize', onResize);
 
   function spawnWave() {
     if (!running) return;
     const count = 1 + Math.floor(Math.random() * 3);
     for (let i = 0; i < count; i++) {
-      const icon = FRUITS[Math.floor(Math.random() * FRUITS.length)];
+      const isBomb = Math.random() < 0.16;
+      const isFreeze = !isBomb && Math.random() < 0.08;
+      const isDouble = !isBomb && !isFreeze && Math.random() < 0.08;
+
+      let icon = '💣';
+      let pts = 0;
+      if (!isBomb) {
+        if (isFreeze) icon = '❄️';
+        else if (isDouble) icon = '2️⃣';
+        else {
+          const f = FRUITS[Math.floor(Math.random() * FRUITS.length)];
+          icon = f.icon;
+          pts = f.pts;
+        }
+      }
+
       items.push({
         x: w * (0.2 + Math.random() * 0.6),
-        y: h + 30,
-        vx: (Math.random() - 0.5) * 5,
-        vy: -(11 + Math.random() * 4.5),
-        r: 30,
+        y: h + 40,
+        vx: (Math.random() - 0.5) * 5.5,
+        vy: -(12 + Math.random() * 4.5),
+        r: 32,
         icon,
-        isBomb: icon === '💣',
-        sliced: false
+        isBomb,
+        isFreeze,
+        isDouble,
+        pts,
+        sliced: false,
+        rot: 0,
+        vRot: (Math.random() - 0.5) * 0.1
       });
     }
   }
-  const spawner = setInterval(spawnWave, 1150);
+  const spawner = setInterval(spawnWave, 1100);
 
   function handleSlice(x, y) {
     slashes.push({ x, y, life: 1 });
     items.forEach(it => {
-      if (!it.sliced && Math.hypot(it.x - x, it.y - y) < it.r + 16) {
+      if (!it.sliced && Math.hypot(it.x - x, it.y - y) < it.r + 18) {
         it.sliced = true;
         if (it.isBomb) {
           lives--;
+          screenShake = 22;
+          if (navigator.vibrate) navigator.vibrate([180, 60, 180]);
           AudioFX.hit();
           document.getElementById('fm-lives').textContent = '❤️'.repeat(Math.max(0, lives)) || '💀';
           if (lives <= 0) running = false;
         } else {
-          score += 10;
           AudioFX.slice();
-          document.getElementById('fm-score').textContent = `🍉 SLICED: ${score}`;
-          if (score % 50 === 0) addXP(20, x, y, '+20 XP!');
-          for (let k = 0; k < 10; k++) {
+          if (it.isFreeze) {
+            freezeTimer = 240;
+            spawnPopup('❄️ FREEZE!', x, y, '#38bdf8');
+          } else if (it.isDouble) {
+            doubleTimer = 300;
+            spawnPopup('2️⃣ 2X POINTS!', x, y, '#fde047');
+          } else {
+            const earned = it.pts * (doubleTimer > 0 ? 2 : 1);
+            score += earned;
+            document.getElementById('fm-score').textContent = `🍉 SLICED: ${score}`;
+            if (doubleTimer > 0) spawnPopup(`+${earned} (2x!)`, x, y, '#fde047');
+            if (score % 60 === 0) addXP(20, x, y, '+20 XP!');
+          }
+
+          slicedHalves.push({
+            x: it.x, y: it.y,
+            vx1: -3 - Math.random() * 3, vy1: -4 - Math.random() * 2,
+            vx2: 3 + Math.random() * 3, vy2: -4 - Math.random() * 2,
+            icon: it.icon,
+            rot1: 0, rot2: 0,
+            vRot1: -0.15, vRot2: 0.15,
+            life: 1
+          });
+
+          for (let k = 0; k < 12; k++) {
             splashes.push({
               x: it.x, y: it.y,
-              vx: (Math.random() - 0.5) * 9,
-              vy: (Math.random() - 0.5) * 9,
+              vx: (Math.random() - 0.5) * 11,
+              vy: (Math.random() - 0.5) * 11,
               life: 1,
-              color: ['#f43f5e','#facc15','#4ade80','#fb923c'][k % 4]
+              color: it.isFreeze ? '#38bdf8' : it.isDouble ? '#fde047' : ['#f43f5e','#facc15','#4ade80','#fb923c'][k % 4]
             });
           }
         }
@@ -1487,51 +1545,96 @@ function initFruitMaster(stage) {
 
   let raf;
   function loop() {
-    ctx.clearRect(0, 0, w, h);
+    ctx.save();
+    
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+    bgGrad.addColorStop(0, '#064e3b');
+    bgGrad.addColorStop(1, '#022c22');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, w, h);
 
-    if (!running) {
-      ctx.fillStyle = 'rgba(0,0,0,0.65)';
-      ctx.fillRect(0, 0, w, h);
-      ctx.fillStyle = '#fff';
-      ctx.font = '900 32px Inter';
-      ctx.textAlign = 'center';
-      ctx.fillText('Dojo Session Over!', w / 2, h / 2 - 20);
-      ctx.font = '700 18px Inter';
-      ctx.fillStyle = '#fde047';
-      ctx.fillText(`Final Score: ${score} — Tap Anywhere to Restart`, w / 2, h / 2 + 20);
-      canvas.onclick = () => {
-        score = 0; lives = 3; items = []; running = true;
-        document.getElementById('fm-score').textContent = '🍉 SLICED: 0';
-        document.getElementById('fm-lives').textContent = '❤️❤️❤️';
-        canvas.onclick = null;
-      };
-      raf = requestAnimationFrame(loop);
-      return;
+    if (screenShake > 0) {
+      ctx.translate((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12);
+      screenShake--;
     }
 
-    ctx.font = '46px Inter';
+    if (freezeTimer > 0) freezeTimer--;
+    if (doubleTimer > 0) doubleTimer--;
+
+    const boosterEl = document.getElementById('fm-boosters');
+    if (boosterEl) {
+      let html = '';
+      if (freezeTimer > 0) html += `<span class="px-2.5 py-1 rounded-full bg-sky-500/20 border border-sky-400/40 text-sky-300 font-bold text-xs animate-pulse">❄️ SLOW (${Math.ceil(freezeTimer/60)}s)</span>`;
+      if (doubleTimer > 0) html += `<span class="px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 font-bold text-xs animate-pulse">2️⃣ 2X (${Math.ceil(doubleTimer/60)}s)</span>`;
+      boosterEl.innerHTML = html;
+    }
+
+    const timeScale = freezeTimer > 0 ? 0.45 : 1.0;
+
+    splashes.forEach(s => {
+      s.x += s.vx * timeScale;
+      s.y += s.vy * timeScale;
+      s.life -= 0.012;
+      ctx.fillStyle = s.color;
+      ctx.globalAlpha = Math.max(0, s.life * 0.75);
+      ctx.beginPath(); 
+      ctx.arc(s.x, s.y, 6, 0, Math.PI * 2); 
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1.0;
+    splashes = splashes.filter(s => s.life > 0);
+
+    ctx.font = '36px Inter';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    slicedHalves.forEach(sh => {
+      sh.x += sh.vx1 * timeScale;
+      sh.y += sh.vy1 * timeScale;
+      sh.vy1 += 0.3 * timeScale;
+      sh.rot1 += sh.vRot1;
+
+      sh.x2 = (sh.x2 || sh.x) + sh.vx2 * timeScale;
+      sh.y2 = (sh.y2 || sh.y) + sh.vy2 * timeScale;
+      sh.vy2 = (sh.vy2 || 0) + 0.3 * timeScale;
+      sh.rot2 = (sh.rot2 || 0) + sh.vRot2;
+      sh.life -= 0.025;
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, sh.life);
+      ctx.save();
+      ctx.translate(sh.x, sh.y);
+      ctx.rotate(sh.rot1);
+      ctx.fillText(sh.icon, 0, 0);
+      ctx.restore();
+      ctx.save();
+      ctx.translate(sh.x2, sh.y2);
+      ctx.rotate(sh.rot2);
+      ctx.fillText(sh.icon, 0, 0);
+      ctx.restore();
+      ctx.restore();
+    });
+    slicedHalves = slicedHalves.filter(sh => sh.life > 0);
+
+    ctx.font = '46px Inter';
     items.forEach(it => {
-      it.x += it.vx;
-      it.y += it.vy;
-      it.vy += 0.24;
-      if (!it.sliced) ctx.fillText(it.icon, it.x, it.y);
+      it.x += it.vx * timeScale;
+      it.y += it.vy * timeScale;
+      it.vy += 0.22 * timeScale;
+      it.rot += it.vRot;
+
+      if (!it.sliced) {
+        ctx.save();
+        ctx.translate(it.x, it.y);
+        ctx.rotate(it.rot);
+        ctx.fillText(it.icon, 0, 0);
+        ctx.restore();
+      }
     });
     items = items.filter(it => it.y < h + 80 && !it.sliced);
 
-    splashes.forEach(s => {
-      s.x += s.vx; s.y += s.vy; s.life -= 0.035;
-      ctx.fillStyle = s.color;
-      ctx.globalAlpha = Math.max(0, s.life);
-      ctx.beginPath(); ctx.arc(s.x, s.y, 5, 0, Math.PI * 2); ctx.fill();
-    });
-    ctx.globalAlpha = 1;
-    splashes = splashes.filter(s => s.life > 0);
-
     if (slashes.length > 1) {
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 5;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 6;
       ctx.lineCap = 'round';
       ctx.beginPath();
       slashes.forEach((pt, idx) => {
@@ -1543,6 +1646,25 @@ function initFruitMaster(stage) {
     }
     slashes = slashes.filter(s => s.life > 0);
 
+    if (!running) {
+      ctx.fillStyle = 'rgba(2, 44, 34, 0.9)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#fff';
+      ctx.font = '900 32px Inter';
+      ctx.textAlign = 'center';
+      ctx.fillText('Dojo Game Over!', w / 2, h / 2 - 25);
+      ctx.font = '700 18px Inter';
+      ctx.fillStyle = '#fde047';
+      ctx.fillText(`Final Score: ${score} — Tap to Play Again`, w / 2, h / 2 + 15);
+      canvas.onclick = () => {
+        score = 0; lives = 3; items = []; slicedHalves = []; splashes = []; running = true;
+        document.getElementById('fm-score').textContent = '🍉 SLICED: 0';
+        document.getElementById('fm-lives').textContent = '❤️❤️❤️';
+        canvas.onclick = null;
+      };
+    }
+
+    ctx.restore();
     raf = requestAnimationFrame(loop);
   }
   loop();
