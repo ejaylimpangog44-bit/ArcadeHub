@@ -810,31 +810,31 @@ function initChess(stage) {
 
   function render() {
     stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-center px-3 py-2 gap-2">
-        <div class="flex items-center justify-between w-full max-w-[min(86vw,460px)]">
+      <div class="w-full h-full flex flex-col items-center justify-center px-3 py-2 gap-2 select-none overflow-y-auto">
+        <div class="flex items-center justify-between w-full max-w-[min(86vw,440px)]">
           <span class="px-3 py-1 rounded-full bg-amber-950/90 border border-amber-500/30 text-amber-200 font-bold text-xs">${status}</span>
-          <button id="chess-reset" class="px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs">New Match</button>
+          <button id="chess-reset" class="px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow">New Match</button>
         </div>
 
-        <div class="text-xs text-amber-200/80 h-5 flex items-center gap-1">
+        <div class="text-xs text-amber-200/80 h-4 flex items-center gap-1 font-bold">
           Captured: ${capturedB.map(p => GLYPHS[p]).join(' ')}
         </div>
 
-        <div class="grid grid-cols-8 aspect-square w-[min(86vw,460px)] rounded-2xl overflow-hidden border-4 border-amber-900 shadow-[0_20px_50px_rgba(0,0,0,0.75)]">
+        <div class="grid grid-cols-8 aspect-square w-[min(84vw,420px)] rounded-2xl overflow-hidden border-4 border-amber-900 shadow-[0_20px_50px_rgba(0,0,0,0.75)]">
           ${board.map((row, r) => row.map((cell, c) => {
             const dark = (r + c) % 2 === 1;
             const isSel = sel && sel[0] === r && sel[1] === c;
             const isLeg = legal.some(([lr, lc]) => lr === r && lc === c);
             return `
-              <button data-r="${r}" data-c="${c}" class="ch-sq relative flex items-center justify-center text-2xl sm:text-4xl ${dark ? 'bg-[#7c4a2d]' : 'bg-[#e7d3b5]'} ${isSel ? 'ring-inset ring-4 ring-amber-400' : ''}">
-                ${cell ? `<span class="${cell[0] === 'w' ? 'text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.85)]' : 'text-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]'}">${GLYPHS[cell]}</span>` : ''}
-                ${isLeg ? `<span class="absolute w-3.5 h-3.5 rounded-full ${cell ? 'ring-4 ring-emerald-400 bg-transparent w-8 h-8' : 'bg-emerald-500/75'}"></span>` : ''}
+              <button data-r="${r}" data-c="${c}" class="ch-sq relative flex items-center justify-center text-3xl sm:text-4xl touch-none ${dark ? 'bg-[#7c4a2d]' : 'bg-[#e7d3b5]}'} ${isSel ? 'ring-inset ring-4 ring-amber-400 bg-amber-500/20' : ''}">
+                ${cell ? `<span class="${cell[0] === 'w' ? 'text-white drop-shadow-[0_3px_3px_rgba(0,0,0,0.9)] font-bold' : 'text-slate-950 drop-shadow-[0_2px_2px_rgba(255,255,255,0.5)] font-bold'}">${GLYPHS[cell]}</span>` : ''}
+                ${isLeg ? `<span class="absolute w-3.5 h-3.5 rounded-full ${cell ? 'ring-4 ring-emerald-400 bg-transparent w-8 h-8 rounded-xl' : 'bg-emerald-500/80 shadow-md'}"></span>` : ''}
               </button>
             `;
           }).join('')).join('')}
         </div>
 
-        <div class="text-xs text-amber-200/80 h-5 flex items-center gap-1">
+        <div class="text-xs text-amber-200/80 h-4 flex items-center gap-1 font-bold">
           Lost: ${capturedW.map(p => GLYPHS[p]).join(' ')}
         </div>
       </div>
@@ -842,7 +842,8 @@ function initChess(stage) {
 
     document.getElementById('chess-reset').onclick = reset;
     document.querySelectorAll('.ch-sq').forEach(btn => {
-      btn.onclick = () => {
+      btn.onpointerdown = (e) => {
+        e.preventDefault();
         if (turn !== 'w') return;
         const r = Number(btn.dataset.r), c = Number(btn.dataset.c);
         if (sel && legal.some(([lr, lc]) => lr === r && lc === c)) {
@@ -1599,15 +1600,26 @@ function initWhackAMole(stage) {
 
 function initCyberSnakePreserved(stage, meta) {
   stage.innerHTML = `
-    <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
-      <div class="mb-3 px-4 py-1.5 rounded-full bg-black/40 border border-white/10 text-white font-mono text-xs">
-        🐍 Cyber Snake (Original) | Score: <span id="snake-score" class="text-emerald-400 font-bold">0</span>
+    <div class="relative w-full h-full flex flex-col items-center justify-between p-3 sm:p-4 overflow-y-auto select-none">
+      <div class="flex items-center justify-between max-w-sm w-full bg-slate-950/80 px-4 py-2 rounded-2xl border border-white/10 text-xs font-mono text-white">
+        <span>🐍 3D Cyber Snake</span>
+        <span class="text-emerald-400 font-bold">SCORE: <span id="snake-score">0</span></span>
       </div>
 
-      <div class="relative rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-slate-950/90 p-2">
-        <canvas id="snake-canvas" width="400" height="400" class="block w-[340px] h-[340px] sm:w-[400px] sm:h-[400px] rounded-xl"></canvas>
+      <div class="relative rounded-3xl overflow-hidden border-2 border-emerald-500/30 shadow-2xl bg-slate-950 p-2 my-auto">
+        <canvas id="snake-canvas" width="360" height="360" class="block w-[320px] h-[320px] sm:w-[360px] sm:h-[360px] rounded-2xl touch-none"></canvas>
       </div>
-      <p class="text-xs text-slate-400 mt-3 font-semibold">Use Arrow Keys or Swipe to Control Snake</p>
+
+      <!-- On-Screen Touch D-Pad Controls for Mobile -->
+      <div class="grid grid-cols-3 gap-2 max-w-[220px] w-full my-2">
+        <div></div>
+        <button id="btn-up" class="py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-white/15 text-emerald-300 font-black text-lg active:scale-95 shadow">▲</button>
+        <div></div>
+        <button id="btn-left" class="py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-white/15 text-emerald-300 font-black text-lg active:scale-95 shadow">◀</button>
+        <button id="btn-down" class="py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-white/15 text-emerald-300 font-black text-lg active:scale-95 shadow">▼</button>
+        <button id="btn-right" class="py-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-white/15 text-emerald-300 font-black text-lg active:scale-95 shadow">▶</button>
+      </div>
+      <p class="text-[11px] text-slate-400 font-semibold text-center">Use Touch D-Pad, Swipe, or Arrow Keys</p>
     </div>
   `;
 
@@ -1616,31 +1628,63 @@ function initCyberSnakePreserved(stage, meta) {
   const grid = 20;
   let count = 0;
   let score = 0;
+  let running = true;
 
   let snake = {
     x: 160,
     y: 160,
     dx: grid,
     dy: 0,
+    nextDx: grid,
+    nextDy: 0,
     cells: [],
     maxLen: 4
   };
 
   let apple = {
-    x: 320,
-    y: 320
+    x: 280,
+    y: 280
   };
 
   function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
   }
 
+  function resetSnake() {
+    score = 0;
+    const scoreEl = document.getElementById('snake-score');
+    if (scoreEl) scoreEl.textContent = score;
+    snake.x = 160;
+    snake.y = 160;
+    snake.dx = grid;
+    snake.dy = 0;
+    snake.nextDx = grid;
+    snake.nextDy = 0;
+    snake.cells = [];
+    snake.maxLen = 4;
+    running = true;
+  }
+
   function loop() {
-    requestAnimationFrame(loop);
-    if (++count < 6) return;
+    const animId = requestAnimationFrame(loop);
+    if (!running) return;
+    if (++count < 7) return;
     count = 0;
 
+    snake.dx = snake.nextDx;
+    snake.dy = snake.nextDy;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw 3D Grid background lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += grid) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += grid) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
 
     snake.x += snake.dx;
     snake.y += snake.dy;
@@ -1653,17 +1697,52 @@ function initCyberSnakePreserved(stage, meta) {
     snake.cells.unshift({ x: snake.x, y: snake.y });
     if (snake.cells.length > snake.maxLen) snake.cells.pop();
 
-    ctx.fillStyle = '#f43f5e';
-    ctx.fillRect(apple.x, apple.y, grid - 2, grid - 2);
+    // Draw 3D Glowing Apple / Orb
+    const ax = apple.x + grid / 2;
+    const ay = apple.y + grid / 2;
+    ctx.save();
+    ctx.shadowColor = '#f43f5e';
+    ctx.shadowBlur = 15;
+    let grad = ctx.createRadialGradient(ax - 2, ay - 2, 2, ax, ay, grid / 2);
+    grad.addColorStop(0, '#fda4af');
+    grad.addColorStop(1, '#e11d48');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(ax, ay, grid / 2 - 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
 
-    ctx.fillStyle = '#10b981';
+    // Draw 3D Snake Segments
     snake.cells.forEach((cell, index) => {
-      ctx.fillRect(cell.x, cell.y, grid - 2, grid - 2);
+      const isHead = index === 0;
+      ctx.save();
+      ctx.shadowColor = '#10b981';
+      ctx.shadowBlur = isHead ? 12 : 6;
 
+      let sGrad = ctx.createLinearGradient(cell.x, cell.y, cell.x + grid, cell.y + grid);
+      if (isHead) {
+        sGrad.addColorStop(0, '#34d399');
+        sGrad.addColorStop(1, '#059669');
+      } else {
+        sGrad.addColorStop(0, '#10b981');
+        sGrad.addColorStop(1, '#047857');
+      }
+      ctx.fillStyle = sGrad;
+      ctx.beginPath();
+      ctx.roundRect(cell.x + 1, cell.y + 1, grid - 2, grid - 2, 6);
+      ctx.fill();
+
+      // Inner 3D highlight
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.fillRect(cell.x + 3, cell.y + 3, grid - 6, 4);
+      ctx.restore();
+
+      // Check collision with apple
       if (cell.x === apple.x && cell.y === apple.y) {
         snake.maxLen++;
         score += 10;
-        document.getElementById('snake-score').textContent = score;
+        const scoreEl = document.getElementById('snake-score');
+        if (scoreEl) scoreEl.textContent = score;
         addXP(15, cell.x, cell.y, '+15 XP');
         AudioFX.coin();
 
@@ -1671,36 +1750,77 @@ function initCyberSnakePreserved(stage, meta) {
         apple.y = getRandomInt(0, canvas.height / grid) * grid;
       }
 
+      // Self collision
       for (let i = index + 1; i < snake.cells.length; i++) {
         if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
           AudioFX.lose();
-          score = 0;
-          document.getElementById('snake-score').textContent = score;
-          snake.x = 160;
-          snake.y = 160;
-          snake.cells = [];
-          snake.maxLen = 4;
-          snake.dx = grid;
-          snake.dy = 0;
+          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          resetSnake();
         }
       }
     });
+
+    return animId;
   }
 
+  const setDir = (newDx, newDy) => {
+    if (newDx !== -snake.dx || newDy !== -snake.dy) {
+      snake.nextDx = newDx;
+      snake.nextDy = newDy;
+    }
+  };
+
   const handleKey = (e) => {
-    if (e.key === 'ArrowLeft' && snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
-    else if (e.key === 'ArrowUp' && snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
-    else if (e.key === 'ArrowRight' && snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
-    else if (e.key === 'ArrowDown' && snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
+    if (['ArrowUp', 'KeyW'].includes(e.code) && snake.dy === 0) setDir(0, -grid);
+    else if (['ArrowDown', 'KeyS'].includes(e.code) && snake.dy === 0) setDir(0, grid);
+    else if (['ArrowLeft', 'KeyA'].includes(e.code) && snake.dx === 0) setDir(-grid, 0);
+    else if (['ArrowRight', 'KeyD'].includes(e.code) && snake.dx === 0) setDir(grid, 0);
   };
 
   window.addEventListener('keydown', handleKey);
+
+  // Touch button handlers
+  const btnUp = document.getElementById('btn-up');
+  const btnDown = document.getElementById('btn-down');
+  const btnLeft = document.getElementById('btn-left');
+  const btnRight = document.getElementById('btn-right');
+
+  if (btnUp) btnUp.onclick = () => setDir(0, -grid);
+  if (btnDown) btnDown.onclick = () => setDir(0, grid);
+  if (btnLeft) btnLeft.onclick = () => setDir(-grid, 0);
+  if (btnRight) btnRight.onclick = () => setDir(grid, 0);
+
+  // Touch swipe support on canvas
+  let touchStartX = 0, touchStartY = 0;
+  canvas.ontouchstart = (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    e.preventDefault();
+  };
+  canvas.ontouchend = (e) => {
+    if (!touchStartX || !touchStartY) return;
+    let diffX = e.changedTouches[0].clientX - touchStartX;
+    let diffY = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) setDir(grid, 0);
+      else setDir(-grid, 0);
+    } else {
+      if (diffY > 0) setDir(0, grid);
+      else setDir(0, -grid);
+    }
+    touchStartX = 0; touchStartY = 0;
+    e.preventDefault();
+  };
+
   const animId = requestAnimationFrame(loop);
 
   return () => {
     window.removeEventListener('keydown', handleKey);
+    running = false;
+    cancelAnimationFrame(animId);
   };
 }
+
 
 function initTowerStack(stage) {
   stage.innerHTML = `
