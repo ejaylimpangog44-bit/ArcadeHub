@@ -129,9 +129,25 @@ function toggleSFX() {
   if (on) AudioFX.click();
 }
 
+let qrGenerated = false;
 function openSettingsModal() {
   AudioFX.click();
   const modal = document.getElementById('settings-modal');
+  if (!qrGenerated && window.QRCode) {
+    const container = document.getElementById('qrcode-container');
+    if (container) {
+      container.innerHTML = '';
+      new QRCode(container, {
+        text: 'https://arcadehubgames-july12.vercel.app/',
+        width: 170,
+        height: 170,
+        colorDark: '#0f172a',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      qrGenerated = true;
+    }
+  }
   if (modal) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -141,38 +157,6 @@ function openSettingsModal() {
 function closeSettingsModal() {
   AudioFX.click();
   const modal = document.getElementById('settings-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
-}
-
-let qrGenerated = false;
-function openQrModal() {
-  AudioFX.click();
-  const modal = document.getElementById('qr-modal');
-  if (!qrGenerated && window.QRCode) {
-    const container = document.getElementById('qrcode-container');
-    container.innerHTML = '';
-    new QRCode(container, {
-      text: 'https://arcadehubgames-july12.vercel.app/',
-      width: 190,
-      height: 190,
-      colorDark: '#0f172a',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
-    });
-    qrGenerated = true;
-  }
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
-}
-
-function closeQrModal() {
-  AudioFX.click();
-  const modal = document.getElementById('qr-modal');
   if (modal) {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
@@ -211,11 +195,44 @@ function syncFullscreenLabel() {
   const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
   const label = document.getElementById('fs-label');
   const icon = document.getElementById('fs-icon');
-  if (label) label.textContent = isFs ? 'Exit Full' : 'Fullscreen';
+  if (label) label.textContent = isFs ? 'Exit Fullscreen Display' : 'Toggle Fullscreen Display';
   if (icon) icon.textContent = isFs ? '🗗' : '⛶';
 }
 document.addEventListener('fullscreenchange', syncFullscreenLabel);
 document.addEventListener('webkitfullscreenchange', syncFullscreenLabel);
+
+// Background Music Auto Pause/Resume on Browser Tab / Window Focus Loss
+document.addEventListener('visibilitychange', () => {
+  const bgm = document.getElementById('bgm-audio');
+  if (!bgm) return;
+  if (document.hidden) {
+    if (!bgm.paused) {
+      bgm.dataset.wasPlaying = 'true';
+      bgm.pause();
+    }
+  } else {
+    if (bgm.dataset.wasPlaying === 'true' && bgmEnabled) {
+      bgm.play().catch(() => {});
+      delete bgm.dataset.wasPlaying;
+    }
+  }
+});
+
+window.addEventListener('blur', () => {
+  const bgm = document.getElementById('bgm-audio');
+  if (bgm && !bgm.paused) {
+    bgm.dataset.wasPlaying = 'true';
+    bgm.pause();
+  }
+});
+
+window.addEventListener('focus', () => {
+  const bgm = document.getElementById('bgm-audio');
+  if (bgm && bgm.dataset.wasPlaying === 'true' && bgmEnabled) {
+    bgm.play().catch(() => {});
+    delete bgm.dataset.wasPlaying;
+  }
+});
 
 window.playerName = 'AJ';
 const RANDOM_NAMES = ['CyberGamer', 'PixelNinja', 'ArcadeLegend', 'NeonFox', 'RetroMaster', 'BitHero', 'SpeedRunner', 'GlitchWizard'];
@@ -499,6 +516,3 @@ function launchGame(id) {
     activeCleanup = runners[id](stage, meta) || null;
   }
 }
-
-window.onload = () => {
-};
