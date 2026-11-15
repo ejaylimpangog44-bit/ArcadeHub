@@ -13,7 +13,29 @@
 </head>
 <body>
 
-<div id="app-shell">
+<!-- Name Entry Modal / Login Screen -->
+<div id="login-screen" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4">
+  <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-8 shadow-2xl text-center flex flex-col gap-6">
+    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-indigo-600 flex items-center justify-center mx-auto shadow-lg shadow-pink-500/30 text-2xl">
+      🎮
+    </div>
+    <div>
+      <h1 class="text-2xl font-black text-white tracking-tight">Welcome to Arcade Hub</h1>
+      <p class="text-xs text-slate-400 mt-1">Enter your player name to start playing across all 17 full-viewport worlds.</p>
+    </div>
+    <div class="flex flex-col gap-3">
+      <input type="text" id="player-name-input" placeholder="Enter your name (e.g. AJ)" maxlength="16" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/15 text-white placeholder-slate-500 text-center font-bold text-sm focus:outline-none focus:border-pink-500 transition" />
+      <button onclick="submitPlayerName()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-sm text-white shadow-lg shadow-pink-500/25 hover:opacity-95 transition">
+        Enter Lobby →
+      </button>
+      <button onclick="randomizePlayerName()" class="text-xs font-semibold text-slate-400 hover:text-white transition py-1">
+        🎲 Pick Random Name for Me
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="app-shell" class="hidden flex flex-col h-screen w-screen overflow-hidden">
 
   <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
@@ -28,14 +50,12 @@
             <span class="font-extrabold text-sm sm:text-base tracking-tight bg-gradient-to-r from-pink-400 to-violet-300 bg-clip-text text-transparent">Arcade Hub</span>
             <span id="env-badge" class="hidden md:inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-slate-200">Hub Lobby</span>
           </div>
-          <p class="text-[10px] text-slate-400 tracking-widest uppercase font-semibold">Full-Viewport Environments</p>
+          <p class="text-[10px] text-slate-400 tracking-widest uppercase font-semibold">Player: <span id="header-player-name" class="text-pink-400 font-bold">AJ</span></p>
         </div>
       </button>
     </div>
 
-    <div id="quick-switcher" class="hidden lg:flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-2xl px-2 py-1 rounded-full bg-black/30 border border-white/10">
-
-    </div>
+    <!-- Quick Switcher Bar Removed per your request -->
 
     <div class="flex items-center gap-2">
       <div class="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10">
@@ -94,7 +114,7 @@
   </main>
 </div>
 
-<!-- Background Audio (GitHub Release v1.0.0 Asset + Local Fallback) -->
+<!-- Background Audio -->
 <audio id="bgm-audio" loop preload="auto">
   <source src="https://github.com/ejaylimpangog44-bit/ArcadeHub/releases/download/v1.0.0/bgm.mp3" type="audio/mpeg">
   <source src="./bgm.mp3" type="audio/mpeg">
