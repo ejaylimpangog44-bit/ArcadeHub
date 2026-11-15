@@ -2164,6 +2164,117 @@ function initStickRun(stage) {
   };
 }
 
-/* ============================================================================
-   BOOT HUB
-   ============================================================================ */
+function initCyberSnakePreserved(stage, meta) {
+  stage.innerHTML = `
+    <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
+      <div class="absolute top-4 left-4 z-20 flex items-center gap-3">
+        <button onclick="openHubHome()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-xs text-white backdrop-blur-md transition border border-white/10">
+          ← Back to Hub
+        </button>
+        <div class="px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-xs">
+          🐍 Cyber Snake (Original) | Score: <span id="snake-score" class="text-emerald-400 font-bold">0</span>
+        </div>
+      </div>
+
+      <div class="relative rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-slate-950/90 p-2">
+        <canvas id="snake-canvas" width="400" height="400" class="block w-[340px] h-[340px] sm:w-[400px] sm:h-[400px] rounded-xl"></canvas>
+      </div>
+      <p class="text-xs text-slate-400 mt-3 font-semibold">Use Arrow Keys or Swipe to Control Snake</p>
+    </div>
+  `;
+
+  const canvas = document.getElementById('snake-canvas');
+  const ctx = canvas.getContext('2d');
+  const grid = 20;
+  let count = 0;
+  let score = 0;
+
+  let snake = {
+    x: 160,
+    y: 160,
+    dx: grid,
+    dy: 0,
+    cells: [],
+    maxLen: 4
+  };
+
+  let apple = {
+    x: 320,
+    y: 320
+  };
+
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+
+  function loop() {
+    requestAnimationFrame(loop);
+    if (++count < 6) return; // game speed
+    count = 0;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    snake.x += snake.dx;
+    snake.y += snake.dy;
+
+    // wrap screen edges
+    if (snake.x < 0) snake.x = canvas.width - grid;
+    else if (snake.x >= canvas.width) snake.x = 0;
+    if (snake.y < 0) snake.y = canvas.height - grid;
+    else if (snake.y >= canvas.height) snake.y = 0;
+
+    snake.cells.unshift({ x: snake.x, y: snake.y });
+    if (snake.cells.length > snake.maxLen) snake.cells.pop();
+
+    // draw apple
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillRect(apple.x, apple.y, grid - 2, grid - 2);
+
+    // draw snake
+    ctx.fillStyle = '#10b981';
+    snake.cells.forEach((cell, index) => {
+      ctx.fillRect(cell.x, cell.y, grid - 2, grid - 2);
+
+      // collision with apple
+      if (cell.x === apple.x && cell.y === apple.y) {
+        snake.maxLen++;
+        score += 10;
+        document.getElementById('snake-score').textContent = score;
+        addXP(15, cell.x, cell.y, '+15 XP');
+        AudioFX.coin();
+
+        apple.x = getRandomInt(0, canvas.width / grid) * grid;
+        apple.y = getRandomInt(0, canvas.height / grid) * grid;
+      }
+
+      // self collision
+      for (let i = index + 1; i < snake.cells.length; i++) {
+        if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+          AudioFX.lose();
+          score = 0;
+          document.getElementById('snake-score').textContent = score;
+          snake.x = 160;
+          snake.y = 160;
+          snake.cells = [];
+          snake.maxLen = 4;
+          snake.dx = grid;
+          snake.dy = 0;
+        }
+      }
+    });
+  }
+
+  const handleKey = (e) => {
+    if (e.key === 'ArrowLeft' && snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
+    else if (e.key === 'ArrowUp' && snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
+    else if (e.key === 'ArrowRight' && snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
+    else if (e.key === 'ArrowDown' && snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
+  };
+
+  window.addEventListener('keydown', handleKey);
+  const animId = requestAnimationFrame(loop);
+
+  return () => {
+    window.removeEventListener('keydown', handleKey);
+  };
+}
