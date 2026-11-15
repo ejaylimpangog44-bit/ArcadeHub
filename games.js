@@ -826,9 +826,9 @@ function initChess(stage) {
             const isSel = sel && sel[0] === r && sel[1] === c;
             const isLeg = legal.some(([lr, lc]) => lr === r && lc === c);
             return `
-              <button data-r="${r}" data-c="${c}" class="ch-sq relative flex items-center justify-center text-3xl sm:text-4xl touch-none ${dark ? 'bg-[#7c4a2d]' : 'bg-[#e7d3b5]}'} ${isSel ? 'ring-inset ring-4 ring-amber-400 bg-amber-500/20' : ''}">
+              <button data-r="${r}" data-c="${c}" class="ch-sq relative flex items-center justify-center text-3xl sm:text-4xl touch-none ${dark ? 'bg-[#7c4a2d]' : 'bg-[#e7d3b5]'} ${isSel ? 'ring-inset ring-4 ring-amber-400 bg-amber-500/20' : ''}">
                 ${cell ? `<span class="${cell[0] === 'w' ? 'text-white drop-shadow-[0_3px_3px_rgba(0,0,0,0.9)] font-bold' : 'text-slate-950 drop-shadow-[0_2px_2px_rgba(255,255,255,0.5)] font-bold'}">${GLYPHS[cell]}</span>` : ''}
-                ${isLeg ? `<span class="absolute w-3.5 h-3.5 rounded-full ${cell ? 'ring-4 ring-emerald-400 bg-transparent w-8 h-8 rounded-xl' : 'bg-emerald-500/80 shadow-md'}"></span>` : ''}
+                ${isLeg ? `<span class="absolute w-4 h-4 rounded-full ${cell ? 'ring-4 ring-emerald-400 bg-transparent w-9 h-9 rounded-xl' : 'bg-emerald-500/80 shadow-md w-4 h-4'}"></span>` : ''}
               </button>
             `;
           }).join('')).join('')}
@@ -842,10 +842,13 @@ function initChess(stage) {
 
     document.getElementById('chess-reset').onclick = reset;
     document.querySelectorAll('.ch-sq').forEach(btn => {
-      btn.onpointerdown = (e) => {
+      // Use pointerup for silky smooth mobile touch response without double-firing
+      btn.onpointerup = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         if (turn !== 'w') return;
         const r = Number(btn.dataset.r), c = Number(btn.dataset.c);
+        
         if (sel && legal.some(([lr, lc]) => lr === r && lc === c)) {
           applyMove(sel[0], sel[1], r, c);
           sel = null; legal = []; turn = 'b';
@@ -854,6 +857,7 @@ function initChess(stage) {
           setTimeout(aiMove, 260);
           return;
         }
+        
         if (board[r][c]?.[0] === 'w') {
           sel = [r, c];
           legal = getLegalMoves(r, c);
@@ -1602,7 +1606,7 @@ function initCyberSnakePreserved(stage, meta) {
   stage.innerHTML = `
     <div class="relative w-full h-full flex flex-col items-center justify-between p-3 sm:p-4 overflow-y-auto select-none">
       <div class="flex items-center justify-between max-w-sm w-full bg-slate-950/80 px-4 py-2 rounded-2xl border border-white/10 text-xs font-mono text-white">
-        <span>🐍 3D Cyber Snake</span>
+        <span>🐍 Organic Snake</span>
         <span class="text-emerald-400 font-bold">SCORE: <span id="snake-score">0</span></span>
       </div>
 
@@ -1638,7 +1642,7 @@ function initCyberSnakePreserved(stage, meta) {
     nextDx: grid,
     nextDy: 0,
     cells: [],
-    maxLen: 4
+    maxLen: 5
   };
 
   let apple = {
@@ -1661,7 +1665,7 @@ function initCyberSnakePreserved(stage, meta) {
     snake.nextDx = grid;
     snake.nextDy = 0;
     snake.cells = [];
-    snake.maxLen = 4;
+    snake.maxLen = 5;
     running = true;
   }
 
@@ -1676,8 +1680,8 @@ function initCyberSnakePreserved(stage, meta) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw 3D Grid background lines
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    // Subtle background grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
     ctx.lineWidth = 1;
     for (let x = 0; x < canvas.width; x += grid) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -1697,7 +1701,7 @@ function initCyberSnakePreserved(stage, meta) {
     snake.cells.unshift({ x: snake.x, y: snake.y });
     if (snake.cells.length > snake.maxLen) snake.cells.pop();
 
-    // Draw 3D Glowing Apple / Orb
+    // Draw glowing apple/orb
     const ax = apple.x + grid / 2;
     const ay = apple.y + grid / 2;
     ctx.save();
@@ -1712,32 +1716,55 @@ function initCyberSnakePreserved(stage, meta) {
     ctx.fill();
     ctx.restore();
 
-    // Draw 3D Snake Segments
+    // Draw Organic Biological Snake Body & Head
     snake.cells.forEach((cell, index) => {
       const isHead = index === 0;
+      const cx = cell.x + grid / 2;
+      const cy = cell.y + grid / 2;
+      const radius = isHead ? 10 : Math.max(5, 9 - index * 0.12);
+
       ctx.save();
       ctx.shadowColor = '#10b981';
-      ctx.shadowBlur = isHead ? 12 : 6;
+      ctx.shadowBlur = isHead ? 12 : 4;
 
-      let sGrad = ctx.createLinearGradient(cell.x, cell.y, cell.x + grid, cell.y + grid);
+      // Segment fill gradient
+      let sGrad = ctx.createRadialGradient(cx - 3, cy - 3, 1, cx, cy, radius);
       if (isHead) {
         sGrad.addColorStop(0, '#34d399');
-        sGrad.addColorStop(1, '#059669');
+        sGrad.addColorStop(1, '#047857');
       } else {
         sGrad.addColorStop(0, '#10b981');
-        sGrad.addColorStop(1, '#047857');
+        sGrad.addColorStop(1, '#065f46');
       }
+
       ctx.fillStyle = sGrad;
       ctx.beginPath();
-      ctx.roundRect(cell.x + 1, cell.y + 1, grid - 2, grid - 2, 6);
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Inner 3D highlight
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-      ctx.fillRect(cell.x + 3, cell.y + 3, grid - 6, 4);
+      // Highlight sheen
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.beginPath();
+      ctx.arc(cx - 2, cy - 2, radius * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw eyes on head
+      if (isHead) {
+        ctx.fillStyle = '#0f172a';
+        let eyeOffsetX1 = 3, eyeOffsetY1 = -4;
+        let eyeOffsetX2 = 3, eyeOffsetY2 = 4;
+        if (snake.dx < 0) { eyeOffsetX1 = -3; eyeOffsetX2 = -3; }
+        if (snake.dy < 0) { eyeOffsetX1 = -4; eyeOffsetX2 = 4; eyeOffsetY1 = -3; eyeOffsetY2 = -3; }
+        if (snake.dy > 0) { eyeOffsetX1 = -4; eyeOffsetX2 = 4; eyeOffsetY1 = 3; eyeOffsetY2 = 3; }
+
+        ctx.beginPath();
+        ctx.arc(cx + eyeOffsetX1, cy + eyeOffsetY1, 1.8, 0, Math.PI * 2);
+        ctx.arc(cx + eyeOffsetX2, cy + eyeOffsetY2, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.restore();
 
-      // Check collision with apple
+      // Collision with apple
       if (cell.x === apple.x && cell.y === apple.y) {
         snake.maxLen++;
         score += 10;
@@ -1779,7 +1806,6 @@ function initCyberSnakePreserved(stage, meta) {
 
   window.addEventListener('keydown', handleKey);
 
-  // Touch button handlers
   const btnUp = document.getElementById('btn-up');
   const btnDown = document.getElementById('btn-down');
   const btnLeft = document.getElementById('btn-left');
@@ -1790,7 +1816,6 @@ function initCyberSnakePreserved(stage, meta) {
   if (btnLeft) btnLeft.onclick = () => setDir(-grid, 0);
   if (btnRight) btnRight.onclick = () => setDir(grid, 0);
 
-  // Touch swipe support on canvas
   let touchStartX = 0, touchStartY = 0;
   canvas.ontouchstart = (e) => {
     touchStartX = e.touches[0].clientX;
@@ -1820,7 +1845,6 @@ function initCyberSnakePreserved(stage, meta) {
     cancelAnimationFrame(animId);
   };
 }
-
 
 function initTowerStack(stage) {
   stage.innerHTML = `
