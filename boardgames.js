@@ -20,7 +20,13 @@ function openBoardGame(which) {
     document.querySelectorAll('.game-container').forEach(x => x.classList.remove('active'));
     document.getElementById(which + '-container').classList.add('active');
     if (which === 'chess') newChessGame();
-    else newDamaGame();
+    else {
+        // Ensure setup screen is shown and game screen is hidden when opening Dama
+        const setupScreen = document.getElementById('dama-setup-screen');
+        const gameScreen = document.getElementById('dama-game-screen');
+        if (setupScreen) setupScreen.style.display = 'flex';
+        if (gameScreen) gameScreen.style.display = 'none';
+    }
 }
 
 function boardBack() {
@@ -32,6 +38,56 @@ function boardBack() {
 function setBoardDifficulty(game, v) {
     if (game === 'chess') { chessMode = v; newChessGame(); }
     else { damaMode = v; newDamaGame(); }
+}
+
+
+/* ==========================================================================
+   DAMA SETUP & SCREEN NAVIGATION HELPERS
+   ========================================================================== */
+let damaSetupMode = 'pvp';
+let damaSetupDiff = 'normal';
+
+function setDamaSetupMode(mode) {
+    if (typeof audio !== 'undefined') audio.playSFX('move');
+    damaSetupMode = mode;
+    const pvpBtn = document.getElementById('dama-setup-pvp');
+    const aiBtn = document.getElementById('dama-setup-ai');
+    const diffGroup = document.getElementById('dama-setup-diff-group');
+    if (pvpBtn) pvpBtn.classList.toggle('active', mode === 'pvp');
+    if (aiBtn) aiBtn.classList.toggle('active', mode === 'ai');
+    if (diffGroup) diffGroup.style.display = (mode === 'ai') ? 'block' : 'none';
+}
+
+function setDamaSetupDiff(diff) {
+    if (typeof audio !== 'undefined') audio.playSFX('move');
+    damaSetupDiff = diff;
+    damaMode = diff; // Syncs with the Dama AI difficulty variable
+    const normalBtn = document.getElementById('dama-setup-normal');
+    const hardBtn = document.getElementById('dama-setup-hard');
+    if (normalBtn) normalBtn.classList.toggle('active', diff === 'normal');
+    if (hardBtn) hardBtn.classList.toggle('active', diff === 'hard');
+}
+
+function startDamaMatchFromSetup() {
+    if (typeof audio !== 'undefined') audio.playSFX('click');
+    const setupScreen = document.getElementById('dama-setup-screen');
+    const gameScreen = document.getElementById('dama-game-screen');
+    if (setupScreen) setupScreen.style.display = 'none';
+    if (gameScreen) gameScreen.style.display = 'flex';
+    if (typeof newDamaGame === 'function') newDamaGame();
+}
+
+function backToDamaSetup() {
+    if (typeof audio !== 'undefined') audio.playSFX('click');
+    const setupScreen = document.getElementById('dama-setup-screen');
+    const gameScreen = document.getElementById('dama-game-screen');
+    if (gameScreen) gameScreen.style.display = 'none';
+    if (setupScreen) setupScreen.style.display = 'flex';
+}
+
+function restartDamaMatch() {
+    if (typeof audio !== 'undefined') audio.playSFX('click');
+    if (typeof newDamaGame === 'function') newDamaGame();
 }
 
 
@@ -104,7 +160,7 @@ function pseudoChess(b, r, c) {
     if (!p) return [];
     const color = p[0], t = p[1], out = [];
     const add = (y, x) => { if (inside(y, x) && (!b[y][x] || b[y][x][0] !== color)) out.push([y, x]); };
-    
+
     if (t === 'p') {
         let d = color === 'w' ? -1 : 1;
         if (inside(r + d, c) && !b[r + d][c]) {
@@ -223,7 +279,7 @@ function finishChess() {
     if (typeof DailyChallengeManager !== 'undefined') DailyChallengeManager.trackProgress('chess', 1);
     const king = findKing(chessBoard, chessTurn);
     const checked = king && attacked(chessBoard, king[0], king[1], chessTurn === 'w' ? 'b' : 'w');
-    
+
     if (chessTurn === 'w') {
         showVictoryModal("AI Wins!", "Checkmate! The AI outmaneuvered you.", false);
     } else {
@@ -362,7 +418,7 @@ function damaAI() {
     if (damaOver || damaTurn !== 'b') return;
     const moves = damaAll(damaBoard, 'b');
     if (!moves.length) { endDama('You win!'); return; }
-    
+
     let chosen;
     if (damaMode === 'normal') {
         chosen = moves[Math.floor(Math.random() * moves.length)];
@@ -373,9 +429,9 @@ function damaAI() {
             if (v > best) { best = v; chosen = m; }
         }
     }
-    
+
     damaBoard = applyDama(damaBoard, chosen);
-    
+
     let chainPos = chosen.to;
     while (chosen.cap) {
         const more = damaHasFurther(damaBoard, chainPos[0], chainPos[1]);
@@ -385,7 +441,7 @@ function damaAI() {
         chainPos = next.to;
         chosen = next;
     }
-    
+
     damaTurn = 'w';
     damaSelected = null;
     damaMoves = [];
@@ -408,10 +464,10 @@ function endDama(msg) {
     if (damaOver) return;
     damaOver = true;
     if (typeof DailyChallengeManager !== 'undefined') DailyChallengeManager.trackProgress('dama', 1);
-    
+
     const isPlayerWin = msg.includes('You win!') || msg.includes('Red Wins');
     showVictoryModal(isPlayerWin ? "You Defeated AI!" : "AI Wins!", msg, isPlayerWin);
-    
+
     if (isPlayerWin && typeof ScoreManager !== 'undefined') {
         ScoreManager.saveScore('dama', 300);
     }
@@ -421,11 +477,11 @@ function endDama(msg) {
 function clickDama(r, c) {
     if (damaOver || damaTurn !== 'w') return;
     const candidates = damaChain ? damaCaptures(damaChain[0], damaChain[1]) : damaAll(damaBoard, 'w');
-    
+
     if (damaSelected && candidates.some(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c)) {
         const move = candidates.find(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c);
         damaBoard = applyDama(damaBoard, move);
-        
+
         if (move.cap && damaHasFurther(damaBoard, r, c).length) {
             damaChain = [r, c];
             damaSelected = [r, c];
@@ -435,7 +491,7 @@ function clickDama(r, c) {
             drawDama();
             return;
         }
-        
+
         damaChain = null;
         damaSelected = null;
         damaMoves = [];
@@ -443,7 +499,7 @@ function clickDama(r, c) {
         damaAfter();
         return;
     }
-    
+
     if (!damaChain && damaBoard[r][c]?.[0] === 'w') {
         damaSelected = [r, c];
         damaMoves = candidates.filter(m => m.from[0] === r && m.from[1] === c);
@@ -478,11 +534,11 @@ function showVictoryModal(title, subtitle, isWin) {
     const titleEl = document.getElementById('victory-title');
     const subEl = document.getElementById('victory-subtitle');
     const iconEl = document.getElementById('victory-icon');
-    
+
     if (titleEl) titleEl.textContent = title;
     if (subEl) subEl.textContent = subtitle;
     if (iconEl) iconEl.textContent = isWin ? '🎉' : '💀';
-    
+
     if (modal) {
         modal.style.display = 'flex';
         setTimeout(() => {
@@ -491,7 +547,7 @@ function showVictoryModal(title, subtitle, isWin) {
             if (content) content.style.transform = 'scale(1)';
         }, 10);
     }
-    
+
     if (typeof audio !== 'undefined') {
         audio.playSFX(isWin ? 'win' : 'gameover');
     }
