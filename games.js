@@ -20,6 +20,9 @@ function createDeck() {
   return d;
 }
 
+// ----------------------------------------------------
+// 1. SPEED SOLITAIRE (Card Game -> Excluded from Hero Coins)
+// ----------------------------------------------------
 function initSpeedSolitaire(stage) {
   let stock = [], waste = [], foundations = [[],[],[],[]], tableau = [[],[],[],[],[],[],[]];
   let score = 0, combo = 1, moves = 0, selected = null, seconds = 0;
@@ -260,6 +263,9 @@ function initSpeedSolitaire(stage) {
   return () => clearInterval(timer);
 }
 
+// ----------------------------------------------------
+// 2. COIN SCATTER V2 (Casino Game -> Excluded from Hero Coins)
+// ----------------------------------------------------
 function initCoinScatter(stage, meta) {
   stage.innerHTML = `
     <div class="relative w-full h-full flex flex-col items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
@@ -485,6 +491,9 @@ function initCoinScatter(stage, meta) {
   renderScatterGrid(false);
 }
 
+// ----------------------------------------------------
+// 3. BLACKJACK 21 (Card Game -> Excluded from Hero Coins)
+// ----------------------------------------------------
 function initBlackjack(stage) {
   let bank = 2000, bet = 100, deck = [], player = [], dealer = [], phase = 'bet', status = 'Place your bet at the VIP Table';
 
@@ -632,6 +641,9 @@ function initBlackjack(stage) {
   render();
 }
 
+// ----------------------------------------------------
+// 4. HIGH-LOE / HIGH-LOW (Card Game -> Excluded from Hero Coins)
+// ----------------------------------------------------
 function initHighLow(stage) {
   let deck = createDeck();
   let current = deck.pop();
@@ -707,6 +719,9 @@ function initHighLow(stage) {
   render();
 }
 
+// ----------------------------------------------------
+// 5. CHESS (Arcade Game -> Included with Hero Score Reward)
+// ----------------------------------------------------
 function initChess(stage) {
   const GLYPHS = {
     wK:'♔', wQ:'♕', wR:'♖', wB:'♗', wN:'♘', wP:'♙',
@@ -830,6 +845,7 @@ function initChess(stage) {
       status = isKingInCheck(board, 'b') ? 'Checkmate! You Win!' : 'Stalemate!';
       AudioFX.win();
       addXP(60, window.innerWidth / 2, window.innerHeight / 2, 'CHECKMATE +60 XP!');
+      window.ArcadeHero?.awardGameScore('chess', 150);
       render();
       return;
     }
@@ -905,6 +921,9 @@ function initChess(stage) {
   reset();
 }
 
+// ----------------------------------------------------
+// 6. DAMA (Arcade Game -> Included with Hero Score Reward)
+// ----------------------------------------------------
 function initDama(stage) {
   let board = [], turn = 'r', sel = null, moves = [], vsAI = true, status = 'Your Turn (Red Dama)';
 
@@ -980,6 +999,7 @@ function initDama(stage) {
       status = 'Panlo! Red Dama Wins!';
       AudioFX.win();
       addXP(50, window.innerWidth / 2, window.innerHeight / 2, 'DAMA VICTORY!');
+      window.ArcadeHero?.awardGameScore('dama', 100);
       render();
       return;
     }
@@ -1113,12 +1133,15 @@ function initDama(stage) {
   reset();
 }
 
+// ----------------------------------------------------
+// 7. TIC-TAC-TOE (Arcade Game -> Included with Hero Score Reward)
+// ----------------------------------------------------
 function initTicTacToe(stage) {
   let cells = Array(9).fill(null);
-  let gameMode = 'pve'; // 'pve' or 'pvp'
-  let difficulty = 'normal'; // 'easy', 'normal', 'hard'
-  let playerSymbol = 'X'; // 'X' or 'O'
-  let currentTurn = 'X'; // 'X' always starts
+  let gameMode = 'pve'; 
+  let difficulty = 'normal'; 
+  let playerSymbol = 'X'; 
+  let currentTurn = 'X'; 
   let over = false;
   let winLine = [];
   let msg = '';
@@ -1270,6 +1293,7 @@ function initTicTacToe(stage) {
           endModalTitle = '🎉 Victory! You Won!';
           AudioFX.win();
           addXP(30, window.innerWidth / 2, window.innerHeight / 2, 'VICTORY +30 XP!');
+          window.ArcadeHero?.awardGameScore('tic-tac-toe', 50);
         } else {
           msg = `AI Wins!`;
           endModalTitle = '🤖 AI Wins! Better Luck Next Time';
@@ -1285,7 +1309,6 @@ function initTicTacToe(stage) {
     stage.innerHTML = `
       <div class="relative w-full h-full flex flex-col items-center justify-between p-4 bg-[#f4f1ea] text-stone-900 select-none overflow-hidden">
         
-        <!-- Top Minimal Header with Hamburger Menu -->
         <div class="flex items-center justify-between w-full max-w-sm px-2 pt-1">
           <button id="hamburger-btn" class="w-10 h-10 rounded-xl bg-[#e6e2d3] border-2 border-[#d3c9b1] flex items-center justify-center text-stone-800 text-xl font-black shadow-sm hover:bg-[#d3c9b1] transition">
             ☰
@@ -1295,12 +1318,10 @@ function initTicTacToe(stage) {
           </div>
         </div>
 
-        <!-- Turn Status Indicator -->
         <div class="text-lg font-black text-stone-800 tracking-wide text-center my-1">
           ${msg}
         </div>
 
-        <!-- Tic-Tac-Toe Board -->
         <div class="grid grid-cols-3 gap-3 w-[min(84vw,340px)] aspect-square bg-[#8c7b65] p-3 rounded-2xl shadow-xl border-4 border-[#6b5d4b] my-auto">
           ${cells.map((v, i) => {
             const isWin = winLine.includes(i);
@@ -1314,7 +1335,6 @@ function initTicTacToe(stage) {
 
         <div class="h-6"></div>
 
-        <!-- Slide-Up Settings Drawer (Left Slide Animation) -->
         <div id="settings-overlay" class="fixed inset-0 z-40 bg-stone-950/50 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}" onclick="closeDrawer()"></div>
         
         <div id="settings-drawer" class="fixed top-0 bottom-0 left-0 z-50 w-[82%] max-w-xs bg-[#fdfbf7] border-r-4 border-[#8c7b65] p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto">
@@ -1357,7 +1377,6 @@ function initTicTacToe(stage) {
           </button>
         </div>
 
-        <!-- End-Game Overlay Modal -->
         <div id="endgame-modal" class="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-sm ${endModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
           <div class="max-w-sm w-full bg-[#fdfbf7] border-4 border-[#8c7b65] rounded-3xl p-6 shadow-2xl text-center flex flex-col gap-5 animate-in fade-in zoom-in duration-200">
             <div class="text-4xl">👑</div>
@@ -1432,6 +1451,9 @@ function initTicTacToe(stage) {
   resetGame();
 }
 
+// ----------------------------------------------------
+// 8. NUMBER GUESS / VAULT DECODER (Arcade Game)
+// ----------------------------------------------------
 function initNumberGuess(stage) {
   let maxRange = 100, target = 1 + Math.floor(Math.random() * 100), history = [], solved = false;
 
@@ -1458,6 +1480,7 @@ function initNumberGuess(stage) {
       solved = true;
       AudioFX.win();
       addXP(35, window.innerWidth / 2, window.innerHeight / 2, 'VAULT UNLOCKED!');
+      window.ArcadeHero?.awardGameScore('number-guess', Math.max(20, maxRange - history.length * 6));
     }
     if (!solved) AudioFX.click();
     history.unshift({ val, hint, color });
@@ -1513,6 +1536,9 @@ function initNumberGuess(stage) {
   render();
 }
 
+// ----------------------------------------------------
+// 9. WORDSCAPE (Arcade Game)
+// ----------------------------------------------------
 function initWordscape(stage) {
   const PUZZLES = [
     { letters: ['S','T','A','R','E'], words: ['STAR','RATE','TEAR','SEAT','ARTS','STARE'] },
@@ -1541,6 +1567,9 @@ function initWordscape(stage) {
       found.push(currentWord);
       AudioFX.win();
       addXP(25, window.innerWidth / 2, window.innerHeight * 0.4, `${currentWord}! +25 XP`);
+      if (found.length === p.words.length) {
+        window.ArcadeHero?.awardGameScore('wordscape', 120);
+      }
     } else if (currentWord.length >= 3 && !found.includes(currentWord)) {
       bonus++;
       AudioFX.coin();
@@ -1618,6 +1647,9 @@ function initWordscape(stage) {
   render();
 }
 
+// ----------------------------------------------------
+// 10. FRUIT MASTER (Arcade Game)
+// ----------------------------------------------------
 function initFruitMaster(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full bg-slate-950 overflow-hidden select-none">
@@ -1705,7 +1737,10 @@ function initFruitMaster(stage) {
           if (navigator.vibrate) navigator.vibrate([180, 60, 180]);
           AudioFX.hit();
           document.getElementById('fm-lives').textContent = '❤️'.repeat(Math.max(0, lives)) || '💀';
-          if (lives <= 0) running = false;
+          if (lives <= 0) {
+            running = false;
+            window.ArcadeHero?.awardGameScore('fruit-master', score);
+          }
         } else {
           AudioFX.slice();
           if (it.isFreeze) {
@@ -1884,6 +1919,9 @@ function initFruitMaster(stage) {
   };
 }
 
+// ----------------------------------------------------
+// 11. WHACK-A-MOLE (Arcade Game)
+// ----------------------------------------------------
 function initWhackAMole(stage) {
   let score = 0, timeLeft = 30, activeHole = -1, isGolden = false, playing = true;
 
@@ -1902,6 +1940,7 @@ function initWhackAMole(stage) {
       activeHole = -1;
       AudioFX.win();
       addXP(25, window.innerWidth / 2, window.innerHeight / 2, 'MEADOW CLEARED!');
+      window.ArcadeHero?.awardGameScore('whack-a-mole', score);
     }
     render();
   }, 1000);
@@ -1960,6 +1999,9 @@ function initWhackAMole(stage) {
   return () => { clearInterval(popTimer); clearInterval(secTimer); };
 }
 
+// ----------------------------------------------------
+// 12. CYBER SNAKE (Arcade Game)
+// ----------------------------------------------------
 function initCyberSnakePreserved(stage, meta) {
   stage.innerHTML = `
     <div class="relative w-full h-full flex flex-col items-center justify-between p-3 sm:p-4 overflow-y-auto select-none">
@@ -2123,6 +2165,7 @@ function initCyberSnakePreserved(stage, meta) {
         if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
           AudioFX.lose();
           if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          window.ArcadeHero?.awardGameScore('snake', score);
           resetSnake();
         }
       }
@@ -2177,6 +2220,9 @@ function initCyberSnakePreserved(stage, meta) {
   };
 }
 
+// ----------------------------------------------------
+// 13. TOWER STACK (Arcade Game)
+// ----------------------------------------------------
 function initTowerStack(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full">
@@ -2220,6 +2266,7 @@ function initTowerStack(stage) {
     if (Math.abs(diff) >= top.w) {
       alive = false;
       AudioFX.lose();
+      window.ArcadeHero?.awardGameScore('tower-stack', stack.length - 1);
       return;
     }
 
@@ -2299,6 +2346,9 @@ function initTowerStack(stage) {
   };
 }
 
+// ----------------------------------------------------
+// 14. CAR RACING (Arcade Game)
+// ----------------------------------------------------
 function initCarRacing(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full">
@@ -2407,6 +2457,7 @@ function initCarRacing(stage) {
       if (alive && t.lane === lane && Math.abs(t.y - playerY) < 58) {
         alive = false;
         AudioFX.lose();
+        window.ArcadeHero?.awardGameScore('car-racing', Math.floor(dist / 5));
       }
     });
     traffic = traffic.filter(t => t.y < h + 90);
@@ -2445,6 +2496,9 @@ function initCarRacing(stage) {
   };
 }
 
+// ----------------------------------------------------
+// 15. BRICK BREAKER (Arcade Game)
+// ----------------------------------------------------
 function initBrickBreaker(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full">
@@ -2538,6 +2592,7 @@ function initBrickBreaker(stage) {
       if (ball.y > h + 20) {
         alive = false;
         AudioFX.lose();
+        window.ArcadeHero?.awardGameScore('brick-breaker', score);
       }
     }
 
@@ -2585,6 +2640,9 @@ function initBrickBreaker(stage) {
   };
 }
 
+// ----------------------------------------------------
+// 16. STICK RUN (Arcade Game)
+// ----------------------------------------------------
 function initStickRun(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full">
@@ -2650,11 +2708,11 @@ function initStickRun(stage) {
       } else if (diffY > 20) {
         slide();
       } else {
-        jump(); // Tap
+        jump();
       }
     } else {
       if (Math.abs(diffX) < 20) {
-        jump(); // Tap
+        jump();
       }
     }
     touchStartX = 0; touchStartY = 0;
@@ -2792,7 +2850,6 @@ function initStickRun(stage) {
       ctx.fillRect(dx, gy + 28, 46, 5);
     }
 
-    // Render Coins with 100% Opacity
     coins.forEach(c => {
       if (alive) c.x -= speed;
       ctx.save();
@@ -2882,6 +2939,7 @@ function initStickRun(stage) {
             pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
           alive = false;
           AudioFX.lose();
+          window.ArcadeHero?.awardGameScore('stick-run', Math.floor(dist / 4));
         }
       }
     });
