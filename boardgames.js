@@ -223,8 +223,13 @@ function finishChess() {
     if (typeof DailyChallengeManager !== 'undefined') DailyChallengeManager.trackProgress('chess', 1);
     const king = findKing(chessBoard, chessTurn);
     const checked = king && attacked(chessBoard, king[0], king[1], chessTurn === 'w' ? 'b' : 'w');
-    const statusEl = document.getElementById('chess-status');
-    if (statusEl) statusEl.textContent = checked ? (chessTurn === 'w' ? 'Checkmate — AI wins' : 'Checkmate — You win!') : 'Draw — no legal moves';
+    
+    if (chessTurn === 'w') {
+        showVictoryModal("AI Wins!", "Checkmate! The AI outmaneuvered you.", false);
+    } else {
+        showVictoryModal("You Defeated AI!", "Outstanding checkmate victory!", true);
+        if (typeof ScoreManager !== 'undefined') ScoreManager.saveScore('chess', 500);
+    }
     drawChess();
 }
 
@@ -332,7 +337,6 @@ function damaAll(b, color) {
             }
         }
     }
-    // Enforce mandatory captures rule
     return caps.length ? caps : steps;
 }
 
@@ -372,7 +376,6 @@ function damaAI() {
     
     damaBoard = applyDama(damaBoard, chosen);
     
-    // AI Chain Jump Execution Logic
     let chainPos = chosen.to;
     while (chosen.cap) {
         const more = damaHasFurther(damaBoard, chainPos[0], chainPos[1]);
@@ -405,8 +408,13 @@ function endDama(msg) {
     if (damaOver) return;
     damaOver = true;
     if (typeof DailyChallengeManager !== 'undefined') DailyChallengeManager.trackProgress('dama', 1);
-    const statusEl = document.getElementById('dama-status');
-    if (statusEl) statusEl.textContent = msg;
+    
+    const isPlayerWin = msg.includes('You win!') || msg.includes('Red Wins');
+    showVictoryModal(isPlayerWin ? "You Defeated AI!" : "AI Wins!", msg, isPlayerWin);
+    
+    if (isPlayerWin && typeof ScoreManager !== 'undefined') {
+        ScoreManager.saveScore('dama', 300);
+    }
     drawDama();
 }
 
@@ -418,7 +426,6 @@ function clickDama(r, c) {
         const move = candidates.find(m => m.from[0] === damaSelected[0] && m.from[1] === damaSelected[1] && m.to[0] === r && m.to[1] === c);
         damaBoard = applyDama(damaBoard, move);
         
-        // Check for continuation chain jumps
         if (move.cap && damaHasFurther(damaBoard, r, c).length) {
             damaChain = [r, c];
             damaSelected = [r, c];
