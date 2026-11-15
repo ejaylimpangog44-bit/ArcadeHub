@@ -263,11 +263,6 @@ function initSpeedSolitaire(stage) {
 function initCoinScatter(stage, meta) {
   stage.innerHTML = `
     <div class="relative w-full h-full flex flex-col items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
-      <div class="absolute top-4 left-4 z-20">
-        <button onclick="openHubHome()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-xs text-white backdrop-blur-md transition border border-white/10">
-          ← Back to Hub
-        </button>
-      </div>
 
       <div class="max-w-xl w-full bg-slate-950/80 backdrop-blur-xl border border-white/15 rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col gap-5 text-center mt-12 sm:mt-0">
         
@@ -1333,144 +1328,6 @@ function initWordscape(stage) {
   render();
 }
 
-function initPianoTiles(stage, meta) {
-  stage.innerHTML = `
-    <div class="relative w-full h-full flex flex-col items-center justify-center p-2 select-none overflow-hidden">
-      <div class="absolute top-4 left-4 z-20 flex items-center gap-3">
-        <button onclick="openHubHome()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-xs text-white backdrop-blur-md transition border border-white/10">
-          ← Back to Hub
-        </button>
-        <div class="px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-xs">
-          🎹 Piano Tiles | Score: <span id="piano-score" class="text-amber-400 font-bold">0</span>
-        </div>
-      </div>
-
-      <div id="piano-board" class="relative w-full max-w-sm h-[85vh] bg-slate-900/90 border border-white/20 rounded-2xl overflow-hidden grid grid-cols-4 shadow-2xl">
-        <div class="border-r border-white/10 relative h-full" data-lane="0"></div>
-        <div class="border-r border-white/10 relative h-full" data-lane="1"></div>
-        <div class="border-r border-white/10 relative h-full" data-lane="2"></div>
-        <div class="relative h-full" data-lane="3"></div>
-      </div>
-
-      <!-- Custom Game Over Modal Overlay -->
-      <div id="piano-gameover-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
-        <div class="max-w-sm w-full bg-slate-900 border border-amber-500/40 rounded-3xl p-6 text-center shadow-2xl flex flex-col gap-4">
-          <div class="text-4xl">🎹</div>
-          <h2 class="text-xl font-black text-amber-400">SONG ENDED!</h2>
-          <p class="text-xs text-slate-300">Final Score Achieved:</p>
-          <div class="text-3xl font-black text-white font-mono bg-black/40 py-3 rounded-2xl border border-white/10">
-            🎵 <span id="modal-piano-score" class="text-amber-300">0</span>
-          </div>
-          <div class="flex flex-col gap-2 mt-2">
-            <button onclick="restartPianoGame()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 font-extrabold text-xs text-slate-950 hover:opacity-95 transition">
-              Play Again ↺
-            </button>
-            <button onclick="openHubHome()" class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-xs text-white transition">
-              Return to Hub
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const board = document.getElementById('piano-board');
-  let score = 0;
-  let tiles = [];
-  let speed = 4.5;
-  let active = true;
-
-  function spawnTile() {
-    if (!active) return;
-    const lane = Math.floor(Math.random() * 4);
-    const tile = { lane, y: -120, height: 110, hit: false };
-    tiles.push(tile);
-  }
-
-  const spawnTimer = setInterval(spawnTile, 650);
-
-  board.addEventListener('pointerdown', (e) => {
-    if (!active) return;
-    const rect = board.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const laneWidth = rect.width / 4;
-    const tappedLane = Math.floor(x / laneWidth);
-
-    let hitFound = false;
-    tiles.forEach(t => {
-      if (!t.hit && t.lane === tappedLane && t.y + t.height >= rect.height - 180 && t.y <= rect.height - 20) {
-        t.hit = true;
-        hitFound = true;
-        score += 10;
-        document.getElementById('piano-score').textContent = score;
-        AudioFX.note(60 + tappedLane * 3);
-        addXP(5, e.clientX, e.clientY);
-      }
-    });
-
-    if (!hitFound) {
-      AudioFX.hit();
-    }
-  });
-
-  function showGameOverModal() {
-    active = false;
-    clearInterval(spawnTimer);
-    AudioFX.lose();
-    document.getElementById('modal-piano-score').textContent = score;
-    const modal = document.getElementById('piano-gameover-modal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-  }
-
-  window.restartPianoGame = function() {
-    const modal = document.getElementById('piano-gameover-modal');
-    if (modal) {
-      modal.classList.remove('flex');
-      modal.classList.add('hidden');
-    }
-    launchGame('pianotiles');
-  };
-
-  function update() {
-    if (!active) return;
-    const boardHeight = board.clientHeight;
-
-    tiles.forEach(t => {
-      t.y += speed;
-      if (!t.hit && t.y > boardHeight) {
-        showGameOverModal();
-      }
-    });
-
-    tiles = tiles.filter(t => t.y < boardHeight + 50 && !t.hit);
-
-    const lanes = board.querySelectorAll('[data-lane]');
-    lanes.forEach(l => l.innerHTML = '');
-
-    tiles.forEach(t => {
-      const tileEl = document.createElement('div');
-      tileEl.className = 'absolute w-full rounded-lg bg-slate-950 border border-white/20 shadow-lg flex items-center justify-center font-bold text-xs text-amber-400';
-      tileEl.style.top = `${t.y}px`;
-      tileEl.style.height = `${t.height}px`;
-      tileEl.textContent = '🎵';
-      lanes[t.lane].appendChild(tileEl);
-    });
-
-    if (active) requestAnimationFrame(update);
-  }
-
-  const animId = requestAnimationFrame(update);
-
-  return () => {
-    active = false;
-    clearInterval(spawnTimer);
-    cancelAnimationFrame(animId);
-  };
-}
-
 function initFruitMaster(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full">
@@ -1693,13 +1550,8 @@ function initWhackAMole(stage) {
 function initCyberSnakePreserved(stage, meta) {
   stage.innerHTML = `
     <div class="relative w-full h-full flex flex-col items-center justify-center p-4">
-      <div class="absolute top-4 left-4 z-20 flex items-center gap-3">
-        <button onclick="openHubHome()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 font-bold text-xs text-white backdrop-blur-md transition border border-white/10">
-          ← Back to Hub
-        </button>
-        <div class="px-3.5 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-xs">
-          🐍 Cyber Snake (Original) | Score: <span id="snake-score" class="text-emerald-400 font-bold">0</span>
-        </div>
+      <div class="mb-3 px-4 py-1.5 rounded-full bg-black/40 border border-white/10 text-white font-mono text-xs">
+        🐍 Cyber Snake (Original) | Score: <span id="snake-score" class="text-emerald-400 font-bold">0</span>
       </div>
 
       <div class="relative rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-slate-950/90 p-2">
