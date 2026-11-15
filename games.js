@@ -1122,7 +1122,9 @@ function initTicTacToe(stage) {
   let over = false;
   let winLine = [];
   let msg = '';
-  let setupOpen = true;
+  let drawerOpen = false;
+  let endModalOpen = false;
+  let endModalTitle = '';
 
   function getAiSymbol() {
     return playerSymbol === 'X' ? 'O' : 'X';
@@ -1133,6 +1135,7 @@ function initTicTacToe(stage) {
     currentTurn = 'X';
     over = false;
     winLine = [];
+    endModalOpen = false;
     updateStatus();
     render();
     if (gameMode === 'pve' && currentTurn !== playerSymbol && !over) {
@@ -1145,7 +1148,7 @@ function initTicTacToe(stage) {
     if (gameMode === 'pvp') {
       msg = `Player ${currentTurn}'s Turn`;
     } else {
-      msg = currentTurn === playerSymbol ? `Your Turn (${playerSymbol})` : `AI (${getAiSymbol()}) Thinking...`;
+      msg = currentTurn === playerSymbol ? `Your Turn (${playerSymbol})` : `AI Thinking...`;
     }
   }
 
@@ -1165,7 +1168,6 @@ function initTicTacToe(stage) {
     return null;
   }
 
-  // Minimax algorithm for Hard AI
   function minimax(newCells, depth, isMaximizing, aiSym, humanSym) {
     const res = checkWinner(newCells);
     if (res) {
@@ -1173,9 +1175,7 @@ function initTicTacToe(stage) {
       if (res.winner === humanSym) return depth - 10;
       return 0;
     }
-
     const empty = newCells.map((v, i) => v === null ? i : null).filter(v => v !== null);
-
     if (isMaximizing) {
       let maxEval = -Infinity;
       for (const idx of empty) {
@@ -1222,7 +1222,6 @@ function initTicTacToe(stage) {
     if (!empty.length) return;
 
     let choice = null;
-
     if (difficulty === 'easy') {
       choice = empty[Math.floor(Math.random() * empty.length)];
     } else if (difficulty === 'normal') {
@@ -1236,9 +1235,7 @@ function initTicTacToe(stage) {
           if (choice !== null) break;
         }
       }
-      if (choice === null) {
-        choice = empty[Math.floor(Math.random() * empty.length)];
-      }
+      if (choice === null) choice = empty[Math.floor(Math.random() * empty.length)];
     } else {
       choice = getBestMove([...cells], aiSym, playerSymbol);
     }
@@ -1262,40 +1259,49 @@ function initTicTacToe(stage) {
     winLine = res.line;
     if (res.winner === 'draw') {
       msg = 'Game Drawn — Stalemate!';
+      endModalTitle = '🤝 Stalemate / Draw!';
     } else {
       if (gameMode === 'pvp') {
         msg = `Player ${res.winner} Wins!`;
+        endModalTitle = `🏆 Player ${res.winner} Wins!`;
       } else {
         if (res.winner === playerSymbol) {
-          msg = `🎉 Victory! You (${playerSymbol}) Win!`;
+          msg = `🎉 Victory! You Win!`;
+          endModalTitle = '🎉 Victory! You Won!';
           AudioFX.win();
           addXP(30, window.innerWidth / 2, window.innerHeight / 2, 'VICTORY +30 XP!');
         } else {
-          msg = `AI (${res.winner}) Wins!`;
+          msg = `AI Wins!`;
+          endModalTitle = '🤖 AI Wins! Better Luck Next Time';
           AudioFX.lose();
         }
       }
     }
+    endModalOpen = true;
     render();
   }
 
   function render() {
     stage.innerHTML = `
-      <div class="relative w-full h-full flex flex-col items-center justify-between p-4 bg-[#f4f1ea] text-stone-900 select-none overflow-y-auto">
-        <div class="flex items-center justify-between w-full max-w-md bg-[#e6e2d3] border-2 border-[#d3c9b1] px-4 py-2.5 rounded-2xl shadow-sm">
-          <span class="text-xs font-bold uppercase tracking-wider text-stone-700">
-            ${gameMode === 'pvp' ? '👥 2-Player PvP' : `🤖 vs AI (${difficulty.toUpperCase()})`}
-          </span>
-          <button id="ttt-settings-btn" class="px-3 py-1 rounded-xl bg-[#d3c9b1] hover:bg-[#c4bac2] text-stone-900 font-bold text-xs shadow transition">
-            ⚙️ Setup
+      <div class="relative w-full h-full flex flex-col items-center justify-between p-4 bg-[#f4f1ea] text-stone-900 select-none overflow-hidden">
+        
+        <!-- Top Minimal Header with Hamburger Menu -->
+        <div class="flex items-center justify-between w-full max-w-sm px-2 pt-1">
+          <button id="hamburger-btn" class="w-10 h-10 rounded-xl bg-[#e6e2d3] border-2 border-[#d3c9b1] flex items-center justify-center text-stone-800 text-xl font-black shadow-sm hover:bg-[#d3c9b1] transition">
+            ☰
           </button>
+          <div class="text-xs font-extrabold uppercase tracking-widest text-stone-600 bg-[#e6e2d3] px-3 py-1.5 rounded-xl border border-[#d3c9b1]">
+            ${gameMode === 'pvp' ? '👥 PvP' : `🤖 AI (${difficulty})`}
+          </div>
         </div>
 
-        <div class="text-base sm:text-lg font-black text-stone-800 tracking-wide text-center my-2">
+        <!-- Turn Status Indicator -->
+        <div class="text-lg font-black text-stone-800 tracking-wide text-center my-1">
           ${msg}
         </div>
 
-        <div class="grid grid-cols-3 gap-3 w-[min(85vw,360px)] aspect-square bg-[#8c7b65] p-3 rounded-2xl shadow-xl border-4 border-[#6b5d4b]">
+        <!-- Tic-Tac-Toe Board -->
+        <div class="grid grid-cols-3 gap-3 w-[min(84vw,340px)] aspect-square bg-[#8c7b65] p-3 rounded-2xl shadow-xl border-4 border-[#6b5d4b] my-auto">
           ${cells.map((v, i) => {
             const isWin = winLine.includes(i);
             return `
@@ -1306,93 +1312,103 @@ function initTicTacToe(stage) {
           }).join('')}
         </div>
 
-        <div class="flex items-center gap-3 my-2">
-          <button id="ttt-reset" class="px-6 py-2.5 rounded-xl bg-[#d3c9b1] hover:bg-[#c4bac2] text-stone-900 font-bold text-xs shadow transition">
-            New Round
+        <div class="h-6"></div>
+
+        <!-- Slide-Up Settings Drawer (Left Slide Animation) -->
+        <div id="settings-overlay" class="fixed inset-0 z-40 bg-stone-950/50 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}" onclick="closeDrawer()"></div>
+        
+        <div id="settings-drawer" class="fixed top-0 bottom-0 left-0 z-50 w-[82%] max-w-xs bg-[#fdfbf7] border-r-4 border-[#8c7b65] p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto">
+          <div class="flex items-center justify-between border-b border-[#d3c9b1] pb-3">
+            <h2 class="text-lg font-black text-stone-900">⚙️ Game Settings</h2>
+            <button onclick="closeDrawer()" class="w-8 h-8 rounded-full bg-[#d3c9b1] text-stone-900 font-bold flex items-center justify-center">✕</button>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-stone-700 uppercase tracking-wider">Game Mode</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" class="py-2.5 px-2 rounded-xl font-bold text-xs border-2 transition ${gameMode === 'pve' ? 'bg-blue-900 text-white border-blue-900 shadow' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" onclick="setGameMode('pve')">
+                🤖 vs AI
+              </button>
+              <button type="button" class="py-2.5 px-2 rounded-xl font-bold text-xs border-2 transition ${gameMode === 'pvp' ? 'bg-blue-900 text-white border-blue-900 shadow' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" onclick="setGameMode('pvp')">
+                👥 PvP
+              </button>
+            </div>
+          </div>
+
+          <div id="ai-settings-section" class="flex flex-col gap-1.5 ${gameMode === 'pvp' ? 'hidden' : ''}">
+            <label class="text-xs font-bold text-stone-700 uppercase tracking-wider">AI Difficulty</label>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition ${difficulty === 'easy' ? 'bg-amber-600 text-white border-amber-600' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" onclick="setDiff('easy')">Easy</button>
+              <button type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition ${difficulty === 'normal' ? 'bg-amber-600 text-white border-amber-600' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" onclick="setDiff('normal')">Normal</button>
+              <button type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition ${difficulty === 'hard' ? 'bg-amber-600 text-white border-amber-600' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" onclick="setDiff('hard')">Hard</button>
+            </div>
+          </div>
+
+          <div id="symbol-settings-section" class="flex flex-col gap-1.5 ${gameMode === 'pvp' ? 'hidden' : ''}">
+            <label class="text-xs font-bold text-stone-700 uppercase tracking-wider">Play As</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" class="py-2.5 rounded-xl font-bold text-sm border-2 transition ${playerSymbol === 'X' ? 'bg-blue-900 text-white border-blue-900' : 'bg-[#f4f1ea] text-blue-900 border-[#d3c9b1]'}" onclick="setSymbol('X')">X (First)</button>
+              <button type="button" class="py-2.5 rounded-xl font-bold text-sm border-2 transition ${playerSymbol === 'O' ? 'bg-red-700 text-white border-red-700' : 'bg-[#f4f1ea] text-red-700 border-[#d3c9b1]'}" onclick="setSymbol('O')">O (Second)</button>
+            </div>
+          </div>
+
+          <button onclick="applyDrawerSettings()" class="w-full py-3 mt-auto rounded-2xl bg-[#8c7b65] hover:bg-[#786955] text-white font-black text-sm shadow-md transition">
+            Apply & Restart ⚔️
           </button>
         </div>
 
-        <!-- Setup Modal Overlay -->
-        <div id="ttt-setup-modal" class="fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-sm ${setupOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
-          <div class="max-w-md w-full bg-[#fdfbf7] border-4 border-[#8c7b65] rounded-3xl p-6 shadow-2xl flex flex-col gap-5 text-stone-900">
-            <div class="text-center">
-              <div class="text-3xl mb-1">❌⭕</div>
-              <h2 class="text-xl font-black text-stone-900">Tic-Tac-Toe Setup</h2>
-              <p class="text-xs text-stone-600">Configure your match preferences</p>
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-bold text-stone-700 uppercase tracking-wider">Game Mode</label>
-              <div class="grid grid-cols-2 gap-2">
-                <button type="button" id="mode-pve" class="py-2.5 px-3 rounded-xl font-bold text-xs border-2 transition ${gameMode === 'pve' ? 'bg-blue-900 text-white border-blue-900 shadow' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" onclick="setModalMode('pve')">
-                  🤖 Player vs AI
-                </button>
-                <button type="button" id="mode-pvp" class="py-2.5 px-3 rounded-xl font-bold text-xs border-2 transition ${gameMode === 'pvp' ? 'bg-blue-900 text-white border-blue-900 shadow' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" onclick="setModalMode('pvp')">
-                  👥 2-Player (PvP)
-                </button>
-              </div>
-            </div>
-
-            <div id="ai-settings-container" class="flex flex-col gap-1.5 ${gameMode === 'pvp' ? 'hidden' : ''}">
-              <label class="text-xs font-bold text-stone-700 uppercase tracking-wider">AI Difficulty</label>
-              <div class="grid grid-cols-3 gap-2">
-                <button type="button" class="diff-btn py-2 rounded-xl font-bold text-xs border-2 transition ${difficulty === 'easy' ? 'bg-amber-600 text-white border-amber-600' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" data-diff="easy">Easy</button>
-                <button type="button" class="diff-btn py-2 rounded-xl font-bold text-xs border-2 transition ${difficulty === 'normal' ? 'bg-amber-600 text-white border-amber-600' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" data-diff="normal">Normal</button>
-                <button type="button" class="diff-btn py-2 rounded-xl font-bold text-xs border-2 transition ${difficulty === 'hard' ? 'bg-amber-600 text-white border-amber-600' : 'bg-[#f4f1ea] text-stone-800 border-[#d3c9b1]'}" data-diff="hard">Hard</button>
-              </div>
-            </div>
-
-            <div id="symbol-settings-container" class="flex flex-col gap-1.5 ${gameMode === 'pvp' ? 'hidden' : ''}">
-              <label class="text-xs font-bold text-stone-700 uppercase tracking-wider">Play As</label>
-              <div class="grid grid-cols-2 gap-2">
-                <button type="button" class="sym-btn py-2.5 rounded-xl font-bold text-sm border-2 transition ${playerSymbol === 'X' ? 'bg-blue-900 text-white border-blue-900' : 'bg-[#f4f1ea] text-blue-900 border-[#d3c9b1]'}" data-sym="X">X (First)</button>
-                <button type="button" class="sym-btn py-2.5 rounded-xl font-bold text-sm border-2 transition ${playerSymbol === 'O' ? 'bg-red-700 text-white border-red-700' : 'bg-[#f4f1ea] text-red-700 border-[#d3c9b1]'}" data-sym="O">O (Second)</button>
-              </div>
-            </div>
-
-            <button id="start-game-btn" class="w-full py-3 rounded-2xl bg-[#8c7b65] hover:bg-[#786955] text-white font-black text-sm shadow-md transition">
-              Start Game ⚔️
+        <!-- End-Game Overlay Modal -->
+        <div id="endgame-modal" class="fixed inset-0 z-50 bg-stone-950/70 backdrop-blur-sm ${endModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
+          <div class="max-w-sm w-full bg-[#fdfbf7] border-4 border-[#8c7b65] rounded-3xl p-6 shadow-2xl text-center flex flex-col gap-5 animate-in fade-in zoom-in duration-200">
+            <div class="text-4xl">👑</div>
+            <h2 class="text-xl font-black text-stone-900">${endModalTitle}</h2>
+            <p class="text-xs text-stone-600">Great match! Ready for another round?</p>
+            <button onclick="resetGame()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 to-yellow-600 text-white font-black text-sm shadow-lg hover:opacity-95 transition">
+              🔄 Restart Match
             </button>
           </div>
         </div>
+
       </div>
     `;
 
-    document.getElementById('ttt-reset')?.addEventListener('click', resetGame);
-    document.getElementById('ttt-settings-btn')?.addEventListener('click', () => {
-      setupOpen = true;
+    document.getElementById('hamburger-btn')?.addEventListener('click', () => {
+      drawerOpen = true;
       render();
     });
 
-    window.setModalMode = (mode) => {
+    window.closeDrawer = () => {
+      drawerOpen = false;
+      render();
+    };
+
+    window.setGameMode = (mode) => {
       gameMode = mode;
       render();
     };
 
-    document.querySelectorAll('.diff-btn').forEach(btn => {
-      btn.onclick = () => {
-        difficulty = btn.dataset.diff;
-        render();
-      };
-    });
+    window.setDiff = (diff) => {
+      difficulty = diff;
+      render();
+    };
 
-    document.querySelectorAll('.sym-btn').forEach(btn => {
-      btn.onclick = () => {
-        playerSymbol = btn.dataset.sym;
-        render();
-      };
-    });
+    window.setSymbol = (sym) => {
+      playerSymbol = sym;
+      render();
+    };
 
-    document.getElementById('start-game-btn')?.addEventListener('click', () => {
-      setupOpen = false;
+    window.applyDrawerSettings = () => {
+      drawerOpen = false;
       resetGame();
-    });
+    };
+
+    window.resetGame = resetGame;
 
     document.querySelectorAll('.ttt-cell').forEach(btn => {
       btn.onclick = () => {
-        if (setupOpen) return;
+        if (over || drawerOpen || endModalOpen) return;
         const i = Number(btn.dataset.i);
-        if (over || cells[i] !== null) return;
+        if (cells[i] !== null) return;
         if (gameMode === 'pve' && currentTurn !== playerSymbol) return;
 
         cells[i] = currentTurn;
