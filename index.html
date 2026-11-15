@@ -35,16 +35,9 @@
   </div>
 </div>
 
-<div id="hero-companion" class="hero-pill edge-right" role="button" tabindex="0" aria-label="Open Hero Hub">
-  <div id="hero-greeting" class="hero-speech"></div>
-  <div class="hero-avatar-wrap" id="hero-pill-border">
-    <span id="hero-pill-avatar" class="hero-emoji">🦊</span>
-    <span id="hero-pill-outfit" class="hero-outfit-badge">🦺</span>
-  </div>
-  <div class="hero-stats">
-    <div class="hero-lvl" id="hero-pill-lvl">LVL 1</div>
-    <div class="hero-xp" id="hero-pill-xp">0 XP</div>
-  </div>
+<!-- Compact Assistive Touch Fox & Astronaut Widget -->
+<div id="assistive-touch-fox" class="fixed right-4 bottom-20 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-xl flex items-center justify-center text-xl cursor-pointer select-none touch-none active:scale-95 transition group" title="Fox Companion Hub">
+  <span class="transform group-hover:scale-110 transition">🦊👨‍🚀</span>
 </div>
 
 <div id="hero-modal-backdrop" class="hero-backdrop hidden">
@@ -236,6 +229,50 @@
   <source src="https://github.com/ejaylimpangog44-bit/ArcadeHub/releases/download/v1.0.0/bgm.mp3" type="audio/mpeg">
   <source src="./bgm.mp3" type="audio/mpeg">
 </audio>
+
+<script>
+// Assistive Touch Drag & Click Logic for Fox Astronaut Widget
+const foxWidget = document.getElementById('assistive-touch-fox');
+if (foxWidget) {
+  let isDragging = false;
+  let startX, startY, initialX, initialY;
+
+  foxWidget.onpointerdown = (e) => {
+    isDragging = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    initialX = foxWidget.offsetLeft;
+    initialY = foxWidget.offsetTop;
+    foxWidget.setPointerCapture(e.pointerId);
+  };
+
+  foxWidget.onpointermove = (e) => {
+    if (!startX || !startY) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.hypot(dx, dy) > 6) {
+      isDragging = true;
+      foxWidget.style.left = `${initialX + dx}px`;
+      foxWidget.style.top = `${initialY + dy}px`;
+      foxWidget.style.right = 'auto';
+      foxWidget.style.bottom = 'auto';
+    }
+  };
+
+  foxWidget.onpointerup = (e) => {
+    if (!isDragging) {
+      // Open Hero Hub Modal (Wardrobe, Shop, Streak & Spin)
+      const backdrop = document.getElementById('hero-modal-backdrop');
+      if (backdrop) {
+        backdrop.classList.remove('hidden');
+        if (typeof AudioFX !== 'undefined') AudioFX.click();
+      }
+    }
+    startX = null;
+    startY = null;
+  };
+}
+</script>
 
 <script src="hero.js"></script>
 <script src="piano.js"></script>
