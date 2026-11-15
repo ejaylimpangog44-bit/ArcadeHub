@@ -468,3 +468,44 @@ function drawDama() {
         }
     }
 }
+
+// ==========================================================================
+// VICTORY / DEFEAT MODAL HANDLERS
+// ==========================================================================
+
+function showVictoryModal(title, subtitle, isWin) {
+    const modal = document.getElementById('game-victory-modal');
+    const titleEl = document.getElementById('victory-title');
+    const subEl = document.getElementById('victory-subtitle');
+    const iconEl = document.getElementById('victory-icon');
+    
+    if (titleEl) titleEl.textContent = title;
+    if (subEl) subEl.textContent = subtitle;
+    if (iconEl) iconEl.textContent = isWin ? '🎉' : '💀';
+    
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            const content = modal.querySelector('.arcade-modal-content');
+            if (content) content.style.transform = 'scale(1)';
+        }, 10);
+    }
+    
+    if (typeof audio !== 'undefined') {
+        audio.playSFX(isWin ? 'win' : 'gameover');
+    }
+}
+
+function closeVictoryModal() {
+    const modal = document.getElementById('game-victory-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        const content = modal.querySelector('.arcade-modal-content');
+        if (content) content.style.transform = 'scale(0.7)';
+        setTimeout(() => {
+            modal.style.display = 'none';
+            boardBack(); // Automatically return to the Hub menu when closed
+        }, 300);
+    }
+}
