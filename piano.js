@@ -69,12 +69,10 @@ function initPianoTiles(stage) {
 
   function spawnTile() {
     const col = Math.floor(Math.random() * 4);
-    const isHold = Math.random() < 0.22;
     tiles.push({
       col,
-      y: -140,
-      height: isHold ? 150 : 85,
-      isHold,
+      y: -120,
+      height: 85,
       hit: false,
       missed: false
     });
@@ -119,16 +117,18 @@ function initPianoTiles(stage) {
           if (navigator.vibrate) navigator.vibrate([120, 60, 120]); // Haptic vibration on miss
         }
       });
+
+      // Remove hit or missed tiles immediately
+      tiles = tiles.filter(t => !t.missed && !t.hit);
     }
 
     // Render falling tiles
     tiles.forEach(t => {
-      if (t.missed || (t.hit && !t.isHold)) return;
       const x = t.col * colWidth + 4;
       const tileW = colWidth - 8;
 
-      ctx.fillStyle = t.isHold ? '#9333ea' : '#0f172a';
-      ctx.shadowColor = t.isHold ? '#c084fc' : '#38bdf8';
+      ctx.fillStyle = '#0f172a';
+      ctx.shadowColor = '#38bdf8';
       ctx.shadowBlur = 12;
       ctx.beginPath();
       ctx.roundRect(x, t.y, tileW, t.height, 10);
@@ -138,7 +138,7 @@ function initPianoTiles(stage) {
       ctx.fillStyle = '#fde047';
       ctx.font = 'bold 11px Inter';
       ctx.textAlign = 'center';
-      ctx.fillText(t.isHold ? 'HOLD' : 'TAP', x + tileW / 2, t.y + 28);
+      ctx.fillText('TAP', x + tileW / 2, t.y + 48);
     });
 
     if (!running && !alive) {
@@ -157,7 +157,7 @@ function initPianoTiles(stage) {
   }
   loop();
 
-  // Direct touch handler: Tap the tile directly wherever it is on screen!
+  // Direct touch handler: Tap the tile directly anywhere on screen
   canvas.onpointerdown = (e) => {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.clientX - rect.left;
@@ -172,9 +172,8 @@ function initPianoTiles(stage) {
 
     let hitFound = false;
     tiles.forEach(t => {
-      // Check if user tapped inside this tile's exact column and vertical bounds
       if (!t.hit && !t.missed && t.col === tappedCol) {
-        if (clientY >= t.y - 15 && clientY <= t.y + t.height + 15) {
+        if (clientY >= t.y - 20 && clientY <= t.y + t.height + 20) {
           hitFound = true;
           t.hit = true;
           score++;
@@ -189,11 +188,10 @@ function initPianoTiles(stage) {
     });
 
     if (!hitFound) {
-      // Tapped empty space or wrong lane -> Vibration & Game Over
       alive = false;
       running = false;
       AudioFX.lose();
-      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Haptic vibration on wrong tap
     }
   };
 
