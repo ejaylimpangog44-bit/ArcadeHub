@@ -54,8 +54,8 @@ const AudioFX = (() => {
 })();
 
 const SupabaseDB = (() => {
-  const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co'; // Insert your Supabase project URL here
-  const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW'; // Insert your Supabase public anon key here
+  const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
   let client = null;
 
   function init() {
@@ -66,7 +66,7 @@ const SupabaseDB = (() => {
     }
   }
 
-  async function submitScore(gameId, score, playerName = 'AJ') {
+  async function submitScore(gameId, score, playerName = window.playerName || 'AJ') {
     init();
     if (!client) return;
     try {
@@ -99,6 +99,30 @@ function toggleSound() {
     }
   }
   document.getElementById('sound-btn').textContent = on ? '🔊' : '🔇';
+}
+
+window.playerName = 'AJ';
+const RANDOM_NAMES = ['CyberGamer', 'PixelNinja', 'ArcadeLegend', 'NeonFox', 'RetroMaster', 'BitHero', 'SpeedRunner', 'GlitchWizard'];
+
+function randomizePlayerName() {
+  const randomName = RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)] + Math.floor(10 + Math.random() * 89);
+  document.getElementById('player-name-input').value = randomName;
+}
+
+function submitPlayerName() {
+  const input = document.getElementById('player-name-input').value.trim();
+  if (input) {
+    window.playerName = input;
+  } else {
+    window.playerName = 'Player_' + Math.floor(100 + Math.random() * 899);
+  }
+  document.getElementById('header-player-name').textContent = window.playerName;
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-shell').classList.remove('hidden');
+  AudioFX.click();
+  const bgm = document.getElementById('bgm-audio');
+  if (bgm) bgm.play().catch(e => {});
+  openHubHome();
 }
 
 let userXP = 2118;
@@ -264,20 +288,11 @@ const BgEngine = (() => {
   return { setTheme };
 })();
 
-function buildNavigation() {
-  const qs = document.getElementById('quick-switcher');
+function buildDrawerGrid() {
   const grid = document.getElementById('drawer-grid');
-  qs.innerHTML = '';
   grid.innerHTML = '';
 
   GAMES.forEach(g => {
-    const pill = document.createElement('button');
-    pill.id = `pill-${g.id}`;
-    pill.className = 'game-pill shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 flex items-center gap-1';
-    pill.innerHTML = `<span>${g.icon}</span><span>${g.name}</span>`;
-    pill.onclick = () => launchGame(g.id);
-    qs.appendChild(pill);
-
     const card = document.createElement('button');
     card.className = 'text-left p-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.09] border border-white/10 transition flex flex-col justify-between gap-2 group';
     card.innerHTML = `
@@ -310,23 +325,12 @@ function openHubHome() {
   document.getElementById('app-shell').style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
   BgEngine.setTheme('hub');
   document.getElementById('env-badge').textContent = 'Hub Lobby';
-  document.querySelectorAll('.game-pill').forEach(p => p.classList.remove('active'));
 
   const stage = document.getElementById('game-stage');
+  // Banner header removed completely per your request!
   stage.innerHTML = `
     <div class="w-full h-full overflow-y-auto px-4 sm:px-8 py-6">
       <div class="max-w-6xl mx-auto">
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
-          <div>
-            <span class="inline-block text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-pink-500/15 text-pink-300 border border-pink-500/30 mb-2">16 Bespoke Worlds + 1 Preserved</span>
-            <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white">Choose Any Game to Transform the Viewport</h1>
-            <p class="text-xs sm:text-sm text-slate-400 mt-1">Each game adapts the entire background, lighting, and atmosphere to match its world—no outer boxed borders.</p>
-          </div>
-          <button onclick="launchGame('stickrun')" class="shrink-0 px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-emerald-500 font-bold text-xs sm:text-sm text-white shadow-lg shadow-sky-500/25 hover:scale-[1.02] transition">
-            🏃 Preview Stick Run World →
-          </button>
-        </div>
-
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 pb-10">
           ${GAMES.map(g => `
             <button onclick="launchGame('${g.id}')" class="group relative overflow-hidden rounded-2xl p-4 text-left border border-white/10 hover:border-pink-400/50 transition-all flex flex-col justify-between min-h-[148px]" style="background:${g.bg}">
@@ -369,10 +373,6 @@ function launchGame(id) {
   badge.textContent = meta.envName;
   badge.classList.remove('hidden');
 
-  document.querySelectorAll('.game-pill').forEach(p => {
-    p.classList.toggle('active', p.id === `pill-${id}`);
-  });
-
   const stage = document.getElementById('game-stage');
   stage.innerHTML = '';
 
@@ -402,6 +402,6 @@ function launchGame(id) {
 }
 
 window.onload = () => {
-  buildNavigation();
-  openHubHome();
+  buildDrawerGrid();
+  // Lobby starts hidden behind the login screen until the user enters their name.
 };
