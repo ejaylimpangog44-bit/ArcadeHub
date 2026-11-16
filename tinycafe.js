@@ -3,9 +3,9 @@ function initTinyCafe(stage) {
     <div id="cafe-root" class="relative w-full h-full bg-slate-950 flex flex-col justify-between p-2 pt-1 select-none text-white overflow-hidden transition-colors duration-1000" style="background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 50%, #0f172a 100%);">
       <!-- Cloud Dissolve Intro Overlay -->
       <div id="cafe-intro-clouds" class="absolute inset-0 z-50 bg-sky-900 flex flex-col items-center justify-center transition-transform duration-1000">
-        <div class="text-5xl mb-3 animate-bounce">🍔☕</div>
-        <h2 class="text-xl font-black text-amber-300 mb-1">Tiny Café &amp; Bistro Pro</h2>
-        <p class="text-xs text-sky-200 mb-4 text-center max-w-xs">Drinks on the left, 10s cookable foods on the right. Zero scrolling, full viewport!</p>
+        <div class="text-5xl mb-3 animate-bounce">🍳☕🔥</div>
+        <h2 class="text-xl font-black text-amber-300 mb-1">Tiny Café &amp; Pro Kitchen</h2>
+        <p class="text-xs text-sky-200 mb-4 text-center max-w-xs">Use the Brewing Stand, Frying Pan, and Oven stations! Full viewport layout.</p>
         <button onclick="startCafeShift()" class="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl shadow-xl hover:scale-105 transition text-xs">Start Bistro Shift 🚀</button>
       </div>
 
@@ -41,155 +41,14 @@ function initTinyCafe(stage) {
         </div>
       </div>
 
-      <!-- MAIN WORKSPACE: Side-by-Side List Layout (Left: Drinks | Right: Foods) -->
-      <div class="w-full grid grid-cols-2 gap-2 my-1 overflow-hidden shrink-0" style="height: calc(100% - 175px);">
-        
-        <!-- LEFT COLUMN: DRINKS & MIXERS -->
-        <div class="bg-black/40 border border-white/10 rounded-2xl p-2 flex flex-col gap-1.5 overflow-y-auto">
-          <div class="text-[10px] font-black text-sky-300 uppercase tracking-wider text-center border-b border-white/10 pb-1">☕ Drinks Station</div>
-          
-          <button onclick="addDrink('Beans', '🫘', 'Espresso Beans')" class="bg-slate-900/90 border border-sky-500/30 hover:border-sky-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow">
-            <span class="text-lg">🫘</span>
-            <div class="text-left flex-1 px-2">
-              <div class="text-[11px] font-bold text-slate-200">Beans</div>
-              <div class="text-[9px] text-sky-400">Instant Brew</div>
-            </div>
-            <span class="px-2 py-1 bg-sky-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
-          </button>
-
-          <button onclick="addDrink('Milk', '🥛', 'Fresh Milk')" class="bg-slate-900/90 border border-indigo-500/30 hover:border-indigo-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow">
-            <span class="text-lg">🥛</span>
-            <div class="text-left flex-1 px-2">
-              <div class="text-[11px] font-bold text-slate-200">Milk</div>
-              <div class="text-[9px] text-indigo-400">Dairy</div>
-            </div>
-            <span class="px-2 py-1 bg-indigo-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
-          </button>
-
-          <button onclick="addDrink('Sugar', '🧊', 'Sugar/Ice')" class="bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow">
-            <span class="text-lg">🧊</span>
-            <div class="text-left flex-1 px-2">
-              <div class="text-[11px] font-bold text-slate-200">Sugar</div>
-              <div class="text-[9px] text-cyan-400">Sweetener</div>
-            </div>
-            <span class="px-2 py-1 bg-cyan-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
-          </button>
-
-          <button onclick="addDrink('Choco', '🍫', 'Choco Syrup')" class="bg-slate-900/90 border border-pink-500/30 hover:border-pink-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow">
-            <span class="text-lg">🍫</span>
-            <div class="text-left flex-1 px-2">
-              <div class="text-[11px] font-bold text-slate-200">Choco</div>
-              <div class="text-[9px] text-pink-400">Syrup</div>
-            </div>
-            <span class="px-2 py-1 bg-pink-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
-          </button>
-
-          <button onclick="addDrink('Cheese', '🧀', 'Cheese Topping')" class="bg-slate-900/90 border border-amber-500/30 hover:border-amber-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow">
-            <span class="text-lg">🧀</span>
-            <div class="text-left flex-1 px-2">
-              <div class="text-[11px] font-bold text-slate-200">Cheese</div>
-              <div class="text-[9px] text-amber-400">Topping</div>
-            </div>
-            <span class="px-2 py-1 bg-amber-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
-          </button>
-        </div>
-
-        <!-- RIGHT COLUMN: COOKABLE FOODS & KITCHEN -->
-        <div class="bg-black/40 border border-white/10 rounded-2xl p-2 flex flex-col gap-1.5 overflow-y-auto">
-          <div class="text-[10px] font-black text-amber-300 uppercase tracking-wider text-center border-b border-white/10 pb-1">🍳 Kitchen (10s Cook)</div>
-          
-          <!-- Food items with dynamic cook status buttons -->
-          <div id="kitchen-food-list" class="flex flex-col gap-1.5">
-            <!-- Rendered dynamically or via static list with live timer support -->
-            <button id="btn-Burger" onclick="startCooking('Burger', '🍔', 'Burger')" class="bg-slate-900/90 border border-amber-600/30 hover:border-amber-500 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
-              <span class="text-lg">🍔</span>
-              <div class="text-left flex-1 px-2">
-                <div class="text-[11px] font-bold text-slate-200">Burger</div>
-                <div id="timer-Burger" class="text-[9px] text-amber-400">Ready to Cook</div>
-              </div>
-              <span id="badge-Burger" class="px-2 py-1 bg-amber-500 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
-            </button>
-
-            <button id="btn-Pizza" onclick="startCooking('Pizza', '🍕', 'Pizza')" class="bg-slate-900/90 border border-orange-600/30 hover:border-orange-500 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
-              <span class="text-lg">🍕</span>
-              <div class="text-left flex-1 px-2">
-                <div class="text-[11px] font-bold text-slate-200">Pizza</div>
-                <div id="timer-Pizza" class="text-[9px] text-orange-400">Ready to Cook</div>
-              </div>
-              <span id="badge-Pizza" class="px-2 py-1 bg-orange-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
-            </button>
-
-            <button id="btn-Fries" onclick="startCooking('Fries', '🍟', 'Fries')" class="bg-slate-900/90 border border-yellow-500/30 hover:border-yellow-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
-              <span class="text-lg">🍟</span>
-              <div class="text-left flex-1 px-2">
-                <div class="text-[11px] font-bold text-slate-200">Fries</div>
-                <div id="timer-Fries" class="text-[9px] text-yellow-400">Ready to Cook</div>
-              </div>
-              <span id="badge-Fries" class="px-2 py-1 bg-yellow-500 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
-            </button>
-
-            <button id="btn-Hotdog" onclick="startCooking('Hotdog', '🌭', 'Hotdog')" class="bg-slate-900/90 border border-red-500/30 hover:border-red-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
-              <span class="text-lg">🌭</span>
-              <div class="text-left flex-1 px-2">
-                <div class="text-[11px] font-bold text-slate-200">Hotdog</div>
-                <div id="timer-Hotdog" class="text-[9px] text-red-400">Ready to Cook</div>
-              </div>
-              <span id="badge-Hotdog" class="px-2 py-1 bg-red-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
-            </button>
-
-            <button id="btn-Chicken" onclick="startCooking('Chicken', '🍗', 'Chicken')" class="bg-slate-900/90 border border-amber-500/30 hover:border-amber-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
-              <span class="text-lg">🍗</span>
-              <div class="text-left flex-1 px-2">
-                <div class="text-[11px] font-bold text-slate-200">Chicken</div>
-                <div id="timer-Chicken" class="text-[9px] text-amber-400">Ready to Cook</div>
-              </div>
-              <span id="badge-Chicken" class="px-2 py-1 bg-amber-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
-            </button>
-
-            <button id="btn-Egg" onclick="startCooking('Egg', '🍳', 'Egg')" class="bg-slate-900/90 border border-yellow-400/30 hover:border-yellow-300 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
-              <span class="text-lg">🍳</span>
-              <div class="text-left flex-1 px-2">
-                <div class="text-[11px] font-bold text-slate-200">Egg</div>
-                <div id="timer-Egg" class="text-[9px] text-yellow-300">Ready to Cook</div>
-              </div>
-              <span id="badge-Egg" class="px-2 py-1 bg-yellow-400 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
-            </button>
-
-            <button id="btn-Taco" onclick="startCooking('Taco', '🌮', 'Taco')" class="bg-slate-900/90 border border-emerald-500/30 hover:border-emerald-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
-              <span class="text-lg">🌮</span>
-              <div class="text-left flex-1 px-2">
-                <div class="text-[11px] font-bold text-slate-200">Taco</div>
-                <div id="timer-Taco" class="text-[9px] text-emerald-400">Ready to Cook</div>
-              </div>
-              <span id="badge-Taco" class="px-2 py-1 bg-emerald-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
-            </button>
-
-            <button id="btn-Pancake" onclick="startCooking('Pancake', '🥞', 'Pancake')" class="bg-slate-900/90 border border-orange-400/30 hover:border-orange-300 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
-              <span class="text-lg">🥞</span>
-              <div class="text-left flex-1 px-2">
-                <div class="text-[11px] font-bold text-slate-200">Pancake</div>
-                <div id="timer-Pancake" class="text-[9px] text-orange-300">Ready to Cook</div>
-              </div>
-              <span id="badge-Pancake" class="px-2 py-1 bg-orange-500 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
-            </button>
-
-            <button id="btn-Waffle" onclick="startCooking('Waffle', '🧇', 'Waffle')" class="bg-slate-900/90 border border-amber-700/30 hover:border-amber-600 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
-              <span class="text-lg">🧇</span>
-              <div class="text-left flex-1 px-2">
-                <div class="text-[11px] font-bold text-slate-200">Waffle</div>
-                <div id="timer-Waffle" class="text-[9px] text-amber-500">Ready to Cook</div>
-              </div>
-              <span id="badge-Waffle" class="px-2 py-1 bg-amber-700 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
-            </button>
-          </div>
-
-        </div>
-
+      <!-- WORKSPACE AREA (Switches between Hub, Drinks, and Kitchen Stations) -->
+      <div id="workspace-container" class="w-full flex-1 flex flex-col justify-center my-1 overflow-hidden">
+        <!-- Dynamically rendered via JS -->
       </div>
 
-      <!-- Preparation Tray & Serve Actions (Pinned at Bottom) -->
-      <div class="w-full bg-black/90 backdrop-blur-md border border-white/15 rounded-2xl p-2 text-center shrink-0 shadow-2xl">
-        <div class="text-[10px] text-slate-400 mb-1 uppercase font-bold">Tray: <span id="cup-tray" class="text-pink-400 font-mono">[ Empty ]</span></div>
+      <!-- Preparation Tray & Serve Actions (Permanently Pinned at Bottom) -->
+      <div class="w-full bg-black/95 backdrop-blur-md border border-white/15 rounded-2xl p-2 text-center shrink-0 shadow-2xl">
+        <div class="text-[10px] text-slate-400 mb-1 uppercase font-bold">Preparation Tray: <span id="cup-tray" class="text-pink-400 font-mono">[ Empty ]</span></div>
         <div class="flex gap-2">
           <button onclick="resetTray()" class="py-2 px-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs transition active:scale-95">Clear 🗑️</button>
           <button onclick="serveOrder()" class="flex-1 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black rounded-xl text-xs shadow-lg transition active:scale-95">Serve Order 🛎️</button>
@@ -198,11 +57,12 @@ function initTinyCafe(stage) {
     </div>
   `;
 
-  let coins = 500, served = 0, currentDay = 1, dailyServed = 0, customerTimeLeft = 60, phaseIndex = 0;
+  let coins = 500, served = 0, currentDay = 1, dailyServed = 0, customerTimeLeft = 60;
   let currentOrderObj = { name: 'Espresso', ingredients: ['Beans'] };
   let currentTray = [];
   let gameInterval = null;
-  let activeTimers = {}; // Tracks ongoing cooking timers per item key
+  let activeTimers = {};
+  let currentView = 'hub'; // 'hub', 'drinks', 'kitchen-pan', 'kitchen-oven'
 
   const avatars = ['🧑‍💼', '👩‍🎨', '🧑‍🎓', '🧑‍💻', '🧑‍🎤', '👷‍♂️', '👩‍⚕️'];
   
@@ -211,6 +71,7 @@ function initTinyCafe(stage) {
     { name: 'Latte', ingredients: ['Beans', 'Milk'] },
     { name: 'Classic Burger', ingredients: ['Burger'] },
     { name: 'Cheesy Burger', ingredients: ['Burger', 'Cheese'] },
+    { name: 'Breakfast Burger', ingredients: ['Burger', 'Egg'] },
     { name: 'Hotdog Sandwich', ingredients: ['Hotdog'] },
     { name: 'Pepperoni Pizza', ingredients: ['Pizza', 'Cheese'] },
     { name: 'Crispy Fries', ingredients: ['Fries'] },
@@ -229,13 +90,13 @@ function initTinyCafe(stage) {
     }
     if (typeof AudioFX !== 'undefined') AudioFX.coin();
     window.spawnNextCustomer();
+    renderWorkspace();
 
     if (gameInterval) clearInterval(gameInterval);
     gameInterval = setInterval(() => {
       customerTimeLeft--;
       let secs = customerTimeLeft % 60;
       const timerEl = document.getElementById('customer-patience-text');
-      const barEl = document.getElementById('patience-bar-fill');
       
       if (timerEl) timerEl.textContent = `⏳ 00:${String(secs).padStart(2,'0')}`;
 
@@ -246,6 +107,112 @@ function initTinyCafe(stage) {
         window.spawnNextCustomer();
       }
     }, 1000);
+  };
+
+  window.switchView = function(view) {
+    currentView = view;
+    renderWorkspace();
+    if (typeof AudioFX !== 'undefined') AudioFX.click();
+  };
+
+  window.renderWorkspace = function() {
+    const container = document.getElementById('workspace-container');
+    if (!container) return;
+
+    if (currentView === 'hub') {
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col items-center justify-center gap-3">
+          <div class="text-xs font-black text-amber-300 uppercase tracking-widest mb-1">Select Station</div>
+          <button onclick="switchView('drinks')" class="w-full max-w-sm py-4 bg-gradient-to-r from-sky-600 to-blue-700 hover:scale-105 rounded-2xl shadow-xl flex items-center justify-center gap-3 font-black text-sm transition">
+            <span class="text-2xl">☕</span> Brewing Stand (Drinks Station)
+          </button>
+          <button onclick="switchView('kitchen')" class="w-full max-w-sm py-4 bg-gradient-to-r from-amber-600 to-orange-700 hover:scale-105 rounded-2xl shadow-xl flex items-center justify-center gap-3 font-black text-sm transition">
+            <span class="text-2xl">🍳🔥</span> Kitchen (Frying Pan &amp; Oven)
+          </button>
+        </div>
+      `;
+    } else if (currentView === 'drinks') {
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col bg-black/40 border border-white/10 rounded-2xl p-3 overflow-hidden">
+          <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
+            <span class="text-xs font-black text-sky-300">☕ Brewing Stand</span>
+            <button onclick="switchView('hub')" class="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] font-bold">⬅️ Back to Hub</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2 overflow-y-auto flex-1">
+            <button onclick="addDrink('Beans', '🫘')" class="bg-slate-900 border border-sky-500/30 rounded-xl p-2.5 flex items-center gap-2">
+              <span class="text-xl">🫘</span>
+              <div class="text-left"><div class="text-xs font-bold">Beans</div><div class="text-[9px] text-sky-400">Brew Coffee</div></div>
+            </button>
+            <button onclick="addDrink('Milk', '🥛')" class="bg-slate-900 border border-indigo-500/30 rounded-xl p-2.5 flex items-center gap-2">
+              <span class="text-xl">🥛</span>
+              <div class="text-left"><div class="text-xs font-bold">Milk</div><div class="text-[9px] text-indigo-400">Dairy Mixer</div></div>
+            </button>
+            <button onclick="addDrink('Sugar', '🧊')" class="bg-slate-900 border border-cyan-500/30 rounded-xl p-2.5 flex items-center gap-2">
+              <span class="text-xl">🧊</span>
+              <div class="text-left"><div class="text-xs font-bold">Sugar</div><div class="text-[9px] text-cyan-400">Sweetener</div></div>
+            </button>
+            <button onclick="addDrink('Choco', '🍫')" class="bg-slate-900 border border-pink-500/30 rounded-xl p-2.5 flex items-center gap-2">
+              <span class="text-xl">🍫</span>
+              <div class="text-left"><div class="text-xs font-bold">Choco</div><div class="text-[9px] text-pink-400">Syrup Topping</div></div>
+            </button>
+            <button onclick="addDrink('Cheese', '🧀')" class="bg-slate-900 border border-amber-500/30 rounded-xl p-2.5 flex items-center gap-2">
+              <span class="text-xl">🧀</span>
+              <div class="text-left"><div class="text-xs font-bold">Cheese</div><div class="text-[9px] text-amber-400">Foam Topping</div></div>
+            </button>
+          </div>
+        </div>
+      `;
+    } else if (currentView === 'kitchen') {
+      container.innerHTML = `
+        <div class="w-full h-full flex flex-col bg-black/40 border border-white/10 rounded-2xl p-3 overflow-hidden">
+          <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
+            <span class="text-xs font-black text-amber-300">🍳 Kitchen Equipment (10s Cook)</span>
+            <button onclick="switchView('hub')" class="px-3 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] font-bold">⬅️ Back to Hub</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2 overflow-y-auto flex-1">
+            <!-- Frying Pan Items -->
+            <button onclick="startCooking('Burger', '🍔', 'Burger')" class="bg-slate-900 border border-amber-500/30 rounded-xl p-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="text-xl">🍳🍔</span><div class="text-left"><div class="text-xs font-bold">Burger</div><div id="timer-Burger" class="text-[9px] text-amber-400">Frying Pan</div></div></div>
+              <span id="badge-Burger" class="px-2 py-1 bg-amber-500 text-slate-950 font-black rounded text-[9px]">Cook</span>
+            </button>
+            <button onclick="startCooking('Egg', '🍳', 'Egg')" class="bg-slate-900 border border-yellow-400/30 rounded-xl p-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="text-xl">🍳🍳</span><div class="text-left"><div class="text-xs font-bold">Egg</div><div id="timer-Egg" class="text-[9px] text-yellow-300">Frying Pan</div></div></div>
+              <span id="badge-Egg" class="px-2 py-1 bg-yellow-400 text-slate-950 font-black rounded text-[9px]">Cook</span>
+            </button>
+            <button onclick="startCooking('Hotdog', '🌭', 'Hotdog')" class="bg-slate-900 border border-red-500/30 rounded-xl p-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="text-xl">🍳🌭</span><div class="text-left"><div class="text-xs font-bold">Hotdog</div><div id="timer-Hotdog" class="text-[9px] text-red-400">Frying Pan</div></div></div>
+              <span id="badge-Hotdog" class="px-2 py-1 bg-red-600 text-white font-black rounded text-[9px]">Cook</span>
+            </button>
+            <button onclick="startCooking('Pancake', '🥞', 'Pancake')" class="bg-slate-900 border border-orange-400/30 rounded-xl p-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="text-xl">🍳🥞</span><div class="text-left"><div class="text-xs font-bold">Pancake</div><div id="timer-Pancake" class="text-[9px] text-orange-300">Frying Pan</div></div></div>
+              <span id="badge-Pancake" class="px-2 py-1 bg-orange-500 text-slate-950 font-black rounded text-[9px]">Cook</span>
+            </button>
+            <button onclick="startCooking('Taco', '🌮', 'Taco')" class="bg-slate-900 border border-emerald-500/30 rounded-xl p-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="text-xl">🍳🌮</span><div class="text-left"><div class="text-xs font-bold">Taco</div><div id="timer-Taco" class="text-[9px] text-emerald-400">Frying Pan</div></div></div>
+              <span id="badge-Taco" class="px-2 py-1 bg-emerald-600 text-white font-black rounded text-[9px]">Cook</span>
+            </button>
+
+            <!-- Oven Items -->
+            <button onclick="startCooking('Pizza', '🍕', 'Pizza')" class="bg-slate-900 border border-orange-500/30 rounded-xl p-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="text-xl">🔥🍕</span><div class="text-left"><div class="text-xs font-bold">Pizza</div><div id="timer-Pizza" class="text-[9px] text-orange-400">Oven Bake</div></div></div>
+              <span id="badge-Pizza" class="px-2 py-1 bg-orange-600 text-white font-black rounded text-[9px]">Bake</span>
+            </button>
+            <button onclick="startCooking('Fries', '🍟', 'Fries')" class="bg-slate-900 border border-yellow-500/30 rounded-xl p-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="text-xl">🔥🍟</span><div class="text-left"><div class="text-xs font-bold">Fries</div><div id="timer-Fries" class="text-[9px] text-yellow-400">Oven Bake</div></div></div>
+              <span id="badge-Fries" class="px-2 py-1 bg-yellow-500 text-slate-950 font-black rounded text-[9px]">Bake</span>
+            </button>
+            <button onclick="startCooking('Chicken', '🍗', 'Chicken')" class="bg-slate-900 border border-amber-500/30 rounded-xl p-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="text-xl">🔥🍗</span><div class="text-left"><div class="text-xs font-bold">Chicken</div><div id="timer-Chicken" class="text-[9px] text-amber-400">Oven Bake</div></div></div>
+              <span id="badge-Chicken" class="px-2 py-1 bg-amber-600 text-white font-black rounded text-[9px]">Bake</span>
+            </button>
+            <button onclick="startCooking('Waffle', '🧇', 'Waffle')" class="bg-slate-900 border border-amber-700/30 rounded-xl p-2.5 flex items-center justify-between">
+              <div class="flex items-center gap-2"><span class="text-xl">🔥🧇</span><div class="text-left"><div class="text-xs font-bold">Waffle</div><div id="timer-Waffle" class="text-[9px] text-amber-500">Oven Bake</div></div></div>
+              <span id="badge-Waffle" class="px-2 py-1 bg-amber-700 text-white font-black rounded text-[9px]">Bake</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
   };
 
   window.spawnNextCustomer = function() {
@@ -260,14 +227,14 @@ function initTinyCafe(stage) {
     updateTrayDisplay();
   };
 
-  window.addDrink = function(item, emoji, name) {
+  window.addDrink = function(item, emoji) {
     currentTray.push(item);
     updateTrayDisplay();
     if (typeof AudioFX !== 'undefined') AudioFX.click();
   };
 
   window.startCooking = function(itemKey, emoji, itemName) {
-    if (activeTimers[itemKey]) return; // Already cooking
+    if (activeTimers[itemKey]) return;
 
     const timerLabel = document.getElementById(`timer-${itemKey}`);
     const badge = document.getElementById(`badge-${itemKey}`);
@@ -288,23 +255,21 @@ function initTinyCafe(stage) {
         clearInterval(activeTimers[itemKey]);
         delete activeTimers[itemKey];
 
-        if (timerLabel) timerLabel.textContent = `Ready! (Added to Tray)`;
+        if (timerLabel) timerLabel.textContent = `Ready! (Added)`;
         if (badge) {
-          badge.textContent = `Cooked ✓`;
+          badge.textContent = `Done ✓`;
           badge.classList.remove('bg-rose-600');
           badge.classList.add('bg-emerald-500', 'text-slate-950');
         }
 
-        // Add to tray automatically when done cooking!
         currentTray.push(itemKey);
         updateTrayDisplay();
         if (typeof AudioFX !== 'undefined') AudioFX.coin();
 
-        // Reset badge after 1.5s
         setTimeout(() => {
-          if (timerLabel) timerLabel.textContent = `Ready to Cook`;
+          if (timerLabel) timerLabel.textContent = `Station Ready`;
           if (badge) {
-            badge.textContent = `Cook 10s`;
+            badge.textContent = `Cook`;
             badge.classList.remove('bg-emerald-500', 'text-slate-950');
             badge.classList.add('bg-amber-500', 'text-slate-950');
           }
