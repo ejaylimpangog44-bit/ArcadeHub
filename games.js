@@ -773,7 +773,7 @@ function initHighLow(stage) {
 }
 
 // ----------------------------------------------------
-// 5. CHESS (Arcade Game - Clean Drawer & Pre-Game Config)
+// 5. CHESS (Arcade Game - Fixed Button Clickability & Clean UI)
 // ----------------------------------------------------
 function initChess(stage) {
   const GLYPHS = {
@@ -783,8 +783,8 @@ function initChess(stage) {
   const VALS = { P:10, N:32, B:33, R:50, Q:90, K:900 };
 
   let board = [], turn = 'w', sel = null, legal = [], capturedW = [], capturedB = [], status = 'Your Move (White)';
-  let gameMode = 'pve'; // pve or pvp
-  let aiDifficulty = 'normal'; // easy, normal, hard
+  let gameMode = 'pve'; 
+  let aiDifficulty = 'normal'; 
   let drawerOpen = false;
   let configModalOpen = true;
 
@@ -900,7 +900,7 @@ function initChess(stage) {
       }
     }
     if (!all.length) {
-      status = isKingInCheck(board, 'b') ? 'Checkmate! You Win!' : 'Stalemate!';
+      status = isKingInCheck(board, 'b') ? '🎉 You Win!' : 'Stalemate!';
       AudioFX.win();
       addXP(60, window.innerWidth / 2, window.innerHeight / 2, 'CHECKMATE +60 XP!');
       window.ArcadeHero?.awardGameScore('chess', 150);
@@ -919,15 +919,14 @@ function initChess(stage) {
     stage.innerHTML = `
       <div class="w-full h-full flex flex-col items-center justify-between px-3 py-3 pb-16 sm:pb-6 select-none overflow-y-auto">
         
-        <!-- Clean Header Bar -->
         <div class="flex items-center justify-between w-full max-w-[min(90vw,440px)]">
-          <button id="chess-menu" class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 text-lg font-black shadow hover:bg-amber-900 transition">
+          <button id="chess-menu" class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 text-lg font-black shadow hover:bg-amber-900 transition cursor-pointer">
             ☰
           </button>
           <div class="px-4 py-1.5 rounded-xl bg-black/60 border border-amber-400/30 text-amber-200 font-bold text-xs shadow text-center truncate max-w-[220px]">
             ${status}
           </div>
-          <button id="chess-reset-btn" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow">
+          <button id="chess-reset-btn" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow cursor-pointer">
             Reset
           </button>
         </div>
@@ -936,7 +935,6 @@ function initChess(stage) {
           Captured: ${capturedB.map(p => GLYPHS[p]).join(' ')}
         </div>
 
-        <!-- Chess Board -->
         <div class="grid grid-cols-8 aspect-square w-[min(86vw,420px)] rounded-3xl overflow-hidden border-4 border-amber-900 shadow-[0_20px_60px_rgba(0,0,0,0.8)] my-auto">
           ${board.map((row, r) => row.map((cell, c) => {
             const dark = (r + c) % 2 === 1;
@@ -956,32 +954,32 @@ function initChess(stage) {
         </div>
 
         <!-- Settings Drawer Overlay -->
-        <div class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}" onclick="closeChessDrawer()"></div>
+        <div id="chess-drawer-bg" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}"></div>
         
         <div class="fixed top-0 bottom-0 left-0 z-50 w-[82%] max-w-xs bg-slate-900 border-r-4 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto">
           <div class="flex items-center justify-between border-b border-white/10 pb-3">
             <h2 class="text-lg font-black text-amber-400">⚙️ Chess Settings</h2>
-            <button onclick="closeChessDrawer()" class="w-8 h-8 rounded-full bg-white/10 text-white font-bold flex items-center justify-center">✕</button>
+            <button id="chess-close-drawer" class="w-8 h-8 rounded-full bg-white/10 text-white font-bold flex items-center justify-center cursor-pointer">✕</button>
           </div>
 
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Game Mode</label>
             <div class="grid grid-cols-2 gap-2">
-              <button type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition ${gameMode === 'pve' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10'}" onclick="setChessMode('pve')">🤖 vs AI</button>
-              <button type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition ${gameMode === 'pvp' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10'}" onclick="setChessMode('pvp')">👥 2P PvP</button>
+              <button id="chess-mode-pve" type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${gameMode === 'pve' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10'}">🤖 vs AI</button>
+              <button id="chess-mode-pvp" type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${gameMode === 'pvp' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10'}">👥 2P PvP</button>
             </div>
           </div>
 
           <div id="chess-ai-diff" class="flex flex-col gap-1.5 ${gameMode === 'pvp' ? 'hidden' : ''}">
             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">AI Difficulty</label>
             <div class="grid grid-cols-3 gap-1.5">
-              <button type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition ${aiDifficulty === 'easy' ? 'bg-amber-600 text-white border-amber-400' : 'bg-black/40 text-slate-300 border-white/10'}" onclick="setChessDiff('easy')">Easy</button>
-              <button type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition ${aiDifficulty === 'normal' ? 'bg-amber-600 text-white border-amber-400' : 'bg-black/40 text-slate-300 border-white/10'}" onclick="setChessDiff('normal')">Normal</button>
-              <button type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition ${aiDifficulty === 'hard' ? 'bg-amber-600 text-white border-amber-400' : 'bg-black/40 text-slate-300 border-white/10'}" onclick="setChessDiff('hard')">Hard</button>
+              <button id="chess-diff-easy" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'easy' ? 'bg-amber-600 text-white border-amber-400' : 'bg-black/40 text-slate-300 border-white/10'}">Easy</button>
+              <button id="chess-diff-normal" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'normal' ? 'bg-amber-600 text-white border-amber-400' : 'bg-black/40 text-slate-300 border-white/10'}">Normal</button>
+              <button id="chess-diff-hard" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'hard' ? 'bg-amber-600 text-white border-amber-400' : 'bg-black/40 text-slate-300 border-white/10'}">Hard</button>
             </div>
           </div>
 
-          <button onclick="applyChessSettings()" class="w-full py-3.5 mt-auto rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg">
+          <button id="chess-apply-drawer" type="button" class="w-full py-3.5 mt-auto rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg cursor-pointer">
             Apply &amp; Restart Match ⚔️
           </button>
         </div>
@@ -996,12 +994,12 @@ function initChess(stage) {
             <div class="flex flex-col gap-2 text-left">
               <label class="text-xs font-bold text-slate-400">Mode:</label>
               <div class="grid grid-cols-2 gap-2">
-                <button type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition ${gameMode === 'pve' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}" onclick="setChessMode('pve'); render();">vs AI</button>
-                <button type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition ${gameMode === 'pvp' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}" onclick="setChessMode('pvp'); render();">2P PvP</button>
+                <button id="chess-cfg-pve" type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${gameMode === 'pve' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}">vs AI</button>
+                <button id="chess-cfg-pvp" type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${gameMode === 'pvp' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}">2P PvP</button>
               </div>
             </div>
 
-            <button onclick="reset()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg">
+            <button id="chess-start-btn" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg cursor-pointer">
               START MATCH 🚀
             </button>
           </div>
@@ -1012,11 +1010,20 @@ function initChess(stage) {
 
     document.getElementById('chess-menu').onclick = () => { drawerOpen = true; render(); };
     document.getElementById('chess-reset-btn').onclick = () => { configModalOpen = true; render(); };
+    document.getElementById('chess-close-drawer').onclick = () => { drawerOpen = false; render(); };
+    document.getElementById('chess-drawer-bg').onclick = () => { drawerOpen = false; render(); };
 
-    window.closeChessDrawer = () => { drawerOpen = false; render(); };
-    window.setChessMode = (m) => { gameMode = m; render(); };
-    window.setChessDiff = (d) => { aiDifficulty = d; render(); };
-    window.applyChessSettings = () => { drawerOpen = false; reset(); };
+    document.getElementById('chess-mode-pve').onclick = () => { gameMode = 'pve'; render(); };
+    document.getElementById('chess-mode-pvp').onclick = () => { gameMode = 'pvp'; render(); };
+    document.getElementById('chess-cfg-pve').onclick = () => { gameMode = 'pve'; render(); };
+    document.getElementById('chess-cfg-pvp').onclick = () => { gameMode = 'pvp'; render(); };
+
+    document.getElementById('chess-diff-easy').onclick = () => { aiDifficulty = 'easy'; render(); };
+    document.getElementById('chess-diff-normal').onclick = () => { aiDifficulty = 'normal'; render(); };
+    document.getElementById('chess-diff-hard').onclick = () => { aiDifficulty = 'hard'; render(); };
+
+    document.getElementById('chess-apply-drawer').onclick = () => { drawerOpen = false; reset(); };
+    document.getElementById('chess-start-btn').onclick = () => { reset(); };
 
     document.querySelectorAll('.ch-sq').forEach(btn => {
       btn.onpointerup = (e) => {
@@ -1053,7 +1060,7 @@ function initChess(stage) {
 }
 
 // ----------------------------------------------------
-// 6. DAMA (Arcade Game - Clean Drawer & Pre-Game Config)
+// 6. DAMA (Arcade Game - Fixed Button Clickability & Clean UI)
 // ----------------------------------------------------
 function initDama(stage) {
   let board = [], turn = 'r', sel = null, moves = [], vsAI = true, status = 'Your Turn (Red Dama)';
@@ -1143,11 +1150,11 @@ function initDama(stage) {
     }
 
     if (redCount === 0 || (turn === 'r' && !redHasMoves)) {
-      triggerGameOver('Blue / AI Dama Wins!');
+      triggerGameOver(vsAI ? '🤖 AI Wins!' : 'Blue Player Wins!');
       return true;
     }
     if (blueCount === 0 || (turn === 'b' && !blueHasMoves)) {
-      triggerGameOver('Red Dama Wins!');
+      triggerGameOver(vsAI ? '🎉 You Win!' : 'Red Player Wins!');
       return true;
     }
     return false;
@@ -1174,7 +1181,7 @@ function initDama(stage) {
       }
     }
     if (!all.length) {
-      triggerGameOver('Panlo! Red Dama Wins!');
+      triggerGameOver('🎉 You Win!');
       return;
     }
     const caps = all.filter(m => m.cap);
@@ -1211,15 +1218,14 @@ function initDama(stage) {
     stage.innerHTML = `
       <div class="w-full h-full flex flex-col items-center justify-between px-3 py-3 pb-16 sm:pb-6 select-none overflow-y-auto">
         
-        <!-- Clean Header Bar -->
         <div class="flex items-center justify-between w-full max-w-[min(90vw,480px)]">
-          <button id="dama-menu" class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 text-lg font-black shadow hover:bg-amber-900 transition">
+          <button id="dama-menu" class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 text-lg font-black shadow hover:bg-amber-900 transition cursor-pointer">
             ☰
           </button>
           <div class="px-4 py-1.5 rounded-xl bg-black/60 border border-amber-400/30 text-amber-200 font-bold text-xs shadow text-center truncate max-w-[220px]">
             ${status}
           </div>
-          <button id="dama-reset-btn" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow">
+          <button id="dama-reset-btn" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow cursor-pointer">
             Reset
           </button>
         </div>
@@ -1229,7 +1235,6 @@ function initDama(stage) {
           <span class="px-3 py-1 rounded-xl bg-sky-950/80 border border-sky-500/40 text-sky-200 font-bold text-xs">🔵 Blue: ${blueCaptured}</span>
         </div>
 
-        <!-- Full Viewport Board -->
         <div class="grid grid-cols-8 aspect-square w-[min(88vw,440px)] rounded-3xl overflow-hidden border-4 border-[#3d1f0d] shadow-[0_20px_60px_rgba(0,0,0,0.8)] my-auto">
           ${board.map((row, r) => row.map((cell, c) => {
             const dark = (r + c) % 2 === 1;
@@ -1248,28 +1253,24 @@ function initDama(stage) {
           }).join('')).join('')}
         </div>
 
-        <div class="text-[11px] text-amber-200/80 text-center font-semibold pb-1">
-          Filipino Dama • Freedom Rule • Backwards &amp; Chain Jumps
-        </div>
-
         <!-- Settings Drawer Overlay -->
-        <div class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}" onclick="closeDamaDrawer()"></div>
+        <div id="dama-drawer-bg" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}"></div>
         
         <div class="fixed top-0 bottom-0 left-0 z-50 w-[82%] max-w-xs bg-slate-900 border-r-4 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto">
           <div class="flex items-center justify-between border-b border-white/10 pb-3">
             <h2 class="text-lg font-black text-amber-400">⚙️ Dama Settings</h2>
-            <button onclick="closeDamaDrawer()" class="w-8 h-8 rounded-full bg-white/10 text-white font-bold flex items-center justify-center">✕</button>
+            <button id="dama-close-drawer" class="w-8 h-8 rounded-full bg-white/10 text-white font-bold flex items-center justify-center cursor-pointer">✕</button>
           </div>
 
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Game Mode</label>
             <div class="grid grid-cols-2 gap-2">
-              <button type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition ${vsAI ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10'}" onclick="vsAI = true; render();">🤖 vs AI</button>
-              <button type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition ${!vsAI ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10'}" onclick="vsAI = false; render();">👥 2P PvP</button>
+              <button id="dama-mode-ai" type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${vsAI ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10'}">🤖 vs AI</button>
+              <button id="dama-mode-pvp" type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${!vsAI ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10'}">👥 2P PvP</button>
             </div>
           </div>
 
-          <button onclick="drawerOpen = false; reset();" class="w-full py-3.5 mt-auto rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg">
+          <button id="dama-apply-drawer" type="button" class="w-full py-3.5 mt-auto rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg cursor-pointer">
             Apply &amp; Restart Match ⚔️
           </button>
         </div>
@@ -1284,12 +1285,12 @@ function initDama(stage) {
             <div class="flex flex-col gap-2 text-left">
               <label class="text-xs font-bold text-slate-400">Mode:</label>
               <div class="grid grid-cols-2 gap-2">
-                <button type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition ${vsAI ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}" onclick="vsAI = true; render();">🤖 vs AI</button>
-                <button type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition ${!vsAI ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}" onclick="vsAI = false; render();">👥 2P PvP</button>
+                <button id="dama-cfg-ai" type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${vsAI ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}">vs AI</button>
+                <button id="dama-cfg-pvp" type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${!vsAI ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}">2P PvP</button>
               </div>
             </div>
 
-            <button onclick="reset()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg">
+            <button id="dama-start-btn" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg cursor-pointer">
               START MATCH 🚀
             </button>
           </div>
@@ -1303,7 +1304,7 @@ function initDama(stage) {
             <div class="text-lg font-extrabold text-white bg-black/40 py-3 rounded-2xl border border-white/10">
               ${winnerText}
             </div>
-            <button onclick="reset()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg">
+            <button id="dama-play-again-btn" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg cursor-pointer">
               🔄 Play Again
             </button>
           </div>
@@ -1314,8 +1315,17 @@ function initDama(stage) {
 
     document.getElementById('dama-menu').onclick = () => { drawerOpen = true; render(); };
     document.getElementById('dama-reset-btn').onclick = () => { configModalOpen = true; render(); };
+    document.getElementById('dama-close-drawer').onclick = () => { drawerOpen = false; render(); };
+    document.getElementById('dama-drawer-bg').onclick = () => { drawerOpen = false; render(); };
 
-    window.closeDamaDrawer = () => { drawerOpen = false; render(); };
+    document.getElementById('dama-mode-ai').onclick = () => { vsAI = true; render(); };
+    document.getElementById('dama-mode-pvp').onclick = () => { vsAI = false; render(); };
+    document.getElementById('dama-cfg-ai').onclick = () => { vsAI = true; render(); };
+    document.getElementById('dama-cfg-pvp').onclick = () => { vsAI = false; render(); };
+
+    document.getElementById('dama-apply-drawer').onclick = () => { drawerOpen = false; reset(); };
+    document.getElementById('dama-start-btn').onclick = () => { reset(); };
+    document.getElementById('dama-play-again-btn').onclick = () => { reset(); };
 
     document.querySelectorAll('.dm-sq').forEach(btn => {
       btn.onclick = () => {
