@@ -14,6 +14,18 @@
 </head>
 <body>
 
+<div id="power-screen" class="power-screen">
+  <div class="neon-sign-container">
+    <div class="neon-sign" id="neonSign">ARCADE HUB</div>
+    <div class="pull-chain-assembly">
+      <div class="chain-wire"></div>
+      <div class="pull-handle" id="pullHandle" title="Pull to turn on"></div>
+    </div>
+  </div>
+  <p class="power-hint">Pull the chain to power on</p>
+</div>
+
+
 <div id="login-screen" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4">
   <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-8 shadow-2xl text-center flex flex-col gap-6">
     <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-indigo-600 flex items-center justify-center mx-auto shadow-lg shadow-pink-500/30 text-2xl">
@@ -331,6 +343,7 @@
   }
 </script>
 
+<script src="power.js"></script>
 <script src="hero.js"></script>
 <script src="basketball.js"></script>
 <script src="games.js"></script>
