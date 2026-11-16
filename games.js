@@ -1664,8 +1664,8 @@ function initFruitMaster(stage) {
 
   const canvas = document.getElementById('fm-canvas');
   const ctx = canvas.getContext('2d');
-  let w = canvas.width = stage.clientWidth;
-  let h = canvas.height = stage.clientHeight;
+  let w = canvas.width = stage.clientWidth || window.innerWidth;
+  let h = canvas.height = stage.clientHeight || window.innerHeight;
 
   const FRUITS = [
     { icon: '🍉', pts: 10 },
@@ -1682,8 +1682,9 @@ function initFruitMaster(stage) {
   let doubleTimer = 0; 
 
   const onResize = () => { 
-    w = canvas.width = stage.clientWidth; 
-    h = canvas.height = stage.clientHeight; 
+    if (!stage) return;
+    w = canvas.width = stage.clientWidth || window.innerWidth; 
+    h = canvas.height = stage.clientHeight || window.innerHeight; 
   };
   window.addEventListener('resize', onResize);
 
@@ -1787,6 +1788,15 @@ function initFruitMaster(stage) {
 
   let raf;
   function loop() {
+    if (stage) {
+      const sw = stage.clientWidth;
+      const sh = stage.clientHeight;
+      if (sw && sh && (canvas.width !== sw || canvas.height !== sh)) {
+        w = canvas.width = sw;
+        h = canvas.height = sh;
+      }
+    }
+
     ctx.save();
     
     const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
@@ -2236,8 +2246,8 @@ function initTowerStack(stage) {
 
   const canvas = document.getElementById('ts-canvas');
   const ctx = canvas.getContext('2d');
-  let w = canvas.width = stage.clientWidth;
-  let h = canvas.height = stage.clientHeight;
+  let w = canvas.width = stage.clientWidth || window.innerWidth;
+  let h = canvas.height = stage.clientHeight || window.innerHeight;
 
   let stack = [], current = null, combo = 0, alive = true, raf;
 
@@ -2294,10 +2304,23 @@ function initTowerStack(stage) {
   canvas.onpointerdown = dropBlock;
   const onKey = (e) => { if (e.code === 'Space') { e.preventDefault(); dropBlock(); } };
   window.addEventListener('keydown', onKey);
-  const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
+  const onResize = () => { 
+    if (!stage) return;
+    w = canvas.width = stage.clientWidth || window.innerWidth; 
+    h = canvas.height = stage.clientHeight || window.innerHeight; 
+  };
   window.addEventListener('resize', onResize);
 
   function loop() {
+    if (stage) {
+      const sw = stage.clientWidth;
+      const sh = stage.clientHeight;
+      if (sw && sh && (canvas.width !== sw || canvas.height !== sh)) {
+        w = canvas.width = sw;
+        h = canvas.height = sh;
+      }
+    }
+
     ctx.clearRect(0, 0, w, h);
     const blockH = 26;
     const camOffset = Math.max(0, (stack.length - 8) * blockH);
@@ -2362,8 +2385,8 @@ function initCarRacing(stage) {
 
   const canvas = document.getElementById('cr-canvas');
   const ctx = canvas.getContext('2d');
-  let w = canvas.width = stage.clientWidth;
-  let h = canvas.height = stage.clientHeight;
+  let w = canvas.width = stage.clientWidth || window.innerWidth;
+  let h = canvas.height = stage.clientHeight || window.innerHeight;
 
   let lane = 1, traffic = [], coins = [], dist = 0, stripeY = 0, alive = true, raf;
 
@@ -2386,10 +2409,23 @@ function initCarRacing(stage) {
     if (e.key === 'ArrowRight' || e.key === 'd') shiftLane(1);
   };
   window.addEventListener('keydown', onKey);
-  const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
+  const onResize = () => { 
+    if (!stage) return;
+    w = canvas.width = stage.clientWidth || window.innerWidth; 
+    h = canvas.height = stage.clientHeight || window.innerHeight; 
+  };
   window.addEventListener('resize', onResize);
 
   function loop() {
+    if (stage) {
+      const sw = stage.clientWidth;
+      const sh = stage.clientHeight;
+      if (sw && sh && (canvas.width !== sw || canvas.height !== sh)) {
+        w = canvas.width = sw;
+        h = canvas.height = sh;
+      }
+    }
+
     ctx.clearRect(0, 0, w, h);
     const roadW = Math.min(360, w * 0.82);
     const roadX = (w - roadW) / 2;
@@ -2512,8 +2548,8 @@ function initBrickBreaker(stage) {
 
   const canvas = document.getElementById('bb-canvas');
   const ctx = canvas.getContext('2d');
-  let w = canvas.width = stage.clientWidth;
-  let h = canvas.height = stage.clientHeight;
+  let w = canvas.width = stage.clientWidth || window.innerWidth;
+  let h = canvas.height = stage.clientHeight || window.innerHeight;
 
   let paddleW = Math.min(130, w * 0.28), paddleX = (w - paddleW) / 2;
   let ball = { x: w / 2, y: h - 90, vx: 4.5, vy: -4.8, r: 9 };
@@ -2552,10 +2588,23 @@ function initBrickBreaker(stage) {
     paddleX = Math.max(8, Math.min(w - paddleW - 8, e.offsetX - paddleW / 2));
   };
 
-  const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
+  const onResize = () => { 
+    if (!stage) return;
+    w = canvas.width = stage.clientWidth || window.innerWidth; 
+    h = canvas.height = stage.clientHeight || window.innerHeight; 
+  };
   window.addEventListener('resize', onResize);
 
   function loop() {
+    if (stage) {
+      const sw = stage.clientWidth;
+      const sh = stage.clientHeight;
+      if (sw && sh && (canvas.width !== sw || canvas.height !== sh)) {
+        w = canvas.width = sw;
+        h = canvas.height = sh;
+      }
+    }
+
     ctx.clearRect(0, 0, w, h);
 
     if (alive) {
@@ -2658,8 +2707,8 @@ function initStickRun(stage) {
 
   const canvas = document.getElementById('sr-canvas');
   const ctx = canvas.getContext('2d');
-  let w = canvas.width = stage.clientWidth;
-  let h = canvas.height = stage.clientHeight;
+  let w = canvas.width = stage.clientWidth || window.innerWidth;
+  let h = canvas.height = stage.clientHeight || window.innerHeight;
 
   let player = { x: 90, y: 0, vy: 0, jumps: 0, runCycle: 0, sliding: false, slideTimer: 0 };
   let obstacles = [], coins = [], dist = 0, coinCount = 0, scroll = 0, alive = true, raf;
@@ -2724,7 +2773,11 @@ function initStickRun(stage) {
     if (e.key === 'ArrowDown' || e.key === 's') { e.preventDefault(); slide(); }
   };
   window.addEventListener('keydown', onKey);
-  const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
+  const onResize = () => { 
+    if (!stage) return;
+    w = canvas.width = stage.clientWidth || window.innerWidth; 
+    h = canvas.height = stage.clientHeight || window.innerHeight; 
+  };
   window.addEventListener('resize', onResize);
 
   function drawStickman(x, y, phase, inAir, sliding) {
@@ -2792,6 +2845,15 @@ function initStickRun(stage) {
   }
 
   function loop() {
+    if (stage) {
+      const sw = stage.clientWidth;
+      const sh = stage.clientHeight;
+      if (sw && sh && (canvas.width !== sw || canvas.height !== sh)) {
+        w = canvas.width = sw;
+        h = canvas.height = sh;
+      }
+    }
+
     ctx.clearRect(0, 0, w, h);
     const gy = groundY();
     const speed = 6.2 + Math.min(7, dist / 450);
