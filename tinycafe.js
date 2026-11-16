@@ -1,156 +1,197 @@
 function initTinyCafe(stage) {
   stage.innerHTML = `
-    <div id="cafe-root" class="relative w-full h-full bg-slate-950 flex flex-col items-center justify-between p-3 pt-2 select-none text-white overflow-y-auto pb-20 transition-colors duration-1000" style="background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 50%, #0f172a 100%);">
+    <div id="cafe-root" class="relative w-full h-full bg-slate-950 flex flex-col justify-between p-2 pt-1 select-none text-white overflow-hidden transition-colors duration-1000" style="background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 50%, #0f172a 100%);">
       <!-- Cloud Dissolve Intro Overlay -->
       <div id="cafe-intro-clouds" class="absolute inset-0 z-50 bg-sky-900 flex flex-col items-center justify-center transition-transform duration-1000">
-        <div class="text-6xl mb-4 animate-bounce">🍔🔥🏆</div>
-        <h2 class="text-2xl font-black text-amber-300 mb-2">Tiny Café &amp; Bistro Goal Edition</h2>
-        <p class="text-xs text-sky-200 mb-6 text-center max-w-xs">Complete 10 orders a day to unlock coin &amp; XP rewards, new cookable foods, and daily progression!</p>
-        <button onclick="startCafeShift()" class="px-8 py-3.5 bg-amber-500 text-slate-950 font-black rounded-2xl shadow-xl hover:scale-105 transition">Start Bistro Shift 🚀</button>
+        <div class="text-5xl mb-3 animate-bounce">🍔☕</div>
+        <h2 class="text-xl font-black text-amber-300 mb-1">Tiny Café &amp; Bistro Pro</h2>
+        <p class="text-xs text-sky-200 mb-4 text-center max-w-xs">Drinks on the left, 10s cookable foods on the right. Zero scrolling, full viewport!</p>
+        <button onclick="startCafeShift()" class="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl shadow-xl hover:scale-105 transition text-xs">Start Bistro Shift 🚀</button>
       </div>
 
       <!-- Day Complete Reward Modal Overlay -->
-      <div id="day-modal" class="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden transition-all duration-500 opacity-0 scale-95">
-        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/50 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
-          <div class="text-5xl mb-2 animate-bounce">🏆</div>
-          <h3 id="modal-title" class="text-xl font-black text-amber-300 mb-1">Day 1 Completed!</h3>
-          <p class="text-xs text-slate-300 mb-4">Amazing job! You successfully served 10 customers today.</p>
+      <div id="day-modal" class="absolute inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden transition-all duration-500 opacity-0 scale-95">
+        <div class="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/50 rounded-3xl p-5 max-w-xs w-full text-center shadow-2xl">
+          <div class="text-4xl mb-2 animate-bounce">🏆</div>
+          <h3 id="modal-title" class="text-lg font-black text-amber-300 mb-1">Day Completed!</h3>
+          <p class="text-[11px] text-slate-300 mb-3">You successfully served 10 customers today!</p>
           
-          <div class="bg-black/50 border border-white/10 rounded-2xl p-3 mb-5 flex justify-around text-xs font-bold">
+          <div class="bg-black/50 border border-white/10 rounded-xl p-2.5 mb-4 flex justify-around text-xs font-bold">
             <div class="text-amber-400">🪙 +500 Coins</div>
             <div class="text-emerald-400">⭐ +150 XP</div>
           </div>
 
-          <button onclick="advanceToNextDay()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black rounded-xl text-sm shadow-lg hover:scale-105 transition">Start Day 2 🌅</button>
+          <button onclick="advanceToNextDay()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black rounded-xl text-xs shadow-lg hover:scale-105 transition">Start Next Day 🌅</button>
         </div>
       </div>
 
       <!-- Top HUD -->
-      <div class="flex items-center justify-between w-full max-w-xl bg-black/60 p-2.5 rounded-2xl border border-white/10 shrink-0 mb-1.5">
-        <span id="cafe-coins" class="text-amber-400 font-black text-xs sm:text-sm">🪙 500</span>
-        <span id="day-goal-text" class="text-amber-300 font-bold text-xs">📅 DAY 1 (0/10)</span>
-        <span id="customer-patience-text" class="text-cyan-300 font-mono font-bold text-xs">⏳ 01:00</span>
+      <div class="flex items-center justify-between w-full bg-black/70 p-2 rounded-xl border border-white/10 shrink-0 text-xs">
+        <span id="cafe-coins" class="text-amber-400 font-black">🪙 500</span>
+        <span id="day-goal-text" class="text-amber-300 font-bold">📅 DAY 1 (0/10)</span>
+        <span id="customer-patience-text" class="text-cyan-300 font-mono font-bold">⏳ 01:00</span>
       </div>
 
-      <!-- Scenic Environment & Time Banner -->
-      <div id="scenic-banner" class="w-full max-w-xl bg-black/40 border border-white/10 rounded-xl py-1 px-3 text-center text-xs font-bold text-amber-200 mb-1.5 shrink-0 flex items-center justify-center gap-2">
-        <span>🌅</span> <span id="scenic-text">Morning • Plaza Square</span>
-      </div>
-
-      <!-- Patience Bar Track -->
-      <div class="w-full max-w-xl bg-white/10 h-2 rounded-full overflow-hidden mb-2 shrink-0">
-        <div id="patience-bar-fill" class="bg-gradient-to-r from-emerald-500 to-amber-500 h-full w-full transition-all duration-1000"></div>
-      </div>
-
-      <!-- Customer Counter & Walking Scene -->
-      <div class="w-full max-w-xl bg-gradient-to-b from-slate-900/90 to-black/90 border border-white/15 rounded-3xl p-3 mb-2 shadow-xl flex items-center justify-center gap-4 relative overflow-hidden shrink-0 backdrop-blur-md">
-        <div class="absolute top-1.5 left-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bistro Counter</div>
-        <div id="customer-avatar" class="text-4xl animate-bounce">🧑‍💼</div>
-        <div class="relative bg-white text-slate-950 px-3.5 py-2 rounded-2xl font-black text-xs sm:text-sm shadow-lg max-w-[260px] text-center">
-          <div class="absolute -left-2 top-1/2 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-r-8 border-r-white border-b-8 border-b-transparent"></div>
+      <!-- Customer Counter & Current Order Banner -->
+      <div class="w-full bg-slate-900/90 border border-white/15 rounded-2xl p-2 shadow-lg flex items-center justify-center gap-3 shrink-0 backdrop-blur-md">
+        <div id="customer-avatar" class="text-3xl animate-bounce">🧑‍💼</div>
+        <div class="relative bg-white text-slate-950 px-3 py-1.5 rounded-xl font-black text-xs shadow-md max-w-[240px] text-center">
+          <div class="absolute -left-2 top-1/2 -translate-y-1/2 w-0 h-0 border-t-6 border-t-transparent border-r-6 border-r-white border-b-6 border-b-transparent"></div>
           <span id="customer-order-bubble">Waiting for customer...</span>
         </div>
       </div>
 
-      <!-- Active Cooking Station Status Banner -->
-      <div id="cooking-status-box" class="w-full max-w-xl bg-amber-950/80 border border-amber-500/40 rounded-xl py-1.5 px-3 text-center text-xs font-bold text-amber-200 mb-2 shrink-0 hidden">
-        🔥 <span id="cooking-label">Cooking Item...</span> <span id="cooking-timer" class="font-mono text-amber-400">10s</span>
-        <div class="w-full bg-black/40 h-1.5 rounded-full mt-1 overflow-hidden">
-          <div id="cooking-progress-fill" class="bg-amber-400 h-full w-full transition-all duration-300"></div>
+      <!-- MAIN WORKSPACE: Side-by-Side List Layout (Left: Drinks | Right: Foods) -->
+      <div class="w-full grid grid-cols-2 gap-2 my-1 overflow-hidden shrink-0" style="height: calc(100% - 175px);">
+        
+        <!-- LEFT COLUMN: DRINKS & MIXERS -->
+        <div class="bg-black/40 border border-white/10 rounded-2xl p-2 flex flex-col gap-1.5 overflow-y-auto">
+          <div class="text-[10px] font-black text-sky-300 uppercase tracking-wider text-center border-b border-white/10 pb-1">☕ Drinks Station</div>
+          
+          <button onclick="addDrink('Beans', '🫘', 'Espresso Beans')" class="bg-slate-900/90 border border-sky-500/30 hover:border-sky-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow">
+            <span class="text-lg">🫘</span>
+            <div class="text-left flex-1 px-2">
+              <div class="text-[11px] font-bold text-slate-200">Beans</div>
+              <div class="text-[9px] text-sky-400">Instant Brew</div>
+            </div>
+            <span class="px-2 py-1 bg-sky-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
+          </button>
+
+          <button onclick="addDrink('Milk', '🥛', 'Fresh Milk')" class="bg-slate-900/90 border border-indigo-500/30 hover:border-indigo-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow">
+            <span class="text-lg">🥛</span>
+            <div class="text-left flex-1 px-2">
+              <div class="text-[11px] font-bold text-slate-200">Milk</div>
+              <div class="text-[9px] text-indigo-400">Dairy</div>
+            </div>
+            <span class="px-2 py-1 bg-indigo-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
+          </button>
+
+          <button onclick="addDrink('Sugar', '🧊', 'Sugar/Ice')" class="bg-slate-900/90 border border-cyan-500/30 hover:border-cyan-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow">
+            <span class="text-lg">🧊</span>
+            <div class="text-left flex-1 px-2">
+              <div class="text-[11px] font-bold text-slate-200">Sugar</div>
+              <div class="text-[9px] text-cyan-400">Sweetener</div>
+            </div>
+            <span class="px-2 py-1 bg-cyan-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
+          </button>
+
+          <button onclick="addDrink('Choco', '🍫', 'Choco Syrup')" class="bg-slate-900/90 border border-pink-500/30 hover:border-pink-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow">
+            <span class="text-lg">🍫</span>
+            <div class="text-left flex-1 px-2">
+              <div class="text-[11px] font-bold text-slate-200">Choco</div>
+              <div class="text-[9px] text-pink-400">Syrup</div>
+            </div>
+            <span class="px-2 py-1 bg-pink-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
+          </button>
+
+          <button onclick="addDrink('Cheese', '🧀', 'Cheese Topping')" class="bg-slate-900/90 border border-amber-500/30 hover:border-amber-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow">
+            <span class="text-lg">🧀</span>
+            <div class="text-left flex-1 px-2">
+              <div class="text-[11px] font-bold text-slate-200">Cheese</div>
+              <div class="text-[9px] text-amber-400">Topping</div>
+            </div>
+            <span class="px-2 py-1 bg-amber-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
+          </button>
         </div>
+
+        <!-- RIGHT COLUMN: COOKABLE FOODS & KITCHEN -->
+        <div class="bg-black/40 border border-white/10 rounded-2xl p-2 flex flex-col gap-1.5 overflow-y-auto">
+          <div class="text-[10px] font-black text-amber-300 uppercase tracking-wider text-center border-b border-white/10 pb-1">🍳 Kitchen (10s Cook)</div>
+          
+          <!-- Food items with dynamic cook status buttons -->
+          <div id="kitchen-food-list" class="flex flex-col gap-1.5">
+            <!-- Rendered dynamically or via static list with live timer support -->
+            <button id="btn-Burger" onclick="startCooking('Burger', '🍔', 'Burger')" class="bg-slate-900/90 border border-amber-600/30 hover:border-amber-500 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
+              <span class="text-lg">🍔</span>
+              <div class="text-left flex-1 px-2">
+                <div class="text-[11px] font-bold text-slate-200">Burger</div>
+                <div id="timer-Burger" class="text-[9px] text-amber-400">Ready to Cook</div>
+              </div>
+              <span id="badge-Burger" class="px-2 py-1 bg-amber-500 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
+            </button>
+
+            <button id="btn-Pizza" onclick="startCooking('Pizza', '🍕', 'Pizza')" class="bg-slate-900/90 border border-orange-600/30 hover:border-orange-500 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
+              <span class="text-lg">🍕</span>
+              <div class="text-left flex-1 px-2">
+                <div class="text-[11px] font-bold text-slate-200">Pizza</div>
+                <div id="timer-Pizza" class="text-[9px] text-orange-400">Ready to Cook</div>
+              </div>
+              <span id="badge-Pizza" class="px-2 py-1 bg-orange-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
+            </button>
+
+            <button id="btn-Fries" onclick="startCooking('Fries', '🍟', 'Fries')" class="bg-slate-900/90 border border-yellow-500/30 hover:border-yellow-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
+              <span class="text-lg">🍟</span>
+              <div class="text-left flex-1 px-2">
+                <div class="text-[11px] font-bold text-slate-200">Fries</div>
+                <div id="timer-Fries" class="text-[9px] text-yellow-400">Ready to Cook</div>
+              </div>
+              <span id="badge-Fries" class="px-2 py-1 bg-yellow-500 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
+            </button>
+
+            <button id="btn-Hotdog" onclick="startCooking('Hotdog', '🌭', 'Hotdog')" class="bg-slate-900/90 border border-red-500/30 hover:border-red-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
+              <span class="text-lg">🌭</span>
+              <div class="text-left flex-1 px-2">
+                <div class="text-[11px] font-bold text-slate-200">Hotdog</div>
+                <div id="timer-Hotdog" class="text-[9px] text-red-400">Ready to Cook</div>
+              </div>
+              <span id="badge-Hotdog" class="px-2 py-1 bg-red-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
+            </button>
+
+            <button id="btn-Chicken" onclick="startCooking('Chicken', '🍗', 'Chicken')" class="bg-slate-900/90 border border-amber-500/30 hover:border-amber-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
+              <span class="text-lg">🍗</span>
+              <div class="text-left flex-1 px-2">
+                <div class="text-[11px] font-bold text-slate-200">Chicken</div>
+                <div id="timer-Chicken" class="text-[9px] text-amber-400">Ready to Cook</div>
+              </div>
+              <span id="badge-Chicken" class="px-2 py-1 bg-amber-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
+            </button>
+
+            <button id="btn-Egg" onclick="startCooking('Egg', '🍳', 'Egg')" class="bg-slate-900/90 border border-yellow-400/30 hover:border-yellow-300 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
+              <span class="text-lg">🍳</span>
+              <div class="text-left flex-1 px-2">
+                <div class="text-[11px] font-bold text-slate-200">Egg</div>
+                <div id="timer-Egg" class="text-[9px] text-yellow-300">Ready to Cook</div>
+              </div>
+              <span id="badge-Egg" class="px-2 py-1 bg-yellow-400 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
+            </button>
+
+            <button id="btn-Taco" onclick="startCooking('Taco', '🌮', 'Taco')" class="bg-slate-900/90 border border-emerald-500/30 hover:border-emerald-400 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
+              <span class="text-lg">🌮</span>
+              <div class="text-left flex-1 px-2">
+                <div class="text-[11px] font-bold text-slate-200">Taco</div>
+                <div id="timer-Taco" class="text-[9px] text-emerald-400">Ready to Cook</div>
+              </div>
+              <span id="badge-Taco" class="px-2 py-1 bg-emerald-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
+            </button>
+
+            <button id="btn-Pancake" onclick="startCooking('Pancake', '🥞', 'Pancake')" class="bg-slate-900/90 border border-orange-400/30 hover:border-orange-300 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
+              <span class="text-lg">🥞</span>
+              <div class="text-left flex-1 px-2">
+                <div class="text-[11px] font-bold text-slate-200">Pancake</div>
+                <div id="timer-Pancake" class="text-[9px] text-orange-300">Ready to Cook</div>
+              </div>
+              <span id="badge-Pancake" class="px-2 py-1 bg-orange-500 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
+            </button>
+
+            <button id="btn-Waffle" onclick="startCooking('Waffle', '🧇', 'Waffle')" class="bg-slate-900/90 border border-amber-700/30 hover:border-amber-600 rounded-xl p-2 flex items-center justify-between transition active:scale-95 shadow relative">
+              <span class="text-lg">🧇</span>
+              <div class="text-left flex-1 px-2">
+                <div class="text-[11px] font-bold text-slate-200">Waffle</div>
+                <div id="timer-Waffle" class="text-[9px] text-amber-500">Ready to Cook</div>
+              </div>
+              <span id="badge-Waffle" class="px-2 py-1 bg-amber-700 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
+            </button>
+          </div>
+
+        </div>
+
       </div>
 
-      <!-- Spacious Kitchen & Ingredient Grid -->
-      <div class="w-full max-w-xl grid grid-cols-2 sm:grid-cols-5 gap-2 my-auto shrink-0 py-1">
-        <!-- Instant Items -->
-        <button onclick="addInstantIngredient('Beans', '🫘')" class="bg-slate-950/90 border border-white/10 hover:border-amber-500/50 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg">
-          <div class="text-2xl">🫘</div>
-          <div class="text-[10px] font-bold text-slate-300">Beans</div>
-          <span class="w-full py-1 bg-amber-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
-        </button>
-        <button onclick="addInstantIngredient('Milk', '🥛')" class="bg-slate-950/90 border border-white/10 hover:border-indigo-500/50 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg">
-          <div class="text-2xl">🥛</div>
-          <div class="text-[10px] font-bold text-slate-300">Milk</div>
-          <span class="w-full py-1 bg-indigo-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
-        </button>
-        <button onclick="addInstantIngredient('Sugar', '🧊')" class="bg-slate-950/90 border border-white/10 hover:border-cyan-500/50 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg">
-          <div class="text-2xl">🧊</div>
-          <div class="text-[10px] font-bold text-slate-300">Sugar</div>
-          <span class="w-full py-1 bg-cyan-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
-        </button>
-        <button onclick="addInstantIngredient('Choco', '🍫')" class="bg-slate-950/90 border border-white/10 hover:border-pink-500/50 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg">
-          <div class="text-2xl">🍫</div>
-          <div class="text-[10px] font-bold text-slate-300">Choco</div>
-          <span class="w-full py-1 bg-pink-600 text-white font-black rounded-lg text-[9px]">+ Add</span>
-        </button>
-        <button onclick="addInstantIngredient('Cheese', '🧀')" class="bg-slate-950/90 border border-white/10 hover:border-amber-400/50 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg">
-          <div class="text-2xl">🧀</div>
-          <div class="text-[10px] font-bold text-slate-300">Cheese</div>
-          <span class="w-full py-1 bg-amber-500 text-slate-950 font-black rounded-lg text-[9px]">+ Add</span>
-        </button>
-
-        <!-- 10s Cookable Grill/Fryer Items -->
-        <button onclick="startCooking('Burger', '🍔', 'Burger')" class="bg-slate-950/90 border border-amber-600/30 hover:border-amber-500 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg relative">
-          <span class="absolute top-1 right-1 text-[8px] bg-amber-600 text-slate-950 font-bold px-1 rounded">10s 🔥</span>
-          <div class="text-2xl">🍔</div>
-          <div class="text-[10px] font-bold text-slate-300">Burger</div>
-          <span class="w-full py-1 bg-amber-500 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
-        </button>
-        <button onclick="startCooking('Pizza', '🍕', 'Pizza Crust')" class="bg-slate-950/90 border border-orange-500/30 hover:border-orange-500 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg relative">
-          <span class="absolute top-1 right-1 text-[8px] bg-orange-600 text-white font-bold px-1 rounded">10s 🔥</span>
-          <div class="text-2xl">🍕</div>
-          <div class="text-[10px] font-bold text-slate-300">Pizza</div>
-          <span class="w-full py-1 bg-orange-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
-        </button>
-        <button onclick="startCooking('Fries', '🍟', 'French Fries')" class="bg-slate-950/90 border border-yellow-500/30 hover:border-yellow-500 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg relative">
-          <span class="absolute top-1 right-1 text-[8px] bg-yellow-600 text-slate-950 font-bold px-1 rounded">10s 🔥</span>
-          <div class="text-2xl">🍟</div>
-          <div class="text-[10px] font-bold text-slate-300">Fries</div>
-          <span class="w-full py-1 bg-yellow-500 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
-        </button>
-        <button onclick="startCooking('Hotdog', '🌭', 'Hotdog')" class="bg-slate-950/90 border border-red-500/30 hover:border-red-500 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg relative">
-          <span class="absolute top-1 right-1 text-[8px] bg-red-600 text-white font-bold px-1 rounded">10s 🔥</span>
-          <div class="text-2xl">🌭</div>
-          <div class="text-[10px] font-bold text-slate-300">Hotdog</div>
-          <span class="w-full py-1 bg-red-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
-        </button>
-        <button onclick="startCooking('Chicken', '🍗', 'Fried Chicken')" class="bg-slate-950/90 border border-amber-500/30 hover:border-amber-500 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg relative">
-          <span class="absolute top-1 right-1 text-[8px] bg-amber-600 text-white font-bold px-1 rounded">10s 🔥</span>
-          <div class="text-2xl">🍗</div>
-          <div class="text-[10px] font-bold text-slate-300">Chicken</div>
-          <span class="w-full py-1 bg-amber-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
-        </button>
-        <button onclick="startCooking('Egg', '🍳', 'Fried Egg')" class="bg-slate-950/90 border border-yellow-400/30 hover:border-yellow-400 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg relative">
-          <span class="absolute top-1 right-1 text-[8px] bg-yellow-500 text-slate-950 font-bold px-1 rounded">10s 🔥</span>
-          <div class="text-2xl">🍳</div>
-          <div class="text-[10px] font-bold text-slate-300">Egg</div>
-          <span class="w-full py-1 bg-yellow-400 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
-        </button>
-        <button onclick="startCooking('Taco', '🌮', 'Crispy Taco')" class="bg-slate-950/90 border border-emerald-500/30 hover:border-emerald-500 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg relative">
-          <span class="absolute top-1 right-1 text-[8px] bg-emerald-600 text-white font-bold px-1 rounded">10s 🔥</span>
-          <div class="text-2xl">🌮</div>
-          <div class="text-[10px] font-bold text-slate-300">Taco</div>
-          <span class="w-full py-1 bg-emerald-600 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
-        </button>
-        <button onclick="startCooking('Pancake', '🥞', 'Pancakes')" class="bg-slate-950/90 border border-orange-400/30 hover:border-orange-400 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg relative">
-          <span class="absolute top-1 right-1 text-[8px] bg-orange-500 text-slate-950 font-bold px-1 rounded">10s 🔥</span>
-          <div class="text-2xl">🥞</div>
-          <div class="text-[10px] font-bold text-slate-300">Pancake</div>
-          <span class="w-full py-1 bg-orange-400 text-slate-950 font-black rounded-lg text-[9px]">Cook 10s</span>
-        </button>
-        <button onclick="startCooking('Waffle', '🧇', 'Belgian Waffle')" class="bg-slate-950/90 border border-amber-700/30 hover:border-amber-700 rounded-2xl p-2 text-center flex flex-col items-center gap-1 transition active:scale-95 shadow-lg relative">
-          <span class="absolute top-1 right-1 text-[8px] bg-amber-800 text-white font-bold px-1 rounded">10s 🔥</span>
-          <div class="text-2xl">🧇</div>
-          <div class="text-[10px] font-bold text-slate-300">Waffle</div>
-          <span class="w-full py-1 bg-amber-700 text-white font-black rounded-lg text-[9px]">Cook 10s</span>
-        </button>
-      </div>
-
-      <!-- Preparation Tray & Actions -->
-      <div class="w-full max-w-xl bg-black/85 backdrop-blur-md border border-white/15 rounded-2xl p-3 text-center shrink-0 shadow-2xl mt-1">
-        <div class="text-[11px] text-slate-400 mb-1.5 uppercase font-bold">Preparation Tray: <span id="cup-tray" class="text-pink-400 font-mono">[ Empty ]</span></div>
+      <!-- Preparation Tray & Serve Actions (Pinned at Bottom) -->
+      <div class="w-full bg-black/90 backdrop-blur-md border border-white/15 rounded-2xl p-2 text-center shrink-0 shadow-2xl">
+        <div class="text-[10px] text-slate-400 mb-1 uppercase font-bold">Tray: <span id="cup-tray" class="text-pink-400 font-mono">[ Empty ]</span></div>
         <div class="flex gap-2">
-          <button onclick="resetCup()" class="py-2 px-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs transition active:scale-95">Clear 🗑️</button>
+          <button onclick="resetTray()" class="py-2 px-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs transition active:scale-95">Clear 🗑️</button>
           <button onclick="serveOrder()" class="flex-1 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black rounded-xl text-xs shadow-lg transition active:scale-95">Serve Order 🛎️</button>
         </div>
       </div>
@@ -159,20 +200,17 @@ function initTinyCafe(stage) {
 
   let coins = 500, served = 0, currentDay = 1, dailyServed = 0, customerTimeLeft = 60, phaseIndex = 0;
   let currentOrderObj = { name: 'Espresso', ingredients: ['Beans'] };
-  let currentCup = [];
+  let currentTray = [];
   let gameInterval = null;
-  let cookingInterval = null;
-  let isCookingActive = false;
+  let activeTimers = {}; // Tracks ongoing cooking timers per item key
 
   const avatars = ['🧑‍💼', '👩‍🎨', '🧑‍🎓', '🧑‍💻', '🧑‍🎤', '👷‍♂️', '👩‍⚕️'];
   
-  // Expanded Bistro Orders
   const possibleOrders = [
     { name: 'Espresso', ingredients: ['Beans'] },
     { name: 'Latte', ingredients: ['Beans', 'Milk'] },
     { name: 'Classic Burger', ingredients: ['Burger'] },
     { name: 'Cheesy Burger', ingredients: ['Burger', 'Cheese'] },
-    { name: 'Breakfast Burger', ingredients: ['Burger', 'Egg'] },
     { name: 'Hotdog Sandwich', ingredients: ['Hotdog'] },
     { name: 'Pepperoni Pizza', ingredients: ['Pizza', 'Cheese'] },
     { name: 'Crispy Fries', ingredients: ['Fries'] },
@@ -183,15 +221,6 @@ function initTinyCafe(stage) {
     { name: 'Mocha Frappe', ingredients: ['Beans', 'Milk', 'Choco'] }
   ];
 
-  const timeCycles = [
-    { title: 'Morning • Plaza Square', bg: 'linear-gradient(180deg, #38bdf8 0%, #0ea5e9 50%, #0f172a 100%)', icon: '🌅' },
-    { title: 'Noon • City Skyline & Skyscrapers', bg: 'linear-gradient(180deg, #0284c7 0%, #38bdf8 60%, #1e293b 100%)', icon: '☀️' },
-    { title: 'Afternoon • Suburban Houses', bg: 'linear-gradient(180deg, #f59e0b 0%, #fbbf24 50%, #1c1917 100%)', icon: '🌳' },
-    { title: 'Dusk • Downtown Plaza', bg: 'linear-gradient(180deg, #c084fc 0%, #f43f5e 50%, #0f0728 100%)', icon: '🌇' },
-    { title: 'Evening • City Skyline Lights', bg: 'linear-gradient(180deg, #1e1b4b 0%, #311042 60%, #05020a 100%)', icon: '🌃' },
-    { title: 'Dawn • Suburban Neighborhood', bg: 'linear-gradient(180deg, #f43f5e 0%, #fb7185 50%, #1e1b4b 100%)', icon: '🌄' }
-  ];
-
   window.startCafeShift = function() {
     const cloudEl = document.getElementById('cafe-intro-clouds');
     if (cloudEl) {
@@ -200,7 +229,6 @@ function initTinyCafe(stage) {
     }
     if (typeof AudioFX !== 'undefined') AudioFX.coin();
     window.spawnNextCustomer();
-    updateEnvironmentVisuals();
 
     if (gameInterval) clearInterval(gameInterval);
     gameInterval = setInterval(() => {
@@ -210,7 +238,6 @@ function initTinyCafe(stage) {
       const barEl = document.getElementById('patience-bar-fill');
       
       if (timerEl) timerEl.textContent = `⏳ 00:${String(secs).padStart(2,'0')}`;
-      if (barEl) barEl.style.width = `${(customerTimeLeft / 60) * 100}%`;
 
       if (customerTimeLeft <= 0) {
         coins = Math.max(0, coins - 40);
@@ -221,83 +248,86 @@ function initTinyCafe(stage) {
     }, 1000);
   };
 
-  window.updateEnvironmentVisuals = function() {
-    const cycle = timeCycles[phaseIndex];
-    const rootEl = document.getElementById('cafe-root');
-    const textEl = document.getElementById('scenic-text');
-    if (rootEl) rootEl.style.background = cycle.bg;
-    if (textEl) textEl.innerHTML = `${cycle.icon} ${cycle.title}`;
-  };
-
   window.spawnNextCustomer = function() {
     customerTimeLeft = 60; 
     currentOrderObj = possibleOrders[Math.floor(Math.random() * possibleOrders.length)];
-    currentCup = [];
+    currentTray = [];
     
     const bubble = document.getElementById('customer-order-bubble');
     const avatar = document.getElementById('customer-avatar');
     if (avatar) avatar.textContent = avatars[Math.floor(Math.random() * avatars.length)];
     if (bubble) bubble.textContent = `I want a ${currentOrderObj.name} (${currentOrderObj.ingredients.join(' + ')})`;
-    updateCupDisplay();
+    updateTrayDisplay();
   };
 
-  window.addInstantIngredient = function(item, emoji) {
-    currentCup.push(item);
-    updateCupDisplay();
+  window.addDrink = function(item, emoji, name) {
+    currentTray.push(item);
+    updateTrayDisplay();
     if (typeof AudioFX !== 'undefined') AudioFX.click();
   };
 
   window.startCooking = function(itemKey, emoji, itemName) {
-    if (isCookingActive) return;
-    isCookingActive = true;
+    if (activeTimers[itemKey]) return; // Already cooking
 
-    const statusBox = document.getElementById('cooking-status-box');
-    const labelEl = document.getElementById('cooking-label');
-    const timerEl = document.getElementById('cooking-timer');
-    const progressFill = document.getElementById('cooking-progress-fill');
-
-    if (statusBox) statusBox.classList.remove('hidden');
+    const timerLabel = document.getElementById(`timer-${itemKey}`);
+    const badge = document.getElementById(`badge-${itemKey}`);
     
     let timeLeft = 10;
-    if (labelEl) labelEl.textContent = `Cooking ${itemName} (${emoji})...`;
-    if (timerEl) timerEl.textContent = `${timeLeft}s`;
-    if (progressFill) progressFill.style.width = `100%`;
-
+    if (badge) {
+      badge.textContent = `${timeLeft}s 🔥`;
+      badge.classList.remove('bg-amber-500', 'bg-orange-600', 'bg-yellow-500', 'bg-red-600', 'bg-amber-600', 'bg-yellow-400', 'bg-emerald-600', 'bg-orange-500', 'bg-amber-700');
+      badge.classList.add('bg-rose-600', 'text-white');
+    }
     if (typeof AudioFX !== 'undefined') AudioFX.click();
 
-    if (cookingInterval) clearInterval(cookingInterval);
-    cookingInterval = setInterval(() => {
+    activeTimers[itemKey] = setInterval(() => {
       timeLeft--;
-      if (timerEl) timerEl.textContent = `${timeLeft}s`;
-      if (progressFill) progressFill.style.width = `${(timeLeft / 10) * 100}%`;
+      if (timerLabel) timerLabel.textContent = `Cooking... ${timeLeft}s`;
 
       if (timeLeft <= 0) {
-        clearInterval(cookingInterval);
-        isCookingActive = false;
-        if (statusBox) statusBox.classList.add('hidden');
-        
-        currentCup.push(itemKey);
-        updateCupDisplay();
+        clearInterval(activeTimers[itemKey]);
+        delete activeTimers[itemKey];
+
+        if (timerLabel) timerLabel.textContent = `Ready! (Added to Tray)`;
+        if (badge) {
+          badge.textContent = `Cooked ✓`;
+          badge.classList.remove('bg-rose-600');
+          badge.classList.add('bg-emerald-500', 'text-slate-950');
+        }
+
+        // Add to tray automatically when done cooking!
+        currentTray.push(itemKey);
+        updateTrayDisplay();
         if (typeof AudioFX !== 'undefined') AudioFX.coin();
+
+        // Reset badge after 1.5s
+        setTimeout(() => {
+          if (timerLabel) timerLabel.textContent = `Ready to Cook`;
+          if (badge) {
+            badge.textContent = `Cook 10s`;
+            badge.classList.remove('bg-emerald-500', 'text-slate-950');
+            badge.classList.add('bg-amber-500', 'text-slate-950');
+          }
+        }, 1500);
       }
     }, 1000);
   };
 
-  window.resetCup = function() {
-    currentCup = [];
-    updateCupDisplay();
+  window.resetTray = function() {
+    currentTray = [];
+    updateTrayDisplay();
     if (typeof AudioFX !== 'undefined') AudioFX.hit();
   };
 
-  function updateCupDisplay() {
+  function updateTrayDisplay() {
     const trayEl = document.getElementById('cup-tray');
     if (trayEl) {
-      trayEl.textContent = currentCup.length > 0 ? `[ ${currentCup.join(' → ')} ]` : '[ Empty ]';
+      trayEl.textContent = currentTray.length > 0 ? `[ ${currentTray.join(' → ')} ]` : '[ Empty ]';
     }
   }
 
   window.serveOrder = function() {
-    const isMatch = currentCup.length === currentOrderObj.ingredients.length && currentOrderObj.ingredients.every((val, index) => val === currentCup[index]);
+    const isMatch = currentTray.length === currentOrderObj.ingredients.length && currentOrderObj.ingredients.every((val, index) => val === currentTray[index]);
     if (isMatch) {
       coins += 220;
       served++;
@@ -305,24 +335,17 @@ function initTinyCafe(stage) {
       
       document.getElementById('cafe-coins').textContent = `🪙 ${coins}`;
       document.getElementById('day-goal-text').textContent = `📅 DAY ${currentDay} (${dailyServed}/10)`;
-      
-      if (served % 2 === 0) {
-        phaseIndex = (phaseIndex + 1) % timeCycles.length;
-        window.updateEnvironmentVisuals();
-      }
 
       if (typeof AudioFX !== 'undefined') AudioFX.win();
       if (typeof addXP === 'function') addXP(45);
 
-      // Check if Daily Goal (10 orders) is reached!
       if (dailyServed >= 10) {
         if (gameInterval) clearInterval(gameInterval);
-        if (cookingInterval) clearInterval(cookingInterval);
+        Object.values(activeTimers).forEach(t => clearInterval(t));
         
-        // Show Day Complete Reward Modal with smooth animation
-        coins += 500; // Bonus reward coins
+        coins += 500;
         document.getElementById('cafe-coins').textContent = `🪙 ${coins}`;
-        if (typeof addXP === 'function') addXP(150); // Bonus reward XP
+        if (typeof addXP === 'function') addXP(150);
 
         const modal = document.getElementById('day-modal');
         const modalTitle = document.getElementById('modal-title');
@@ -361,6 +384,6 @@ function initTinyCafe(stage) {
 
   return () => {
     if (gameInterval) clearInterval(gameInterval);
-    if (cookingInterval) clearInterval(cookingInterval);
+    Object.values(activeTimers).forEach(t => clearInterval(t));
   };
 }
