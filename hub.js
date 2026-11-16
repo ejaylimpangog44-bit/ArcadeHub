@@ -354,70 +354,19 @@ const GAMES = [
   { id: 'tictactoe', num: 7, name: 'Tic-Tac-Toe', cat: 'Puzzle', icon: '❌', envName: 'Chalkboard & Neon Laser Grid', bg: 'radial-gradient(circle at 50% 50%, #111827 0%, #060913 100%)', theme: 'neon_chalk' },
   { id: 'numberguess', num: 8, name: 'Number Guess', cat: 'Puzzle', icon: '🔢', envName: 'Cryptographic Matrix Vault', bg: 'radial-gradient(circle at 50% 30%, #052e16 0%, #02120a 70%, #000804 100%)', theme: 'matrix_vault' },
   { id: 'wordscape', num: 9, name: 'Wordscape Pro', cat: 'Puzzle', icon: '📝', envName: 'Sunset Mountain Valley Sky', bg: 'linear-gradient(180deg, #1e1b4b 0%, #4c1d95 38%, #be185d 75%, #f59e0b 100%)', theme: 'sunset_valley' },
-  { id: 'pianotiles', num: 10, name: 'Piano Tiles', cat: 'Action', icon: '🎹', envName: 'Grand Spotlight Concert Hall', bg: 'radial-gradient(circle at 50% 0%, #312e81 0%, #0f172a 55%, #020617 100%)', theme: 'concert_hall', notReady: true },
+  { id: 'pianotiles', num: 10, name: 'Piano Tiles', cat: 'Action', icon: '🎹', envName: 'Grand Spotlight Concert Hall', bg: 'radial-gradient(circle at 50% 0%, #312e81 0%, #0f172a 55%, #020617 100%)', theme: 'concert_hall' },
   { id: 'fruitmaster', num: 11, name: 'Fruit Master', cat: 'Action', icon: '🍉', envName: 'Tropical Bamboo & Sakura Dojo', bg: 'linear-gradient(160deg, #14532d 0%, #1e3a2f 45%, #3f2e21 100%)', theme: 'bamboo_dojo' },
   { id: 'whackamole', num: 12, name: 'Whack-a-Mole', cat: 'Action', icon: '🔨', envName: 'Sunlit Meadow & Garden Hills', bg: 'linear-gradient(180deg, #0284c7 0%, #38bdf8 42%, #16a34a 43%, #14532d 100%)', theme: 'sunny_meadow' },
   { id: 'cybersnake', num: 13, name: 'Cyber Snake', cat: 'Action', icon: '🐍', envName: 'Original Version Preserved', bg: 'radial-gradient(circle at 50% 50%, #0f172a 0%, #090a10 100%)', theme: 'preserved', locked: true },
-  { id: 'towerstack', num: 14, name: 'Tower Stack', cat: 'Action', icon: '🏗️', envName: 'Twilight Skyline to Stratosphere', bg: 'linear-gradient(180deg, #090d16 0%, #1e1b4b 45%, #6d28d9 80%, #f43f5e 100%)', theme: 'skyline_climb' },
-  { id: 'carracing', num: 15, name: 'Car Racing', cat: 'Racing', icon: '🏎️', envName: 'Neon Sunset Canyon Highway', bg: 'linear-gradient(180deg, #0f0722 0%, #3b0764 42%, #be123c 55%, #090a0f 56%)', theme: 'synth_highway' },
-  { id: 'brickbreaker', num: 16, name: 'Brick Breaker', cat: 'Racing', icon: '🧱', envName: 'Cosmic Synthwave Core', bg: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #03050a 100%)', theme: 'cosmic_core', notReady: true },
+  { id: 'towerstack', num: 14, name: 'Tower Stack', cat: 'Action', icon: '🏗️', envName: 'Twilight Skyline to Stratosphere', bg: 'linear-gradient(160deg, #090d16 0%, #1e1b4b 45%, #6d28d9 80%, #f43f5e 100%)', theme: 'skyline_climb' },
+  { id: 'carracing', num: 15, name: 'Car Racing', cat: 'Racing', icon: '🏎️', envName: 'Neon Sunset Canyon Highway', bg: 'linear-gradient(160deg, #0f0722 0%, #3b0764 42%, #be123c 55%, #090a0f 56%)', theme: 'synth_highway' },
+  { id: 'brickbreaker', num: 16, name: 'Brick Breaker', cat: 'Racing', icon: '🧱', envName: 'Cosmic Synthwave Core', bg: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #03050a 100%)', theme: 'cosmic_core' },
   { id: 'stickrun', num: 17, name: 'Stick Run', cat: 'Runner', icon: '🏃', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' }
 ];
-
-function openHubHome() {
-  if (activeCleanup) {
-    try { activeCleanup(); } catch (e) {}
-    activeCleanup = null;
-  }
-  activeGameId = null;
-
-  document.getElementById('hub-header').classList.remove('hidden');
-  document.getElementById('universal-game-bar').classList.add('hidden');
-
-  const stage = document.getElementById('game-stage');
-  stage.classList.remove('in-game');
-
-  document.getElementById('app-shell').style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
-  BgEngine.setTheme('hub');
-
-  stage.innerHTML = `
-    <div class="w-full h-full overflow-y-auto px-4 sm:px-8 py-6">
-      <div class="max-w-6xl mx-auto">
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 pb-10">
-          ${GAMES.map(g => `
-            <button onclick="launchGame('${g.id}')" class="group relative overflow-hidden rounded-2xl p-4 text-left border ${g.notReady ? 'border-rose-500/40 opacity-80' : 'border-white/15 hover:border-pink-400/50'} transition-all flex flex-col justify-between min-h-[148px]" style="background:${g.bg}">
-              <div class="absolute inset-0 ${g.notReady ? 'bg-black/60' : 'bg-black/35 group-hover:bg-black/15'} transition"></div>
-              <div class="relative z-10 flex items-center justify-between w-full">
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${g.notReady ? 'bg-rose-600 text-white shadow-md' : g.locked ? 'bg-amber-500/30 text-amber-200' : 'bg-emerald-500/30 text-emerald-200'}">
-                  ${g.notReady ? 'NOT READY' : g.locked ? 'ORIGINAL' : 'FULL V2'}
-                </span>
-                <span class="text-[11px] font-mono text-white/60">#${g.num}</span>
-              </div>
-              <div class="relative z-10 my-2 text-center">
-                <div class="text-3xl sm:text-4xl drop-shadow-md ${g.notReady ? 'grayscale-[30%]' : 'group-hover:scale-110'} transition-transform">${g.icon}</div>
-              </div>
-              <div class="relative z-10">
-                <div class="font-extrabold text-sm text-white leading-tight">${g.name}</div>
-                <div class="text-[10px] text-white/75 line-clamp-1 mt-0.5">${g.envName}</div>
-              </div>
-            </button>
-          `).join('')}
-        </div>
-      </div>
-    </div>
-  `;
-}
 
 function launchGame(id) {
   const meta = GAMES.find(g => g.id === id);
   if (!meta) return;
-
-  if (meta.notReady) {
-    AudioFX.lose();
-    alert(`⚠️ ${meta.name} (#${meta.num}) is marked as NOT READY and is currently under development.`);
-    return;
-  }
-
   AudioFX.click();
 
   if (activeCleanup) {
