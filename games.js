@@ -3304,3 +3304,184 @@ function initStickRun(stage) {
     window.removeEventListener('resize', onResize);
   };
 }
+
+// ----------------------------------------------------
+// 17. TINY CAFÉ (Arcade Game - Cozy Time Management Simulation)
+// ----------------------------------------------------
+function initTinyCafe(stage) {
+  let score = 0, coins = 500, ordersServed = 0, lives = 3, playing = true;
+  let activeCustomers = [];
+  let inventory = { coffee: 5, milk: 5, tea: 5, pastry: 5 };
+
+  const RECIPES = [
+    { name: 'Espresso', icon: '☕', ingredients: ['coffee'], time: 14, reward: 25 },
+    { name: 'Matcha Latte', icon: '🍵', ingredients: ['tea', 'milk'], time: 16, reward: 40 },
+    { name: 'Boba Milk Tea', icon: '🧋', ingredients: ['tea', 'milk', 'coffee'], time: 20, reward: 60 },
+    { name: 'Butter Croissant', icon: '🥐', ingredients: ['pastry'], time: 12, reward: 30 }
+  ];
+
+  const customerNames = ['Barista Bob', 'Student Sarah', 'Coder Alex', 'Gamer Mia', 'Chef Liam'];
+
+  function spawnCustomer() {
+    if (!playing || activeCustomers.length >= 3) return;
+    const recipe = RECIPES[Math.floor(Math.random() * RECIPES.length)];
+    const customer = {
+      id: Math.random(),
+      name: customerNames[Math.floor(Math.random() * customerNames.length)],
+      recipe: recipe,
+      timeLeft: recipe.time,
+      maxTime: recipe.time
+    };
+    activeCustomers.push(customer);
+    render();
+  }
+
+  const customerSpawner = setInterval(() => {
+    if (!playing) return;
+    spawnCustomer();
+  }, 4200);
+
+  const timerInterval = setInterval(() => {
+    if (!playing) return;
+    activeCustomers.forEach(c => {
+      c.timeLeft -= 1;
+      if (c.timeLeft <= 0) {
+        lives--;
+        AudioFX.lose();
+        spawnPopup('Order Expired!', window.innerWidth / 2, window.innerHeight * 0.4, '#ef4444');
+        if (lives <= 0) {
+          playing = false;
+          window.ArcadeHero?.awardGameScore('tiny-cafe', score);
+          AudioFX.lose();
+        }
+      }
+    });
+    activeCustomers = activeCustomers.filter(c => c.timeLeft > 0);
+    render();
+  }, 1000);
+
+  function serveCustomer(customerIdx) {
+    if (!playing) return;
+    const customer = activeCustomers[customerIdx];
+    score += customer.recipe.reward;
+    coins += customer.recipe.reward;
+    ordersServed++;
+    AudioFX.coin();
+    addXP(20, window.innerWidth / 2, window.innerHeight * 0.4, `+${customer.recipe.reward} Coins!`);
+    
+    activeCustomers.splice(customerIdx, 1);
+    if (ordersServed % 5 === 0) {
+      addXP(50, window.innerWidth / 2, window.innerHeight / 2, 'CAFÉ MILESTONE +50 XP!');
+    }
+    render();
+  }
+
+  function restock() {
+    inventory = { coffee: 10, milk: 10, tea: 10, pastry: 10 };
+    AudioFX.click();
+    spawnPopup('Inventory Restocked!', window.innerWidth / 2, window.innerHeight / 2, '#38bdf8');
+    render();
+  }
+
+  function render() {
+    stage.innerHTML = `
+      <div class="w-full h-full flex flex-col justify-between px-4 py-4 pb-16 sm:pb-6 overflow-y-auto select-none">
+        <div class="flex items-center justify-between max-w-4xl w-full mx-auto">
+          <div class="flex items-center gap-3">
+            <span class="px-3.5 py-1 rounded-full bg-amber-950/80 border border-amber-400/40 text-amber-300 font-black text-xs">☕ SCORE: ${score}</span>
+            <span class="px-3.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/30 text-emerald-300 font-bold text-xs">🪙 COINS: ${coins}</span>
+            <span class="px-3.5 py-1 rounded-full bg-rose-950/80 border border-rose-400/30 text-rose-300 font-bold text-xs">LIVES: ${'❤️'.repeat(Math.max(0, lives))}</span>
+          </div>
+          <button id="cafe-restock" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow cursor-pointer">Restock 📦</button>
+        </div>
+
+        ${!playing ? `
+          <div class="my-auto text-center bg-slate-900/90 backdrop-blur-md p-8 rounded-3xl border border-amber-500/40 max-w-md mx-auto shadow-2xl">
+            <div class="text-5xl mb-2">🛑</div>
+            <h2 class="text-2xl font-black text-amber-300">Café Closed!</h2>
+            <p class="text-slate-300 text-sm mb-4">Total Orders Served: ${ordersServed} | Final Score: ${score}</p>
+            <button id="cafe-restart" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg cursor-pointer">Reopen Café ☕</button>
+          </div>
+        ` : `
+          <div class="max-w-4xl w-full mx-auto my-auto flex flex-col gap-6">
+            <div class="text-center">
+              <div class="text-xs uppercase tracking-widest text-amber-300/80 font-bold">Customer Queue</div>
+              <p class="text-xs text-slate-400">Click a customer's order when ready to serve before time runs out!</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 min-h-[160px]">
+              ${activeCustomers.length === 0 ? `
+                <div class="col-span-3 flex flex-col items-center justify-center p-8 rounded-2xl bg-black/30 border border-white/10 text-slate-400 text-xs">
+                  <span class="text-3xl mb-2">🛎️</span>
+                  Waiting for hungry customers to arrive...
+                </div>
+              ` : activeCustomers.map((c, idx) => `
+                <div class="customer-card flex flex-col justify-between p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border-2 border-amber-500/30 shadow-xl relative overflow-hidden">
+                  <div class="absolute top-0 left-0 right-0 h-1.5 bg-black/50">
+                    <div class="h-full bg-amber-400 transition-all duration-1000" style="width: ${(c.timeLeft / c.maxTime) * 100}%"></div>
+                  </div>
+                  <div class="flex items-center justify-between mt-1">
+                    <span class="text-xs font-bold text-slate-300">${c.name}</span>
+                    <span class="text-xs font-mono text-amber-300">⏱️ ${c.timeLeft}s</span>
+                  </div>
+                  <div class="flex items-center justify-center gap-3 my-3">
+                    <span class="text-4xl animate-bounce">${c.recipe.icon}</span>
+                    <div class="text-left">
+                      <div class="text-sm font-black text-white">${c.recipe.name}</div>
+                      <div class="text-[10px] text-amber-400 font-bold">+${c.recipe.reward} Coins</div>
+                    </div>
+                  </div>
+                  <button data-serve="${idx}" class="serve-btn w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-xs shadow hover:opacity-95 transition cursor-pointer">
+                    SERVE ORDER ✓
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="grid grid-cols-4 gap-3 bg-black/40 p-4 rounded-2xl border border-white/10">
+              <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-2xl mb-1">☕</span>
+                <span class="text-[11px] font-bold text-slate-300">Coffee</span>
+                <span class="text-xs font-mono text-amber-300 font-bold">${inventory.coffee} left</span>
+              </div>
+              <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-2xl mb-1">🥛</span>
+                <span class="text-[11px] font-bold text-slate-300">Milk</span>
+                <span class="text-xs font-mono text-amber-300 font-bold">${inventory.milk} left</span>
+              </div>
+              <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-2xl mb-1">🍵</span>
+                <span class="text-[11px] font-bold text-slate-300">Tea</span>
+                <span class="text-xs font-mono text-amber-300 font-bold">${inventory.tea} left</span>
+              </div>
+              <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/5">
+                <span class="text-2xl mb-1">🥐</span>
+                <span class="text-[11px] font-bold text-slate-300">Pastry</span>
+                <span class="text-xs font-mono text-amber-300 font-bold">${inventory.pastry} left</span>
+              </div>
+            </div>
+          </div>
+        `}
+      </div>
+    `;
+
+    document.getElementById('cafe-restock')?.addEventListener('click', restock);
+    document.getElementById('cafe-restart')?.addEventListener('click', () => {
+      score = 0; coins = 500; ordersServed = 0; lives = 3; playing = true; activeCustomers = [];
+      render();
+    });
+
+    document.querySelectorAll('.serve-btn').forEach(btn => {
+      btn.onclick = () => {
+        const idx = Number(btn.dataset.serve);
+        serveCustomer(idx);
+      };
+    });
+  }
+
+  render();
+  return () => {
+    clearInterval(customerSpawner);
+    clearInterval(timerInterval);
+  };
+}
