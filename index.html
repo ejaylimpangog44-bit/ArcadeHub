@@ -35,7 +35,7 @@
   </div>
 </div>
 
-<!-- Floating Assistive Touch Fox Widget (Hidden initially, appears ONLY inside the Hub Lobby) -->
+<!-- Floating Assistive Touch Fox Widget (Hidden initially, appears inside Hub Lobby) -->
 <div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-2xl hidden items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
   <span class="transform group-hover:scale-110 transition">🦊</span>
 </div>
@@ -225,8 +225,8 @@
   </main>
 </div>
 
-<!-- Custom Alert Modal Overlay with z-[100] -->
-<div id="custom-alert-modal" class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+<!-- Custom Alert Modal Overlay placed at the very bottom of body with highest z-[200] priority -->
+<div id="custom-alert-modal" class="fixed inset-0 z-[200] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
   <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 text-center">
     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-pink-600 flex items-center justify-center mx-auto text-xl shadow-lg">🔔</div>
     <div>
@@ -313,9 +313,6 @@
     }
   }
 
-  // Hook into name submission to reveal the Fox in the lobby
-  const originalSubmitPlayerName = window.submitPlayerName;
-  // We ensure the fox displays whenever the app shell unhides
   const observer = new MutationObserver(() => {
     updateFoxVisibility();
   });
