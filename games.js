@@ -3061,69 +3061,95 @@ function initStickRun(stage) {
   window.addEventListener('resize', onResize);
 
   function drawStickman(x, y, phase, inAir, sliding) {
-    ctx.save();
+  ctx.save();
+  ctx.strokeStyle = '#0f172a';
+  ctx.lineWidth = 4.5;
+  ctx.lineCap = 'round';
+  ctx.fillStyle = '#0f172a';
+
+  if (sliding) {
+    // Sliding Pose (Horizontal / Low to ground)
+    // Head
+    ctx.beginPath();
+    ctx.arc(x + 12, y - 16, 9, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Red headband trail
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x + 6, y - 20);
+    ctx.lineTo(x - 10, y - 24);
+    ctx.stroke();
+
+    // Torso (Horizontal)
     ctx.strokeStyle = '#0f172a';
     ctx.lineWidth = 4.5;
-    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x - 14, y - 14);
+    ctx.lineTo(x + 8, y - 14);
+    ctx.stroke();
 
-    if (sliding) {
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath();
-      ctx.arc(x + 10, y - 26, 8, 0, Math.PI * 2);
-      ctx.fill();
+    // Legs stretched backward
+    ctx.beginPath();
+    ctx.moveTo(x - 14, y - 14);
+    ctx.lineTo(x - 30, y - 6);
+    ctx.moveTo(x - 14, y - 14);
+    ctx.lineTo(x - 28, y - 3);
+    ctx.stroke();
 
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(x + 6, y - 26);
-      ctx.lineTo(x - 12, y - 20);
-      ctx.stroke();
+    // Arms tucked forward
+    ctx.beginPath();
+    ctx.moveTo(x, y - 14);
+    ctx.lineTo(x + 16, y - 8);
+    ctx.stroke();
 
-      ctx.strokeStyle = '#0f172a';
-      ctx.lineWidth = 4.5;
-      ctx.beginPath();
-      ctx.moveTo(x, y - 22);
-      ctx.lineTo(x + 18, y - 10);
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath();
-      ctx.arc(x, y - 48, 9, 0, Math.PI * 2);
-      ctx.fill();
+  } else {
+    // Normal Running / Jumping Pose
+    // Head
+    ctx.beginPath();
+    ctx.arc(x, y - 48, 9, 0, Math.PI * 2);
+    ctx.fill();
 
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(x - 6, y - 51);
-      ctx.lineTo(x - 22, y - 48 + Math.sin(phase * 2) * 4);
-      ctx.stroke();
+    // Red headband trail
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x - 6, y - 51);
+    ctx.lineTo(x - 22, y - 48 + Math.sin(phase * 2) * 4);
+    ctx.stroke();
 
-      ctx.strokeStyle = '#0f172a';
-      ctx.lineWidth = 4.5;
-      ctx.beginPath();
-      ctx.moveTo(x, y - 39);
-      ctx.lineTo(x - 3, y - 18);
-      ctx.stroke();
+    // Torso
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 4.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 39);
+    ctx.lineTo(x - 3, y - 18);
+    ctx.stroke();
 
-      const swing = inAir ? 0.75 : Math.sin(phase) * 0.9;
-      ctx.beginPath();
-      ctx.moveTo(x, y - 35);
-      ctx.lineTo(x + Math.sin(swing) * 14, y - 22);
-      ctx.moveTo(x, y - 35);
-      ctx.lineTo(x - Math.sin(swing) * 14, y - 22);
-      ctx.stroke();
+    // Arms & Legs animated stride
+    const swing = inAir ? 0.75 : Math.sin(phase) * 0.9;
+    
+    // Arms
+    ctx.beginPath();
+    ctx.moveTo(x, y - 35);
+    ctx.lineTo(x + Math.sin(swing) * 14, y - 22);
+    ctx.moveTo(x, y - 35);
+    ctx.lineTo(x - Math.sin(swing) * 14, y - 22);
+    ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(x - 3, y - 18);
-      ctx.lineTo(x + Math.sin(swing) * 16, y);
-      ctx.moveTo(x - 3, y - 18);
-      ctx.lineTo(x - Math.sin(swing) * 16, y);
-      ctx.stroke();
-    }
-
-    ctx.restore();
+    // Legs
+    ctx.beginPath();
+    ctx.moveTo(x - 3, y - 18);
+    ctx.lineTo(x + Math.sin(swing) * 16, y);
+    ctx.moveTo(x - 3, y - 18);
+    ctx.lineTo(x - Math.sin(swing) * 16, y);
+    ctx.stroke();
   }
 
+  ctx.restore();
+ }
+  
   function loop() {
     ctx.clearRect(0, 0, w, h);
     const gy = groundY();
