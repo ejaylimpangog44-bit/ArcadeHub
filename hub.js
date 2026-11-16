@@ -358,7 +358,8 @@ const GAMES = [
   { id: 'towerstack', num: 14, name: 'Tower Stack', cat: 'Action', icon: '🏗️', envName: 'Twilight Skyline to Stratosphere', bg: 'linear-gradient(180deg, #090d16 0%, #1e1b4b 45%, #6d28d9 80%, #f43f5e 100%)', theme: 'skyline_climb' },
   { id: 'carracing', num: 15, name: 'Car Racing', cat: 'Racing', icon: '🏎️', envName: 'Neon Sunset Canyon Highway', bg: 'linear-gradient(180deg, #0f0722 0%, #3b0764 42%, #be123c 55%, #090a0f 56%)', theme: 'synth_highway' },
   { id: 'brickbreaker', num: 16, name: 'Brick Breaker', cat: 'Racing', icon: '🧱', envName: 'Cosmic Synthwave Core', bg: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #03050a 100%)', theme: 'cosmic_core' },
-  { id: 'stickrun', num: 17, name: 'Stick Run', cat: 'Runner', icon: '🏃', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' }   { id: 'gravityflip', num: 18, name: 'Gravity Flip', cat: 'Runner', icon: '⚡', envName: 'Neon Tunnel & Dual-Plane Highway', bg: 'radial-gradient(circle at 50% 30%, #311042 0%, #13071f 70%, #05020a 100%)', theme: 'synth_highway' },
+  { id: 'stickrun', num: 17, name: 'Stick Run', cat: 'Runner', icon: '🏃', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' },
+  { id: 'gravityflip', num: 18, name: 'Gravity Flip', cat: 'Runner', icon: '⚡', envName: 'Neon Tunnel & Dual-Plane Highway', bg: 'radial-gradient(circle at 50% 30%, #311042 0%, #13071f 70%, #05020a 100%)', theme: 'synth_highway' },
   { id: 'blockpuzzle', num: 19, name: 'Block Puzzle', cat: 'Puzzle', icon: '🧩', envName: 'Polyomino Grid & Line Builder', bg: 'radial-gradient(circle at 50% 30%, #0f172a 0%, #030712 70%)', theme: 'matrix_vault' },
   { id: 'spaceinvaders', num: 20, name: 'Space Invaders', cat: 'Action', icon: '👾', envName: 'Deep Space Fleet Defense', bg: 'radial-gradient(circle at 50% 30%, #170f38 0%, #06040f 70%)', theme: 'cosmic_core' },
   { id: 'zombiesurvival', num: 21, name: 'Zombie Survival', cat: 'Action', icon: '🧟', envName: 'Post-Apocalyptic Arena', bg: 'radial-gradient(circle at 50% 30%, #1c1917 0%, #0c0a09 70%)', theme: 'bamboo_dojo' },
@@ -571,7 +572,7 @@ function launchGame(id) {
     towerstack: initTowerStack,
     carracing: initCarRacing,
     brickbreaker: initBrickBreaker,
-    stickrun: initStickRun
+    stickrun: initStickRun,
     gravityflip: initGravityFlip,
     blockpuzzle: initBlockPuzzle,
     spaceinvaders: initSpaceInvaders,
