@@ -2054,7 +2054,7 @@ function initWhackAMole(stage) {
 }
 
 // ----------------------------------------------------
-// 12. CYBER SNAKE (Arcade Game - Fullscreen & Tongue Feature)
+// 12. CYBER SNAKE (Arcade Game - Fullscreen & Fixed Food Collision)
 // ----------------------------------------------------
 function initCyberSnakePreserved(stage, meta) {
   stage.innerHTML = `
@@ -2067,7 +2067,7 @@ function initCyberSnakePreserved(stage, meta) {
       <canvas id="snake-canvas" class="absolute inset-0 w-full h-full block touch-none cursor-crosshair"></canvas>
       
       <div class="absolute bottom-3 left-0 right-0 z-20 text-center pointer-events-none">
-        <span class="px-3 py-1 rounded-full bg-slate-900/70 border border-white/10 text-[11px] text-slate-400 font-semibold shadow">Swipe anywhere to steer • Double-tap to flick tongue</span>
+        <span class="px-3 py-1 rounded-full bg-slate-900/70 border border-white/10 text-[11px] text-slate-400 font-semibold shadow">Swipe anywhere on screen to steer</span>
       </div>
     </div>
   `;
@@ -2082,7 +2082,6 @@ function initCyberSnakePreserved(stage, meta) {
   let count = 0;
   let score = 0;
   let running = true;
-  let tongueTimer = 0;
 
   let snake = {
     x: Math.floor((w / 2) / grid) * grid,
@@ -2096,12 +2095,13 @@ function initCyberSnakePreserved(stage, meta) {
   };
 
   let apple = {
-    x: Math.floor(Math.random() * ((w - 40) / grid)) * grid + 20,
-    y: Math.floor(Math.random() * ((h - 40) / grid)) * grid + 20
+    x: Math.floor(Math.random() * Math.floor(w / grid)) * grid,
+    y: Math.floor(Math.random() * Math.floor(h / grid)) * grid
   };
 
-  function getRandomGridPos(max, size) {
-    return Math.floor(Math.random() * (max / size)) * size;
+  function spawnApple() {
+    apple.x = Math.floor(Math.random() * Math.floor(w / grid)) * grid;
+    apple.y = Math.floor(Math.random() * Math.floor(h / grid)) * grid;
   }
 
   function resetSnake() {
@@ -2116,6 +2116,7 @@ function initCyberSnakePreserved(stage, meta) {
     snake.nextDy = 0;
     snake.cells = [];
     snake.maxLen = 5;
+    spawnApple();
     running = true;
   }
 
@@ -2161,8 +2162,6 @@ function initCyberSnakePreserved(stage, meta) {
     snake.cells.unshift({ x: snake.x, y: snake.y });
     if (snake.cells.length > snake.maxLen) snake.cells.pop();
 
-    if (tongueTimer > 0) tongueTimer--;
-
     // Draw Apple
     const ax = apple.x + grid / 2;
     const ay = apple.y + grid / 2;
@@ -2177,6 +2176,17 @@ function initCyberSnakePreserved(stage, meta) {
     ctx.arc(ax, ay, grid / 2 - 2, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+
+    // Check Apple Collision with Head
+    if (snake.x === apple.x && snake.y === apple.y) {
+      snake.maxLen++;
+      score += 10;
+      const scoreEl = document.getElementById('snake-score');
+      if (scoreEl) scoreEl.textContent = score;
+      addXP(15, apple.x, apple.y, '+15 XP');
+      AudioFX.coin();
+      spawnApple();
+    }
 
     // Draw Snake
     snake.cells.forEach((cell, index) => {
@@ -2216,47 +2226,8 @@ function initCyberSnakePreserved(stage, meta) {
         ctx.arc(cx + eyeOffsetX1, cy + eyeOffsetY1, 1.8, 0, Math.PI * 2);
         ctx.arc(cx + eyeOffsetX2, cy + eyeOffsetY2, 1.8, 0, Math.PI * 2);
         ctx.fill();
-
-        // Tongue animation on double-tap
-        if (tongueTimer > 0) {
-          ctx.strokeStyle = '#f43f5e';
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          let tLen = 16;
-          if (snake.dx > 0) {
-            ctx.moveTo(cx + radius, cy); ctx.lineTo(cx + radius + tLen, cy);
-            ctx.moveTo(cx + radius + tLen, cy); ctx.lineTo(cx + radius + tLen + 4, cy - 3);
-            ctx.moveTo(cx + radius + tLen, cy); ctx.lineTo(cx + radius + tLen + 4, cy + 3);
-          } else if (snake.dx < 0) {
-            ctx.moveTo(cx - radius, cy); ctx.lineTo(cx - radius - tLen, cy);
-            ctx.moveTo(cx - radius - tLen, cy); ctx.lineTo(cx - radius - tLen - 4, cy - 3);
-            ctx.moveTo(cx - radius - tLen, cy); ctx.lineTo(cx - radius - tLen - 4, cy + 3);
-          } else if (snake.dy > 0) {
-            ctx.moveTo(cx, cy + radius); ctx.lineTo(cx, cy + radius + tLen);
-            ctx.moveTo(cx, cy + radius + tLen); ctx.lineTo(cx - 3, cy + radius + tLen + 4);
-            ctx.moveTo(cx, cy + radius + tLen); ctx.lineTo(cx + 3, cy + radius + tLen + 4);
-          } else if (snake.dy < 0) {
-            ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy - radius - tLen);
-            ctx.moveTo(cx, cy - radius - tLen); ctx.lineTo(cx - 3, cy - radius - tLen - 4);
-            ctx.moveTo(cx, cy - radius - tLen); ctx.lineTo(cx + 3, cy - radius - tLen - 4);
-          }
-          ctx.stroke();
-        }
       }
       ctx.restore();
-
-      // Eat Apple check
-      if (Math.abs(cell.x - apple.x) < grid / 2 && Math.abs(cell.y - apple.y) < grid / 2) {
-        snake.maxLen++;
-        score += 10;
-        const scoreEl = document.getElementById('snake-score');
-        if (scoreEl) scoreEl.textContent = score;
-        addXP(15, cell.x, cell.y, '+15 XP');
-        AudioFX.coin();
-
-        apple.x = getRandomGridPos(canvas.width - 40, grid) + 10;
-        apple.y = getRandomGridPos(canvas.height - 40, grid) + 10;
-      }
 
       // Self collision
       for (let i = index + 1; i < snake.cells.length; i++) {
@@ -2287,22 +2258,12 @@ function initCyberSnakePreserved(stage, meta) {
   };
   window.addEventListener('keydown', handleKey);
 
-  // Swipe & Double-Tap Handling across entire screen
+  // Swipe Handling across entire screen
   let touchStartX = 0, touchStartY = 0;
-  let lastTapTime = 0;
 
   canvas.ontouchstart = (e) => {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-
-    const currentTime = new Date().getTime();
-    const tapLength = currentTime - lastTapTime;
-    if (tapLength < 350 && tapLength > 0) {
-      // Double tap detected -> flick tongue!
-      tongueTimer = 25;
-      AudioFX.click();
-    }
-    lastTapTime = currentTime;
     e.preventDefault();
   };
 
