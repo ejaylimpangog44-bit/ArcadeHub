@@ -34,9 +34,23 @@
     </div>
   </div>
 </div>
+<div id="app-shell" class="hidden flex flex-col h-screen w-screen overflow-hidden">
+  <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
+  <header id="hub-header" class="hud-glass relative z-30 w-full px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0">
+    <div class="flex items-center gap-2.5">
+      <button onclick="openHubHome()" class="flex items-center gap-2.5 group text-left focus:outline-none">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/25 group-hover:scale-105 transition">
+          <span class="text-lg">🎮</span>
+        </div>
+        <div>
+          <span class="font-extrabold text-sm sm:text-base tracking-tight bg-gradient-to-r from-pink-400 to-violet-300 bg-clip-text text-transparent block leading-tight">Arcade Hub</span>
+          <p class="text-[10px] text-slate-400 tracking-widest uppercase font-semibold">Player: <span id="header-player-name" class="text-pink-400 font-bold">AJ</span></p>
+        </div>
+      </button>
+    </div>
 <!-- Compact Assistive Touch Fox Widget -->
-<div id="assistive-touch-fox" onclick="document.getElementById('hero-modal-backdrop').classList.remove('hidden')" class="fixed right-4 bottom-20 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-xl flex items-center justify-center text-xl cursor-pointer select-none touch-none active:scale-95 transition group" title="Fox Companion Hub">
+<div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-xl flex items-center justify-center text-xl cursor-pointer select-none touch-none active:scale-95 transition group" title="Fox Companion Hub">
   <span class="transform group-hover:scale-110 transition">🦊👨‍🚀</span>
 </div>
 
@@ -56,14 +70,14 @@
       </div>
       <div class="hero-wallet">
         <span class="coin-pill">🪙 <strong id="hero-coin-balance">0</strong></span>
-        <button id="close-hero-modal" class="hero-close-btn" aria-label="Close">✕</button>
+        <button onclick="closeHeroModal()" class="hero-close-btn" aria-label="Close">✕</button>
       </div>
     </div>
 
     <div class="hero-tabs">
-      <button class="hero-tab active" data-tab="wardrobe">Wardrobe</button>
-      <button class="hero-tab" data-tab="shop">Shop</button>
-      <button class="hero-tab" data-tab="rewards">Streak & Spin</button>
+      <button class="hero-tab active" data-tab="wardrobe" onclick="switchHeroTab('wardrobe')">Wardrobe</button>
+      <button class="hero-tab" data-tab="shop" onclick="switchHeroTab('shop')">Shop</button>
+      <button class="hero-tab" data-tab="rewards" onclick="switchHeroTab('rewards')">Streak & Spin</button>
     </div>
 
     <div id="tab-wardrobe" class="hero-tab-panel active">
@@ -108,23 +122,6 @@
     </div>
   </div>
 </div>
-
-<div id="app-shell" class="hidden flex flex-col h-screen w-screen overflow-hidden">
-  <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
-
-  <header id="hub-header" class="hud-glass relative z-30 w-full px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0">
-    <div class="flex items-center gap-2.5">
-      <button onclick="openHubHome()" class="flex items-center gap-2.5 group text-left focus:outline-none">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/25 group-hover:scale-105 transition">
-          <span class="text-lg">🎮</span>
-        </div>
-        <div>
-          <span class="font-extrabold text-sm sm:text-base tracking-tight bg-gradient-to-r from-pink-400 to-violet-300 bg-clip-text text-transparent block leading-tight">Arcade Hub</span>
-          <p class="text-[10px] text-slate-400 tracking-widest uppercase font-semibold">Player: <span id="header-player-name" class="text-pink-400 font-bold">AJ</span></p>
-        </div>
-      </button>
-    </div>
-
     <div class="flex items-center gap-2">
       <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
         <span class="text-base">🦊</span>
@@ -228,6 +225,39 @@
   <source src="https://github.com/ejaylimpangog44-bit/ArcadeHub/releases/download/v1.0.0/bgm.mp3" type="audio/mpeg">
   <source src="./bgm.mp3" type="audio/mpeg">
 </audio>
+
+<script>
+  // Safe wrapper helpers for hero modal interactions
+  function openHeroModal() {
+    const backdrop = document.getElementById('hero-modal-backdrop');
+    if (backdrop) {
+      backdrop.classList.remove('hidden');
+      backdrop.classList.add('flex');
+    }
+    if (typeof window.initHeroModal === 'function') {
+      window.initHeroModal();
+    }
+  }
+
+  function closeHeroModal() {
+    const backdrop = document.getElementById('hero-modal-backdrop');
+    if (backdrop) {
+      backdrop.classList.remove('flex');
+      backdrop.classList.add('hidden');
+    }
+  }
+
+  function switchHeroTab(tabName) {
+    document.querySelectorAll('.hero-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.hero-tab-panel').forEach(p => p.classList.remove('active'));
+    
+    const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+    const selectedPanel = document.getElementById(`tab-${tabName}`);
+    
+    if (selectedTab) selectedTab.classList.add('active');
+    if (selectedPanel) selectedPanel.classList.add('active');
+  }
+</script>
 
 <script src="hero.js"></script>
 <script src="piano.js"></script>
