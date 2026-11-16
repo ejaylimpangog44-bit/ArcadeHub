@@ -11,13 +11,20 @@ function initZombieSurvival(stage) {
   `;
   const canvas = document.getElementById('zs-canvas');
   const ctx = canvas.getContext('2d');
-  let w = canvas.width = stage.clientWidth;
-  let h = canvas.height = stage.clientHeight;
+  
+  let w = canvas.width = stage.clientWidth || window.innerWidth;
+  let h = canvas.height = stage.clientHeight || window.innerHeight;
 
   let player = { x: w / 2, y: h / 2, hp: 100, maxHp: 100, speed: 4, weaponLvl: 1, vx: 0, vy: 0 };
   let zombies = [], bullets = [], loot = [], kills = 0, alive = true, shootTimer = 0, animTick = 0, raf;
   let keys = { w: false, a: false, s: false, d: false };
   let lastX = player.x, lastY = player.y;
+
+  const onResize = () => {
+    w = canvas.width = stage.clientWidth || window.innerWidth;
+    h = canvas.height = stage.clientHeight || window.innerHeight;
+  };
+  window.addEventListener('resize', onResize);
 
   window.addEventListener('keydown', e => {
     if (e.key === 'w' || e.key === 'ArrowUp') keys.w = true;
@@ -220,5 +227,8 @@ function initZombieSurvival(stage) {
   }
   loop();
 
-  return () => { cancelAnimationFrame(raf); };
+  return () => {
+    cancelAnimationFrame(raf);
+    window.removeEventListener('resize', onResize);
+  };
 }
