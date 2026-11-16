@@ -321,14 +321,12 @@ function initCoinScatter(stage, meta) {
     </div>
   `;
 
-  // Updated symbols: Poker card suits/ranks + Scatter
   const symbols = ['♠', '♥', '♦', '♣', '🂡', '⚡'];
   let coins = 3250;
   const betTiers = [50, 500, 1000, 1500, 5000, 10000];
   let currentBetIdx = 0;
   let currentBet = betTiers[currentBetIdx];
 
-  // Multiplier options with emoji formatting
   const multiplierChoices = [
     { val: 2, emoji: '2️⃣x' },
     { val: 3, emoji: '3️⃣x' },
@@ -336,7 +334,8 @@ function initCoinScatter(stage, meta) {
     { val: 10, emoji: '10️⃣x' }
   ];
 
-  let freeSpinsLeft = 0;
+  let freeSpinsTotal = 0;
+  let freeSpinsRemaining = 0;
   let totalBonusWon = 0;
   let lastSessionWin = 0;
   let isAutoSpinning = false;
@@ -378,24 +377,18 @@ function initCoinScatter(stage, meta) {
 
   window.triggerScatterSpin = function() {
     if (isAutoSpinning) return;
-    if (coins < currentBet && freeSpinsLeft === 0) {
+    if (coins < currentBet && freeSpinsRemaining === 0) {
       document.getElementById('scatter-msg').textContent = '⚠️ Not enough coins for this bet!';
       AudioFX.lose();
       return;
     }
 
-    if (freeSpinsLeft === 0) {
+    if (freeSpinsRemaining === 0) {
       coins -= currentBet;
       document.getElementById('scatter-coins').textContent = coins.toLocaleString();
     }
 
     AudioFX.click();
-
-    if (freeSpinsLeft > 0) {
-      freeSpinsLeft--;
-      document.getElementById('scatter-spins').textContent = freeSpinsLeft;
-    }
-
     isAutoSpinning = true;
     document.getElementById('spin-btn').disabled = true;
 
@@ -419,74 +412,77 @@ function initCoinScatter(stage, meta) {
 
     renderScatterGrid(true);
 
-    // Randomly pick a multiplier (2x, 3x, 5x, or 10x)
+    // Pick random multiplier (2x, 3x, 5x, 10x)
     const randomMultObj = multiplierChoices[Math.floor(Math.random() * multiplierChoices.length)];
     const activeMultEl = document.getElementById('active-mult-badge');
     if (activeMultEl) activeMultEl.textContent = randomMultObj.emoji;
 
-    // Trigger Free Spins Bonus if 3+ Scatters
-    if (scatterCount >= 3 && freeSpinsLeft === 0) {
+    // Trigger Free Spins if 3+ Scatters and not currently in a bonus round
+    if (scatterCount >= 3 && freeSpinsRemaining === 0) {
       const possibleSpins = [5, 10, 15, 20];
-      freeSpinsLeft = possibleSpins[Math.floor(Math.random() * possibleSpins.length)];
-      totalBonusWon = 0; // Reset bonus accumulator
-      document.getElementById('scatter-spins').textContent = freeSpinsLeft;
-      document.getElementById('scatter-msg').textContent = `⚡ 3+ SCATTERS! Won ${freeSpinsLeft} Free Spins! Auto-spinning...`;
+      freeSpinsTotal = possibleSpins[Math.floor(Math.random() * possibleSpins.length)];
+      freeSpinsRemaining = freeSpinsTotal;
+      totalBonusWon = 0;
+      document.getElementById('scatter-spins').textContent = freeSpinsRemaining;
+      document.getElementById('scatter-msg').textContent = `⚡ 3+ SCATTERS! Won ${freeSpinsTotal} Free Spins! Starting bonus...`;
       AudioFX.win();
       addXP(50);
 
       setTimeout(() => {
         isAutoSpinning = false;
         document.getElementById('spin-btn').disabled = false;
-        document.getElementById('spin-btn').textContent = "AUTO-SPINNING BONUS...";
         runAutoBonusSpins();
       }, 1200);
-    } else {
-      // Normal or Free Spin dynamic win calculation
+    } else if (freeSpinsRemaining > 0) {
+      freeSpinsRemaining--;
+      document.getElementById('scatter-spins').textContent = freeSpinsRemaining;
+
       const baseWin = (Math.floor(Math.random() * 120) + 30);
       const spinWin = baseWin * randomMultObj.val;
+      totalBonusWon += spinWin;
 
-      if (freeSpinsLeft > 0) {
-        totalBonusWon += spinWin;
-        document.getElementById('scatter-msg').textContent = `Free Spin Win: +${spinWin} Coins (${randomMultObj.emoji} Multiplier)!`;
-        AudioFX.coin();
+      document.getElementById('scatter-msg').textContent = `⚡ Free Spin Win: +${spinWin} Coins (${randomMultObj.emoji} Multiplier)!`;
+      AudioFX.coin();
 
-        isAutoSpinning = false;
-        document.getElementById('spin-btn').disabled = false;
-        document.getElementById('spin-btn').textContent = `NEXT FREE SPIN (${freeSpinsLeft} left)`;
+      isAutoSpinning = false;
+      document.getElementById('spin-btn').disabled = false;
 
-        setTimeout(() => {
-          if (freeSpinsLeft > 0) {
-            triggerScatterSpin();
-          } else {
-            showWinModal(totalBonusWon, "FREE SPINS FEATURE COMPLETE!");
-          }
-        }, 900);
-      } else {
-        lastSessionWin = spinWin;
-        document.getElementById('scatter-msg').textContent = `Spin Win: +${spinWin} Coins (${randomMultObj.emoji} Multiplier)!`;
-        AudioFX.coin();
+      setTimeout(() => {
+        if (freeSpinsRemaining > 0) {
+          runAutoBonusSpins();
+        } else {
+          showWinModal(totalBonusWon, "FREE SPINS FEATURE COMPLETE!");
+        }
+      }, 900);
+    } else {
+      const baseWin = (Math.floor(Math.random() * 120) + 20);
+      const spinWin = baseWin * randomMultObj.val;
+      lastSessionWin = spinWin;
 
-        isAutoSpinning = false;
-        document.getElementById('spin-btn').disabled = false;
-        document.getElementById('spin-btn').textContent = "SPIN THE REELS 🎰";
-        showWinModal(spinWin, "SPIN WIN COLLECTED!");
-      }
+      document.getElementById('scatter-msg').textContent = `Spin Win: +${spinWin} Coins (${randomMultObj.emoji} Multiplier)!`;
+      AudioFX.coin();
+
+      isAutoSpinning = false;
+      document.getElementById('spin-btn').disabled = false;
+      document.getElementById('spin-btn').textContent = "SPIN THE REELS 🎰";
+      showWinModal(spinWin, "SPIN WIN COLLECTED!");
     }
   }
 
   function runAutoBonusSpins() {
-    if (freeSpinsLeft <= 0) {
+    if (freeSpinsRemaining <= 0) {
       showWinModal(totalBonusWon, "FREE SPINS FEATURE COMPLETE!");
       return;
     }
+    document.getElementById('spin-btn').textContent = `AUTO-SPINNING (${freeSpinsRemaining} left)...`;
     triggerScatterSpin();
   }
 
   function showWinModal(targetWin, titleText) {
     document.getElementById('modal-title').textContent = titleText;
-    document.getElementById('scatter-modal').classList.remove('flex');
-    document.getElementById('scatter-modal').classList.add('hidden'); // reset display
-    document.getElementById('scatter-modal').classList.add('flex');
+    const modalEl = document.getElementById('scatter-modal');
+    modalEl.classList.remove('hidden');
+    modalEl.classList.add('flex');
     document.getElementById('spin-btn').textContent = "SPIN THE REELS 🎰";
     
     let currentCount = 0;
@@ -508,245 +504,21 @@ function initCoinScatter(stage, meta) {
   }
 
   window.closeScatterModal = function() {
-    document.getElementById('scatter-modal').classList.remove('flex');
-    document.getElementById('scatter-modal').classList.add('hidden');
+    const modalEl = document.getElementById('scatter-modal');
+    modalEl.classList.remove('flex');
+    modalEl.classList.add('hidden');
     const prizeToAdd = totalBonusWon > 0 ? totalBonusWon : lastSessionWin;
     coins += prizeToAdd;
     totalBonusWon = 0;
     lastSessionWin = 0;
+    freeSpinsTotal = 0;
+    freeSpinsRemaining = 0;
     document.getElementById('scatter-coins').textContent = coins.toLocaleString();
+    document.getElementById('scatter-spins').textContent = '0';
     document.getElementById('scatter-msg').textContent = 'Prize collected! Ready for next spin.';
   };
 
   renderScatterGrid(false);
-}
-
-// ----------------------------------------------------
-// 3. BLACKJACK 21 (Card Game -> Excluded from Hero Coins)
-// ----------------------------------------------------
-function initBlackjack(stage) {
-  let bank = 2000, bet = 100, deck = [], player = [], dealer = [], phase = 'bet', status = 'Place your bet at the VIP Table';
-
-  function handValue(hand) {
-    let sum = 0, aces = 0;
-    hand.forEach(c => {
-      if (c.val === 1) { sum += 11; aces++; }
-      else if (c.val >= 10) sum += 10;
-      else sum += c.val;
-    });
-    while (sum > 21 && aces > 0) { sum -= 10; aces--; }
-    return sum;
-  }
-
-  function deal() {
-    if (bank < bet) bank = 1000;
-    bank -= bet;
-    deck = createDeck();
-    player = [deck.pop(), deck.pop()];
-    dealer = [deck.pop(), deck.pop()];
-    phase = 'play';
-    status = 'Hit, Stand, or Double Down';
-    AudioFX.card();
-    if (handValue(player) === 21) stand();
-    else render();
-  }
-
-  function hit() {
-    if (phase !== 'play') return;
-    player.push(deck.pop());
-    AudioFX.card();
-    if (handValue(player) > 21) {
-      phase = 'done';
-      status = 'Bust! Dealer wins.';
-      AudioFX.lose();
-    }
-    render();
-  }
-
-  function doubleDown() {
-    if (phase !== 'play' || player.length !== 2 || bank < bet) return;
-    bank -= bet;
-    bet *= 2;
-    player.push(deck.pop());
-    AudioFX.card();
-    if (handValue(player) > 21) {
-      phase = 'done';
-      status = 'Bust on Double Down!';
-      bet /= 2;
-      AudioFX.lose();
-      render();
-    } else {
-      stand(true);
-    }
-  }
-
-  function stand(wasDouble = false) {
-    phase = 'done';
-    while (handValue(dealer) < 17) {
-      dealer.push(deck.pop());
-    }
-    const p = handValue(player), d = handValue(dealer);
-    if (d > 21 || p > d) {
-      const payout = (p === 21 && player.length === 2 && !wasDouble) ? Math.floor(bet * 2.5) : bet * 2;
-      bank += payout;
-      status = `You Win! +$${payout}`;
-      AudioFX.win();
-      addXP(25, window.innerWidth / 2, window.innerHeight * 0.45, `+$${payout}`);
-    } else if (p === d) {
-      bank += bet;
-      status = 'Push — Bet Returned.';
-    } else {
-      status = 'Dealer Wins.';
-      AudioFX.lose();
-    }
-    if (wasDouble) bet /= 2;
-    render();
-  }
-
-  function cardEl(c, hidden = false) {
-    if (hidden) {
-      return `<div class="w-16 sm:w-24 aspect-[2.5/3.5] rounded-xl bg-gradient-to-br from-amber-700 to-amber-950 border-2 border-amber-300/50 shadow-xl flex items-center justify-center text-2xl">⚜️</div>`;
-    }
-    return `
-      <div class="w-16 sm:w-24 aspect-[2.5/3.5] rounded-xl bg-white ${c.suit.color} p-2 flex flex-col justify-between shadow-xl border border-slate-300">
-        <div class="text-sm sm:text-lg font-black leading-none">${c.rank}${c.suit.sym}</div>
-        <div class="text-2xl sm:text-4xl self-center">${c.suit.sym}</div>
-        <div class="text-xs sm:text-sm font-bold self-end rotate-180">${c.rank}${c.suit.sym}</div>
-      </div>
-    `;
-  }
-
-  function render() {
-    const pVal = handValue(player);
-    const dVal = phase === 'play' ? '?' : handValue(dealer);
-    stage.innerHTML = `
-      <div class="w-full h-full flex flex-col justify-between items-center px-4 py-4">
-        <div class="flex items-center gap-3">
-          <span class="px-4 py-1.5 rounded-full bg-black/50 border border-amber-400/40 text-amber-300 font-black text-xs sm:text-sm">BANK: $${bank.toLocaleString()}</span>
-          <span class="px-4 py-1.5 rounded-full bg-teal-950/80 border border-teal-400/30 text-teal-200 font-bold text-xs sm:text-sm">BET: $${bet}</span>
-        </div>
-
-        <div class="flex flex-col items-center gap-2">
-          <div class="text-xs uppercase tracking-widest text-teal-200/70 font-bold">Dealer (${dVal})</div>
-          <div class="flex items-center gap-2 sm:gap-3 min-h-[110px]">
-            ${dealer.map((c, idx) => cardEl(c, phase === 'play' && idx === 1)).join('')}
-          </div>
-        </div>
-
-        <div class="px-6 py-2 rounded-full bg-black/40 border border-amber-400/30 text-amber-200 font-extrabold text-sm sm:text-base text-center">
-          ${status}
-        </div>
-
-        <div class="flex flex-col items-center gap-2">
-          <div class="flex items-center gap-2 sm:gap-3 min-h-[110px]">
-            ${player.map(c => cardEl(c)).join('')}
-          </div>
-          <div class="text-xs uppercase tracking-widest text-amber-300 font-bold">Your Hand (${player.length ? pVal : 0})</div>
-        </div>
-
-        <div class="flex flex-wrap items-center justify-center gap-2.5 pb-2">
-          ${phase === 'play' ? `
-            <button id="bj-hit" class="px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm shadow-lg">HIT</button>
-            <button id="bj-stand" class="px-6 py-3 rounded-2xl bg-rose-500 hover:bg-rose-400 text-white font-black text-sm shadow-lg">STAND</button>
-            <button id="bj-dbl" class="px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm shadow-lg">DOUBLE</button>
-          ` : `
-            ${[25, 100, 250, 500].map(amt => `
-              <button data-chip="${amt}" class="bj-chip w-12 h-12 rounded-full font-black text-xs border-2 ${bet === amt ? 'border-amber-300 bg-amber-500 text-slate-950 scale-110' : 'border-white/30 bg-black/50 text-white'} transition">$${amt}</button>
-            `).join('')}
-            <button id="bj-deal" class="px-8 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-xl ml-2">DEAL HAND</button>
-          `}
-        </div>
-      </div>
-    `;
-
-    document.getElementById('bj-hit')?.addEventListener('click', hit);
-    document.getElementById('bj-stand')?.addEventListener('click', () => stand(false));
-    document.getElementById('bj-dbl')?.addEventListener('click', doubleDown);
-    document.getElementById('bj-deal')?.addEventListener('click', deal);
-    document.querySelectorAll('.bj-chip').forEach(b => {
-      b.onclick = () => { bet = Number(b.dataset.chip); AudioFX.click(); render(); };
-    });
-  }
-
-  render();
-}
-
-// ----------------------------------------------------
-// 4. HIGH-LOE / HIGH-LOW (Card Game -> Excluded from Hero Coins)
-// ----------------------------------------------------
-function initHighLow(stage) {
-  let deck = createDeck();
-  let current = deck.pop();
-  let streak = 0, pot = 100, banked = 500, msg = 'Will the next card be Higher or Lower?';
-
-  function guess(dir) {
-    if (deck.length < 5) deck = createDeck();
-    const next = deck.pop();
-    const win = (dir === 'hi' && next.val >= current.val) || (dir === 'lo' && next.val <= current.val);
-    current = next;
-    if (win) {
-      streak++;
-      pot = Math.round(pot * 1.45);
-      msg = `Correct! Streak ${streak}x — Pot is now ${pot}`;
-      AudioFX.coin();
-      addXP(12, window.innerWidth / 2, window.innerHeight * 0.4, `${streak}x STREAK!`);
-    } else {
-      streak = 0;
-      pot = 100;
-      msg = `Missed! Streak reset.`;
-      AudioFX.lose();
-    }
-    render();
-  }
-
-  function cashOut() {
-    if (streak === 0) return;
-    banked += pot;
-    AudioFX.win();
-    addXP(30, window.innerWidth / 2, window.innerHeight * 0.4, `BANKED +${pot}!`);
-    msg = `Cashed out +${pot} coins!`;
-    streak = 0;
-    pot = 100;
-    render();
-  }
-
-  function render() {
-    renderCard();
-  }
-
-  function renderCard() {
-    stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-between px-4 py-5">
-        <div class="flex items-center gap-3">
-          <span class="px-4 py-1.5 rounded-full bg-rose-950/90 border border-rose-400/40 text-rose-200 font-bold text-xs">BANKED: ${banked}</span>
-          <span class="px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-300/40 text-amber-300 font-black text-xs">CURRENT POT: ${pot} (${streak}x)</span>
-        </div>
-
-        <div class="flex flex-col items-center gap-4 my-auto">
-          <div class="text-sm sm:text-base font-bold text-rose-200 text-center">${msg}</div>
-
-          <div class="w-40 sm:w-48 aspect-[2.5/3.5] rounded-3xl bg-white ${current.suit.color} p-4 flex flex-col justify-between shadow-[0_20px_60px_rgba(225,29,72,0.35)] border-4 border-amber-300/80">
-            <div class="text-2xl sm:text-3xl font-black leading-none">${current.rank}${current.suit.sym}</div>
-            <div class="text-6xl sm:text-7xl self-center">${current.suit.sym}</div>
-            <div class="text-xl sm:text-2xl font-bold self-end rotate-180">${current.rank}${current.suit.sym}</div>
-          </div>
-
-          <div class="text-[11px] text-rose-300/70">Deck remaining: ${deck.length} cards (Ties win)</div>
-        </div>
-
-        <div class="flex items-center gap-3 pb-2">
-          <button id="hl-lo" class="px-6 sm:px-8 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-sm sm:text-base shadow-lg">🔽 LOWER</button>
-          <button id="hl-cash" ${streak === 0 ? 'disabled' : ''} class="px-5 py-3.5 rounded-2xl bg-amber-400 disabled:opacity-40 text-slate-950 font-black text-xs sm:text-sm shadow-lg">💰 CASH OUT</button>
-          <button id="hl-hi" class="px-6 sm:px-8 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm sm:text-base shadow-lg">🔼 HIGHER</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('hl-hi').onclick = () => guess('hi');
-    document.getElementById('hl-lo').onclick = () => guess('lo');
-    document.getElementById('hl-cash').onclick = cashOut;
-  }
-
-  render();
 }
 
 // ----------------------------------------------------
