@@ -40,20 +40,6 @@
   <span class="transform group-hover:scale-110 transition">🦊</span>
 </div>
 
-<!-- Custom Alert Modal Overlay -->
-<div id="custom-alert-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
-  <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 text-center">
-    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-pink-600 flex items-center justify-center mx-auto text-xl shadow-lg">🔔</div>
-    <div>
-      <h3 id="custom-alert-title" class="text-base font-black text-white">Arcade Hub Notice</h3>
-      <p id="custom-alert-message" class="text-xs text-slate-300 mt-1.5"></p>
-    </div>
-    <button onclick="closeCustomAlert()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
-      OK
-    </button>
-  </div>
-</div>
-
 <div id="hero-modal-backdrop" class="hero-backdrop hidden">
   <div id="hero-modal" class="hero-modal">
     <div class="hero-modal-header">
@@ -104,7 +90,7 @@
     <div id="tab-rewards" class="hero-tab-panel">
       <div class="rewards-split">
         <div class="reward-card">
-          <!-- Daily Streak section with title text removed and 24h PHT countdown timer active -->
+          <!-- Title text removed, 24h PHT cooldown timer active -->
           <div id="streak-cooldown-timer" class="text-sm font-mono text-amber-400 font-bold my-2 text-center">24:00:00</div>
           <div id="streak-days-row" class="streak-row"></div>
           <button id="claim-streak-btn" class="action-btn">Claim Daily</button>
@@ -237,6 +223,20 @@
 
   <main id="game-stage" class="relative z-10 flex-1 w-full h-full overflow-hidden flex flex-col">
   </main>
+</div>
+
+<!-- Custom Alert Modal Overlay with z-[100] so it always stays on top -->
+<div id="custom-alert-modal" class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+  <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 text-center">
+    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-pink-600 flex items-center justify-center mx-auto text-xl shadow-lg">🔔</div>
+    <div>
+      <h3 id="custom-alert-title" class="text-base font-black text-white">Arcade Hub Notice</h3>
+      <p id="custom-alert-message" class="text-xs text-slate-300 mt-1.5"></p>
+    </div>
+    <button onclick="closeCustomAlert()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
+      OK
+    </button>
+  </div>
 </div>
 
 <audio id="bgm-audio" loop preload="auto">
