@@ -2974,7 +2974,7 @@ function initBrickBreaker(stage) {
 }
 
 // ----------------------------------------------------
-// 16. STICK RUN (Parkour & Crate Adventure Edition)
+// 16. STICK RUN (Complete Parkour & Obstacle Edition)
 // ----------------------------------------------------
 function initStickRun(stage) {
   stage.innerHTML = `
@@ -2986,7 +2986,7 @@ function initStickRun(stage) {
           <span id="sr-score" class="px-3.5 py-1.5 rounded-full bg-slate-950/80 border border-purple-400/40 text-purple-200 font-bold text-xs shadow">⭐ 0</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-[11px] font-bold text-amber-200 bg-black/40 px-3 py-1 rounded-xl border border-white/10 hidden sm:inline">🚀 Up/W: Jump/Flip | Down/S: Slide</span>
+          <span class="text-[11px] font-bold text-amber-200 bg-black/40 px-3 py-1 rounded-xl border border-white/10 hidden sm:inline">🚀 Up/W: Jump | Hold Down/S: Hold Slide</span>
         </div>
       </div>
       <canvas id="sr-canvas" class="w-full h-full block touch-none cursor-pointer"></canvas>
@@ -3007,21 +3007,23 @@ function initStickRun(stage) {
     jumps: 0,
     runCycle: 0,
     sliding: false,
-    slideTimer: 0,
     onPlatform: false,
     rot: 0,
     isDoingTrick: false,
     score: 0
   };
 
-  let platforms = []; // Crate platforms (boxes you can land on)
-  let obstacles = []; // Saws, hazards
-  let coins = [];     // Collectibles
+  let platforms = [];        // Solid crates you can land on top of
+  let overheadBarriers = [];   // L-obstacles, lasers, and vertical gap bars requiring slide
+  let obstacles = [];        // Saw hazards
+  let coins = [];            // Collectibles
   let dist = 0;
   let coinCount = 0;
   let scroll = 0;
   let alive = true;
   let raf;
+
+  let slideKeyHeld = false;
 
   function reset() {
     player = {
@@ -3031,74 +3033,74 @@ function initStickRun(stage) {
       jumps: 0,
       runCycle: 0,
       sliding: false,
-      slideTimer: 0,
       onPlatform: false,
       rot: 0,
       isDoingTrick: false,
       score: 0
     };
     platforms = [];
+    overheadBarriers = [];
     obstacles = [];
     coins = [];
     dist = 0;
     coinCount = 0;
     scroll = 0;
     alive = true;
+    slideKeyHeld = false;
   }
 
   function jump() {
     if (!alive) { reset(); return; }
-    if (player.jumps < 2) {
+    if (player.jumps < 2 && !player.sliding) {
       player.vy = -14.2;
       player.jumps++;
-      player.sliding = false;
-      player.isDoingTrick = true; // Trigger backflip / mid-air trick rotation
+      player.isDoingTrick = true;
       AudioFX.jump();
     }
   }
 
-  function slide() {
-    if (!alive) { reset(); return; }
-    if (!player.sliding && player.y >= GROUND_Y() - 5) {
-      player.sliding = true;
-      player.slideTimer = 36;
-      AudioFX.click();
-    }
-  }
-
-  // Touch and Key bindings
-  let touchStartX = 0, touchStartY = 0;
-  canvas.ontouchstart = (e) => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-    e.preventDefault();
-  };
-
-  canvas.ontouchend = (e) => {
-    if (!touchStartX || !touchStartY) return;
-    let diffX = e.changedTouches[0].clientX - touchStartX;
-    let diffY = e.changedTouches[0].clientY - touchStartY;
-    if (Math.abs(diffY) > Math.abs(diffX)) {
-      if (diffY < -20) jump();
-      else if (diffY > 20) slide();
-      else jump();
-    } else {
-      if (Math.abs(diffX) < 20) jump();
-    }
-    touchStartX = 0; touchStartY = 0;
-    e.preventDefault();
-  };
-
-  const onKey = (e) => {
+  const onKeyDown = (e) => {
     if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
       e.preventDefault();
       jump();
     } else if (['ArrowDown', 'KeyS'].includes(e.code)) {
       e.preventDefault();
-      slide();
+      slideKeyHeld = true;
+      if (player.y >= GROUND_Y() - 5) {
+        player.sliding = true;
+      }
     }
   };
-  window.addEventListener('keydown', onKey);
+
+  const onKeyUp = (e) => {
+    if (['ArrowDown', 'KeyS'].includes(e.code)) {
+      e.preventDefault();
+      slideKeyHeld = false;
+      player.sliding = false;
+    }
+  };
+
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
+
+  let touchStartX = 0, touchStartY = 0;
+  canvas.ontouchstart = (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    if (touchStartY > h * 0.5) {
+      slideKeyHeld = true;
+      if (player.y >= GROUND_Y() - 5) player.sliding = true;
+    } else {
+      jump();
+    }
+    e.preventDefault();
+  };
+
+  canvas.ontouchend = (e) => {
+    slideKeyHeld = false;
+    player.sliding = false;
+    e.preventDefault();
+  };
 
   const onResize = () => {
     w = canvas.width = stage.clientWidth;
@@ -3106,10 +3108,9 @@ function initStickRun(stage) {
   };
   window.addEventListener('resize', onResize);
 
-  // Draw Wooden Crate / Box
   function drawCrate(x, y, bw, bh) {
     ctx.save();
-    ctx.fillStyle = '#b47b45'; // Wood base
+    ctx.fillStyle = '#b47b45';
     ctx.strokeStyle = '#5a3819';
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -3117,25 +3118,22 @@ function initStickRun(stage) {
     ctx.fill();
     ctx.stroke();
 
-    // Crate diagonal X braces and inner border
     ctx.strokeStyle = '#7c4d24';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(x, y); ctx.lineTo(x + bw, y + bh);
     ctx.moveTo(x + bw, y); ctx.lineTo(x, y + bh);
     ctx.stroke();
-
     ctx.strokeRect(x + 4, y + 4, bw - 8, bh - 8);
     ctx.restore();
   }
 
-  // Draw Stickman with requested slide pose & backflip tricks
   function drawStickman(x, y, phase, inAir, sliding, rot, isDoingTrick) {
     ctx.save();
     ctx.translate(x, y);
 
     if (inAir && isDoingTrick) {
-      ctx.rotate(rot); // Apply backflip rotation
+      ctx.rotate(rot);
     }
 
     ctx.strokeStyle = '#f8fafc';
@@ -3144,15 +3142,12 @@ function initStickRun(stage) {
     ctx.fillStyle = '#f8fafc';
 
     if (sliding) {
-      // SLIDE POSE:
-      // Head at the back (left), hands and body low on the ground, 1 foot stretched, 1 foot bent.
-      
-      // Head (at back/left)
+      // Slide pose: Head at back (left), body low, 1 leg stretched forward, 1 leg bent
       ctx.beginPath();
       ctx.arc(-18, -12, 9, 0, Math.PI * 2);
       ctx.fill();
 
-      // Red headband tail streaming behind
+      // Red headband trail
       ctx.strokeStyle = '#ef4444';
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -3160,7 +3155,7 @@ function initStickRun(stage) {
       ctx.lineTo(-38, -18);
       ctx.stroke();
 
-      // Body & Torso (low to ground)
+      // Torso
       ctx.strokeStyle = '#f8fafc';
       ctx.lineWidth = 4.5;
       ctx.beginPath();
@@ -3168,87 +3163,60 @@ function initStickRun(stage) {
       ctx.lineTo(6, -6);
       ctx.stroke();
 
-      // Hands/Arms on the ground supporting slide
+      // Hands on ground
       ctx.beginPath();
-      ctx.moveTo(-8, -6);
-      ctx.lineTo(-14, 0);
-      ctx.moveTo(-2, -6);
-      ctx.lineTo(4, 0);
+      ctx.moveTo(-8, -6); ctx.lineTo(-14, 0);
+      ctx.moveTo(-2, -6); ctx.lineTo(4, 0);
       ctx.stroke();
 
-      // Legs: 1 foot stretched out forward (right), 1 leg bent underneath
+      // Legs
       ctx.beginPath();
-      // Bent leg
-      ctx.moveTo(6, -6);
-      ctx.lineTo(12, -2);
-      ctx.lineTo(8, 0);
-      // Stretched leg forward
-      ctx.moveTo(6, -6);
-      ctx.lineTo(24, -2);
+      ctx.moveTo(6, -6); ctx.lineTo(12, -2); ctx.lineTo(8, 0);
+      ctx.moveTo(6, -6); ctx.lineTo(24, -2);
       ctx.stroke();
-
     } else if (inAir) {
-      // MID-AIR BACKFLIP / TRICK POSE
-      // Head
+      // Backflip trick pose
       ctx.beginPath();
       ctx.arc(0, -38, 9, 0, Math.PI * 2);
       ctx.fill();
 
-      // Torso tucked in a flip
       ctx.strokeStyle = '#f8fafc';
       ctx.lineWidth = 4.5;
       ctx.beginPath();
-      ctx.moveTo(0, -30);
-      ctx.lineTo(0, -10);
+      ctx.moveTo(0, -30); ctx.lineTo(0, -10);
       ctx.stroke();
 
-      // Tucked arms & legs for cool backflip style
       ctx.beginPath();
-      ctx.moveTo(0, -26);
-      ctx.lineTo(-12, -18);
-      ctx.lineTo(-8, -8);
-      ctx.moveTo(0, -10);
-      ctx.lineTo(12, -18);
-      ctx.lineTo(8, -4);
+      ctx.moveTo(0, -26); ctx.lineTo(-12, -18); ctx.lineTo(-8, -8);
+      ctx.moveTo(0, -10); ctx.lineTo(12, -18); ctx.lineTo(8, -4);
       ctx.stroke();
-
     } else {
-      // NORMAL RUNNING POSE
-      // Head
+      // Normal running pose
       ctx.beginPath();
       ctx.arc(0, -44, 9, 0, Math.PI * 2);
       ctx.fill();
 
-      // Headband
       ctx.strokeStyle = '#ef4444';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(-6, -47);
-      ctx.lineTo(-20, -44 + Math.sin(phase * 2) * 4);
+      ctx.moveTo(-6, -47); ctx.lineTo(-20, -44 + Math.sin(phase * 2) * 4);
       ctx.stroke();
 
-      // Torso
       ctx.strokeStyle = '#f8fafc';
       ctx.lineWidth = 4.5;
       ctx.beginPath();
-      ctx.moveTo(0, -35);
-      ctx.lineTo(-2, -16);
+      ctx.moveTo(0, -35); ctx.lineTo(-2, -16);
       ctx.stroke();
 
-      // Arms & Legs swing
       const swing = Math.sin(phase) * 1.0;
       ctx.beginPath();
-      ctx.moveTo(0, -30);
-      ctx.lineTo(Math.sin(swing) * 16, -18);
-      ctx.moveTo(0, -30);
-      ctx.lineTo(-Math.sin(swing) * 16, -18);
+      ctx.moveTo(0, -30); ctx.lineTo(Math.sin(swing) * 16, -18);
+      ctx.moveTo(0, -30); ctx.lineTo(-Math.sin(swing) * 16, -18);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.moveTo(-2, -16);
-      ctx.lineTo(Math.sin(swing) * 18, 0);
-      ctx.moveTo(-2, -16);
-      ctx.lineTo(-Math.sin(swing) * 18, 0);
+      ctx.moveTo(-2, -16); ctx.lineTo(Math.sin(swing) * 18, 0);
+      ctx.moveTo(-2, -16); ctx.lineTo(-Math.sin(swing) * 18, 0);
       ctx.stroke();
     }
 
@@ -3265,42 +3233,50 @@ function initStickRun(stage) {
       dist += 1;
       player.runCycle += 0.28;
 
-      if (player.sliding) {
-        player.slideTimer--;
-        if (player.slideTimer <= 0) player.sliding = false;
+      if (slideKeyHeld && player.y >= gy - 5) {
+        player.sliding = true;
+      } else if (!slideKeyHeld) {
+        player.sliding = false;
       }
 
-      // Physics & Gravity
       player.y += player.vy;
-      
+
       let targetGround = gy;
       player.onPlatform = false;
 
-      // Check platform landings (crates/boxes)
       platforms.forEach(p => {
         if (
-          player.x >= p.x - 10 &&
-          player.x <= p.x + p.w + 10 &&
-          player.y >= p.y - 10 &&
-          player.y <= p.y + 15 &&
+          player.x >= p.x - 12 &&
+          player.x <= p.x + p.w + 12 &&
+          player.y <= p.y + 6 &&
+          player.y >= p.y - 18 &&
           player.vy >= 0
         ) {
           targetGround = p.y;
           player.onPlatform = true;
+        } else {
+          if (
+            player.x + 10 > p.x &&
+            player.x - 10 < p.x + p.w &&
+            player.y > p.y &&
+            player.y - 35 < p.y + p.h
+          ) {
+            alive = false;
+            AudioFX.lose();
+            window.ArcadeHero?.awardGameScore('stick-run', Math.floor(dist / 4));
+          }
         }
       });
 
       if (player.y < targetGround) {
-        player.vy += 0.72; // Gravity
-        if (player.isDoingTrick) {
-          player.rot += 0.18; // Backflip rotation speed in mid-air
-        }
+        player.vy += 0.72;
+        if (player.isDoingTrick) player.rot += 0.18;
       } else {
         player.y = targetGround;
         player.vy = 0;
         player.jumps = 0;
         player.isDoingTrick = false;
-        player.rot = 0; // Reset rotation upon safe landing
+        player.rot = 0;
       }
 
       if (dist % 8 === 0) {
@@ -3308,54 +3284,46 @@ function initStickRun(stage) {
         document.getElementById('sr-score').textContent = `⭐ ${player.score}`;
       }
 
-      // Procedural Obstacle & Crate Platform Generation
-      if (Math.random() < 0.025 && !obstacles.some(o => o.x > w - 280) && !platforms.some(p => p.x > w - 280)) {
-        const randType = Math.random();
-        if (randType < 0.35) {
-          // Crate tower / platforms
-          const boxW = 44, boxH = 44;
-          const stackHeight = 1 + Math.floor(Math.random() * 3);
-          for (let i = 0; i < stackHeight; i++) {
-            platforms.push({
-              x: w + 50,
-              y: gy - (i + 1) * boxH,
-              w: boxW,
-              h: boxH
-            });
+      // Obstacle Generation including the 4-Box Window/Laser Structure
+      if (Math.random() < 0.026 && !obstacles.some(o => o.x > w - 280) && !platforms.some(p => p.x > w - 280)) {
+        const typeRand = Math.random();
+        if (typeRand < 0.3) {
+          // 3-stack bottom crates + vertical middle laser/bar + 1 floating top box (Reference Image Structure)
+          const boxW = 40, boxH = 40;
+          for (let i = 0; i < 3; i++) {
+            platforms.push({ x: w + 50, y: gy - (i + 1) * boxH, w: boxW, h: boxH });
           }
-        } else if (randType < 0.65) {
-          // Saw hazard on ground
-          obstacles.push({
+          // Top floating box
+          platforms.push({ x: w + 50, y: gy - 5 * boxH, w: boxW, h: boxH });
+          // Vertical laser/pole bar in the gap
+          overheadBarriers.push({
+            x: w + 55,
+            y: gy - 4 * boxH,
+            w: 30,
+            h: boxH * 1.5,
+            isLaserBar: true
+          });
+        } else if (typeRand < 0.6) {
+          // L-shaped barrier requiring hold-slide
+          overheadBarriers.push({
             x: w + 40,
-            y: gy - 32,
-            w: 32,
-            h: 32,
-            type: 'saw',
-            rot: 0
+            y: gy - 65,
+            w: 80,
+            h: 30,
+            isLaserBar: false
           });
         } else {
-          // Floating saw hazard
-          obstacles.push({
-            x: w + 40,
-            y: gy - 95,
-            w: 32,
-            h: 32,
-            type: 'saw',
-            rot: 0
-          });
+          // Ground saw hazard
+          obstacles.push({ x: w + 40, y: gy - 32, w: 32, h: 32, type: 'saw', rot: 0 });
         }
       }
 
-      // Coin generator
       if (Math.random() < 0.03) {
-        coins.push({
-          x: w + 40,
-          y: gy - (Math.random() < 0.5 ? 40 : 110)
-        });
+        coins.push({ x: w + 40, y: gy - (Math.random() < 0.5 ? 40 : 100) });
       }
     }
 
-    // Draw Parallax Background / Skyline
+    // Background Skyline
     ctx.fillStyle = '#1e293b';
     for (let i = 0; i < 10; i++) {
       const bx = ((i * 180 - scroll * 0.2) % (w + 200) + (w + 200)) % (w + 200) - 100;
@@ -3363,20 +3331,57 @@ function initStickRun(stage) {
       ctx.fillRect(bx, gy - bh, 100, bh);
     }
 
-    // Draw Ground
+    // Ground
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(0, gy, w, h - gy);
     ctx.fillStyle = '#38bdf8';
     ctx.fillRect(0, gy, w, 6);
 
-    // Update & Draw Platforms (Crates)
+    // Draw Platforms (Crates)
     platforms.forEach(p => {
       if (alive) p.x -= speed;
       drawCrate(p.x, p.y, p.w, p.h);
     });
     platforms = platforms.filter(p => p.x > -80);
 
-    // Update & Draw Coins
+    // Draw Overhead Barriers / Laser Bars
+    overheadBarriers.forEach(o => {
+      if (alive) o.x -= speed;
+
+      if (o.isLaserBar) {
+        // Draw vertical laser pole between bottom stack and top box
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(o.x + o.w / 2 - 3, o.y, 6, o.h);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(o.x + o.w / 2 - 5, o.y + o.h * 0.4, 10, 16);
+      } else {
+        drawCrate(o.x, o.y, o.w, o.h);
+      }
+
+      if (alive) {
+        const pBox = {
+          x: player.x - 12,
+          y: player.sliding ? gy - 20 : player.y - 42,
+          w: 24,
+          h: player.sliding ? 20 : 42
+        };
+        if (
+          pBox.x < o.x + o.w &&
+          pBox.x + pBox.w > o.x &&
+          pBox.y < o.y + o.h &&
+          pBox.y + pBox.h > o.y
+        ) {
+          if (!player.sliding) {
+            alive = false;
+            AudioFX.lose();
+            window.ArcadeHero?.awardGameScore('stick-run', Math.floor(dist / 4));
+          }
+        }
+      }
+    });
+    overheadBarriers = overheadBarriers.filter(o => o.x > -100);
+
+    // Draw Coins
     coins.forEach(c => {
       if (alive) c.x -= speed;
       ctx.font = '24px Inter';
@@ -3394,7 +3399,7 @@ function initStickRun(stage) {
     });
     coins = coins.filter(c => c.x > -40 && !c.taken);
 
-    // Update & Draw Hazards / Saws
+    // Draw Saw Hazards
     obstacles.forEach(o => {
       if (alive) {
         o.x -= speed;
@@ -3414,7 +3419,6 @@ function initStickRun(stage) {
       ctx.fill();
       ctx.stroke();
 
-      // Saw teeth
       for (let t = 0; t < 8; t++) {
         ctx.rotate(Math.PI / 4);
         ctx.fillStyle = '#e2e8f0';
@@ -3422,7 +3426,6 @@ function initStickRun(stage) {
       }
       ctx.restore();
 
-      // Collision detection with player
       if (alive) {
         const pBox = {
           x: player.x - 12,
@@ -3446,11 +3449,11 @@ function initStickRun(stage) {
     });
     obstacles = obstacles.filter(o => o.x > -60);
 
-    // Draw Stickman player
+    // Draw Player
     const inAir = player.y < gy - 4;
     drawStickman(player.x, player.y, player.runCycle, inAir, player.sliding, player.rot, player.isDoingTrick);
 
-    // Game Over screen overlay
+    // Game Over Overlay
     if (!alive) {
       ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
       ctx.fillRect(0, 0, w, h);
@@ -3471,11 +3474,12 @@ function initStickRun(stage) {
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener('keydown', onKey);
+    window.removeEventListener('keydown', onKeyDown);
+    window.removeEventListener('keyup', onKeyUp);
     window.removeEventListener('resize', onResize);
   };
 }
-
+ 
 
 // ----------------------------------------------------
 // TINY CAFÉ (Cute Cartoon & Cozy Café Edition)
