@@ -3306,182 +3306,447 @@ function initStickRun(stage) {
 }
 
 // ----------------------------------------------------
-// 17. TINY CAFÉ (Arcade Game - Cozy Time Management Simulation)
+// 17. TINY CAFÉ (Cozy Time-Management Simulation Suite)
 // ----------------------------------------------------
 function initTinyCafe(stage) {
-  let score = 0, coins = 500, ordersServed = 0, lives = 3, playing = true;
-  let activeCustomers = [];
-  let inventory = { coffee: 5, milk: 5, tea: 5, pastry: 5 };
-
-  const RECIPES = [
-    { name: 'Espresso', icon: '☕', ingredients: ['coffee'], time: 14, reward: 25 },
-    { name: 'Matcha Latte', icon: '🍵', ingredients: ['tea', 'milk'], time: 16, reward: 40 },
-    { name: 'Boba Milk Tea', icon: '🧋', ingredients: ['tea', 'milk', 'coffee'], time: 20, reward: 60 },
-    { name: 'Butter Croissant', icon: '🥐', ingredients: ['pastry'], time: 12, reward: 30 }
-  ];
-
-  const customerNames = ['Barista Bob', 'Student Sarah', 'Coder Alex', 'Gamer Mia', 'Chef Liam'];
-
-  function spawnCustomer() {
-    if (!playing || activeCustomers.length >= 3) return;
-    const recipe = RECIPES[Math.floor(Math.random() * RECIPES.length)];
-    const customer = {
-      id: Math.random(),
-      name: customerNames[Math.floor(Math.random() * customerNames.length)],
-      recipe: recipe,
-      timeLeft: recipe.time,
-      maxTime: recipe.time
-    };
-    activeCustomers.push(customer);
-    render();
-  }
-
-  const customerSpawner = setInterval(() => {
-    if (!playing) return;
-    spawnCustomer();
-  }, 4200);
-
-  const timerInterval = setInterval(() => {
-    if (!playing) return;
-    activeCustomers.forEach(c => {
-      c.timeLeft -= 1;
-      if (c.timeLeft <= 0) {
-        lives--;
-        AudioFX.lose();
-        spawnPopup('Order Expired!', window.innerWidth / 2, window.innerHeight * 0.4, '#ef4444');
-        if (lives <= 0) {
-          playing = false;
-          window.ArcadeHero?.awardGameScore('tiny-cafe', score);
-          AudioFX.lose();
-        }
-      }
-    });
-    activeCustomers = activeCustomers.filter(c => c.timeLeft > 0);
-    render();
-  }, 1000);
-
-  function serveCustomer(customerIdx) {
-    if (!playing) return;
-    const customer = activeCustomers[customerIdx];
-    score += customer.recipe.reward;
-    coins += customer.recipe.reward;
-    ordersServed++;
-    AudioFX.coin();
-    addXP(20, window.innerWidth / 2, window.innerHeight * 0.4, `+${customer.recipe.reward} Coins!`);
-    
-    activeCustomers.splice(customerIdx, 1);
-    if (ordersServed % 5 === 0) {
-      addXP(50, window.innerWidth / 2, window.innerHeight / 2, 'CAFÉ MILESTONE +50 XP!');
+  class SoundFX {
+    constructor() {
+      this.ctx = null;
+      this.muted = false;
     }
-    render();
+    init() {
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) this.ctx = new AudioCtx();
+      }
+      if (this.ctx && this.ctx.state === "suspended") {
+        this.ctx.resume();
+      }
+    }
+    playTone(freq, type, duration, delay = 0, gainVal = 0.15) {
+      if (this.muted) return;
+      try {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + delay);
+        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + delay + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(this.ctx.currentTime + delay);
+        osc.stop(this.ctx.currentTime + delay + duration);
+      } catch (e) {}
+    }
+    click() { this.playTone(520, "sine", 0.08, 0, 0.1); }
+    brewComplete() {
+      this.playTone(660, "triangle", 0.12, 0, 0.12);
+      this.playTone(880, "triangle", 0.18, 0.08, 0.12);
+    }
+    serveSuccess() {
+      this.playTone(523.25, "sine", 0.12, 0, 0.15);
+      this.playTone(659.25, "sine", 0.12, 0.09, 0.15);
+      this.playTone(783.99, "sine", 0.22, 0.18, 0.15);
+    }
+    upgrade() {
+      this.playTone(440, "square", 0.1, 0, 0.08);
+      this.playTone(554.37, "square", 0.1, 0.08, 0.08);
+      this.playTone(659.25, "square", 0.2, 0.16, 0.08);
+    }
+    fail() {
+      this.playTone(240, "sawtooth", 0.18, 0, 0.12);
+      this.playTone(180, "sawtooth", 0.28, 0.14, 0.12);
+    }
   }
 
-  function restock() {
-    inventory = { coffee: 10, milk: 10, tea: 10, pastry: 10 };
-    AudioFX.click();
-    spawnPopup('Inventory Restocked!', window.innerWidth / 2, window.innerHeight / 2, '#38bdf8');
-    render();
-  }
+  const sfx = new SoundFX();
+  let gameData = {
+    coins: 100,
+    rating: 5.0,
+    day: 1,
+    ordersServed: 0,
+    upgrades: { grinder: 1, oven: 1, bakery: 1, decor: 1 }
+  };
+  let currentOrder = null;
+  let playerTray = [];
+  let patienceTimer = null;
+  let patienceLevel = 100;
+  let combo = 1;
+  let stationBusy = { coffee: false, food: false, dessert: false };
 
-  function render() {
-    stage.innerHTML = `
-      <div class="w-full h-full flex flex-col justify-between px-4 py-4 pb-16 sm:pb-6 overflow-y-auto select-none">
-        <div class="flex items-center justify-between max-w-4xl w-full mx-auto">
-          <div class="flex items-center gap-3">
-            <span class="px-3.5 py-1 rounded-full bg-amber-950/80 border border-amber-400/40 text-amber-300 font-black text-xs">☕ SCORE: ${score}</span>
-            <span class="px-3.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/30 text-emerald-300 font-bold text-xs">🪙 COINS: ${coins}</span>
-            <span class="px-3.5 py-1 rounded-full bg-rose-950/80 border border-rose-400/30 text-rose-300 font-bold text-xs">LIVES: ${'❤️'.repeat(Math.max(0, lives))}</span>
+  const recipes = [
+    { name: "Iced Caramel Coffee", items: ["coffee"], reward: 15, minLevel: 1 },
+    { name: "Classic Milk Tea", items: ["coffee"], reward: 18, minLevel: 1 },
+    { name: "Bacon & Eggs", items: ["food"], reward: 22, minLevel: 1 },
+    { name: "Toasted Ham Sandwich", items: ["food"], reward: 20, minLevel: 1 },
+    { name: "Strawberry Cupcake", items: ["dessert"], reward: 16, minLevel: 1 },
+    { name: "Espresso & Pancakes", items: ["coffee", "food"], reward: 38, minLevel: 1 },
+    { name: "Burger & Fruit Smoothie", items: ["coffee", "food"], reward: 42, minLevel: 1 },
+    { name: "Latte & Cheesecake", items: ["coffee", "dessert"], reward: 35, minLevel: 1 },
+    { name: "Full Café Feast", items: ["coffee", "food", "dessert"], reward: 65, minLevel: 1 }
+  ];
+  const customers = [
+    { name: "Fluffy", avatar: "🐱" },
+    { name: "Boba", avatar: "🐶" },
+    { name: "Mochi", avatar: "🐰" },
+    { name: "Kuma", avatar: "🐻" },
+    { name: "Pip", avatar: "🦊" },
+    { name: "Taro", avatar: "🐼" }
+  ];
+  const itemLabels = { coffee: "☕ Drink", food: "🍳 Meal", dessert: "🧁 Pastry" };
+
+  // Inject HTML UI into the viewport stage
+  stage.innerHTML = `
+    <div class="w-full h-full flex flex-col justify-between bg-gradient-to-br from-amber-950 via-slate-950 to-slate-900 text-slate-100 p-4 sm:p-6 overflow-y-auto select-none">
+      <!-- Header HUD -->
+      <div class="flex items-center justify-between bg-black/40 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10 max-w-4xl mx-auto w-full">
+        <div class="flex items-center gap-4 text-xs font-black">
+          <span id="stat-coins" class="text-amber-300">🪙 100</span>
+          <span id="stat-rating" class="text-yellow-400">⭐ 5.0</span>
+          <span id="stat-combo" class="text-rose-400">🔥 x1</span>
+          <span id="stat-day" class="text-sky-300">📅 Day 1</span>
+        </div>
+        <button id="mute-btn" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs cursor-pointer transition">🔊</button>
+      </div>
+
+      <!-- Main Game Board -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto w-full my-auto">
+        <!-- Customer & Tray -->
+        <div class="flex flex-col justify-between bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-xl relative min-h-[240px]">
+          <div>
+            <div id="waiting-text" class="text-center text-slate-400 py-10 text-sm font-bold">Waiting for customer...</div>
+            <div id="customer-card" class="hidden flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span id="customer-avatar" class="text-4xl">🐱</span>
+                  <div>
+                    <div id="customer-name" class="font-black text-white text-base">Name</div>
+                    <div id="customer-order" class="text-xs text-amber-300 font-semibold mt-0.5">Order description</div>
+                  </div>
+                </div>
+                <span id="vip-badge" class="hidden px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-black border border-amber-400/40 animate-pulse">⭐ VIP</span>
+              </div>
+              <div class="w-full bg-black/60 h-2.5 rounded-full overflow-hidden border border-white/10 mt-2">
+                <div id="patience-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 100%;"></div>
+              </div>
+            </div>
           </div>
-          <button id="cafe-restock" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow cursor-pointer">Restock 📦</button>
+
+          <div class="pt-4 border-t border-white/10 flex items-center justify-between mt-4">
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-widest font-extrabold">Your Tray</div>
+              <div id="tray-items" class="text-xs font-mono text-amber-200 font-bold mt-0.5">Empty</div>
+            </div>
+            <div class="flex gap-2">
+              <button id="clear-tray-btn" class="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 font-extrabold text-xs cursor-pointer transition">Clear</button>
+              <button id="serve-btn" disabled class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-lg">SERVE ✓</button>
+            </div>
+          </div>
         </div>
 
-        ${!playing ? `
-          <div class="my-auto text-center bg-slate-900/90 backdrop-blur-md p-8 rounded-3xl border border-amber-500/40 max-w-md mx-auto shadow-2xl">
-            <div class="text-5xl mb-2">🛑</div>
-            <h2 class="text-2xl font-black text-amber-300">Café Closed!</h2>
-            <p class="text-slate-300 text-sm mb-4">Total Orders Served: ${ordersServed} | Final Score: ${score}</p>
-            <button id="cafe-restart" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg cursor-pointer">Reopen Café ☕</button>
-          </div>
-        ` : `
-          <div class="max-w-4xl w-full mx-auto my-auto flex flex-col gap-6">
-            <div class="text-center">
-              <div class="text-xs uppercase tracking-widest text-amber-300/80 font-bold">Customer Queue</div>
-              <p class="text-xs text-slate-400">Click a customer's order when ready to serve before time runs out!</p>
+        <!-- Station Stations -->
+        <div class="grid grid-cols-1 gap-3">
+          <div id="station-coffee" class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-amber-500/40 cursor-pointer transition shadow-lg">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">☕</span>
+              <div>
+                <div class="font-extrabold text-sm text-white">Espresso Grinder</div>
+                <div id="coffee-status" class="text-xs text-slate-400">Tap to Brew</div>
+              </div>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 min-h-[160px]">
-              ${activeCustomers.length === 0 ? `
-                <div class="col-span-3 flex flex-col items-center justify-center p-8 rounded-2xl bg-black/30 border border-white/10 text-slate-400 text-xs">
-                  <span class="text-3xl mb-2">🛎️</span>
-                  Waiting for hungry customers to arrive...
-                </div>
-              ` : activeCustomers.map((c, idx) => `
-                <div class="customer-card flex flex-col justify-between p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border-2 border-amber-500/30 shadow-xl relative overflow-hidden">
-                  <div class="absolute top-0 left-0 right-0 h-1.5 bg-black/50">
-                    <div class="h-full bg-amber-400 transition-all duration-1000" style="width: ${(c.timeLeft / c.maxTime) * 100}%"></div>
-                  </div>
-                  <div class="flex items-center justify-between mt-1">
-                    <span class="text-xs font-bold text-slate-300">${c.name}</span>
-                    <span class="text-xs font-mono text-amber-300">⏱️ ${c.timeLeft}s</span>
-                  </div>
-                  <div class="flex items-center justify-center gap-3 my-3">
-                    <span class="text-4xl animate-bounce">${c.recipe.icon}</span>
-                    <div class="text-left">
-                      <div class="text-sm font-black text-white">${c.recipe.name}</div>
-                      <div class="text-[10px] text-amber-400 font-bold">+${c.recipe.reward} Coins</div>
-                    </div>
-                  </div>
-                  <button data-serve="${idx}" class="serve-btn w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-xs shadow hover:opacity-95 transition cursor-pointer">
-                    SERVE ORDER ✓
-                  </button>
-                </div>
-              `).join('')}
-            </div>
-
-            <div class="grid grid-cols-4 gap-3 bg-black/40 p-4 rounded-2xl border border-white/10">
-              <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-2xl mb-1">☕</span>
-                <span class="text-[11px] font-bold text-slate-300">Coffee</span>
-                <span class="text-xs font-mono text-amber-300 font-bold">${inventory.coffee} left</span>
-              </div>
-              <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-2xl mb-1">🥛</span>
-                <span class="text-[11px] font-bold text-slate-300">Milk</span>
-                <span class="text-xs font-mono text-amber-300 font-bold">${inventory.milk} left</span>
-              </div>
-              <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-2xl mb-1">🍵</span>
-                <span class="text-[11px] font-bold text-slate-300">Tea</span>
-                <span class="text-xs font-mono text-amber-300 font-bold">${inventory.tea} left</span>
-              </div>
-              <div class="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/5">
-                <span class="text-2xl mb-1">🥐</span>
-                <span class="text-[11px] font-bold text-slate-300">Pastry</span>
-                <span class="text-xs font-mono text-amber-300 font-bold">${inventory.pastry} left</span>
-              </div>
+            <div class="w-28 bg-black/60 h-2.5 rounded-full overflow-hidden border border-white/10">
+              <div id="coffee-bar" class="h-full bg-amber-400 w-0 transition-all"></div>
             </div>
           </div>
-        `}
+
+          <div id="station-food" class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-amber-500/40 cursor-pointer transition shadow-lg">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🍳</span>
+              <div>
+                <div class="font-extrabold text-sm text-white">Kitchen Grill</div>
+                <div id="food-status" class="text-xs text-slate-400">Tap to Cook</div>
+              </div>
+            </div>
+            <div class="w-28 bg-black/60 h-2.5 rounded-full overflow-hidden border border-white/10">
+              <div id="food-bar" class="h-full bg-amber-400 w-0 transition-all"></div>
+            </div>
+          </div>
+
+          <div id="station-dessert" class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-amber-500/40 cursor-pointer transition shadow-lg">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🧁</span>
+              <div>
+                <div class="font-extrabold text-sm text-white">Pastry Case</div>
+                <div id="dessert-status" class="text-xs text-slate-400">Tap to Plate</div>
+              </div>
+            </div>
+            <div class="w-28 bg-black/60 h-2.5 rounded-full overflow-hidden border border-white/10">
+              <div id="dessert-bar" class="h-full bg-amber-400 w-0 transition-all"></div>
+            </div>
+          </div>
+        </div>
       </div>
-    `;
 
-    document.getElementById('cafe-restock')?.addEventListener('click', restock);
-    document.getElementById('cafe-restart')?.addEventListener('click', () => {
-      score = 0; coins = 500; ordersServed = 0; lives = 3; playing = true; activeCustomers = [];
-      render();
-    });
+      <!-- Upgrades Shop -->
+      <div class="max-w-4xl mx-auto w-full mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 pb-6">
+        <button id="upg-grinder" class="p-3 rounded-2xl bg-black/40 hover:bg-black/60 border border-white/10 text-left text-xs font-extrabold text-slate-200 cursor-pointer transition">Grinder Lv.1</button>
+        <button id="upg-oven" class="p-3 rounded-2xl bg-black/40 hover:bg-black/60 border border-white/10 text-left text-xs font-extrabold text-slate-200 cursor-pointer transition">Grill Lv.1</button>
+        <button id="upg-bakery" class="p-3 rounded-2xl bg-black/40 hover:bg-black/60 border border-white/10 text-left text-xs font-extrabold text-slate-200 cursor-pointer transition">Pastry Lv.1</button>
+        <button id="upg-decor" class="p-3 rounded-2xl bg-black/40 hover:bg-black/60 border border-white/10 text-left text-xs font-extrabold text-slate-200 cursor-pointer transition">Decor Lv.1</button>
+      </div>
 
-    document.querySelectorAll('.serve-btn').forEach(btn => {
-      btn.onclick = () => {
-        const idx = Number(btn.dataset.serve);
-        serveCustomer(idx);
-      };
-    });
+      <!-- Toast Container -->
+      <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none"></div>
+    </div>
+  `;
+
+  // Game Logic Functions
+  function loadProgress() {
+    const saved = localStorage.getItem("tinyCafeData_v2");
+    if (saved) {
+      gameData = { ...gameData, ...JSON.parse(saved) };
+    }
+  }
+  function saveProgress() {
+    localStorage.setItem("tinyCafeData_v2", JSON.stringify(gameData));
+  }
+  function showToast(message) {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+    const toast = document.createElement("div");
+    toast.className = "px-4 py-2 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-300 font-bold text-xs shadow-2xl animate-bounce";
+    toast.innerText = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 2400);
+  }
+  function updateUI() {
+    const cEl = document.getElementById("stat-coins");
+    const rEl = document.getElementById("stat-rating");
+    const cpEl = document.getElementById("stat-combo");
+    const dEl = document.getElementById("stat-day");
+    if (cEl) cEl.innerText = `🪙 ${gameData.coins}`;
+    if (rEl) rEl.innerText = `⭐ ${gameData.rating}`;
+    if (cpEl) cpEl.innerText = `🔥 x${combo}`;
+    if (dEl) dEl.innerText = `📅 Day ${gameData.day}`;
+
+    const ug = document.getElementById("upg-grinder");
+    const uo = document.getElementById("upg-oven");
+    const ub = document.getElementById("upg-bakery");
+    const ud = document.getElementById("upg-decor");
+    if (ug) ug.innerText = `Grinder Lv.${gameData.upgrades.grinder} (${getUpgradeCost("grinder")} 🪙)`;
+    if (uo) uo.innerText = `Grill Lv.${gameData.upgrades.oven} (${getUpgradeCost("oven")} 🪙)`;
+    if (ub) ub.innerText = `Pastry Lv.${gameData.upgrades.bakery} (${getUpgradeCost("bakery")} 🪙)`;
+    if (ud) ud.innerText = `Decor Lv.${gameData.upgrades.decor} (${getUpgradeCost("decor")} 🪙)`;
+  }
+  function getUpgradeCost(type) {
+    const baseCosts = { grinder: 50, oven: 75, bakery: 60, decor: 100 };
+    return Math.round(baseCosts[type] * Math.pow(1.45, gameData.upgrades[type] - 1));
   }
 
-  render();
+  function nextCustomer() {
+    if (currentOrder) return;
+    const template = recipes[Math.floor(Math.random() * recipes.length)];
+    const guest = customers[Math.floor(Math.random() * customers.length)];
+    const isVIP = Math.random() < 0.22;
+    currentOrder = {
+      ...template,
+      isVIP,
+      reward: isVIP ? Math.round(template.reward * 1.5) : template.reward
+    };
+    playerTray = [];
+    updateTrayUI();
+    
+    const avatarEl = document.getElementById("customer-avatar");
+    const nameEl = document.getElementById("customer-name");
+    const orderEl = document.getElementById("customer-order");
+    const vipEl = document.getElementById("vip-badge");
+    const cardEl = document.getElementById("customer-card");
+    const waitingEl = document.getElementById("waiting-text");
+
+    if (avatarEl) avatarEl.innerText = guest.avatar;
+    if (nameEl) nameEl.innerText = guest.name;
+    if (orderEl) orderEl.innerText = `Order: ${currentOrder.name} (${currentOrder.items.map(i => itemLabels[i]).join(" + ")})`;
+    if (vipEl) {
+      if (isVIP) vipEl.classList.remove("hidden");
+      else vipEl.classList.add("hidden");
+    }
+    if (cardEl) cardEl.classList.remove("hidden");
+    if (waitingEl) waitingEl.classList.add("hidden");
+
+    patienceLevel = 100;
+    const bar = document.getElementById("patience-bar");
+    if (bar) {
+      bar.style.width = "100%";
+      bar.style.backgroundColor = "#10b981";
+    }
+    if (patienceTimer) clearInterval(patienceTimer);
+    const drainSpeed = isVIP ? 1.8 : 1.2;
+    patienceTimer = setInterval(() => {
+      patienceLevel -= drainSpeed;
+      if (bar) {
+        bar.style.width = Math.max(0, patienceLevel) + "%";
+        if (patienceLevel < 50 && patienceLevel >= 25) bar.style.backgroundColor = "#f59e0b";
+        else if (patienceLevel < 25) bar.style.backgroundColor = "#ef4444";
+      }
+      if (patienceLevel <= 0) {
+        clearInterval(patienceTimer);
+        failOrder();
+      }
+    }, 300);
+  }
+
+  function prepareStation(type) {
+    if (!currentOrder) {
+      showToast("Wait for a customer first!");
+      return;
+    }
+    if (stationBusy[type]) return;
+    if (playerTray.length >= 3) {
+      showToast("Tray is full!");
+      return;
+    }
+    sfx.click();
+    stationBusy[type] = true;
+    const stationEl = document.getElementById(`station-${type}`);
+    const statusEl = document.getElementById(`${type}-status`);
+    const barEl = document.getElementById(`${type}-bar`);
+    if (stationEl) stationEl.classList.add("border-amber-400");
+    if (statusEl) statusEl.innerText = "Preparing...";
+    
+    const levelMap = { coffee: gameData.upgrades.grinder, food: gameData.upgrades.oven, dessert: gameData.upgrades.bakery };
+    const prepDuration = Math.max(450, 1500 - (levelMap[type] - 1) * 220);
+    const startTime = performance.now();
+
+    function animateProgress(now) {
+      const elapsed = now - startTime;
+      const pct = Math.min(100, (elapsed / prepDuration) * 100);
+      if (barEl) barEl.style.width = pct + "%";
+      if (pct < 100) {
+        requestAnimationFrame(animateProgress);
+      } else {
+        stationBusy[type] = false;
+        if (stationEl) stationEl.classList.remove("border-amber-400");
+        if (barEl) barEl.style.width = "0%";
+        if (statusEl) statusEl.innerText = "Ready!";
+        playerTray.push(type);
+        sfx.brewComplete();
+        updateTrayUI();
+        checkOrderMatch();
+        setTimeout(() => {
+          if (!stationBusy[type] && statusEl) {
+            statusEl.innerText = type === "coffee" ? "Tap to Brew" : type === "food" ? "Tap to Cook" : "Tap to Plate";
+          }
+        }, 900);
+      }
+    }
+    requestAnimationFrame(animateProgress);
+  }
+
+  function updateTrayUI() {
+    const el = document.getElementById("tray-items");
+    if (el) el.innerText = playerTray.length > 0 ? playerTray.map(i => itemLabels[i]).join(" + ") : "Empty";
+  }
+
+  function checkOrderMatch() {
+    if (!currentOrder) return;
+    const needed = [...currentOrder.items].sort().join(",");
+    const current = [...playerTray].sort().join(",");
+    const serveBtn = document.getElementById("serve-btn");
+    if (serveBtn) serveBtn.disabled = needed !== current;
+  }
+
+  function serveCustomer() {
+    if (!currentOrder) return;
+    clearInterval(patienceTimer);
+    const decorBonus = (gameData.upgrades.decor - 1) * 4;
+    const speedBonus = patienceLevel > 60 ? 5 : 0;
+    const totalEarned = Math.round((currentOrder.reward + decorBonus + speedBonus) * (1 + (combo - 1) * 0.1));
+    gameData.coins += totalEarned;
+    gameData.ordersServed++;
+    gameData.rating = Math.min(5.0, Number((gameData.rating + 0.1).toFixed(1)));
+    combo++;
+    if (gameData.ordersServed % 5 === 0) {
+      gameData.day++;
+      showToast(`🌅 Day ${gameData.day} started! +${totalEarned} 🪙`);
+    } else {
+      showToast(`Served! +${totalEarned} 🪙 (Combo x${combo})`);
+    }
+    sfx.serveSuccess();
+    finishOrderCleanup();
+  }
+
+  function failOrder() {
+    combo = 1;
+    gameData.rating = Math.max(1.0, Number((gameData.rating - 0.3).toFixed(1)));
+    sfx.fail();
+    showToast("Customer left! Rating dropped.");
+    finishOrderCleanup();
+  }
+
+  function finishOrderCleanup() {
+    currentOrder = null;
+    playerTray = [];
+    updateTrayUI();
+    const cardEl = document.getElementById("customer-card");
+    const waitingEl = document.getElementById("waiting-text");
+    const serveBtn = document.getElementById("serve-btn");
+    if (cardEl) cardEl.classList.add("hidden");
+    if (waitingEl) waitingEl.classList.remove("hidden");
+    if (serveBtn) serveBtn.disabled = true;
+    saveProgress();
+    updateUI();
+    setTimeout(nextCustomer, 1500);
+  }
+
+  function buyUpgrade(type) {
+    const cost = getUpgradeCost(type);
+    if (gameData.coins >= cost) {
+      gameData.coins -= cost;
+      gameData.upgrades[type]++;
+      sfx.upgrade();
+      saveProgress();
+      updateUI();
+      showToast(`Upgraded ${type.toUpperCase()} to Lv.${gameData.upgrades[type]}!`);
+    } else {
+      sfx.fail();
+      showToast(`Need ${cost} 🪙 for this upgrade!`);
+    }
+  }
+
+  // Event Listeners Binding
+  document.getElementById("mute-btn").onclick = () => {
+    sfx.muted = !sfx.muted;
+    document.getElementById("mute-btn").innerText = sfx.muted ? "🔇" : "🔊";
+    if (!sfx.muted) sfx.click();
+  };
+  document.getElementById("station-coffee").onclick = () => prepareStation("coffee");
+  document.getElementById("station-food").onclick = () => prepareStation("food");
+  document.getElementById("station-dessert").onclick = () => prepareStation("dessert");
+  document.getElementById("clear-tray-btn").onclick = () => {
+    if (playerTray.length === 0) return;
+    sfx.click();
+    playerTray = [];
+    updateTrayUI();
+    const serveBtn = document.getElementById("serve-btn");
+    if (serveBtn) serveBtn.disabled = true;
+    showToast("Tray cleared");
+  };
+  document.getElementById("serve-btn").onclick = serveCustomer;
+
+  document.getElementById("upg-grinder").onclick = () => buyUpgrade("grinder");
+  document.getElementById("upg-oven").onclick = () => buyUpgrade("oven");
+  document.getElementById("upg-bakery").onclick = () => buyUpgrade("bakery");
+  document.getElementById("upg-decor").onclick = () => buyUpgrade("decor");
+
+  // Initialize Game State
+  loadProgress();
+  updateUI();
+  setTimeout(nextCustomer, 1000);
+
+  // Cleanup Function when switching away from Tiny Café
   return () => {
-    clearInterval(customerSpawner);
-    clearInterval(timerInterval);
+    if (patienceTimer) clearInterval(patienceTimer);
   };
 }
