@@ -975,10 +975,11 @@ function initChess(stage) {
 }
 
 // ----------------------------------------------------
-// 6. DAMA (Arcade Game -> Included with Hero Score Reward)
+// 6. DAMA (Arcade Game - Fullscreen, Score Nav & Winner Modal)
 // ----------------------------------------------------
 function initDama(stage) {
   let board = [], turn = 'r', sel = null, moves = [], vsAI = true, status = 'Your Turn (Red Dama)';
+  let redCaptured = 0, blueCaptured = 0, gameOver = false, winnerText = '';
 
   function reset() {
     board = Array.from({ length: 8 }, (_, r) => Array.from({ length: 8 }, (_, c) => {
@@ -989,6 +990,8 @@ function initDama(stage) {
       return null;
     }));
     turn = 'r'; sel = null; moves = [];
+    redCaptured = 0; blueCaptured = 0;
+    gameOver = false; winnerText = '';
     status = vsAI ? 'Your Turn (Red Dama vs AI)' : 'Red Dama (Player 1) Turn';
     render();
   }
@@ -1039,7 +1042,48 @@ function initDama(stage) {
     return res;
   }
 
+  function checkWinCondition() {
+    let redCount = 0, blueCount = 0;
+    let redHasMoves = false, blueHasMoves = false;
+
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const p = board[r][c];
+        if (p) {
+          if (p.side === 'r') {
+            redCount++;
+            if (getPieceMoves(r, c).length > 0) redHasMoves = true;
+          } else {
+            blueCount++;
+            if (getPieceMoves(r, c).length > 0) blueHasMoves = true;
+          }
+        }
+      }
+    }
+
+    if (redCount === 0 || (turn === 'r' && !redHasMoves)) {
+      triggerGameOver('Blue / AI Dama Wins!');
+      return true;
+    }
+    if (blueCount === 0 || (turn === 'b' && !blueHasMoves)) {
+      triggerGameOver('Red Dama Wins!');
+      return true;
+    }
+    return false;
+  }
+
+  function triggerGameOver(msg) {
+    gameOver = true;
+    winnerText = msg;
+    status = msg;
+    AudioFX.win();
+    addXP(50, window.innerWidth / 2, window.innerHeight / 2, 'DAMA VICTORY!');
+    window.ArcadeHero?.awardGameScore('dama', 100);
+    render();
+  }
+
   function aiTurn() {
+    if (gameOver) return;
     const all = [];
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -1049,11 +1093,7 @@ function initDama(stage) {
       }
     }
     if (!all.length) {
-      status = 'Panlo! Red Dama Wins!';
-      AudioFX.win();
-      addXP(50, window.innerWidth / 2, window.innerHeight / 2, 'DAMA VICTORY!');
-      window.ArcadeHero?.awardGameScore('dama', 100);
-      render();
+      triggerGameOver('Panlo! Red Dama Wins!');
       return;
     }
     const caps = all.filter(m => m.cap);
@@ -1065,15 +1105,16 @@ function initDama(stage) {
     let chained = false;
     if (pick.cap) {
       board[pick.cap[0]][pick.cap[1]] = null;
+      blueCaptured++;
       AudioFX.coin();
       const nextMoves = getPieceMoves(pick.dr, pick.dc).filter(m => m.cap);
-      if (nextMoves.length > 0) {
-        chained = true;
-      }
+      if (nextMoves.length > 0) chained = true;
     }
 
     if (pick.dr === 7) piece.king = true;
     AudioFX.card();
+
+    if (checkWinCondition()) return;
 
     if (!chained) {
       turn = 'r';
@@ -1087,16 +1128,26 @@ function initDama(stage) {
 
   function render() {
     stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-center px-3 py-2 gap-3">
-        <div class="flex flex-wrap items-center justify-between w-full max-w-[min(86vw,460px)] gap-2">
-          <span class="px-3 py-1 rounded-full bg-amber-950/90 border border-amber-400/35 text-amber-200 font-bold text-xs">${status}</span>
+      <div class="relative w-full h-full flex flex-col items-center justify-between px-3 py-3 pb-16 sm:pb-6 overflow-y-auto select-none">
+        
+        <!-- Top Nav & Scores -->
+        <div class="flex flex-wrap items-center justify-between w-full max-w-[min(90vw,480px)] gap-2">
           <div class="flex items-center gap-2">
-            <button id="dama-mode" class="px-3 py-1 rounded-xl bg-fuchsia-600 text-white font-bold text-xs">${vsAI ? '🤖 vs AI' : '👥 2P PvP'}</button>
-            <button id="dama-reset" class="px-3 py-1 rounded-xl bg-amber-400 text-slate-950 font-extrabold text-xs">Reset</button>
+            <span class="px-3 py-1.5 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-200 font-bold text-xs">🔴 Red: ${redCaptured} captured</span>
+            <span class="px-3 py-1.5 rounded-xl bg-sky-950/80 border border-sky-500/40 text-sky-200 font-bold text-xs">🔵 Blue: ${blueCaptured} captured</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="dama-mode" class="px-3 py-1.5 rounded-xl bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold text-xs shadow">${vsAI ? '🤖 vs AI' : '👥 2P PvP'}</button>
+            <button id="dama-reset" class="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs shadow">Reset</button>
           </div>
         </div>
 
-        <div class="grid grid-cols-8 aspect-square w-[min(82vw,420px)] rounded-2xl overflow-hidden border-4 border-[#3d1f0d] shadow-[0_20px_50px_rgba(0,0,0,0.75)]">
+        <div class="px-4 py-1.5 rounded-full bg-black/60 border border-amber-400/40 text-amber-200 font-bold text-xs text-center my-1">
+          ${status}
+        </div>
+
+        <!-- Full Viewport Board -->
+        <div class="grid grid-cols-8 aspect-square w-[min(88vw,440px)] rounded-3xl overflow-hidden border-4 border-[#3d1f0d] shadow-[0_20px_60px_rgba(0,0,0,0.8)] my-auto">
           ${board.map((row, r) => row.map((cell, c) => {
             const dark = (r + c) % 2 === 1;
             const isSel = sel && sel[0] === r && sel[1] === c;
@@ -1113,11 +1164,31 @@ function initDama(stage) {
             `;
           }).join('')).join('')}
         </div>
-        <div class="text-[11px] text-amber-200/75 text-center">Filipino Dama • Freedom Rule (Optional Capture) • Backwards &amp; Chain Jumps Enabled</div>
+
+        <div class="text-[11px] text-amber-200/80 text-center font-semibold pb-2">
+          Filipino Dama • Freedom Rule • Backwards &amp; Chain Jumps Enabled
+        </div>
+
+        <!-- Winner Modal Overlay -->
+        <div id="dama-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md ${gameOver ? 'flex' : 'hidden'} items-center justify-center p-4">
+          <div class="max-w-sm w-full bg-slate-900 border-2 border-amber-400/60 rounded-3xl p-6 shadow-2xl text-center flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+            <div class="text-5xl">🏆</div>
+            <h2 class="text-2xl font-black text-amber-300">GAME OVER</h2>
+            <div class="text-lg font-extrabold text-white bg-black/40 py-3 rounded-2xl border border-white/10">
+              ${winnerText}
+            </div>
+            <button onclick="resetDamaMatch()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg hover:opacity-95 transition">
+              🔄 Play Again
+            </button>
+          </div>
+        </div>
+
       </div>
     `;
 
     document.getElementById('dama-reset').onclick = reset;
+    window.resetDamaMatch = reset;
+
     document.getElementById('dama-mode').onclick = () => {
       vsAI = !vsAI;
       reset();
@@ -1125,6 +1196,7 @@ function initDama(stage) {
 
     document.querySelectorAll('.dm-sq').forEach(btn => {
       btn.onclick = () => {
+        if (gameOver) return;
         const r = Number(btn.dataset.r), c = Number(btn.dataset.c);
         const currentSide = turn;
         if (vsAI && currentSide !== 'r') return;
@@ -1138,6 +1210,7 @@ function initDama(stage) {
           let chained = false;
           if (mv.cap) {
             board[mv.cap[0]][mv.cap[1]] = null;
+            redCaptured++;
             AudioFX.coin();
             addXP(15, window.innerWidth / 2, window.innerHeight / 2, 'CAPTURE!');
             
@@ -1146,7 +1219,7 @@ function initDama(stage) {
               chained = true;
               sel = [r, c];
               moves = nextMoves;
-              status = `${currentSide === 'r' ? 'Red' : 'Blue'} Chain Jump! Pick target`;
+              status = `Chain Jump! Pick target`;
               AudioFX.click();
               render();
               return;
@@ -1159,14 +1232,17 @@ function initDama(stage) {
           if (currentSide === 'b' && r === 7) piece.king = true;
 
           sel = null; moves = [];
+          
+          if (checkWinCondition()) return;
+
           if (!chained) {
             turn = currentSide === 'r' ? 'b' : 'r';
             status = vsAI ? 'Opponent moving...' : (turn === 'r' ? 'Red Dama (Player 1) Turn' : 'Blue Dama (Player 2) Turn');
           }
           render();
 
-          if (vsAI && turn === 'b') {
-            setTimeout(aiTurn, 350);
+          if (vsAI && turn === 'b' && !gameOver) {
+            setTimeout(aiTurn, 400);
           }
           return;
         }
