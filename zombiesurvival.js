@@ -2,10 +2,11 @@ function initZombieSurvival(stage) {
   stage.innerHTML = `
     <div class="relative w-full h-full bg-slate-950 overflow-hidden select-none">
       <div class="absolute top-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
-        <span id="zs-score" class="px-4 py-1.5 rounded-full bg-black/60 border border-emerald-400/40 text-emerald-300 font-black text-sm">SURVIVED ARENA</span>
-        <span id="zs-hp" class="px-4 py-1.5 rounded-full bg-black/60 border border-rose-400/40 text-rose-300 font-black text-sm">❤️ 100%</span>
+        <span id="zs-score" class="px-4 py-1.5 rounded-full bg-black/60 border border-emerald-400/40 text-emerald-300 font-black text-sm">🧟 KILLS: 0</span>
+        <span id="zs-weapon" class="px-3 py-1.5 rounded-full bg-black/60 border border-amber-400/40 text-amber-300 font-bold text-xs">🔫 PISTOL (LVL 1)</span>
+        <span id="zs-hp" class="px-4 py-1.5 rounded-full bg-black/60 border border-rose-400/40 text-rose-300 font-black text-sm">❤️ 100</span>
       </div>
-      <canvas id="zs-canvas" class="w-full h-full block touch-none"></canvas>
+      <canvas id="zs-canvas" class="w-full h-full block touch-none cursor-crosshair"></canvas>
     </div>
   `;
   const canvas = document.getElementById('zs-canvas');
@@ -13,38 +14,145 @@ function initZombieSurvival(stage) {
   let w = canvas.width = stage.clientWidth;
   let h = canvas.height = stage.clientHeight;
 
-  let player = { x: w / 2, y: h / 2 };
-  let zombies = [], bullets = [], raf;
+  let player = { x: w / 2, y: h / 2, hp: 100, maxHp: 100, speed: 3.2, weaponLvl: 1 };
+  let zombies = [], bullets = [], loot = [], kills = 0, alive = true, shootTimer = 0, raf;
+  let keys = { w: false, a: false, s: false, d: false };
 
-  canvas.onpointerdown = (e) => {
-    const angle = Math.atan2(e.offsetY - player.y, e.offsetX - player.x);
-    bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 8, vy: Math.sin(angle) * 8 });
-    if (typeof AudioFX !== 'undefined') AudioFX.hit();
+  window.addEventListener('keydown', e => {
+    if (e.key === 'w' || e.key === 'ArrowUp') keys.w = true;
+    if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = true;
+    if (e.key === 's' || e.key === 'ArrowDown') keys.s = true;
+    if (e.key === 'd' || e.key === 'ArrowRight') keys.d = true;
+  });
+  window.addEventListener('keyup', e => {
+    if (e.key === 'w' || e.key === 'ArrowUp') keys.w = false;
+    if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = false;
+    if (e.key === 's' || e.key === 'ArrowDown') keys.s = false;
+    if (e.key === 'd' || e.key === 'ArrowRight') keys.d = false;
+  });
+
+  canvas.onpointermove = (e) => {
+    player.x = e.offsetX;
+    player.y = e.offsetY;
   };
 
   function loop() {
     ctx.clearRect(0, 0, w, h);
-    if (Math.random() < 0.04) {
-      zombies.push({ x: Math.random() < 0.5 ? -20 : w + 20, y: Math.random() * h, speed: 1.8 });
+
+    if (alive) {
+      if (keys.w) player.y = Math.max(30, player.y - player.speed);
+      if (keys.s) player.y = Math.min(h - 30, player.y + player.speed);
+      if (keys.a) player.x = Math.max(30, player.x - player.speed);
+      if (keys.d) player.x = Math.min(w - 30, player.x + player.speed);
+
+      shootTimer++;
+      if (shootTimer >= Math.max(12, 30 - player.weaponLvl * 4)) {
+        shootTimer = 0;
+        let target = zombies[0];
+        let minDist = Infinity;
+        zombies.forEach(z => {
+          let d = Math.hypot(z.x - player.x, z.y - player.y);
+          if (d < minDist) { minDist = d; target = z; }
+        });
+        if (target) {
+          const angle = Math.atan2(target.y - player.y, target.x - player.x);
+          bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 10, vy: Math.sin(angle) * 10 });
+          if (typeof AudioFX !== 'undefined') AudioFX.hit();
+        }
+      }
+
+      if (Math.random() < 0.035) {
+        const isBoss = kills > 0 && kills % 15 === 0 && !zombies.some(z => z.isBoss);
+        zombies.push({
+          x: Math.random() < 0.5 ? -30 : w + 30,
+          y: Math.random() * h,
+          hp: isBoss ? 25 : 3,
+          maxHp: isBoss ? 25 : 3,
+          speed: isBoss ? 1.2 : 1.8 + Math.random() * 0.8,
+          isBoss,
+          r: isBoss ? 32 : 18
+        });
+      }
     }
 
+    // Draw Loot
+    loot.forEach(l => {
+      ctx.font = '22px Inter';
+      ctx.fillText('📦', l.x, l.y);
+      if (Math.hypot(l.x - player.x, l.y - player.y) < 28) {
+        l.collected = true;
+        player.weaponLvl = Math.min(5, player.weaponLvl + 1);
+        player.hp = Math.min(player.maxHp, player.hp + 25);
+        document.getElementById('zs-weapon').textContent = `🔫 GUN LVL ${player.weaponLvl}`;
+        if (typeof AudioFX !== 'undefined') AudioFX.coin();
+      }
+    });
+    loot = loot.filter(l => !l.collected);
+
+    // Draw Bullets
+    bullets.forEach(b => {
+      b.x += b.vx; b.y += b.vy;
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI * 2); ctx.fill();
+
+      zombies.forEach(z => {
+        if (Math.hypot(b.x - z.x, b.y - z.y) < z.r) {
+          z.hp--;
+          b.dead = true;
+          if (z.hp <= 0 && !z.dead) {
+            z.dead = true;
+            kills++;
+            document.getElementById('zs-score').textContent = `🧟 KILLS: ${kills}`;
+            if (Math.random() < 0.35) loot.push({ x: z.x, y: z.y });
+          }
+        }
+      });
+    });
+    bullets = bullets.filter(b => !b.dead && b.x > 0 && b.x < w && b.y > 0 && b.y < h);
+    zombies = zombies.filter(z => !z.dead);
+
+    // Draw Zombies
     zombies.forEach(z => {
       const angle = Math.atan2(player.y - z.y, player.x - z.x);
       z.x += Math.cos(angle) * z.speed;
       z.y += Math.sin(angle) * z.speed;
 
-      ctx.fillStyle = '#22c55e';
-      ctx.beginPath(); ctx.arc(z.x, z.y, 14, 0, Math.PI * 2); ctx.fill();
+      ctx.font = z.isBoss ? '40px Inter' : '26px Inter';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(z.isBoss ? '👹' : '🧟', z.x, z.y);
+
+      if (Math.hypot(z.x - player.x, z.y - player.y) < z.r + 12) {
+        player.hp -= z.isBoss ? 1.5 : 0.6;
+        document.getElementById('zs-hp').textContent = `❤️ ${Math.max(0, Math.floor(player.hp))}`;
+        if (player.hp <= 0 && alive) {
+          alive = false;
+          if (typeof AudioFX !== 'undefined') AudioFX.lose();
+        }
+      }
     });
 
-    bullets.forEach(b => {
-      b.x += b.vx; b.y += b.vy;
+    // Draw Survivor
+    ctx.font = '30px Inter';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🏃', player.x, player.y);
+
+    if (!alive) {
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#fff';
+      ctx.font = '900 30px Inter';
+      ctx.fillText(`Overrun! Total Kills: ${kills}`, w / 2, h / 2 - 15);
+      ctx.font = '700 16px Inter';
       ctx.fillStyle = '#fde047';
-      ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI * 2); ctx.fill();
-    });
-
-    ctx.fillStyle = '#38bdf8';
-    ctx.beginPath(); ctx.arc(player.x, player.y, 16, 0, Math.PI * 2); ctx.fill();
+      ctx.fillText('Tap to Restart Survival', w / 2, h / 2 + 20);
+      canvas.onpointerdown = () => {
+        player.hp = 100; kills = 0; zombies = []; bullets = []; loot = []; alive = true; player.weaponLvl = 1;
+        document.getElementById('zs-score').textContent = `🧟 KILLS: 0`;
+        document.getElementById('zs-weapon').textContent = `🔫 PISTOL (LVL 1)`;
+      };
+    }
 
     raf = requestAnimationFrame(loop);
   }
