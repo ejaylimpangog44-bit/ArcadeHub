@@ -35,8 +35,8 @@
   </div>
 </div>
 
-<!-- Floating Assistive Touch Fox Widget -->
-<div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-2xl flex items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
+<!-- Floating Assistive Touch Fox Widget with z-[120] so it stays on top of the shop/hero modal -->
+<div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-2xl flex items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
   <span class="transform group-hover:scale-110 transition">🦊</span>
 </div>
 
@@ -90,7 +90,7 @@
     <div id="tab-rewards" class="hero-tab-panel">
       <div class="rewards-split">
         <div class="reward-card">
-          <!-- Title text removed, 24h PHT cooldown timer active -->
+          <!-- Title removed, 24h PHT countdown timer active -->
           <div id="streak-cooldown-timer" class="text-sm font-mono text-amber-400 font-bold my-2 text-center">24:00:00</div>
           <div id="streak-days-row" class="streak-row"></div>
           <button id="claim-streak-btn" class="action-btn">Claim Daily</button>
@@ -225,7 +225,7 @@
   </main>
 </div>
 
-<!-- Custom Alert Modal Overlay with z-[100] so it always stays on top -->
+<!-- Custom Alert Modal Overlay with z-[100] -->
 <div id="custom-alert-modal" class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
   <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 text-center">
     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-pink-600 flex items-center justify-center mx-auto text-xl shadow-lg">🔔</div>
@@ -273,12 +273,10 @@
     const timerEl = document.getElementById('streak-cooldown-timer');
     if (!timerEl) return;
 
-    // Get current time in PHT (UTC+8)
     const now = new Date();
     const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
     const phtDate = new Date(utcTime + (3600000 * 8));
 
-    // Calculate time until next midnight PHT
     const nextMidnight = new Date(phtDate);
     nextMidnight.setHours(24, 0, 0, 0);
     
