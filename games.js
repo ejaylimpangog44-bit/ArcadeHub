@@ -1702,7 +1702,7 @@ function initWordscape(stage) {
 
 
 // ----------------------------------------------------
-// 10. FRUIT MASTER (Arcade Game)
+// 10. FRUIT MASTER (Arcade Game - Freeze, Fire, and Bomb FX)
 // ----------------------------------------------------
 function initFruitMaster(stage) {
   stage.innerHTML = `
@@ -1734,6 +1734,7 @@ function initFruitMaster(stage) {
   let screenShake = 0;
   let freezeTimer = 0; 
   let doubleTimer = 0; 
+  let boomFlash = 0;
 
   const onResize = () => { 
     w = canvas.width = stage.clientWidth; 
@@ -1787,10 +1788,23 @@ function initFruitMaster(stage) {
         it.sliced = true;
         if (it.isBomb) {
           lives--;
-          screenShake = 22;
-          if (navigator.vibrate) navigator.vibrate([180, 60, 180]);
+          screenShake = 30;
+          boomFlash = 25;
+          if (navigator.vibrate) navigator.vibrate([220, 80, 220]);
           AudioFX.hit();
           document.getElementById('fm-lives').textContent = '❤️'.repeat(Math.max(0, lives)) || '💀';
+
+          // Bomb explosion debris
+          for (let k = 0; k < 24; k++) {
+            splashes.push({
+              x: it.x, y: it.y,
+              vx: (Math.random() - 0.5) * 16,
+              vy: (Math.random() - 0.5) * 16,
+              life: 1,
+              color: ['#ef4444','#f97316','#eab308','#1e293b'][k % 4]
+            });
+          }
+
           if (lives <= 0) {
             running = false;
             window.ArcadeHero?.awardGameScore('fruit-master', score);
@@ -1799,9 +1813,11 @@ function initFruitMaster(stage) {
           AudioFX.slice();
           if (it.isFreeze) {
             freezeTimer = 240;
+            screenShake = 8;
             spawnPopup('❄️ FREEZE!', x, y, '#38bdf8');
           } else if (it.isDouble) {
             doubleTimer = 300;
+            screenShake = 10;
             spawnPopup('2️⃣ 2X POINTS!', x, y, '#fde047');
           } else {
             const earned = it.pts * (doubleTimer > 0 ? 2 : 1);
@@ -1843,29 +1859,65 @@ function initFruitMaster(stage) {
   function loop() {
     ctx.save();
     
+    // Background Gradient (changes tint when Freeze or Fire active)
     const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
-    bgGrad.addColorStop(0, '#064e3b');
-    bgGrad.addColorStop(1, '#022c22');
+    if (freezeTimer > 0) {
+      bgGrad.addColorStop(0, '#0284c7');
+      bgGrad.addColorStop(1, '#0369a1');
+    } else if (doubleTimer > 0) {
+      bgGrad.addColorStop(0, '#c2410c');
+      bgGrad.addColorStop(1, '#7c2d12');
+    } else {
+      bgGrad.addColorStop(0, '#064e3b');
+      bgGrad.addColorStop(1, '#022c22');
+    }
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
     if (screenShake > 0) {
-      ctx.translate((Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12);
+      ctx.translate((Math.random() - 0.5) * 14, (Math.random() - 0.5) * 14);
       screenShake--;
     }
 
     if (freezeTimer > 0) freezeTimer--;
     if (doubleTimer > 0) doubleTimer--;
+    if (boomFlash > 0) boomFlash--;
+
+    // Render Freeze Screen Vignette / Ice Crystals
+    if (freezeTimer > 0) {
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+      ctx.lineWidth = 14;
+      ctx.strokeRect(0, 0, w, h);
+
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.12)';
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    // Render Fire Screen Aura for 2x
+    if (doubleTimer > 0) {
+      ctx.strokeStyle = 'rgba(251, 146, 60, 0.55)';
+      ctx.lineWidth = 16;
+      ctx.strokeRect(0, 0, w, h);
+
+      ctx.fillStyle = 'rgba(249, 115, 22, 0.12)';
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    // Render Bomb Explosion Flash
+    if (boomFlash > 0) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${boomFlash / 30})`;
+      ctx.fillRect(0, 0, w, h);
+    }
 
     const boosterEl = document.getElementById('fm-boosters');
     if (boosterEl) {
       let html = '';
-      if (freezeTimer > 0) html += `<span class="px-2.5 py-1 rounded-full bg-sky-500/20 border border-sky-400/40 text-sky-300 font-bold text-xs animate-pulse">❄️ SLOW (${Math.ceil(freezeTimer/60)}s)</span>`;
-      if (doubleTimer > 0) html += `<span class="px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 font-bold text-xs animate-pulse">2️⃣ 2X (${Math.ceil(doubleTimer/60)}s)</span>`;
+      if (freezeTimer > 0) html += `<span class="px-2.5 py-1 rounded-full bg-sky-500/20 border border-sky-400/40 text-sky-300 font-bold text-xs animate-pulse">❄️ FREEZE (${Math.ceil(freezeTimer/60)}s)</span>`;
+      if (doubleTimer > 0) html += `<span class="px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 font-bold text-xs animate-pulse">🔥 2X FIRE (${Math.ceil(doubleTimer/60)}s)</span>`;
       boosterEl.innerHTML = html;
     }
 
-    const timeScale = freezeTimer > 0 ? 0.45 : 1.0;
+    const timeScale = freezeTimer > 0 ? 0.4 : 1.0;
 
     splashes.forEach(s => {
       s.x += s.vx * timeScale;
@@ -1929,7 +1981,7 @@ function initFruitMaster(stage) {
     items = items.filter(it => it.y < h + 80 && !it.sliced);
 
     if (slashes.length > 1) {
-      ctx.strokeStyle = '#38bdf8';
+      ctx.strokeStyle = doubleTimer > 0 ? '#f97316' : freezeTimer > 0 ? '#38bdf8' : '#38bdf8';
       ctx.lineWidth = 6;
       ctx.lineCap = 'round';
       ctx.beginPath();
