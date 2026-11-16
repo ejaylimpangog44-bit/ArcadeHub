@@ -110,7 +110,7 @@ function initSpeedSolitaire(stage) {
   function render() {
     const totalFound = foundations.reduce((a, b) => a + b.length, 0);
     stage.innerHTML = `
-      <div class="w-full h-full flex flex-col justify-between px-3 sm:px-8 py-3 overflow-y-auto">
+      <div class="w-full h-full flex flex-col justify-between px-3 sm:px-8 py-3 pb-12 sm:pb-6 overflow-y-auto">
         <div class="flex flex-wrap items-center justify-between gap-2 max-w-5xl w-full mx-auto">
           <div class="flex items-center gap-3">
             <span class="px-3 py-1 rounded-full bg-emerald-950/80 border border-amber-400/30 text-amber-300 font-bold text-xs">SCORE: ${score}</span>
@@ -268,7 +268,7 @@ function initSpeedSolitaire(stage) {
 // ----------------------------------------------------
 function initCoinScatter(stage, meta) {
   stage.innerHTML = `
-    <div class="relative w-full h-full flex flex-col items-center justify-center p-3 sm:p-6 overflow-y-auto select-none">
+    <div class="relative w-full h-full flex flex-col items-center justify-center p-3 sm:p-6 pb-12 sm:pb-6 overflow-y-auto select-none">
       <div class="max-w-xl w-full bg-slate-950/80 backdrop-blur-xl border border-white/15 rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col gap-5 text-center mt-12 sm:mt-0">
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <div class="px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-xs font-bold text-amber-300">
@@ -643,7 +643,7 @@ function initBlackjack(stage) {
     const pVal = handValue(player);
     const dVal = phase === 'play' ? '?' : handValue(dealer);
     stage.innerHTML = `
-      <div class="w-full h-full flex flex-col justify-between items-center px-4 py-4">
+      <div class="w-full h-full flex flex-col justify-between items-center px-4 py-4 pb-12 sm:pb-6 overflow-y-auto">
         <div class="flex items-center gap-3">
           <span class="px-4 py-1.5 rounded-full bg-black/50 border border-amber-400/40 text-amber-300 font-black text-xs sm:text-sm">BANK: $${bank.toLocaleString()}</span>
           <span class="px-4 py-1.5 rounded-full bg-teal-950/80 border border-teal-400/30 text-teal-200 font-bold text-xs sm:text-sm">BET: $${bet}</span>
@@ -739,7 +739,7 @@ function initHighLow(stage) {
 
   function renderCard() {
     stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-between px-4 py-5">
+      <div class="w-full h-full flex flex-col items-center justify-between px-4 py-5 pb-12 sm:pb-6 overflow-y-auto">
         <div class="flex items-center gap-3">
           <span class="px-4 py-1.5 rounded-full bg-rose-950/90 border border-rose-400/40 text-rose-200 font-bold text-xs">BANKED: ${banked}</span>
           <span class="px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-300/40 text-amber-300 font-black text-xs">CURRENT POT: ${pot} (${streak}x)</span>
