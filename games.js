@@ -20,9 +20,6 @@ function createDeck() {
   return d;
 }
 
-// ----------------------------------------------------
-// 1. SPEED SOLITAIRE (Card Game -> Excluded from Hero Coins)
-// ----------------------------------------------------
 function initSpeedSolitaire(stage) {
   let stock = [], waste = [], foundations = [[],[],[],[]], tableau = [[],[],[],[],[],[],[]];
   let score = 0, combo = 1, moves = 0, selected = null, seconds = 0;
