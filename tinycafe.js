@@ -5,7 +5,7 @@ function initTinyCafe(stage) {
       <div id="cafe-intro-clouds" class="absolute inset-0 z-50 bg-sky-900 flex flex-col items-center justify-center transition-transform duration-1000">
         <div class="text-5xl mb-3 animate-bounce">🧾🍳☕</div>
         <h2 class="text-xl font-black text-amber-300 mb-1">Tiny Café &amp; Pro Bistro</h2>
-        <p class="text-xs text-sky-200 mb-4 text-center max-w-xs">Clean top bar, instant station tabs, and sticky serve buttons!</p>
+        <p class="text-xs text-sky-200 mb-4 text-center max-w-xs">Clean layout, instant station tabs, and sticky serve buttons!</p>
         <button onclick="startCafeShift()" class="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl shadow-xl hover:scale-105 transition text-xs">Start Bistro Shift 🚀</button>
       </div>
 
@@ -25,14 +25,12 @@ function initTinyCafe(stage) {
         </div>
       </div>
 
-      <!-- Polished Top Bar (Clean Intro Gap Removed) -->
-      <div class="flex items-center justify-between w-full bg-black/80 px-3 py-2 border-b border-white/10 shrink-0 text-xs">
-        <button onclick="location.reload()" class="bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-lg font-bold text-slate-200 active:scale-95 transition">← Hub</button>
-        <div id="top-stats-container" class="flex items-center gap-3 font-black opacity-0 transition-opacity duration-500">
+      <!-- Clean Status Bar (No Duplicated Hub/Settings) -->
+      <div class="flex items-center justify-center gap-4 w-full bg-black/60 px-3 py-1.5 border-b border-white/10 shrink-0 text-xs">
+        <div id="top-stats-container" class="flex items-center gap-4 font-black opacity-0 transition-opacity duration-500">
           <span id="cafe-coins" class="text-amber-400">🪙 500</span>
           <span id="day-goal-text" class="text-cyan-300">📅 DAY 1 (0/10)</span>
         </div>
-        <button onclick="alert('Tiny Café & Bistro v3.2 • Pro Edition')" class="bg-white/10 hover:bg-white/20 px-2 py-1 rounded-lg active:scale-95 transition">⚙️</button>
       </div>
 
       <!-- Game Content Padding Container -->
@@ -94,7 +92,6 @@ function initTinyCafe(stage) {
       setTimeout(() => cloudEl.remove(), 1000);
     }
     
-    // Reveal top stats cleanly once shift starts
     const topStats = document.getElementById('top-stats-container');
     if (topStats) topStats.classList.remove('opacity-0');
 
@@ -202,145 +199,3 @@ function initTinyCafe(stage) {
               <div class="text-left"><div class="text-xs font-bold">Cheese</div><div class="text-[9px] text-amber-400">Foam Topping</div></div>
             </button>
           `}
-        </div>
-      </div>
-    `;
-  };
-
-  window.spawnNextCustomer = function() {
-    customerTimeLeft = 60; 
-    currentOrderObj = possibleOrders[Math.floor(Math.random() * possibleOrders.length)];
-    currentTray = [];
-    
-    const receiptText = document.getElementById('receipt-order-text');
-    const avatar = document.getElementById('customer-avatar');
-    if (avatar) avatar.textContent = avatars[Math.floor(Math.random() * avatars.length)];
-    if (receiptText) receiptText.innerHTML = `<b>${currentOrderObj.name}</b><br><span class="text-[9px] text-slate-600">[ ${currentOrderObj.ingredients.join(' + ')} ]</span>`;
-    updateTrayDisplay();
-  };
-
-  window.addDrink = function(item) {
-    currentTray.push(item);
-    updateTrayDisplay();
-    if (typeof AudioFX !== 'undefined') AudioFX.click();
-  };
-
-  window.startCooking = function(itemKey, emoji, itemName) {
-    if (activeTimers[itemKey]) return;
-
-    const timerLabel = document.getElementById(`timer-${itemKey}`);
-    const badge = document.getElementById(`badge-${itemKey}`);
-    
-    let timeLeft = 10;
-    if (badge) {
-      badge.textContent = `${timeLeft}s 🔥`;
-      badge.classList.remove('bg-amber-500', 'bg-orange-600', 'bg-yellow-500', 'bg-red-600', 'bg-amber-600', 'bg-yellow-400', 'bg-emerald-600', 'bg-orange-500', 'bg-amber-700');
-      badge.classList.add('bg-rose-600', 'text-white');
-    }
-    if (typeof AudioFX !== 'undefined') AudioFX.click();
-
-    activeTimers[itemKey] = setInterval(() => {
-      timeLeft--;
-      if (timerLabel) timerLabel.textContent = `Cooking... ${timeLeft}s`;
-
-      if (timeLeft <= 0) {
-        clearInterval(activeTimers[itemKey]);
-        delete activeTimers[itemKey];
-
-        if (timerLabel) timerLabel.textContent = `Ready!`;
-        if (badge) {
-          badge.textContent = `Done ✓`;
-          badge.classList.remove('bg-rose-600');
-          badge.classList.add('bg-emerald-500', 'text-slate-950');
-        }
-
-        currentTray.push(itemKey);
-        updateTrayDisplay();
-        if (typeof AudioFX !== 'undefined') AudioFX.coin();
-
-        setTimeout(() => {
-          if (timerLabel) timerLabel.textContent = `Station Ready`;
-          if (badge) {
-            badge.textContent = `Cook`;
-            badge.classList.remove('bg-emerald-500', 'text-slate-950');
-            badge.classList.add('bg-amber-500', 'text-slate-950');
-          }
-        }, 1500);
-      }
-    }, 1000);
-  };
-
-  window.resetTray = function() {
-    currentTray = [];
-    updateTrayDisplay();
-    if (typeof AudioFX !== 'undefined') AudioFX.hit();
-  };
-
-  function updateTrayDisplay() {
-    const trayEl = document.getElementById('cup-tray');
-    if (trayEl) {
-      trayEl.textContent = currentTray.length > 0 ? `[ ${currentTray.join(' → ')} ]` : '[ Empty ]';
-    }
-  }
-
-  window.serveOrder = function() {
-    const isMatch = currentTray.length === currentOrderObj.ingredients.length && currentOrderObj.ingredients.every((val, index) => val === currentTray[index]);
-    if (isMatch) {
-      coins += 250;
-      served++;
-      dailyServed++;
-      
-      document.getElementById('cafe-coins').textContent = `🪙 ${coins}`;
-      document.getElementById('day-goal-text').textContent = `📅 DAY ${currentDay} (${dailyServed}/10)`;
-
-      if (typeof AudioFX !== 'undefined') AudioFX.win();
-      if (typeof addXP === 'function') addXP(50);
-
-      if (dailyServed >= 10) {
-        if (gameInterval) clearInterval(gameInterval);
-        Object.values(activeTimers).forEach(t => clearInterval(t));
-        
-        coins += 500;
-        document.getElementById('cafe-coins').textContent = `🪙 ${coins}`;
-        if (typeof addXP === 'function') addXP(150);
-
-        const modal = document.getElementById('day-modal');
-        const modalTitle = document.getElementById('modal-title');
-        if (modalTitle) modalTitle.textContent = `Day ${currentDay} Completed! 🎉`;
-        if (modal) {
-          modal.classList.remove('hidden');
-          setTimeout(() => {
-            modal.classList.remove('opacity-0', 'scale-95');
-            modal.classList.add('opacity-100', 'scale-100');
-          }, 50);
-        }
-        return;
-      }
-    } else {
-      coins = Math.max(0, coins - 35);
-      document.getElementById('cafe-coins').textContent = `🪙 ${coins}`;
-      if (typeof AudioFX !== 'undefined') AudioFX.lose();
-    }
-    window.spawnNextCustomer();
-  };
-
-  window.advanceToNextDay = function() {
-    currentDay++;
-    dailyServed = 0;
-    
-    const modal = document.getElementById('day-modal');
-    if (modal) {
-      modal.classList.add('opacity-0', 'scale-95');
-      setTimeout(() => modal.classList.add('hidden'), 300);
-    }
-
-    document.getElementById('day-goal-text').textContent = `📅 DAY ${currentDay} (0/10)`;
-    if (typeof AudioFX !== 'undefined') AudioFX.coin();
-    window.startCafeShift();
-  };
-
-  return () => {
-    if (gameInterval) clearInterval(gameInterval);
-    Object.values(activeTimers).forEach(t => clearInterval(t));
-  };
-}
