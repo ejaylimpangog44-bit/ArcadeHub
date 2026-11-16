@@ -3011,6 +3011,7 @@ function initStickRun(stage) {
     onPlatform: false,
     rot: 0,
     isDoingTrick: false,
+    trickTimer: 0,
     score: 0
   };
 
@@ -3036,6 +3037,7 @@ function initStickRun(stage) {
       onPlatform: false,
       rot: 0,
       isDoingTrick: false,
+      trickTimer: 0,
       score: 0
     };
     platforms = [];
@@ -3053,7 +3055,7 @@ function initStickRun(stage) {
     if (player.jumps < 2 && !player.sliding) {
       player.vy = -14.2;
       player.jumps++;
-      player.isDoingTrick = true;
+      // No backflip on basic jump
       AudioFX.jump();
     }
   }
@@ -3140,7 +3142,7 @@ function initStickRun(stage) {
     ctx.save();
     ctx.translate(x, y);
 
-    if (inAir && isDoingTrick) {
+    if (isDoingTrick) {
       ctx.rotate(rot);
     }
 
@@ -3150,12 +3152,11 @@ function initStickRun(stage) {
     ctx.fillStyle = '#f8fafc';
 
     if (sliding) {
-      // Slide pose: Head at back (left), body low, 1 leg stretched forward, 1 leg bent
+      // Slide pose
       ctx.beginPath();
       ctx.arc(-18, -12, 9, 0, Math.PI * 2);
       ctx.fill();
 
-      // Red headband trail
       ctx.strokeStyle = '#ef4444';
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -3163,7 +3164,6 @@ function initStickRun(stage) {
       ctx.lineTo(-38, -18);
       ctx.stroke();
 
-      // Torso
       ctx.strokeStyle = '#f8fafc';
       ctx.lineWidth = 4.5;
       ctx.beginPath();
@@ -3171,19 +3171,17 @@ function initStickRun(stage) {
       ctx.lineTo(6, -6);
       ctx.stroke();
 
-      // Hands on ground
       ctx.beginPath();
       ctx.moveTo(-8, -6); ctx.lineTo(-14, 0);
       ctx.moveTo(-2, -6); ctx.lineTo(4, 0);
       ctx.stroke();
 
-      // Legs
       ctx.beginPath();
       ctx.moveTo(6, -6); ctx.lineTo(12, -2); ctx.lineTo(8, 0);
       ctx.moveTo(6, -6); ctx.lineTo(24, -2);
       ctx.stroke();
-    } else if (inAir) {
-      // Backflip trick pose
+    } else if (inAir && !isDoingTrick) {
+      // Normal straight jump pose
       ctx.beginPath();
       ctx.arc(0, -38, 9, 0, Math.PI * 2);
       ctx.fill();
@@ -3195,11 +3193,11 @@ function initStickRun(stage) {
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.moveTo(0, -26); ctx.lineTo(-12, -18); ctx.lineTo(-8, -8);
-      ctx.moveTo(0, -10); ctx.lineTo(12, -18); ctx.lineTo(8, -4);
+      ctx.moveTo(0, -26); ctx.lineTo(-10, -14); ctx.lineTo(-6, -4);
+      ctx.moveTo(0, -10); ctx.lineTo(10, -14); ctx.lineTo(6, -4);
       ctx.stroke();
     } else {
-      // Normal running pose
+      // Normal running / landing trick pose
       ctx.beginPath();
       ctx.arc(0, -44, 9, 0, Math.PI * 2);
       ctx.fill();
@@ -3249,7 +3247,7 @@ function initStickRun(stage) {
       player.y += player.vy;
 
       let targetGround = gy;
-      player.onPlatform = false;
+      let landingOnPlatform = false;
 
       platforms.forEach(p => {
         if (
@@ -3259,9 +3257,12 @@ function initStickRun(stage) {
           player.y >= p.y - 18 &&
           player.vy >= 0
         ) {
-          targetGround = p.y;
-          player.onPlatform = true;
+          if (targetGround === gy || p.y < targetGround) {
+            targetGround = p.y;
+            landingOnPlatform = true;
+          }
         } else {
+          // Front/side wall collision check
           if (
             player.x + 10 > p.x &&
             player.x - 10 < p.x + p.w &&
@@ -3275,15 +3276,33 @@ function initStickRun(stage) {
         }
       });
 
-      if (player.y < targetGround) {
+      const wasInAir = player.y < targetGround;
+
+      if (wasInAir) {
         player.vy += 0.72;
-        if (player.isDoingTrick) player.rot += 0.18;
+        player.onPlatform = false;
       } else {
+        const justLandedOnBox = !player.onPlatform && landingOnPlatform;
         player.y = targetGround;
         player.vy = 0;
         player.jumps = 0;
-        player.isDoingTrick = false;
-        player.rot = 0;
+        player.onPlatform = landingOnPlatform;
+
+        // Trigger backflip trick ONLY when successfully landing on top of a box
+        if (justLandedOnBox) {
+          player.isDoingTrick = true;
+          player.trickTimer = 22; // Backflip animation duration on landing
+          player.rot = 0;
+        }
+      }
+
+      if (player.isDoingTrick) {
+        player.rot += 0.3;
+        player.trickTimer--;
+        if (player.trickTimer <= 0) {
+          player.isDoingTrick = false;
+          player.rot = 0;
+        }
       }
 
       if (dist % 8 === 0) {
@@ -3291,42 +3310,38 @@ function initStickRun(stage) {
         document.getElementById('sr-score').textContent = `⭐ ${player.score}`;
       }
 
-      // Obstacle Generation including the 4-Box Window/Laser Structure
-      if (Math.random() < 0.026 && !obstacles.some(o => o.x > w - 280) && !platforms.some(p => p.x > w - 280)) {
+      // Obstacle Generation with comfortable spacing gap
+      if (Math.random() < 0.022 && !obstacles.some(o => o.x > w - 340) && !platforms.some(p => p.x > w - 340)) {
         const typeRand = Math.random();
         if (typeRand < 0.3) {
           // 3-stack bottom crates + vertical middle laser/bar + 1 floating top box
           const boxW = 40, boxH = 40;
           for (let i = 0; i < 3; i++) {
-            platforms.push({ x: w + 50, y: gy - (i + 1) * boxH, w: boxW, h: boxH });
+            platforms.push({ x: w + 120, y: gy - (i + 1) * boxH, w: boxW, h: boxH });
           }
-          // Top floating box
-          platforms.push({ x: w + 50, y: gy - 5 * boxH, w: boxW, h: boxH });
-          // Vertical laser/pole bar in the gap
+          platforms.push({ x: w + 120, y: gy - 5 * boxH, w: boxW, h: boxH });
           overheadBarriers.push({
-            x: w + 55,
+            x: w + 125,
             y: gy - 4 * boxH,
             w: 30,
             h: boxH * 1.5,
             isLaserBar: true
           });
         } else if (typeRand < 0.6) {
-          // L-shaped barrier requiring slide
           overheadBarriers.push({
-            x: w + 40,
+            x: w + 100,
             y: gy - 65,
             w: 80,
             h: 30,
             isLaserBar: false
           });
         } else {
-          // Ground saw hazard
-          obstacles.push({ x: w + 40, y: gy - 32, w: 32, h: 32, type: 'saw', rot: 0 });
+          obstacles.push({ x: w + 100, y: gy - 32, w: 32, h: 32, type: 'saw', rot: 0 });
         }
       }
 
-      if (Math.random() < 0.03) {
-        coins.push({ x: w + 40, y: gy - (Math.random() < 0.5 ? 40 : 100) });
+      if (Math.random() < 0.025) {
+        coins.push({ x: w + 100, y: gy - (Math.random() < 0.5 ? 40 : 100) });
       }
     }
 
@@ -3484,7 +3499,6 @@ function initStickRun(stage) {
     window.removeEventListener('resize', onResize);
   };
 }
- 
 
 // ----------------------------------------------------
 // TINY CAFÉ (Cute Cartoon & Cozy Café Edition)
