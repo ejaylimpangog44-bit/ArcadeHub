@@ -124,11 +124,21 @@ function initBasketballHoops(stage) {
     combo = 0;
     running = true;
     hoopMoving = false;
+
+    const modeEl = document.getElementById('bb-mode');
+    if (modeEl) {
+      modeEl.textContent = 'STREETBALL COURT';
+      modeEl.className = 'px-4 py-1.5 rounded-full bg-orange-950/80 border border-orange-500/40 text-orange-200 font-bold text-xs shadow';
+    }
+
     document.getElementById('bb-score').textContent = `🏀 SCORED: 0`;
     document.getElementById('bb-misses').textContent = `❌ MISSES: 0 / 5`;
     document.getElementById('game-over-overlay').classList.add('hidden');
     document.getElementById('game-over-overlay').classList.remove('flex');
     resetBall();
+
+    cancelAnimationFrame(raf);
+    loop();
   };
 
   const restartBtn = document.getElementById('restart-btn');
@@ -203,7 +213,7 @@ function initBasketballHoops(stage) {
       netSway = Math.sin(netAnimTimer * 0.9) * 14 * (netAnimTimer / 15);
       netAnimTimer--;
     }
-    
+
     const topL = hoopX - hoopW / 2 + 4;
     const topR = hoopX + hoopW / 2 - 4;
     const botL = hoopX - 18 + netSway;
@@ -222,14 +232,14 @@ function initBasketballHoops(stage) {
 
       const rimLeft = hoopX - hoopW / 2;
       const rimRight = hoopX + hoopW / 2;
-      
+
       if (!ball.scored && ball.vy > 0 && ball.y >= hoopY && ball.y <= hoopY + 12 && ball.x >= rimLeft + 4 && ball.x <= rimRight - 4) {
         ball.scored = true;
         score++;
         netAnimTimer = 15;
         if (typeof AudioFX !== 'undefined') AudioFX.coin();
         document.getElementById('bb-score').textContent = `🏀 SCORED: ${score}`;
-        spawnPopup('SWISH! +1', ball.x, ball.y - 30, '#fde047');
+        if (typeof spawnPopup === 'function') spawnPopup('SWISH! +1', ball.x, ball.y - 30, '#fde047');
         if (score % 5 === 0 && typeof addXP === 'function') addXP(30, ball.x, ball.y);
       }
 
@@ -238,7 +248,7 @@ function initBasketballHoops(stage) {
           misses++;
           document.getElementById('bb-misses').textContent = `❌ MISSES: ${misses} / 5`;
           if (typeof AudioFX !== 'undefined') AudioFX.lose();
-          spawnPopup('MISS!', w / 2, h * 0.6, '#f43f5e');
+          if (typeof spawnPopup === 'function') spawnPopup('MISS!', w / 2, h * 0.6, '#f43f5e');
 
           if (misses >= 5) {
             running = false;
