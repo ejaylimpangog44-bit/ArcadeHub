@@ -4441,10 +4441,7 @@ function initTinyCafe(stage) {
 
       <header class="relative z-20 flex items-center justify-between px-3 py-2 bg-[#4a2a14]/95 text-[#fffaf2] border-b-4 border-[#2e180a] shadow-md gap-1.5">
         <div class="flex items-center gap-1.5 sm:gap-2.5">
-          <button id="btn-home-cafe" class="cartoon-btn bg-[#8c522b] hover:bg-[#a16136] text-white px-2.5 py-1.5 rounded-xl font-display text-xs sm:text-sm flex items-center gap-1 border-2 border-[#c88a55]" title="Hub Lobby">
-            <span>🏠</span>
-            <span class="hidden sm:inline">Hub</span>
-          </button>
+    
 
           <div class="flex items-center gap-1 bg-[#2e180a] px-2.5 py-1 rounded-xl border border-[#7c4a27]">
             <span class="text-base sm:text-lg">🪙</span>
