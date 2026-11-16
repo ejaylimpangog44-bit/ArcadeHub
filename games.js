@@ -2974,7 +2974,7 @@ function initBrickBreaker(stage) {
 }
 
 // ----------------------------------------------------
-// 16. STICK RUN (Complete Parkour & Obstacle Edition)
+// 16. STICK RUN (Parkour & Crate Adventure Edition)
 // ----------------------------------------------------
 function initStickRun(stage) {
   stage.innerHTML = `
@@ -2986,7 +2986,7 @@ function initStickRun(stage) {
           <span id="sr-score" class="px-3.5 py-1.5 rounded-full bg-slate-950/80 border border-purple-400/40 text-purple-200 font-bold text-xs shadow">⭐ 0</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-[11px] font-bold text-amber-200 bg-black/40 px-3 py-1 rounded-xl border border-white/10 hidden sm:inline">🚀 Up/W: Jump | Hold Down/S: Hold Slide</span>
+          <span class="text-[11px] font-bold text-amber-200 bg-black/40 px-3 py-1 rounded-xl border border-white/10 hidden sm:inline">🚀 Swipe Up / W: Jump | Swipe Down / S: Slide</span>
         </div>
       </div>
       <canvas id="sr-canvas" class="w-full h-full block touch-none cursor-pointer"></canvas>
@@ -3007,6 +3007,7 @@ function initStickRun(stage) {
     jumps: 0,
     runCycle: 0,
     sliding: false,
+    slideTimer: 0,
     onPlatform: false,
     rot: 0,
     isDoingTrick: false,
@@ -3023,8 +3024,6 @@ function initStickRun(stage) {
   let alive = true;
   let raf;
 
-  let slideKeyHeld = false;
-
   function reset() {
     player = {
       x: Math.min(120, w * 0.18),
@@ -3033,6 +3032,7 @@ function initStickRun(stage) {
       jumps: 0,
       runCycle: 0,
       sliding: false,
+      slideTimer: 0,
       onPlatform: false,
       rot: 0,
       isDoingTrick: false,
@@ -3046,7 +3046,6 @@ function initStickRun(stage) {
     coinCount = 0;
     scroll = 0;
     alive = true;
-    slideKeyHeld = false;
   }
 
   function jump() {
@@ -3059,47 +3058,56 @@ function initStickRun(stage) {
     }
   }
 
+  function slide() {
+    if (!alive) { reset(); return; }
+    if (!player.sliding && player.y >= GROUND_Y() - 5) {
+      player.sliding = true;
+      player.slideTimer = 36; // Timed slide duration (auto-resets)
+      AudioFX.click();
+    }
+  }
+
+  // Keyboard controls
   const onKeyDown = (e) => {
+    if (!alive) { reset(); return; }
     if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
       e.preventDefault();
       jump();
     } else if (['ArrowDown', 'KeyS'].includes(e.code)) {
       e.preventDefault();
-      slideKeyHeld = true;
-      if (player.y >= GROUND_Y() - 5) {
-        player.sliding = true;
-      }
-    }
-  };
-
-  const onKeyUp = (e) => {
-    if (['ArrowDown', 'KeyS'].includes(e.code)) {
-      e.preventDefault();
-      slideKeyHeld = false;
-      player.sliding = false;
+      slide();
     }
   };
 
   window.addEventListener('keydown', onKeyDown);
-  window.addEventListener('keyup', onKeyUp);
 
+  // Touch controls with clean swipe detection
   let touchStartX = 0, touchStartY = 0;
   canvas.ontouchstart = (e) => {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-    if (touchStartY > h * 0.5) {
-      slideKeyHeld = true;
-      if (player.y >= GROUND_Y() - 5) player.sliding = true;
-    } else {
-      jump();
-    }
     e.preventDefault();
   };
 
   canvas.ontouchend = (e) => {
-    slideKeyHeld = false;
-    player.sliding = false;
+    if (!alive) { reset(); return; }
+    if (!touchStartX || !touchStartY) return;
+    let diffX = e.changedTouches[0].clientX - touchStartX;
+    let diffY = e.changedTouches[0].clientY - touchStartY;
+
+    if (Math.abs(diffY) > Math.abs(diffX)) {
+      if (diffY < -20) jump();
+      else if (diffY > 20) slide();
+      else jump();
+    } else {
+      if (Math.abs(diffX) < 20) jump();
+    }
+    touchStartX = 0; touchStartY = 0;
     e.preventDefault();
+  };
+
+  canvas.onclick = () => {
+    if (!alive) { reset(); }
   };
 
   const onResize = () => {
@@ -3233,10 +3241,9 @@ function initStickRun(stage) {
       dist += 1;
       player.runCycle += 0.28;
 
-      if (slideKeyHeld && player.y >= gy - 5) {
-        player.sliding = true;
-      } else if (!slideKeyHeld) {
-        player.sliding = false;
+      if (player.sliding) {
+        player.slideTimer--;
+        if (player.slideTimer <= 0) player.sliding = false;
       }
 
       player.y += player.vy;
@@ -3288,7 +3295,7 @@ function initStickRun(stage) {
       if (Math.random() < 0.026 && !obstacles.some(o => o.x > w - 280) && !platforms.some(p => p.x > w - 280)) {
         const typeRand = Math.random();
         if (typeRand < 0.3) {
-          // 3-stack bottom crates + vertical middle laser/bar + 1 floating top box (Reference Image Structure)
+          // 3-stack bottom crates + vertical middle laser/bar + 1 floating top box
           const boxW = 40, boxH = 40;
           for (let i = 0; i < 3; i++) {
             platforms.push({ x: w + 50, y: gy - (i + 1) * boxH, w: boxW, h: boxH });
@@ -3304,7 +3311,7 @@ function initStickRun(stage) {
             isLaserBar: true
           });
         } else if (typeRand < 0.6) {
-          // L-shaped barrier requiring hold-slide
+          // L-shaped barrier requiring slide
           overheadBarriers.push({
             x: w + 40,
             y: gy - 65,
@@ -3349,7 +3356,6 @@ function initStickRun(stage) {
       if (alive) o.x -= speed;
 
       if (o.isLaserBar) {
-        // Draw vertical laser pole between bottom stack and top box
         ctx.fillStyle = '#94a3b8';
         ctx.fillRect(o.x + o.w / 2 - 3, o.y, 6, o.h);
         ctx.fillStyle = '#38bdf8';
@@ -3475,7 +3481,6 @@ function initStickRun(stage) {
   return () => {
     cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKeyDown);
-    window.removeEventListener('keyup', onKeyUp);
     window.removeEventListener('resize', onResize);
   };
 }
