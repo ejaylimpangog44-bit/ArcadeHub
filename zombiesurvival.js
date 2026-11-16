@@ -6,14 +6,14 @@ function initZombieSurvival(stage) {
         <span id="zs-weapon" class="px-3 py-1.5 rounded-full bg-black/60 border border-amber-400/40 text-amber-300 font-bold text-xs">🔫 PISTOL (LVL 1)</span>
         <span id="zs-hp" class="px-4 py-1.5 rounded-full bg-black/60 border border-rose-400/40 text-rose-300 font-black text-sm">❤️ 100</span>
       </div>
-      <canvas id="zs-canvas" class="w-full h-full block touch-none cursor-crosshair"></canvas>
+      <canvas id="zs-canvas" class="absolute inset-0 w-full h-full block touch-none cursor-crosshair"></canvas>
     </div>
   `;
   const canvas = document.getElementById('zs-canvas');
   const ctx = canvas.getContext('2d');
   
-  let w = canvas.width = stage.clientWidth || window.innerWidth;
-  let h = canvas.height = stage.clientHeight || window.innerHeight;
+  let w = canvas.width = window.innerWidth;
+  let h = canvas.height = window.innerHeight;
 
   let player = { x: w / 2, y: h / 2, hp: 100, maxHp: 100, speed: 4, weaponLvl: 1, vx: 0, vy: 0 };
   let zombies = [], bullets = [], loot = [], kills = 0, alive = true, shootTimer = 0, animTick = 0, raf;
@@ -21,8 +21,8 @@ function initZombieSurvival(stage) {
   let lastX = player.x, lastY = player.y;
 
   const onResize = () => {
-    w = canvas.width = stage.clientWidth || window.innerWidth;
-    h = canvas.height = stage.clientHeight || window.innerHeight;
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
   };
   window.addEventListener('resize', onResize);
 
@@ -51,10 +51,10 @@ function initZombieSurvival(stage) {
       let targetX = player.x;
       let targetY = player.y;
 
-      if (keys.w) targetY = Math.max(30, player.y - player.speed);
-      if (keys.s) targetY = Math.min(h - 30, player.y + player.speed);
-      if (keys.a) targetX = Math.max(30, player.x - player.speed);
-      if (keys.d) targetX = Math.min(w - 30, player.x + player.speed);
+      if (keys.w) targetY = Math.max(40, player.y - player.speed);
+      if (keys.s) targetY = Math.min(h - 40, player.y + player.speed);
+      if (keys.a) targetX = Math.max(40, player.x - player.speed);
+      if (keys.d) targetX = Math.min(w - 40, player.x + player.speed);
 
       player.vx = targetX - lastX;
       player.vy = targetY - lastY;
@@ -109,7 +109,7 @@ function initZombieSurvival(stage) {
     loot.forEach(l => {
       ctx.font = '22px Inter';
       ctx.fillText('📦', l.x, l.y);
-      if (Math.hypot(l.x - player.x, l.y - player.y) < 30) {
+      if (Math.hypot(l.x - player.x, l.y - player.y) < 35) {
         l.collected = true;
         player.weaponLvl = Math.min(5, player.weaponLvl + 1);
         player.hp = Math.min(player.maxHp, player.hp + 30);
