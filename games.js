@@ -1590,7 +1590,7 @@ function initNumberGuess(stage) {
 }
 
 // ----------------------------------------------------
-// 9. WORDSCAPE (Arcade Game)
+// 9. WORDSCAPE (Arcade Game - Layout & Touch Fix)
 // ----------------------------------------------------
 function initWordscape(stage) {
   const PUZZLES = [
@@ -1638,19 +1638,19 @@ function initWordscape(stage) {
     const p = PUZZLES[pIdx];
     const allSolved = found.length === p.words.length;
     stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-between px-4 py-4">
+      <div class="w-full h-full flex flex-col items-center justify-between px-4 py-3 pb-16 sm:pb-8 overflow-y-auto">
         <div class="flex items-center gap-3">
           <span class="px-3.5 py-1 rounded-full bg-black/40 border border-amber-300/30 text-amber-200 font-bold text-xs">LEVEL ${pIdx + 1}</span>
           <span class="px-3.5 py-1 rounded-full bg-black/40 border border-pink-300/30 text-pink-200 font-bold text-xs">BONUS CHEST: ${bonus}</span>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-w-lg w-full my-2">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-w-lg w-full my-1">
           ${p.words.map(w => {
             const isFound = found.includes(w);
             return `
               <div class="flex items-center justify-center gap-1 p-2 rounded-2xl bg-black/35 border border-white/15">
                 ${w.split('').map(ch => `
-                  <span class="w-7 h-8 rounded-lg flex items-center justify-center font-black text-sm ${isFound ? 'bg-amber-400 text-slate-950 shadow' : 'bg-white/10 text-transparent'}">
+                  <span class="w-6 h-7 rounded-lg flex items-center justify-center font-black text-xs sm:text-sm ${isFound ? 'bg-amber-400 text-slate-950 shadow' : 'bg-white/10 text-transparent'}">
                     ${isFound ? ch : '?'}
                   </span>
                 `).join('')}
@@ -1659,7 +1659,7 @@ function initWordscape(stage) {
           }).join('')}
         </div>
 
-        <div class="h-11 px-6 rounded-2xl bg-black/50 border border-amber-300/40 flex items-center justify-center font-black text-xl tracking-[0.25em] text-amber-300 min-w-[180px]">
+        <div class="h-10 px-6 rounded-2xl bg-black/50 border border-amber-300/40 flex items-center justify-center font-black text-lg tracking-[0.25em] text-amber-300 min-w-[160px] my-1">
           ${currentWord || 'TAP LETTERS'}
         </div>
 
@@ -1668,18 +1668,18 @@ function initWordscape(stage) {
             Next Mountain Stage →
           </button>
         ` : `
-          <div class="flex flex-col items-center gap-3 pb-2">
-            <div class="flex items-center justify-center gap-2.5 flex-wrap">
+          <div class="flex flex-col items-center gap-2.5 pt-1 pb-4">
+            <div class="flex items-center justify-center gap-2 flex-wrap">
               ${letters.map((l, idx) => `
-                <button data-l="${l}" class="ws-let w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/95 hover:bg-amber-300 text-slate-900 font-black text-2xl shadow-xl active:scale-90 transition">
+                <button data-l="${l}" class="ws-let w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/95 hover:bg-amber-300 text-slate-900 font-black text-xl sm:text-2xl shadow-xl active:scale-90 transition cursor-pointer select-none">
                   ${l}
                 </button>
               `).join('')}
             </div>
-            <div class="flex items-center gap-2.5">
-              <button id="ws-shuf" class="px-4 py-2.5 rounded-xl bg-white/15 text-white font-bold text-xs">🔀 Shuffle</button>
-              <button id="ws-clr" class="px-4 py-2.5 rounded-xl bg-white/15 text-white font-bold text-xs">⌫ Clear</button>
-              <button id="ws-sub" class="px-6 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs shadow-lg">✓ Submit</button>
+            <div class="flex items-center gap-2 pt-1">
+              <button id="ws-shuf" class="px-3.5 py-2 rounded-xl bg-white/15 text-white font-bold text-xs">🔀 Shuffle</button>
+              <button id="ws-clr" class="px-3.5 py-2 rounded-xl bg-white/15 text-white font-bold text-xs">⌫ Clear</button>
+              <button id="ws-sub" class="px-5 py-2 rounded-xl bg-amber-400 text-slate-950 font-black text-xs shadow-lg">✓ Submit</button>
             </div>
           </div>
         `}
@@ -1697,8 +1697,9 @@ function initWordscape(stage) {
     document.getElementById('ws-next')?.addEventListener('click', () => loadPuzzle(pIdx + 1));
   }
 
-  render();
+  loadPuzzle(0);
 }
+
 
 // ----------------------------------------------------
 // 10. FRUIT MASTER (Arcade Game)
@@ -2053,34 +2054,39 @@ function initWhackAMole(stage) {
 }
 
 // ----------------------------------------------------
-// 12. CYBER SNAKE (Arcade Game)
+// 12. CYBER SNAKE (Arcade Game - Fullscreen & Tongue Feature)
 // ----------------------------------------------------
 function initCyberSnakePreserved(stage, meta) {
   stage.innerHTML = `
-    <div class="relative w-full h-full flex flex-col items-center justify-between p-3 sm:p-4 overflow-y-auto select-none">
-      <div class="flex items-center justify-between max-w-sm w-full bg-slate-950/80 px-4 py-2 rounded-2xl border border-white/10 text-xs font-mono text-white">
-        <span>🐍 Organic Snake</span>
-        <span class="text-emerald-400 font-bold">SCORE: <span id="snake-score">0</span></span>
+    <div class="relative w-full h-full bg-slate-950 overflow-hidden select-none flex flex-col items-center justify-center">
+      <div class="absolute top-3 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
+        <span class="px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-emerald-500/30 text-emerald-300 font-mono text-xs font-bold shadow">🐍 Organic Snake</span>
+        <span class="px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-amber-500/30 text-amber-300 font-mono text-xs font-bold shadow">SCORE: <span id="snake-score">0</span></span>
       </div>
 
-      <div class="relative rounded-3xl overflow-hidden border-2 border-emerald-500/30 shadow-2xl bg-slate-950 p-2 my-auto">
-        <canvas id="snake-canvas" width="360" height="360" class="block w-[320px] h-[320px] sm:w-[360px] sm:h-[360px] rounded-2xl touch-none"></canvas>
+      <canvas id="snake-canvas" class="absolute inset-0 w-full h-full block touch-none cursor-crosshair"></canvas>
+      
+      <div class="absolute bottom-3 left-0 right-0 z-20 text-center pointer-events-none">
+        <span class="px-3 py-1 rounded-full bg-slate-900/70 border border-white/10 text-[11px] text-slate-400 font-semibold shadow">Swipe anywhere to steer • Double-tap to flick tongue</span>
       </div>
-
-      <p class="text-[11px] text-slate-400 font-semibold text-center mt-2">Swipe anywhere on canvas or use Arrow / WASD Keys</p>
     </div>
   `;
 
   const canvas = document.getElementById('snake-canvas');
   const ctx = canvas.getContext('2d');
+  
+  let w = canvas.width = stage.clientWidth;
+  let h = canvas.height = stage.clientHeight;
   const grid = 20;
+
   let count = 0;
   let score = 0;
   let running = true;
+  let tongueTimer = 0;
 
   let snake = {
-    x: 160,
-    y: 160,
+    x: Math.floor((w / 2) / grid) * grid,
+    y: Math.floor((h / 2) / grid) * grid,
     dx: grid,
     dy: 0,
     nextDx: grid,
@@ -2090,20 +2096,20 @@ function initCyberSnakePreserved(stage, meta) {
   };
 
   let apple = {
-    x: 280,
-    y: 280
+    x: Math.floor(Math.random() * ((w - 40) / grid)) * grid + 20,
+    y: Math.floor(Math.random() * ((h - 40) / grid)) * grid + 20
   };
 
-  function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
+  function getRandomGridPos(max, size) {
+    return Math.floor(Math.random() * (max / size)) * size;
   }
 
   function resetSnake() {
     score = 0;
     const scoreEl = document.getElementById('snake-score');
     if (scoreEl) scoreEl.textContent = score;
-    snake.x = 160;
-    snake.y = 160;
+    snake.x = Math.floor((w / 2) / grid) * grid;
+    snake.y = Math.floor((h / 2) / grid) * grid;
     snake.dx = grid;
     snake.dy = 0;
     snake.nextDx = grid;
@@ -2113,10 +2119,16 @@ function initCyberSnakePreserved(stage, meta) {
     running = true;
   }
 
+  const onResize = () => {
+    w = canvas.width = stage.clientWidth;
+    h = canvas.height = stage.clientHeight;
+  };
+  window.addEventListener('resize', onResize);
+
   function loop() {
     const animId = requestAnimationFrame(loop);
     if (!running) return;
-    if (++count < 7) return;
+    if (++count < 6) return;
     count = 0;
 
     snake.dx = snake.nextDx;
@@ -2124,7 +2136,8 @@ function initCyberSnakePreserved(stage, meta) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+    // Subtle background grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
     ctx.lineWidth = 1;
     for (let x = 0; x < canvas.width; x += grid) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -2136,14 +2149,21 @@ function initCyberSnakePreserved(stage, meta) {
     snake.x += snake.dx;
     snake.y += snake.dy;
 
-    if (snake.x < 0) snake.x = canvas.width - grid;
-    else if (snake.x >= canvas.width) snake.x = 0;
-    if (snake.y < 0) snake.y = canvas.height - grid;
-    else if (snake.y >= canvas.height) snake.y = 0;
+    // Edge collision (Game Over on screen boundary hit)
+    if (snake.x < 0 || snake.x >= canvas.width || snake.y < 0 || snake.y >= canvas.height) {
+      AudioFX.lose();
+      if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+      window.ArcadeHero?.awardGameScore('snake', score);
+      resetSnake();
+      return;
+    }
 
     snake.cells.unshift({ x: snake.x, y: snake.y });
     if (snake.cells.length > snake.maxLen) snake.cells.pop();
 
+    if (tongueTimer > 0) tongueTimer--;
+
+    // Draw Apple
     const ax = apple.x + grid / 2;
     const ay = apple.y + grid / 2;
     ctx.save();
@@ -2158,11 +2178,12 @@ function initCyberSnakePreserved(stage, meta) {
     ctx.fill();
     ctx.restore();
 
+    // Draw Snake
     snake.cells.forEach((cell, index) => {
       const isHead = index === 0;
       const cx = cell.x + grid / 2;
       const cy = cell.y + grid / 2;
-      const radius = isHead ? 10 : Math.max(5, 9 - index * 0.12);
+      const radius = isHead ? 10 : Math.max(5, 9 - index * 0.1);
 
       ctx.save();
       ctx.shadowColor = '#10b981';
@@ -2182,12 +2203,8 @@ function initCyberSnakePreserved(stage, meta) {
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-      ctx.beginPath();
-      ctx.arc(cx - 2, cy - 2, radius * 0.3, 0, Math.PI * 2);
-      ctx.fill();
-
       if (isHead) {
+        // Eyes
         ctx.fillStyle = '#0f172a';
         let eyeOffsetX1 = 3, eyeOffsetY1 = -4;
         let eyeOffsetX2 = 3, eyeOffsetY2 = 4;
@@ -2199,10 +2216,37 @@ function initCyberSnakePreserved(stage, meta) {
         ctx.arc(cx + eyeOffsetX1, cy + eyeOffsetY1, 1.8, 0, Math.PI * 2);
         ctx.arc(cx + eyeOffsetX2, cy + eyeOffsetY2, 1.8, 0, Math.PI * 2);
         ctx.fill();
+
+        // Tongue animation on double-tap
+        if (tongueTimer > 0) {
+          ctx.strokeStyle = '#f43f5e';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          let tLen = 16;
+          if (snake.dx > 0) {
+            ctx.moveTo(cx + radius, cy); ctx.lineTo(cx + radius + tLen, cy);
+            ctx.moveTo(cx + radius + tLen, cy); ctx.lineTo(cx + radius + tLen + 4, cy - 3);
+            ctx.moveTo(cx + radius + tLen, cy); ctx.lineTo(cx + radius + tLen + 4, cy + 3);
+          } else if (snake.dx < 0) {
+            ctx.moveTo(cx - radius, cy); ctx.lineTo(cx - radius - tLen, cy);
+            ctx.moveTo(cx - radius - tLen, cy); ctx.lineTo(cx - radius - tLen - 4, cy - 3);
+            ctx.moveTo(cx - radius - tLen, cy); ctx.lineTo(cx - radius - tLen - 4, cy + 3);
+          } else if (snake.dy > 0) {
+            ctx.moveTo(cx, cy + radius); ctx.lineTo(cx, cy + radius + tLen);
+            ctx.moveTo(cx, cy + radius + tLen); ctx.lineTo(cx - 3, cy + radius + tLen + 4);
+            ctx.moveTo(cx, cy + radius + tLen); ctx.lineTo(cx + 3, cy + radius + tLen + 4);
+          } else if (snake.dy < 0) {
+            ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy - radius - tLen);
+            ctx.moveTo(cx, cy - radius - tLen); ctx.lineTo(cx - 3, cy - radius - tLen - 4);
+            ctx.moveTo(cx, cy - radius - tLen); ctx.lineTo(cx + 3, cy - radius - tLen - 4);
+          }
+          ctx.stroke();
+        }
       }
       ctx.restore();
 
-      if (cell.x === apple.x && cell.y === apple.y) {
+      // Eat Apple check
+      if (Math.abs(cell.x - apple.x) < grid / 2 && Math.abs(cell.y - apple.y) < grid / 2) {
         snake.maxLen++;
         score += 10;
         const scoreEl = document.getElementById('snake-score');
@@ -2210,10 +2254,11 @@ function initCyberSnakePreserved(stage, meta) {
         addXP(15, cell.x, cell.y, '+15 XP');
         AudioFX.coin();
 
-        apple.x = getRandomInt(0, canvas.width / grid) * grid;
-        apple.y = getRandomInt(0, canvas.height / grid) * grid;
+        apple.x = getRandomGridPos(canvas.width - 40, grid) + 10;
+        apple.y = getRandomGridPos(canvas.height - 40, grid) + 10;
       }
 
+      // Self collision
       for (let i = index + 1; i < snake.cells.length; i++) {
         if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
           AudioFX.lose();
@@ -2240,15 +2285,27 @@ function initCyberSnakePreserved(stage, meta) {
     else if (['ArrowLeft', 'KeyA'].includes(e.code) && snake.dx === 0) setDir(-grid, 0);
     else if (['ArrowRight', 'KeyD'].includes(e.code) && snake.dx === 0) setDir(grid, 0);
   };
-
   window.addEventListener('keydown', handleKey);
 
+  // Swipe & Double-Tap Handling across entire screen
   let touchStartX = 0, touchStartY = 0;
+  let lastTapTime = 0;
+
   canvas.ontouchstart = (e) => {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
+
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTapTime;
+    if (tapLength < 350 && tapLength > 0) {
+      // Double tap detected -> flick tongue!
+      tongueTimer = 25;
+      AudioFX.click();
+    }
+    lastTapTime = currentTime;
     e.preventDefault();
   };
+
   canvas.ontouchend = (e) => {
     if (!touchStartX || !touchStartY) return;
     let diffX = e.changedTouches[0].clientX - touchStartX;
@@ -2268,6 +2325,7 @@ function initCyberSnakePreserved(stage, meta) {
 
   return () => {
     window.removeEventListener('keydown', handleKey);
+    window.removeEventListener('resize', onResize);
     running = false;
     cancelAnimationFrame(animId);
   };
