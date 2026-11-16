@@ -2974,15 +2974,19 @@ function initBrickBreaker(stage) {
 }
 
 // ----------------------------------------------------
-// 16. STICK RUN (Arcade Game)
+// 16. STICK RUN (Parkour & Crate Adventure Edition)
 // ----------------------------------------------------
 function initStickRun(stage) {
   stage.innerHTML = `
-    <div class="relative w-full h-full">
+    <div class="relative w-full h-full bg-slate-900 select-none overflow-hidden">
       <div class="absolute top-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
         <div class="flex items-center gap-2">
-          <span id="sr-dist" class="px-4 py-1.5 rounded-full bg-slate-900/75 border border-sky-300/40 text-white font-black text-sm">🏃 0m</span>
-          <span id="sr-coins" class="px-3.5 py-1.5 rounded-full bg-slate-900/75 border border-amber-300/40 text-amber-300 font-bold text-xs">🪙 0</span>
+          <span id="sr-dist" class="px-4 py-1.5 rounded-full bg-slate-950/80 border border-sky-400/40 text-sky-200 font-black text-sm shadow">🏃 0m</span>
+          <span id="sr-coins" class="px-3.5 py-1.5 rounded-full bg-slate-950/80 border border-amber-400/40 text-amber-300 font-bold text-xs shadow">🪙 0</span>
+          <span id="sr-score" class="px-3.5 py-1.5 rounded-full bg-slate-950/80 border border-purple-400/40 text-purple-200 font-bold text-xs shadow">⭐ 0</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-bold text-amber-200 bg-black/40 px-3 py-1 rounded-xl border border-white/10 hidden sm:inline">🚀 Up/W: Jump/Flip | Down/S: Slide</span>
         </div>
       </div>
       <canvas id="sr-canvas" class="w-full h-full block touch-none cursor-pointer"></canvas>
@@ -2994,308 +2998,446 @@ function initStickRun(stage) {
   let w = canvas.width = stage.clientWidth;
   let h = canvas.height = stage.clientHeight;
 
-  let player = { x: 90, y: 0, vy: 0, jumps: 0, runCycle: 0, sliding: false, slideTimer: 0 };
-  let obstacles = [], coins = [], dist = 0, coinCount = 0, scroll = 0, alive = true, raf;
+  const GROUND_Y = () => h * 0.78;
 
-  function groundY() { return h * 0.75; }
+  let player = {
+    x: 100,
+    y: GROUND_Y(),
+    vy: 0,
+    jumps: 0,
+    runCycle: 0,
+    sliding: false,
+    slideTimer: 0,
+    onPlatform: false,
+    rot: 0,
+    isDoingTrick: false,
+    score: 0
+  };
+
+  let platforms = []; // Crate platforms (boxes you can land on)
+  let obstacles = []; // Saws, hazards
+  let coins = [];     // Collectibles
+  let dist = 0;
+  let coinCount = 0;
+  let scroll = 0;
+  let alive = true;
+  let raf;
 
   function reset() {
-    player = { x: Math.min(110, w * 0.18), y: groundY(), vy: 0, jumps: 0, runCycle: 0, sliding: false, slideTimer: 0 };
-    obstacles = []; coins = []; dist = 0; coinCount = 0; alive = true;
+    player = {
+      x: Math.min(120, w * 0.18),
+      y: GROUND_Y(),
+      vy: 0,
+      jumps: 0,
+      runCycle: 0,
+      sliding: false,
+      slideTimer: 0,
+      onPlatform: false,
+      rot: 0,
+      isDoingTrick: false,
+      score: 0
+    };
+    platforms = [];
+    obstacles = [];
+    coins = [];
+    dist = 0;
+    coinCount = 0;
+    scroll = 0;
+    alive = true;
   }
 
   function jump() {
     if (!alive) { reset(); return; }
     if (player.jumps < 2) {
-      player.vy = -13.5;
+      player.vy = -14.2;
       player.jumps++;
       player.sliding = false;
+      player.isDoingTrick = true; // Trigger backflip / mid-air trick rotation
       AudioFX.jump();
     }
   }
 
   function slide() {
     if (!alive) { reset(); return; }
-    if (player.y === groundY() && !player.sliding) {
+    if (!player.sliding && player.y >= GROUND_Y() - 5) {
       player.sliding = true;
-      player.slideTimer = 32;
+      player.slideTimer = 36;
       AudioFX.click();
     }
   }
-  
+
+  // Touch and Key bindings
   let touchStartX = 0, touchStartY = 0;
   canvas.ontouchstart = (e) => {
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     e.preventDefault();
   };
-  
+
   canvas.ontouchend = (e) => {
     if (!touchStartX || !touchStartY) return;
     let diffX = e.changedTouches[0].clientX - touchStartX;
     let diffY = e.changedTouches[0].clientY - touchStartY;
-    
     if (Math.abs(diffY) > Math.abs(diffX)) {
-      if (diffY < -20) {
-        jump();
-      } else if (diffY > 20) {
-        slide();
-      } else {
-        jump();
-      }
+      if (diffY < -20) jump();
+      else if (diffY > 20) slide();
+      else jump();
     } else {
-      if (Math.abs(diffX) < 20) {
-        jump();
-      }
+      if (Math.abs(diffX) < 20) jump();
     }
     touchStartX = 0; touchStartY = 0;
     e.preventDefault();
   };
 
-  const onKey = (e) => { 
-    if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'w') { e.preventDefault(); jump(); }
-    if (e.key === 'ArrowDown' || e.key === 's') { e.preventDefault(); slide(); }
+  const onKey = (e) => {
+    if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
+      e.preventDefault();
+      jump();
+    } else if (['ArrowDown', 'KeyS'].includes(e.code)) {
+      e.preventDefault();
+      slide();
+    }
   };
   window.addEventListener('keydown', onKey);
-  const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
+
+  const onResize = () => {
+    w = canvas.width = stage.clientWidth;
+    h = canvas.height = stage.clientHeight;
+  };
   window.addEventListener('resize', onResize);
 
-  function drawStickman(x, y, phase, inAir, sliding) {
-  ctx.save();
-  ctx.strokeStyle = '#0f172a';
-  ctx.lineWidth = 4.5;
-  ctx.lineCap = 'round';
-  ctx.fillStyle = '#0f172a';
-
-  if (sliding) {
-    // Sliding Pose (Horizontal / Low to ground)
-    // Head
-    ctx.beginPath();
-    ctx.arc(x + 12, y - 16, 9, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Red headband trail
-    ctx.strokeStyle = '#ef4444';
+  // Draw Wooden Crate / Box
+  function drawCrate(x, y, bw, bh) {
+    ctx.save();
+    ctx.fillStyle = '#b47b45'; // Wood base
+    ctx.strokeStyle = '#5a3819';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(x + 6, y - 20);
-    ctx.lineTo(x - 10, y - 24);
-    ctx.stroke();
-
-    // Torso (Horizontal)
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 4.5;
-    ctx.beginPath();
-    ctx.moveTo(x - 14, y - 14);
-    ctx.lineTo(x + 8, y - 14);
-    ctx.stroke();
-
-    // Legs stretched backward
-    ctx.beginPath();
-    ctx.moveTo(x - 14, y - 14);
-    ctx.lineTo(x - 30, y - 6);
-    ctx.moveTo(x - 14, y - 14);
-    ctx.lineTo(x - 28, y - 3);
-    ctx.stroke();
-
-    // Arms tucked forward
-    ctx.beginPath();
-    ctx.moveTo(x, y - 14);
-    ctx.lineTo(x + 16, y - 8);
-    ctx.stroke();
-
-  } else {
-    // Normal Running / Jumping Pose
-    // Head
-    ctx.beginPath();
-    ctx.arc(x, y - 48, 9, 0, Math.PI * 2);
+    ctx.roundRect(x, y, bw, bh, 4);
     ctx.fill();
-
-    // Red headband trail
-    ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(x - 6, y - 51);
-    ctx.lineTo(x - 22, y - 48 + Math.sin(phase * 2) * 4);
     ctx.stroke();
 
-    // Torso
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 4.5;
+    // Crate diagonal X braces and inner border
+    ctx.strokeStyle = '#7c4d24';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(x, y - 39);
-    ctx.lineTo(x - 3, y - 18);
+    ctx.moveTo(x, y); ctx.lineTo(x + bw, y + bh);
+    ctx.moveTo(x + bw, y); ctx.lineTo(x, y + bh);
     ctx.stroke();
 
-    // Arms & Legs animated stride
-    const swing = inAir ? 0.75 : Math.sin(phase) * 0.9;
-    
-    // Arms
-    ctx.beginPath();
-    ctx.moveTo(x, y - 35);
-    ctx.lineTo(x + Math.sin(swing) * 14, y - 22);
-    ctx.moveTo(x, y - 35);
-    ctx.lineTo(x - Math.sin(swing) * 14, y - 22);
-    ctx.stroke();
-
-    // Legs
-    ctx.beginPath();
-    ctx.moveTo(x - 3, y - 18);
-    ctx.lineTo(x + Math.sin(swing) * 16, y);
-    ctx.moveTo(x - 3, y - 18);
-    ctx.lineTo(x - Math.sin(swing) * 16, y);
-    ctx.stroke();
+    ctx.strokeRect(x + 4, y + 4, bw - 8, bh - 8);
+    ctx.restore();
   }
 
-  ctx.restore();
- }
-  
+  // Draw Stickman with requested slide pose & backflip tricks
+  function drawStickman(x, y, phase, inAir, sliding, rot, isDoingTrick) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    if (inAir && isDoingTrick) {
+      ctx.rotate(rot); // Apply backflip rotation
+    }
+
+    ctx.strokeStyle = '#f8fafc';
+    ctx.lineWidth = 4.5;
+    ctx.lineCap = 'round';
+    ctx.fillStyle = '#f8fafc';
+
+    if (sliding) {
+      // SLIDE POSE:
+      // Head at the back (left), hands and body low on the ground, 1 foot stretched, 1 foot bent.
+      
+      // Head (at back/left)
+      ctx.beginPath();
+      ctx.arc(-18, -12, 9, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Red headband tail streaming behind
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-24, -15);
+      ctx.lineTo(-38, -18);
+      ctx.stroke();
+
+      // Body & Torso (low to ground)
+      ctx.strokeStyle = '#f8fafc';
+      ctx.lineWidth = 4.5;
+      ctx.beginPath();
+      ctx.moveTo(-14, -8);
+      ctx.lineTo(6, -6);
+      ctx.stroke();
+
+      // Hands/Arms on the ground supporting slide
+      ctx.beginPath();
+      ctx.moveTo(-8, -6);
+      ctx.lineTo(-14, 0);
+      ctx.moveTo(-2, -6);
+      ctx.lineTo(4, 0);
+      ctx.stroke();
+
+      // Legs: 1 foot stretched out forward (right), 1 leg bent underneath
+      ctx.beginPath();
+      // Bent leg
+      ctx.moveTo(6, -6);
+      ctx.lineTo(12, -2);
+      ctx.lineTo(8, 0);
+      // Stretched leg forward
+      ctx.moveTo(6, -6);
+      ctx.lineTo(24, -2);
+      ctx.stroke();
+
+    } else if (inAir) {
+      // MID-AIR BACKFLIP / TRICK POSE
+      // Head
+      ctx.beginPath();
+      ctx.arc(0, -38, 9, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Torso tucked in a flip
+      ctx.strokeStyle = '#f8fafc';
+      ctx.lineWidth = 4.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -30);
+      ctx.lineTo(0, -10);
+      ctx.stroke();
+
+      // Tucked arms & legs for cool backflip style
+      ctx.beginPath();
+      ctx.moveTo(0, -26);
+      ctx.lineTo(-12, -18);
+      ctx.lineTo(-8, -8);
+      ctx.moveTo(0, -10);
+      ctx.lineTo(12, -18);
+      ctx.lineTo(8, -4);
+      ctx.stroke();
+
+    } else {
+      // NORMAL RUNNING POSE
+      // Head
+      ctx.beginPath();
+      ctx.arc(0, -44, 9, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Headband
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-6, -47);
+      ctx.lineTo(-20, -44 + Math.sin(phase * 2) * 4);
+      ctx.stroke();
+
+      // Torso
+      ctx.strokeStyle = '#f8fafc';
+      ctx.lineWidth = 4.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -35);
+      ctx.lineTo(-2, -16);
+      ctx.stroke();
+
+      // Arms & Legs swing
+      const swing = Math.sin(phase) * 1.0;
+      ctx.beginPath();
+      ctx.moveTo(0, -30);
+      ctx.lineTo(Math.sin(swing) * 16, -18);
+      ctx.moveTo(0, -30);
+      ctx.lineTo(-Math.sin(swing) * 16, -18);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(-2, -16);
+      ctx.lineTo(Math.sin(swing) * 18, 0);
+      ctx.moveTo(-2, -16);
+      ctx.lineTo(-Math.sin(swing) * 18, 0);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
   function loop() {
     ctx.clearRect(0, 0, w, h);
-    const gy = groundY();
-    const speed = 6.2 + Math.min(7, dist / 450);
+    const gy = GROUND_Y();
+    const speed = 6.5 + Math.min(7, dist / 400);
 
     if (alive) {
       scroll += speed;
       dist += 1;
-      player.runCycle += 0.26;
-      
+      player.runCycle += 0.28;
+
       if (player.sliding) {
         player.slideTimer--;
         if (player.slideTimer <= 0) player.sliding = false;
       }
 
+      // Physics & Gravity
       player.y += player.vy;
-      if (player.y < gy) {
-        player.vy += 0.68;
+      
+      let targetGround = gy;
+      player.onPlatform = false;
+
+      // Check platform landings (crates/boxes)
+      platforms.forEach(p => {
+        if (
+          player.x >= p.x - 10 &&
+          player.x <= p.x + p.w + 10 &&
+          player.y >= p.y - 10 &&
+          player.y <= p.y + 15 &&
+          player.vy >= 0
+        ) {
+          targetGround = p.y;
+          player.onPlatform = true;
+        }
+      });
+
+      if (player.y < targetGround) {
+        player.vy += 0.72; // Gravity
+        if (player.isDoingTrick) {
+          player.rot += 0.18; // Backflip rotation speed in mid-air
+        }
       } else {
-        player.y = gy;
+        player.y = targetGround;
         player.vy = 0;
         player.jumps = 0;
+        player.isDoingTrick = false;
+        player.rot = 0; // Reset rotation upon safe landing
       }
 
-      if (dist % 8 === 0) document.getElementById('sr-dist').textContent = `🏃 ${Math.floor(dist / 4)}m`;
-
-      if (Math.random() < 0.024 && !obstacles.some(o => o.x > w - 240)) {
-        const types = ['box', 'saw', 'floatingSaw', 'combo'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        let obsW = 34, obsH = 34, obsYOffset = 0;
-        if (type === 'saw') { obsW = 32; obsH = 32; }
-        else if (type === 'floatingSaw') { obsW = 32; obsH = 32; obsYOffset = 52; }
-        else if (type === 'combo') { obsW = 42; obsH = 68; }
-        obstacles.push({ x: w + 40, w: obsW, h: obsH, type, yOffset: obsYOffset, rot: 0 });
+      if (dist % 8 === 0) {
+        document.getElementById('sr-dist').textContent = `🏃 ${Math.floor(dist / 4)}m`;
+        document.getElementById('sr-score').textContent = `⭐ ${player.score}`;
       }
 
-      if (Math.random() < 0.028) {
-        coins.push({ x: w + 40, y: gy - (Math.random() < 0.5 ? 28 : 85) });
+      // Procedural Obstacle & Crate Platform Generation
+      if (Math.random() < 0.025 && !obstacles.some(o => o.x > w - 280) && !platforms.some(p => p.x > w - 280)) {
+        const randType = Math.random();
+        if (randType < 0.35) {
+          // Crate tower / platforms
+          const boxW = 44, boxH = 44;
+          const stackHeight = 1 + Math.floor(Math.random() * 3);
+          for (let i = 0; i < stackHeight; i++) {
+            platforms.push({
+              x: w + 50,
+              y: gy - (i + 1) * boxH,
+              w: boxW,
+              h: boxH
+            });
+          }
+        } else if (randType < 0.65) {
+          // Saw hazard on ground
+          obstacles.push({
+            x: w + 40,
+            y: gy - 32,
+            w: 32,
+            h: 32,
+            type: 'saw',
+            rot: 0
+          });
+        } else {
+          // Floating saw hazard
+          obstacles.push({
+            x: w + 40,
+            y: gy - 95,
+            w: 32,
+            h: 32,
+            type: 'saw',
+            rot: 0
+          });
+        }
+      }
+
+      // Coin generator
+      if (Math.random() < 0.03) {
+        coins.push({
+          x: w + 40,
+          y: gy - (Math.random() < 0.5 ? 40 : 110)
+        });
       }
     }
 
-    ctx.fillStyle = 'rgba(30, 41, 59, 0.25)';
-    for (let i = 0; i < 12; i++) {
-      const bx = ((i * 160 - scroll * 0.25) % (w + 200) + (w + 200)) % (w + 200) - 100;
-      const bh = 70 + (i % 4) * 32;
-      ctx.fillRect(bx, gy - bh, 85, bh);
-    }
-
-    ctx.fillStyle = '#15803d';
-    ctx.fillRect(0, gy, w, 14);
+    // Draw Parallax Background / Skyline
     ctx.fillStyle = '#1e293b';
-    ctx.fillRect(0, gy + 14, w, h - gy);
-
-    ctx.fillStyle = 'rgba(255,255,255,0.22)';
-    for (let i = 0; i < 16; i++) {
-      const dx = ((i * 110 - scroll) % (w + 110) + (w + 110)) % (w + 110) - 55;
-      ctx.fillRect(dx, gy + 28, 46, 5);
+    for (let i = 0; i < 10; i++) {
+      const bx = ((i * 180 - scroll * 0.2) % (w + 200) + (w + 200)) % (w + 200) - 100;
+      const bh = 90 + (i * 25) % 110;
+      ctx.fillRect(bx, gy - bh, 100, bh);
     }
 
+    // Draw Ground
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, gy, w, h - gy);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(0, gy, w, 6);
+
+    // Update & Draw Platforms (Crates)
+    platforms.forEach(p => {
+      if (alive) p.x -= speed;
+      drawCrate(p.x, p.y, p.w, p.h);
+    });
+    platforms = platforms.filter(p => p.x > -80);
+
+    // Update & Draw Coins
     coins.forEach(c => {
       if (alive) c.x -= speed;
-      ctx.save();
-      ctx.globalAlpha = 1.0;
       ctx.font = '24px Inter';
       ctx.textAlign = 'center';
       ctx.fillText('🪙', c.x, c.y);
-      ctx.restore();
 
-      if (alive && Math.hypot(c.x - player.x, c.y - (player.y - 26)) < 32) {
+      if (alive && Math.hypot(c.x - player.x, c.y - (player.y - 24)) < 32) {
         c.taken = true;
         coinCount++;
+        player.score += 25;
         document.getElementById('sr-coins').textContent = `🪙 ${coinCount}`;
         AudioFX.coin();
-        addXP(10, player.x, player.y - 50, '+10 XP');
+        addXP(10, player.x, player.y - 40, '+10 XP');
       }
     });
     coins = coins.filter(c => c.x > -40 && !c.taken);
 
+    // Update & Draw Hazards / Saws
     obstacles.forEach(o => {
       if (alive) {
         o.x -= speed;
-        o.rot += 0.15;
+        o.rot += 0.2;
       }
 
       ctx.save();
-      if (o.type === 'saw' || o.type === 'floatingSaw') {
-        const cx = o.x + o.w / 2;
-        const cy = gy - o.h - o.yOffset + o.h / 2;
-        ctx.translate(cx, cy);
-        ctx.rotate(o.rot);
-        ctx.fillStyle = '#94a3b8';
-        ctx.strokeStyle = '#334155';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(0, 0, o.w / 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        for (let t = 0; t < 8; t++) {
-          ctx.rotate(Math.PI / 4);
-          ctx.fillStyle = '#e2e8f0';
-          ctx.fillRect(-3, -o.w / 2 - 4, 6, 6);
-        }
-        ctx.restore();
-      } else if (o.type === 'combo') {
-        ctx.fillStyle = '#b91c1c';
-        ctx.beginPath();
-        ctx.roundRect(o.x, gy - o.h, o.w, o.h, 6);
-        ctx.fill();
-        ctx.fillStyle = '#fef08a';
-        ctx.fillRect(o.x + 4, gy - o.h + 6, o.w - 8, 6);
-        
-        const cx = o.x + o.w / 2;
-        const cy = gy - o.h - 16;
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(o.rot);
-        ctx.fillStyle = '#94a3b8';
-        ctx.beginPath();
-        ctx.arc(0, 0, 14, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      } else {
-        ctx.fillStyle = '#dc2626';
-        ctx.beginPath();
-        ctx.roundRect(o.x, gy - o.h, o.w, o.h, 6);
-        ctx.fill();
-        ctx.fillStyle = '#fef08a';
-        ctx.fillRect(o.x + 4, gy - o.h + 6, o.w - 8, 6);
-      }
+      const cx = o.x + o.w / 2;
+      const cy = o.y + o.h / 2;
+      ctx.translate(cx, cy);
+      ctx.rotate(o.rot);
+      ctx.fillStyle = '#94a3b8';
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, o.w / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
 
+      // Saw teeth
+      for (let t = 0; t < 8; t++) {
+        ctx.rotate(Math.PI / 4);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(-3, -o.w / 2 - 5, 6, 6);
+      }
+      ctx.restore();
+
+      // Collision detection with player
       if (alive) {
         const pBox = {
           x: player.x - 12,
-          y: player.sliding ? gy - 24 : player.y - 45,
+          y: player.sliding ? gy - 20 : player.y - 42,
           w: 24,
-          h: player.sliding ? 24 : 45
+          h: player.sliding ? 20 : 42
         };
-        const oBox = {
-          x: o.x,
-          y: gy - o.h - o.yOffset,
-          w: o.w,
-          h: o.h
-        };
+        const oBox = { x: o.x, y: o.y, w: o.w, h: o.h };
 
-        if (pBox.x < oBox.x + oBox.w && pBox.x + pBox.w > oBox.x &&
-            pBox.y < oBox.y + oBox.h && pBox.y + pBox.h > oBox.y) {
+        if (
+          pBox.x < oBox.x + oBox.w &&
+          pBox.x + pBox.w > oBox.x &&
+          pBox.y < oBox.y + oBox.h &&
+          pBox.y + pBox.h > oBox.y
+        ) {
           alive = false;
           AudioFX.lose();
           window.ArcadeHero?.awardGameScore('stick-run', Math.floor(dist / 4));
@@ -3304,18 +3446,21 @@ function initStickRun(stage) {
     });
     obstacles = obstacles.filter(o => o.x > -60);
 
-    drawStickman(player.x, player.y, player.runCycle, player.y < gy - 2, player.sliding);
+    // Draw Stickman player
+    const inAir = player.y < gy - 4;
+    drawStickman(player.x, player.y, player.runCycle, inAir, player.sliding, player.rot, player.isDoingTrick);
 
+    // Game Over screen overlay
     if (!alive) {
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.72)';
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.78)';
       ctx.fillRect(0, 0, w, h);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = '#ffffff';
       ctx.font = '900 32px Inter';
       ctx.textAlign = 'center';
-      ctx.fillText(`Run Complete: ${Math.floor(dist / 4)}m`, w / 2, h / 2 - 14);
+      ctx.fillText(`Run Distance: ${Math.floor(dist / 4)}m`, w / 2, h / 2 - 16);
       ctx.font = '700 16px Inter';
-      ctx.fillStyle = '#fde047';
-      ctx.fillText('Tap or Press Space to Run Again', w / 2, h / 2 + 22);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillText('Tap or Press Space to Play Again', w / 2, h / 2 + 24);
     }
 
     raf = requestAnimationFrame(loop);
@@ -3330,6 +3475,7 @@ function initStickRun(stage) {
     window.removeEventListener('resize', onResize);
   };
 }
+
 
 // ----------------------------------------------------
 // TINY CAFÉ (Cute Cartoon & Cozy Café Edition)
