@@ -363,7 +363,8 @@ const GAMES = [
   { id: 'blockpuzzle', num: 19, name: 'Block Puzzle', cat: 'Puzzle', icon: '🧩', envName: 'Polyomino Grid & Line Builder', bg: 'radial-gradient(circle at 50% 30%, #0f172a 0%, #030712 70%)', theme: 'matrix_vault' },
   { id: 'spaceinvaders', num: 20, name: 'Space Invaders', cat: 'Action', icon: '👾', envName: 'Deep Space Fleet Defense', bg: 'radial-gradient(circle at 50% 30%, #170f38 0%, #06040f 70%)', theme: 'cosmic_core' },
   { id: 'zombiesurvival', num: 21, name: 'Zombie Survival', cat: 'Action', icon: '🧟', envName: 'Post-Apocalyptic Arena', bg: 'radial-gradient(circle at 50% 30%, #1c1917 0%, #0c0a09 70%)', theme: 'bamboo_dojo' },
-  { id: 'tinycafe', num: 22, name: 'Tiny Café', cat: 'Puzzle', icon: '☕', envName: 'Cozy Morning Coffee Bar', bg: 'radial-gradient(circle at 50% 30%, #451a03 0%, #1c0a00 70%)', theme: 'gold_vault' }
+  { id: 'tinycafe', num: 22, name: 'Tiny Café', cat: 'Puzzle', icon: '☕', envName: 'Cozy Morning Coffee Bar', bg: 'radial-gradient(circle at 50% 30%, #451a03 0%, #1c0a00 70%)', theme: 'gold_vault' },
+  { id: 'minigame', num: 23, name: 'Mini-Game Template', cat: 'Action', icon: '🎮', envName: 'Standard Action Arena', bg: 'radial-gradient(circle at 50% 30%, #1e1b4b 0%, #0f172a 70%)', theme: 'cosmic_core' }
 ];
 
 let activeGameId = null;
@@ -577,7 +578,8 @@ function launchGame(id) {
     blockpuzzle: initBlockPuzzle,
     spaceinvaders: initSpaceInvaders,
     zombiesurvival: initZombieSurvival,
-    tinycafe: initTinyCafe
+    tinycafe: initTinyCafe,
+    minigame: initMiniGame
   };
 
   if (runners[id]) {
