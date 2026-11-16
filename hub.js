@@ -359,7 +359,16 @@ const GAMES = [
   { id: 'carracing', num: 15, name: 'Car Racing', cat: 'Racing', icon: '🏎️', envName: 'Neon Sunset Canyon Highway', bg: 'linear-gradient(180deg, #0f0722 0%, #3b0764 42%, #be123c 55%, #090a0f 56%)', theme: 'synth_highway' },
   { id: 'brickbreaker', num: 16, name: 'Brick Breaker', cat: 'Racing', icon: '🧱', envName: 'Cosmic Synthwave Core', bg: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #03050a 100%)', theme: 'cosmic_core' },
   { id: 'stickrun', num: 17, name: 'Stick Run', cat: 'Runner', icon: '🏃', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' },
-  { id: 'tiny-cafe', num: 18, name: 'Tiny Café', cat: 'Strategy', icon: '☕', envName: 'Cozy Time-Management Café', bg: 'linear-gradient(180deg, #78350f 0%, #451a03 55%, #1c0a00 100%)', theme: 'cafe_warm' }
+  {
+    id: 'tiny-cafe',
+    num: 18,
+    name: 'Tiny Café',
+    cat: 'Strategy',
+    icon: '☕',
+    envName: 'Cozy Cartoon Café',
+    bg: 'radial-gradient(circle at 50% 25%, #fff5e6 0%, #f5dec0 65%, #e4c096 100%)',
+    theme: 'wood'
+  }
 ];
 
 let activeGameId = null;
