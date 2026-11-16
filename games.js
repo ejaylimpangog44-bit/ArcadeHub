@@ -773,7 +773,7 @@ function initHighLow(stage) {
 }
 
 // ----------------------------------------------------
-// 5. CHESS (Arcade Game - Fixed Button Clickability & Clean UI)
+// 5. CHESS (Arcade Game - Fixed Drawer Positioning)
 // ----------------------------------------------------
 function initChess(stage) {
   const GLYPHS = {
@@ -917,9 +917,9 @@ function initChess(stage) {
 
   function render() {
     stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-between px-3 py-3 pb-16 sm:pb-6 select-none overflow-y-auto">
+      <div class="relative w-full h-full flex flex-col items-center justify-between px-3 py-3 pb-16 sm:pb-6 select-none overflow-y-auto">
         
-        <div class="flex items-center justify-between w-full max-w-[min(90vw,440px)]">
+        <div class="flex items-center justify-between w-full max-w-[min(90vw,440px)] z-10">
           <button id="chess-menu" class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 text-lg font-black shadow hover:bg-amber-900 transition cursor-pointer">
             ☰
           </button>
@@ -931,11 +931,11 @@ function initChess(stage) {
           </button>
         </div>
 
-        <div class="text-[11px] text-amber-200/80 font-bold">
+        <div class="text-[11px] text-amber-200/80 font-bold z-10">
           Captured: ${capturedB.map(p => GLYPHS[p]).join(' ')}
         </div>
 
-        <div class="grid grid-cols-8 aspect-square w-[min(86vw,420px)] rounded-3xl overflow-hidden border-4 border-amber-900 shadow-[0_20px_60px_rgba(0,0,0,0.8)] my-auto">
+        <div class="grid grid-cols-8 aspect-square w-[min(86vw,420px)] rounded-3xl overflow-hidden border-4 border-amber-900 shadow-[0_20px_60px_rgba(0,0,0,0.8)] my-auto z-10">
           ${board.map((row, r) => row.map((cell, c) => {
             const dark = (r + c) % 2 === 1;
             const isSel = sel && sel[0] === r && sel[1] === c;
@@ -949,14 +949,14 @@ function initChess(stage) {
           }).join('')).join('')}
         </div>
 
-        <div class="text-[11px] text-amber-200/80 font-bold">
+        <div class="text-[11px] text-amber-200/80 font-bold z-10">
           Lost: ${capturedW.map(p => GLYPHS[p]).join(' ')}
         </div>
 
-        <!-- Settings Drawer Overlay -->
-        <div id="chess-drawer-bg" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}"></div>
+        <!-- Settings Drawer Overlay (Positioned below top header) -->
+        <div id="chess-drawer-bg" class="fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}"></div>
         
-        <div class="fixed top-0 bottom-0 left-0 z-50 w-[82%] max-w-xs bg-slate-900 border-r-4 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto">
+        <div class="fixed top-16 bottom-0 left-0 z-40 w-[82%] max-w-xs bg-slate-900 border-r-4 border-t-2 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto rounded-tr-3xl">
           <div class="flex items-center justify-between border-b border-white/10 pb-3">
             <h2 class="text-lg font-black text-amber-400">⚙️ Chess Settings</h2>
             <button id="chess-close-drawer" class="w-8 h-8 rounded-full bg-white/10 text-white font-bold flex items-center justify-center cursor-pointer">✕</button>
@@ -1060,7 +1060,7 @@ function initChess(stage) {
 }
 
 // ----------------------------------------------------
-// 6. DAMA (Arcade Game - Fixed Button Clickability & Clean UI)
+// 6. DAMA (Arcade Game - Fixed Drawer Positioning)
 // ----------------------------------------------------
 function initDama(stage) {
   let board = [], turn = 'r', sel = null, moves = [], vsAI = true, status = 'Your Turn (Red Dama)';
@@ -1216,9 +1216,9 @@ function initDama(stage) {
 
   function render() {
     stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-between px-3 py-3 pb-16 sm:pb-6 select-none overflow-y-auto">
+      <div class="relative w-full h-full flex flex-col items-center justify-between px-3 py-3 pb-16 sm:pb-6 select-none overflow-y-auto">
         
-        <div class="flex items-center justify-between w-full max-w-[min(90vw,480px)]">
+        <div class="flex items-center justify-between w-full max-w-[min(90vw,480px)] z-10">
           <button id="dama-menu" class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 text-lg font-black shadow hover:bg-amber-900 transition cursor-pointer">
             ☰
           </button>
@@ -1230,12 +1230,12 @@ function initDama(stage) {
           </button>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 z-10">
           <span class="px-3 py-1 rounded-xl bg-rose-950/80 border border-rose-500/40 text-rose-200 font-bold text-xs">🔴 Red: ${redCaptured}</span>
           <span class="px-3 py-1 rounded-xl bg-sky-950/80 border border-sky-500/40 text-sky-200 font-bold text-xs">🔵 Blue: ${blueCaptured}</span>
         </div>
 
-        <div class="grid grid-cols-8 aspect-square w-[min(88vw,440px)] rounded-3xl overflow-hidden border-4 border-[#3d1f0d] shadow-[0_20px_60px_rgba(0,0,0,0.8)] my-auto">
+        <div class="grid grid-cols-8 aspect-square w-[min(88vw,440px)] rounded-3xl overflow-hidden border-4 border-[#3d1f0d] shadow-[0_20px_60px_rgba(0,0,0,0.8)] my-auto z-10">
           ${board.map((row, r) => row.map((cell, c) => {
             const dark = (r + c) % 2 === 1;
             const isSel = sel && sel[0] === r && sel[1] === c;
@@ -1253,10 +1253,10 @@ function initDama(stage) {
           }).join('')).join('')}
         </div>
 
-        <!-- Settings Drawer Overlay -->
-        <div id="dama-drawer-bg" class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}"></div>
+        <!-- Settings Drawer Overlay (Positioned below top header) -->
+        <div id="dama-drawer-bg" class="fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}"></div>
         
-        <div class="fixed top-0 bottom-0 left-0 z-50 w-[82%] max-w-xs bg-slate-900 border-r-4 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto">
+        <div class="fixed top-16 bottom-0 left-0 z-40 w-[82%] max-w-xs bg-slate-900 border-r-4 border-t-2 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto rounded-tr-3xl">
           <div class="flex items-center justify-between border-b border-white/10 pb-3">
             <h2 class="text-lg font-black text-amber-400">⚙️ Dama Settings</h2>
             <button id="dama-close-drawer" class="w-8 h-8 rounded-full bg-white/10 text-white font-bold flex items-center justify-center cursor-pointer">✕</button>
@@ -1394,7 +1394,6 @@ function initDama(stage) {
 
   reset();
 }
-
 
 // ----------------------------------------------------
 // 7. TIC-TAC-TOE (Arcade Game -> Included with Hero Score Reward)
