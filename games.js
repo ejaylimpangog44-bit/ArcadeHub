@@ -3306,7 +3306,7 @@ function initStickRun(stage) {
 }
 
 // ----------------------------------------------------
-// TINY CAFÉ (Cute Cartoon & Cozy Café Edition)
+// TINY CAFÉ (Cute Cartoon & Cozy Café Edition) - Fixed
 // ----------------------------------------------------
 function initTinyCafe(stage) {
   const INGREDIENTS = {
@@ -4441,8 +4441,6 @@ function initTinyCafe(stage) {
 
       <header class="relative z-20 flex items-center justify-between px-3 py-2 bg-[#4a2a14]/95 text-[#fffaf2] border-b-4 border-[#2e180a] shadow-md gap-1.5">
         <div class="flex items-center gap-1.5 sm:gap-2.5">
-    
-
           <div class="flex items-center gap-1 bg-[#2e180a] px-2.5 py-1 rounded-xl border border-[#7c4a27]">
             <span class="text-base sm:text-lg">🪙</span>
             <span id="hud-coins" class="font-display font-bold text-sm sm:text-base text-[#ffd15c]">${saveData.coins}</span>
@@ -4688,31 +4686,66 @@ function initTinyCafe(stage) {
   window.equipTinyCafeTheme = equipTheme;
   window.buyTinyCafeDecor = buyDecor;
 
-  // Bind Listeners
-  document.getElementById('btn-home-cafe').onclick = () => { if (typeof openHubHome === 'function') openHubHome(); };
-  document.getElementById('btn-recipes-modal').onclick = () => openModal('modal-recipes');
-  document.getElementById('btn-challenges-modal').onclick = () => openModal('modal-challenges');
-  document.getElementById('btn-shop-modal').onclick = () => openModal('modal-shop');
-  document.getElementById('btn-audio').onclick = toggleAudio;
-  document.getElementById('btn-clear-tray').onclick = clearTray;
-  document.getElementById('btn-serve').onclick = serveMatchingCustomer;
+  // Bind Listeners Safely (Guarded against missing elements)
+  const homeBtn = document.getElementById('btn-home-cafe');
+  if (homeBtn) homeBtn.onclick = () => { if (typeof openHubHome === 'function') openHubHome(); };
 
-  document.getElementById('btn-start-campaign').onclick = () => startGame('campaign');
-  document.getElementById('btn-start-rush').onclick = () => startGame('rush');
-  document.getElementById('btn-start-recipes').onclick = () => openModal('modal-recipes');
-  document.getElementById('btn-start-challenges').onclick = () => openModal('modal-challenges');
-  document.getElementById('btn-start-shop').onclick = () => openModal('modal-shop');
+  const recipesModalBtn = document.getElementById('btn-recipes-modal');
+  if (recipesModalBtn) recipesModalBtn.onclick = () => openModal('modal-recipes');
 
-  document.getElementById('btn-modal-menu').onclick = returnToMenu;
-  document.getElementById('btn-next-shift').onclick = nextShiftAction;
+  const challengesModalBtn = document.getElementById('btn-challenges-modal');
+  if (challengesModalBtn) challengesModalBtn.onclick = () => openModal('modal-challenges');
 
-  document.getElementById('btn-close-recipes').onclick = () => closeAllModals();
-  document.getElementById('btn-close-challenges').onclick = () => closeAllModals();
-  document.getElementById('btn-close-shop').onclick = () => closeAllModals();
+  const shopModalBtn = document.getElementById('btn-shop-modal');
+  if (shopModalBtn) shopModalBtn.onclick = () => openModal('modal-shop');
 
-  document.getElementById('tab-recipes').onclick = () => switchShopTab('recipes');
-  document.getElementById('tab-upgrades').onclick = () => switchShopTab('upgrades');
-  document.getElementById('tab-decor').onclick = () => switchShopTab('decor');
+  const audioBtn = document.getElementById('btn-audio');
+  if (audioBtn) audioBtn.onclick = toggleAudio;
+
+  const clearTrayBtn = document.getElementById('btn-clear-tray');
+  if (clearTrayBtn) clearTrayBtn.onclick = clearTray;
+
+  const serveBtn = document.getElementById('btn-serve');
+  if (serveBtn) serveBtn.onclick = serveMatchingCustomer;
+
+  const startCampaignBtn = document.getElementById('btn-start-campaign');
+  if (startCampaignBtn) startCampaignBtn.onclick = () => startGame('campaign');
+
+  const startRushBtn = document.getElementById('btn-start-rush');
+  if (startRushBtn) startRushBtn.onclick = () => startGame('rush');
+
+  const startRecipesBtn = document.getElementById('btn-start-recipes');
+  if (startRecipesBtn) startRecipesBtn.onclick = () => openModal('modal-recipes');
+
+  const startChallengesBtn = document.getElementById('btn-start-challenges');
+  if (startChallengesBtn) startChallengesBtn.onclick = () => openModal('modal-challenges');
+
+  const startShopBtn = document.getElementById('btn-start-shop');
+  if (startShopBtn) startShopBtn.onclick = () => openModal('modal-shop');
+
+  const modalMenuBtn = document.getElementById('btn-modal-menu');
+  if (modalMenuBtn) modalMenuBtn.onclick = returnToMenu;
+
+  const nextShiftBtn = document.getElementById('btn-next-shift');
+  if (nextShiftBtn) nextShiftBtn.onclick = nextShiftAction;
+
+  const closeRecipesBtn = document.getElementById('btn-close-recipes');
+  if (closeRecipesBtn) closeRecipesBtn.onclick = () => closeAllModals();
+
+  const closeChallengesBtn = document.getElementById('btn-close-challenges');
+  if (closeChallengesBtn) closeChallengesBtn.onclick = () => closeAllModals();
+
+  const closeShopBtn = document.getElementById('btn-close-shop');
+  if (closeShopBtn) closeShopBtn.onclick = () => closeAllModals();
+
+  const tabRecipes = document.getElementById('tab-recipes');
+  if (tabRecipes) tabRecipes.onclick = () => switchShopTab('recipes');
+
+  const tabUpgrades = document.getElementById('tab-upgrades');
+  if (tabUpgrades) tabUpgrades.onclick = () => switchShopTab('upgrades');
+
+  const tabDecor = document.getElementById('tab-decor');
+  if (tabDecor) tabDecor.onclick = () => switchShopTab('decor');
 
   ensureDailyQuests();
   applyThemeAndDecor();
@@ -4727,3 +4760,4 @@ function initTinyCafe(stage) {
     stopBgMusic();
   };
 }
+      
