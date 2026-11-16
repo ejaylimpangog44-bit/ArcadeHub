@@ -3306,447 +3306,1426 @@ function initStickRun(stage) {
 }
 
 // ----------------------------------------------------
-// 17. TINY CAFÉ (Cozy Time-Management Simulation Suite)
+// TINY CAFÉ (Cute Cartoon & Cozy Café Edition)
 // ----------------------------------------------------
 function initTinyCafe(stage) {
-  class SoundFX {
-    constructor() {
-      this.ctx = null;
-      this.muted = false;
-    }
-    init() {
-      if (!this.ctx) {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (AudioCtx) this.ctx = new AudioCtx();
+  const INGREDIENTS = {
+    espresso: { id: 'espresso', name: 'Espresso', icon: '☕', color: 'from-[#8c522b] to-[#593014]', border: 'border-[#d99b66]', unlockRecipe: 'espresso' },
+    milk:     { id: 'milk',     name: 'Steamed Milk', icon: '🥛', color: 'from-[#fffdf9] to-[#e6dccf]', border: 'border-[#c8b6a6]', textDark: true, unlockRecipe: 'latte' },
+    ice:      { id: 'ice',      name: 'Ice Cubes', icon: '🧊', color: 'from-[#a8e6ff] to-[#64c5eb]', border: 'border-[#d6f5ff]', textDark: true, unlockRecipe: 'iced_latte' },
+    matcha:   { id: 'matcha',   name: 'Matcha', icon: '🍵', color: 'from-[#74c69d] to-[#40916c]', border: 'border-[#b7e4c7]', unlockRecipe: 'matcha_latte' },
+    syrup:    { id: 'syrup',    name: 'Caramel', icon: '🍯', color: 'from-[#f4a261] to-[#e76f51]', border: 'border-[#ffd199]', unlockRecipe: 'caramel_macchiato' },
+    pastry:   { id: 'pastry',   name: 'Croissant', icon: '🥐', color: 'from-[#f7b267] to-[#d97724]', border: 'border-[#ffe0b5]', unlockRecipe: 'croissant' }
+  };
+
+  const RECIPES = [
+    { id: 'espresso',          name: 'Classic Espresso',  icon: '☕', ingredients: ['espresso'],                    price: 18, unlockCost: 0,   desc: 'Rich, aromatic single shot.' },
+    { id: 'latte',             name: 'Cozy Café Latte',   icon: '🤎', ingredients: ['espresso', 'milk'],            price: 28, unlockCost: 0,   desc: 'Velvety steamed milk & espresso.' },
+    { id: 'croissant',         name: 'Butter Croissant',  icon: '🥐', ingredients: ['pastry'],                      price: 22, unlockCost: 0,   desc: 'Warm, flaky golden pastry.' },
+    { id: 'iced_latte',        name: 'Iced Vanilla Latte',icon: '🧋', ingredients: ['espresso', 'milk', 'ice'],     price: 38, unlockCost: 90,  desc: 'Chilled over crystal ice cubes.' },
+    { id: 'caramel_macchiato', name: 'Caramel Macchiato', icon: '🍮', ingredients: ['espresso', 'milk', 'syrup'],   price: 44, unlockCost: 150, desc: 'Sweet golden caramel drizzle.' },
+    { id: 'matcha_latte',      name: 'Iced Matcha Latte', icon: '🍵', ingredients: ['matcha', 'milk', 'ice'],       price: 48, unlockCost: 220, desc: 'Earthy Uji matcha with cold milk.' },
+    { id: 'honey_croissant',   name: 'Caramel Croissant', icon: '🍯', ingredients: ['pastry', 'syrup'],             price: 36, unlockCost: 280, desc: 'Warm croissant glazed with caramel.' },
+    { id: 'affogato_delight',  name: 'Matcha Espresso',   icon: '🌿', ingredients: ['espresso', 'matcha', 'milk'],  price: 58, unlockCost: 360, desc: 'Signature layered café fusion!' }
+  ];
+
+  const CUSTOMER_TYPES = [
+    { id: 'bear',    name: 'Barnaby Bear',   skin: '#c68642', ears: 'bear',   hair: '#8d5524', shirt: '#e07a5f', vip: false },
+    { id: 'bunny',   name: 'Pippa Bunny',    skin: '#ffe5d9', ears: 'bunny',  hair: '#ffb5a7', shirt: '#84a59d', vip: false },
+    { id: 'fox',     name: 'Felix Fox',      skin: '#f4a261', ears: 'fox',    hair: '#e76f51', shirt: '#2a9d8f', vip: false },
+    { id: 'girl',    name: 'Mina Student',   skin: '#ffcdb2', ears: 'none',   hair: '#4a3022', shirt: '#6d597a', vip: false },
+    { id: 'boy',     name: 'Leo Artist',     skin: '#e5989b', ears: 'none',   hair: '#2b2d42', shirt: '#457b9d', vip: false },
+    { id: 'vip_cat', name: 'Mochi Golden Cat', skin: '#ffd166', ears: 'cat',  hair: '#f4a261', shirt: '#9b5de5', vip: true, title: 'VIP Mascot' },
+    { id: 'vip_star',name: 'Luna Pop Star',  skin: '#ffe8d6', ears: 'none',   hair: '#ff70a6', shirt: '#ffbe0b', vip: true, title: 'VIP Celebrity' }
+  ];
+
+  const THEMES = [
+    { id: 'theme-wood',     name: 'Cozy Wood Café',   icon: '🪵', cost: 0,   currency: 'coins', desc: 'Warm oak counter & golden pendant glow.' },
+    { id: 'theme-sakura',   name: 'Sakura Pastel',    icon: '🌸', cost: 180, currency: 'coins', desc: 'Soft cherry blossom walls & strawberry counter.' },
+    { id: 'theme-midnight', name: 'Midnight Lo-Fi',   icon: '🌙', cost: 260, currency: 'coins', desc: 'Starry evening lounge with twilight ambiance.' }
+  ];
+
+  const DECOR_ITEMS = [
+    { id: 'fairyLights', name: 'Twinkle Fairy Lights', icon: '✨', cost: 120, currency: 'coins', desc: 'Warm sparkling lights strung across the café.' },
+    { id: 'wallArt',     name: 'Cozy Mountain Frame',  icon: '🖼️', cost: 140, currency: 'coins', desc: 'Hand-painted landscape art on the wall.' },
+    { id: 'plant',       name: 'Monstera Café Plant',  icon: '🌿', cost: 100, currency: 'coins', desc: 'Fresh greenery that brightens the counter.' }
+  ];
+
+  const DEFAULT_SAVE = {
+    coins: 60,
+    gems: 5,
+    day: 1,
+    unlockedRecipes: ['espresso', 'latte', 'croissant'],
+    machineLevel: 1,
+    patienceLevel: 1,
+    tipLevel: 1,
+    theme: 'theme-wood',
+    unlockedThemes: ['theme-wood'],
+    decor: { fairyLights: false, wallArt: false, plant: false },
+    daily: { dateKey: '', quests: [] }
+  };
+
+  let saveData = loadSave();
+
+  let gameState = {
+    active: false,
+    paused: false,
+    mode: 'campaign',
+    timeLeft: 75,
+    shiftDuration: 75,
+    targetCoins: 120,
+    shiftCoins: 0,
+    shiftGems: 0,
+    ordersServed: 0,
+    combo: 0,
+    bestCombo: 0,
+    rushHour: false,
+    rushTimer: 0,
+    slots: [null, null, null],
+    tray: [],
+    spawnCooldown: 1.5,
+    lastTick: 0,
+    activeShopTab: 'recipes'
+  };
+
+  let audioCtx = null;
+  let audioEnabled = true;
+  let musicInterval = null;
+  let musicStep = 0;
+  let animationFrameId = null;
+
+  function loadSave() {
+    try {
+      const raw = localStorage.getItem('tiny_cafe_save_v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return {
+          ...DEFAULT_SAVE,
+          ...parsed,
+          decor: { ...DEFAULT_SAVE.decor, ...(parsed.decor || {}) },
+          daily: parsed.daily || { dateKey: '', quests: [] }
+        };
       }
-      if (this.ctx && this.ctx.state === "suspended") {
-        this.ctx.resume();
-      }
-    }
-    playTone(freq, type, duration, delay = 0, gainVal = 0.15) {
-      if (this.muted) return;
-      try {
-        this.init();
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + delay);
-        gain.gain.setValueAtTime(gainVal, this.ctx.currentTime + delay);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + delay + duration);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(this.ctx.currentTime + delay);
-        osc.stop(this.ctx.currentTime + delay + duration);
-      } catch (e) {}
-    }
-    click() { this.playTone(520, "sine", 0.08, 0, 0.1); }
-    brewComplete() {
-      this.playTone(660, "triangle", 0.12, 0, 0.12);
-      this.playTone(880, "triangle", 0.18, 0.08, 0.12);
-    }
-    serveSuccess() {
-      this.playTone(523.25, "sine", 0.12, 0, 0.15);
-      this.playTone(659.25, "sine", 0.12, 0.09, 0.15);
-      this.playTone(783.99, "sine", 0.22, 0.18, 0.15);
-    }
-    upgrade() {
-      this.playTone(440, "square", 0.1, 0, 0.08);
-      this.playTone(554.37, "square", 0.1, 0.08, 0.08);
-      this.playTone(659.25, "square", 0.2, 0.16, 0.08);
-    }
-    fail() {
-      this.playTone(240, "sawtooth", 0.18, 0, 0.12);
-      this.playTone(180, "sawtooth", 0.28, 0.14, 0.12);
+    } catch (e) {}
+    return JSON.parse(JSON.stringify(DEFAULT_SAVE));
+  }
+
+  function writeSave() {
+    try {
+      localStorage.setItem('tiny_cafe_save_v1', JSON.stringify(saveData));
+    } catch (e) {}
+    syncHUD();
+  }
+
+  function ensureDailyQuests() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (saveData.daily.dateKey !== today || !saveData.daily.quests.length) {
+      const seed = today.split('-').reduce((acc, n) => acc + parseInt(n, 10), 0);
+      const pool = [
+        { id: 'serve_any',   label: 'Serve 12 Happy Customers', target: 12, progress: 0, rewardCoins: 90,  rewardGems: 2, claimed: false },
+        { id: 'combo_5',     label: 'Reach a 5x Order Combo',   target: 5,  progress: 0, rewardCoins: 110, rewardGems: 3, claimed: false },
+        { id: 'serve_vip',   label: 'Serve 2 Special VIPs',     target: 2,  progress: 0, rewardCoins: 130, rewardGems: 4, claimed: false },
+        { id: 'earn_coins',  label: 'Earn 250 Coins in Shifts', target: 250,progress: 0, rewardCoins: 120, rewardGems: 3, claimed: false }
+      ];
+      const picked = [
+        pool[seed % pool.length],
+        pool[(seed + 1) % pool.length],
+        pool[(seed + 2) % pool.length]
+      ];
+      saveData.daily = { dateKey: today, quests: picked };
+      writeSave();
     }
   }
 
-  const sfx = new SoundFX();
-  let gameData = {
-    coins: 100,
-    rating: 5.0,
-    day: 1,
-    ordersServed: 0,
-    upgrades: { grinder: 1, oven: 1, bakery: 1, decor: 1 }
-  };
-  let currentOrder = null;
-  let playerTray = [];
-  let patienceTimer = null;
-  let patienceLevel = 100;
-  let combo = 1;
-  let stationBusy = { coffee: false, food: false, dessert: false };
+  function updateQuestProgress(type, value, isMax = false) {
+    let updated = false;
+    saveData.daily.quests.forEach(q => {
+      if (q.id === type && !q.claimed) {
+        if (isMax) {
+          if (value > q.progress) {
+            q.progress = Math.min(q.target, value);
+            updated = true;
+          }
+        } else {
+          q.progress = Math.min(q.target, q.progress + value);
+          updated = true;
+        }
+      }
+    });
+    if (updated) {
+      writeSave();
+      checkChallengeBadge();
+    }
+  }
 
-  const recipes = [
-    { name: "Iced Caramel Coffee", items: ["coffee"], reward: 15, minLevel: 1 },
-    { name: "Classic Milk Tea", items: ["coffee"], reward: 18, minLevel: 1 },
-    { name: "Bacon & Eggs", items: ["food"], reward: 22, minLevel: 1 },
-    { name: "Toasted Ham Sandwich", items: ["food"], reward: 20, minLevel: 1 },
-    { name: "Strawberry Cupcake", items: ["dessert"], reward: 16, minLevel: 1 },
-    { name: "Espresso & Pancakes", items: ["coffee", "food"], reward: 38, minLevel: 1 },
-    { name: "Burger & Fruit Smoothie", items: ["coffee", "food"], reward: 42, minLevel: 1 },
-    { name: "Latte & Cheesecake", items: ["coffee", "dessert"], reward: 35, minLevel: 1 },
-    { name: "Full Café Feast", items: ["coffee", "food", "dessert"], reward: 65, minLevel: 1 }
-  ];
-  const customers = [
-    { name: "Fluffy", avatar: "🐱" },
-    { name: "Boba", avatar: "🐶" },
-    { name: "Mochi", avatar: "🐰" },
-    { name: "Kuma", avatar: "🐻" },
-    { name: "Pip", avatar: "🦊" },
-    { name: "Taro", avatar: "🐼" }
-  ];
-  const itemLabels = { coffee: "☕ Drink", food: "🍳 Meal", dessert: "🧁 Pastry" };
+  function checkChallengeBadge() {
+    const hasClaimable = saveData.daily.quests.some(q => q.progress >= q.target && !q.claimed);
+    const badge = document.getElementById('badge-challenge');
+    if (badge) badge.classList.toggle('hidden', !hasClaimable);
+  }
 
-  // Inject HTML UI into the viewport stage
-  stage.innerHTML = `
-    <div class="w-full h-full flex flex-col justify-between bg-gradient-to-br from-amber-950 via-slate-950 to-slate-900 text-slate-100 p-4 sm:p-6 overflow-y-auto select-none">
-      <!-- Header HUD -->
-      <div class="flex items-center justify-between bg-black/40 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10 max-w-4xl mx-auto w-full">
-        <div class="flex items-center gap-4 text-xs font-black">
-          <span id="stat-coins" class="text-amber-300">🪙 100</span>
-          <span id="stat-rating" class="text-yellow-400">⭐ 5.0</span>
-          <span id="stat-combo" class="text-rose-400">🔥 x1</span>
-          <span id="stat-day" class="text-sky-300">📅 Day 1</span>
+  function initAudio() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function toggleAudio() {
+    audioEnabled = !audioEnabled;
+    const icon = document.getElementById('audio-icon');
+    if (icon) icon.textContent = audioEnabled ? '🔊' : '🔇';
+    if (audioEnabled) {
+      initAudio();
+      startBgMusic();
+    } else {
+      stopBgMusic();
+    }
+  }
+
+  function playSfx(type) {
+    if (!audioEnabled) return;
+    initAudio();
+    if (!audioCtx) return;
+
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'tap') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(780, now + 0.08);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } else if (type === 'clear') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(320, now);
+      osc.frequency.exponentialRampToValueAtTime(160, now + 0.14);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.start(now);
+      osc.stop(now + 0.15);
+    } else if (type === 'serve') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(587.33, now);
+      osc.frequency.setValueAtTime(880, now + 0.08);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.28);
+    } else if (type === 'vip') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(659.25, now);
+      osc.frequency.setValueAtTime(830.61, now + 0.09);
+      osc.frequency.setValueAtTime(1046.5, now + 0.18);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+      osc.start(now);
+      osc.stop(now + 0.38);
+    } else if (type === 'error') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(190, now);
+      osc.frequency.linearRampToValueAtTime(135, now + 0.22);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+      osc.start(now);
+      osc.stop(now + 0.24);
+    }
+  }
+
+  function startBgMusic() {
+    if (musicInterval || !audioEnabled) return;
+    const chords = [
+      [261.63, 329.63, 392.00, 493.88],
+      [220.00, 261.63, 329.63, 392.00],
+      [174.61, 220.00, 261.63, 349.23],
+      [196.00, 246.94, 293.66, 392.00]
+    ];
+    musicInterval = setInterval(() => {
+      if (!audioEnabled || !audioCtx || audioCtx.state !== 'running') return;
+      const chord = chords[musicStep % chords.length];
+      const tempoScale = gameState.rushHour ? 0.75 : 1;
+      const now = audioCtx.currentTime;
+      chord.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+        gain.gain.setValueAtTime(0.001, now + idx * 0.06);
+        gain.gain.linearRampToValueAtTime(0.025, now + idx * 0.06 + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + 1.3 * tempoScale);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + idx * 0.06);
+        osc.stop(now + 1.35 * tempoScale);
+      });
+      musicStep++;
+    }, 1500);
+  }
+
+  function stopBgMusic() {
+    if (musicInterval) {
+      clearInterval(musicInterval);
+      musicInterval = null;
+    }
+  }
+
+  function applyThemeAndDecor() {
+    const appEl = document.getElementById('tiny-cafe-app');
+    if (appEl) {
+      appEl.className = `relative w-full h-full max-w-5xl mx-auto flex flex-col overflow-hidden shadow-2xl md:border-x-4 border-[#4a2a14] cafe-wall ${saveData.theme}`;
+    }
+    const fairy = document.getElementById('decor-fairy-lights');
+    const art = document.getElementById('decor-wall-art');
+    const plant = document.getElementById('decor-plant');
+    if (fairy) fairy.classList.toggle('hidden', !saveData.decor.fairyLights);
+    if (art) art.classList.toggle('hidden', !saveData.decor.wallArt);
+    if (plant) plant.classList.toggle('hidden', !saveData.decor.plant);
+  }
+
+  function syncHUD() {
+    const hc = document.getElementById('hud-coins');
+    const hg = document.getElementById('hud-gems');
+    const sc = document.getElementById('start-coins');
+    const sg = document.getElementById('start-gems');
+    const sd = document.getElementById('start-day');
+    const hm = document.getElementById('hud-machine-lv');
+    const uc = document.getElementById('unlocked-count-sign');
+    if (hc) hc.textContent = saveData.coins;
+    if (hg) hg.textContent = saveData.gems;
+    if (sc) sc.textContent = `🪙 ${saveData.coins}`;
+    if (sg) sg.textContent = `💎 ${saveData.gems}`;
+    if (sd) sd.textContent = `Day ${saveData.day}`;
+    if (hm) hm.textContent = saveData.machineLevel;
+    if (uc) uc.textContent = `${saveData.unlockedRecipes.length} Recipes on Menu`;
+
+    const shopCoins = document.getElementById('shop-coins');
+    const shopGems = document.getElementById('shop-gems');
+    if (shopCoins) shopCoins.textContent = saveData.coins;
+    if (shopGems) shopGems.textContent = saveData.gems;
+
+    const modeLabel = document.getElementById('hud-mode-label');
+    const goalText = document.getElementById('hud-goal-text');
+    if (modeLabel && goalText) {
+      if (gameState.mode === 'campaign') {
+        modeLabel.textContent = `DAY ${saveData.day}`;
+        goalText.textContent = `Goal: ${gameState.shiftCoins} / ${gameState.targetCoins}`;
+      } else {
+        modeLabel.textContent = `RUSH ARCADE`;
+        goalText.textContent = `Earned: ${gameState.shiftCoins} 🪙`;
+      }
+    }
+
+    const timerEl = document.getElementById('hud-timer');
+    if (timerEl) {
+      const mins = Math.floor(Math.max(0, gameState.timeLeft) / 60);
+      const secs = Math.floor(Math.max(0, gameState.timeLeft) % 60);
+      timerEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+    checkChallengeBadge();
+  }
+
+  function renderStations() {
+    const grid = document.getElementById('stations-grid');
+    if (!grid) return;
+    const unlockedRecipeObjs = RECIPES.filter(r => saveData.unlockedRecipes.includes(r.id));
+    const neededIngredientIds = new Set();
+    unlockedRecipeObjs.forEach(r => r.ingredients.forEach(i => neededIngredientIds.add(i)));
+
+    grid.innerHTML = '';
+    Object.values(INGREDIENTS).forEach(ing => {
+      const isAvailable = neededIngredientIds.has(ing.id);
+      const btn = document.createElement('button');
+      btn.disabled = !isAvailable;
+      btn.onclick = () => addIngredientToTray(ing.id);
+      btn.className = `station-btn relative rounded-2xl p-2 sm:p-3 border-2 ${ing.border} bg-gradient-to-b ${ing.color} flex flex-col items-center justify-center ${ing.textDark ? 'text-[#3b2314]' : 'text-white'} ${!isAvailable ? 'opacity-40 grayscale cursor-not-allowed' : ''}`;
+
+      btn.innerHTML = `
+        <span class="text-2xl sm:text-3xl leading-none mb-1 drop-shadow">${ing.icon}</span>
+        <span class="font-display font-bold text-[11px] sm:text-xs tracking-tight leading-none">${isAvailable ? ing.name : 'Locked'}</span>
+      `;
+      grid.appendChild(btn);
+    });
+  }
+
+  function addIngredientToTray(ingId) {
+    if (!gameState.active || gameState.paused) return;
+    if (gameState.tray.length >= 4) {
+      showToast('Tray is full! Serve or Clear first.', '⚠️');
+      playSfx('error');
+      return;
+    }
+    gameState.tray.push(ingId);
+    playSfx('tap');
+    renderTray();
+  }
+
+  function clearTray() {
+    if (gameState.tray.length > 0) playSfx('clear');
+    gameState.tray = [];
+    renderTray();
+  }
+
+  function findMatchingRecipe(trayArr) {
+    if (!trayArr.length) return null;
+    const sortedTray = [...trayArr].sort().join(',');
+    return RECIPES.find(r =>
+      saveData.unlockedRecipes.includes(r.id) &&
+      [...r.ingredients].sort().join(',') === sortedTray
+    ) || null;
+  }
+
+  function renderTray() {
+    const container = document.getElementById('tray-items-container');
+    const preview = document.getElementById('tray-match-preview');
+    const serveBtn = document.getElementById('btn-serve');
+    if (!container || !preview || !serveBtn) return;
+
+    if (gameState.tray.length === 0) {
+      container.innerHTML = `<span class="text-xs sm:text-sm font-bold text-[#9c785c] italic">Tap ingredients below to prep order...</span>`;
+      preview.classList.add('hidden');
+      serveBtn.disabled = true;
+      return;
+    }
+
+    container.innerHTML = gameState.tray.map(id => {
+      const ing = INGREDIENTS[id];
+      return `
+        <div class="flex items-center gap-1 bg-[#fcecd8] border-2 border-[#c88a55] px-2 py-1 rounded-xl shrink-0">
+          <span class="text-lg sm:text-xl">${ing.icon}</span>
+          <span class="text-[11px] font-extrabold text-[#4a2a14] hidden md:inline">${ing.name}</span>
         </div>
-        <button id="mute-btn" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs cursor-pointer transition">🔊</button>
-      </div>
+      `;
+    }).join('<span class="text-[#a36636] font-bold">+</span>');
 
-      <!-- Main Game Board -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto w-full my-auto">
-        <!-- Customer & Tray -->
-        <div class="flex flex-col justify-between bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-xl relative min-h-[240px]">
-          <div>
-            <div id="waiting-text" class="text-center text-slate-400 py-10 text-sm font-bold">Waiting for customer...</div>
-            <div id="customer-card" class="hidden flex flex-col gap-3">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <span id="customer-avatar" class="text-4xl">🐱</span>
-                  <div>
-                    <div id="customer-name" class="font-black text-white text-base">Name</div>
-                    <div id="customer-order" class="text-xs text-amber-300 font-semibold mt-0.5">Order description</div>
-                  </div>
-                </div>
-                <span id="vip-badge" class="hidden px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-black border border-amber-400/40 animate-pulse">⭐ VIP</span>
-              </div>
-              <div class="w-full bg-black/60 h-2.5 rounded-full overflow-hidden border border-white/10 mt-2">
-                <div id="patience-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 100%;"></div>
-              </div>
+    const match = findMatchingRecipe(gameState.tray);
+    if (match) {
+      preview.classList.remove('hidden');
+      document.getElementById('tray-match-icon').textContent = match.icon;
+      document.getElementById('tray-match-name').textContent = match.name;
+      serveBtn.disabled = false;
+    } else {
+      preview.classList.add('hidden');
+      serveBtn.disabled = false;
+    }
+  }
+
+  function getCustomerSVG(cust, mood) {
+    let earsHtml = '';
+    if (cust.ears === 'bear') {
+      earsHtml = `<circle cx="24" cy="24" r="10" fill="${cust.skin}" stroke="#3b2314" stroke-width="3"/><circle cx="76" cy="24" r="10" fill="${cust.skin}" stroke="#3b2314" stroke-width="3"/>`;
+    } else if (cust.ears === 'bunny') {
+      earsHtml = `<ellipse cx="32" cy="14" rx="7" ry="16" fill="${cust.skin}" stroke="#3b2314" stroke-width="3"/><ellipse cx="68" cy="14" rx="7" ry="16" fill="${cust.skin}" stroke="#3b2314" stroke-width="3"/>`;
+    } else if (cust.ears === 'fox' || cust.ears === 'cat') {
+      earsHtml = `<polygon points="20,32 26,8 42,24" fill="${cust.skin}" stroke="#3b2314" stroke-width="3"/><polygon points="80,32 74,8 58,24" fill="${cust.skin}" stroke="#3b2314" stroke-width="3"/>`;
+    }
+
+    let eyesHtml = `<circle cx="38" cy="48" r="4" fill="#3b2314"/><circle cx="62" cy="48" r="4" fill="#3b2314"/>`;
+    let mouthHtml = `<path d="M 43 58 Q 50 65 57 58" stroke="#3b2314" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+
+    if (mood === 'impatient') {
+      eyesHtml = `<path d="M 33 44 L 42 48" stroke="#3b2314" stroke-width="3"/><path d="M 67 44 L 58 48" stroke="#3b2314" stroke-width="3"/><circle cx="38" cy="50" r="3.5" fill="#3b2314"/><circle cx="62" cy="50" r="3.5" fill="#3b2314"/>`;
+      mouthHtml = `<path d="M 43 62 Q 50 56 57 62" stroke="#3b2314" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+    } else if (mood === 'thrilled') {
+      eyesHtml = `<path d="M 33 48 Q 38 42 43 48" stroke="#3b2314" stroke-width="3" fill="none"/><path d="M 57 48 Q 62 42 67 48" stroke="#3b2314" stroke-width="3" fill="none"/>`;
+      mouthHtml = `<path d="M 41 56 Q 50 68 59 56 Z" fill="#f25c78" stroke="#3b2314" stroke-width="2.5"/>`;
+    }
+
+    const crownHtml = cust.vip ? `<text x="50" y="16" font-size="18" text-anchor="middle">👑</text>` : '';
+
+    return `
+      <svg viewBox="0 0 100 96" class="w-20 h-20 sm:w-24 sm:h-24 drop-shadow-md overflow-visible">
+        ${earsHtml}
+        <path d="M 22 94 C 22 72, 78 72, 78 94 Z" fill="${cust.shirt}" stroke="#3b2314" stroke-width="3.5"/>
+        <circle cx="50" cy="48" r="27" fill="${cust.skin}" stroke="#3b2314" stroke-width="3.5"/>
+        ${cust.ears === 'none' ? `<path d="M 23 44 C 25 20, 75 20, 77 44 C 68 32, 32 32, 23 44 Z" fill="${cust.hair}" stroke="#3b2314" stroke-width="3"/>` : ''}
+        <ellipse cx="31" cy="55" rx="4.5" ry="2.5" fill="#ff8fa3" opacity="0.75"/>
+        <ellipse cx="69" cy="55" rx="4.5" ry="2.5" fill="#ff8fa3" opacity="0.75"/>
+        ${eyesHtml}
+        ${mouthHtml}
+        ${crownHtml}
+      </svg>
+    `;
+  }
+
+  function spawnCustomer() {
+    const emptyIndices = gameState.slots.map((s, idx) => s === null ? idx : -1).filter(i => i !== -1);
+    if (emptyIndices.length === 0) return;
+
+    const slotIdx = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+    const isVip = Math.random() < (gameState.rushHour ? 0.28 : 0.18);
+    const candidates = CUSTOMER_TYPES.filter(c => c.vip === isVip);
+    const custType = candidates[Math.floor(Math.random() * candidates.length)];
+
+    const availableRecipes = RECIPES.filter(r => saveData.unlockedRecipes.includes(r.id));
+    const recipe = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+
+    const basePatience = (isVip ? 24 : 30) + (saveData.patienceLevel - 1) * 4;
+    const speedScale = Math.max(0.68, 1 - (saveData.day - 1) * 0.03);
+    const maxPatience = basePatience * speedScale;
+
+    gameState.slots[slotIdx] = {
+      id: Date.now() + Math.random(),
+      customer: custType,
+      recipe: recipe,
+      patience: maxPatience,
+      maxPatience: maxPatience,
+      mood: 'waiting'
+    };
+
+    if (isVip) playSfx('vip');
+    renderSlot(slotIdx, true);
+  }
+
+  function renderSlot(idx, isNew = false) {
+    const slotEl = document.getElementById(`slot-${idx}`);
+    if (!slotEl) return;
+    const order = gameState.slots[idx];
+
+    if (!order) {
+      slotEl.innerHTML = `<div class="w-16 h-3 rounded-full bg-[#3b2314]/15 mb-2"></div>`;
+      return;
+    }
+
+    const pct = Math.max(0, Math.min(100, (order.patience / order.maxPatience) * 100));
+    let barColor = 'bg-[#40b37a]';
+    let mood = 'waiting';
+    if (pct < 30) { barColor = 'bg-[#e64848]'; mood = 'impatient'; }
+    else if (pct < 60) { barColor = 'bg-[#f5b82e]'; }
+
+    const ingBadges = order.recipe.ingredients.map(i => `
+      <span class="bg-[#fcecd8] border border-[#d99b66] rounded-md px-1 text-xs">${INGREDIENTS[i].icon}</span>
+    `).join('');
+
+    slotEl.innerHTML = `
+      <div onclick="window.serveTinyCafeSlot && window.serveTinyCafeSlot(${idx})" class="cursor-pointer w-full flex flex-col items-center group ${isNew ? 'anim-enter' : ''}">
+        <div class="relative bg-[#fffaf2] border-3 ${order.customer.vip ? 'border-[#f5b82e] anim-vip-glow' : 'border-[#5c361c]'} rounded-2xl p-2 sm:p-2.5 shadow-lg mb-1.5 w-full max-w-[165px]">
+          ${order.customer.vip ? `<div class="text-[9px] font-extrabold uppercase tracking-wider text-center bg-[#f5b82e] text-[#3b2314] rounded-full px-1.5 mb-1">⭐ ${order.customer.title}</div>` : ''}
+          <div class="flex items-center justify-center gap-1.5">
+            <span class="text-2xl sm:text-3xl leading-none">${order.recipe.icon}</span>
+            <div class="text-left overflow-hidden">
+              <div class="font-display font-bold text-[11px] sm:text-xs text-[#3b2314] truncate">${order.recipe.name}</div>
+              <div class="flex items-center gap-0.5 mt-0.5">${ingBadges}</div>
             </div>
           </div>
+          <div class="w-full h-2 bg-[#ebd5b9] rounded-full overflow-hidden mt-1.5 border border-[#c88a55]">
+            <div id="patience-bar-${idx}" class="h-full ${barColor} transition-all duration-150" style="width: ${pct}%"></div>
+          </div>
+          <div class="w-3 h-3 bg-[#fffaf2] border-r-2 border-b-2 ${order.customer.vip ? 'border-[#f5b82e]' : 'border-[#5c361c]'} transform rotate-45 mx-auto -mb-3.5 mt-0.5"></div>
+        </div>
+        <div class="relative flex flex-col items-center">
+          <div class="steam-particle" style="left: 20%; animation-delay: 0s;"></div>
+          <div class="steam-particle" style="left: 65%; animation-delay: 0.8s;"></div>
+          ${getCustomerSVG(order.customer, mood)}
+        </div>
+      </div>
+    `;
+  }
 
-          <div class="pt-4 border-t border-white/10 flex items-center justify-between mt-4">
+  function spawnFloatingPopup(slotIdx, text, colorClass = 'text-[#ffd15c]') {
+    const slotEl = document.getElementById(`slot-${slotIdx}`);
+    if (!slotEl) return;
+    const el = document.createElement('div');
+    el.className = `floating-popup font-display font-bold text-base sm:text-xl ${colorClass}`;
+    el.style.top = '28%';
+    el.textContent = text;
+    slotEl.appendChild(el);
+    setTimeout(() => el.remove(), 1150);
+  }
+
+  function serveMatchingCustomer() {
+    if (!gameState.active || gameState.paused) return;
+    const match = findMatchingRecipe(gameState.tray);
+    if (!match) {
+      playSfx('error');
+      showToast('Ingredients do not match any recipe!', '🤔');
+      return;
+    }
+
+    let bestIdx = -1;
+    let lowestPatience = Infinity;
+    gameState.slots.forEach((order, idx) => {
+      if (order && order.recipe.id === match.id && order.patience < lowestPatience) {
+        lowestPatience = order.patience;
+        bestIdx = idx;
+      }
+    });
+
+    if (bestIdx !== -1) {
+      serveSlot(bestIdx);
+    } else {
+      playSfx('error');
+      showToast(`No customer ordered ${match.name}!`, '🙈');
+    }
+  }
+
+  function serveSlot(idx) {
+    if (!gameState.active || gameState.paused) return;
+    const order = gameState.slots[idx];
+    if (!order) return;
+
+    if (gameState.tray.length === 0) {
+      showToast(`Tap ${order.recipe.ingredients.map(i => INGREDIENTS[i].name).join(' + ')} first!`, '💡');
+      return;
+    }
+
+    const match = findMatchingRecipe(gameState.tray);
+    if (!match || match.id !== order.recipe.id) {
+      playSfx('error');
+      gameState.combo = 0;
+      updateComboUI();
+      const slotEl = document.getElementById(`slot-${idx}`);
+      if (slotEl) {
+        slotEl.classList.add('anim-shake');
+        setTimeout(() => slotEl.classList.remove('anim-shake'), 450);
+      }
+      spawnFloatingPopup(idx, 'Wrong Order!', 'text-[#ff5964]');
+      return;
+    }
+
+    playSfx('serve');
+    gameState.tray = [];
+    renderTray();
+
+    gameState.combo += 1;
+    if (gameState.combo > gameState.bestCombo) gameState.bestCombo = gameState.combo;
+    updateComboUI();
+
+    const comboMult = Math.min(3, 1 + Math.floor(gameState.combo / 2) * 0.25);
+    const vipMult = order.customer.vip ? 2.2 : 1;
+    const rushMult = gameState.rushHour ? 2 : 1;
+    const machineBonus = 1 + (saveData.machineLevel - 1) * 0.15;
+    const tipBonus = (saveData.tipLevel - 1) * 4;
+
+    const totalCoins = Math.round((order.recipe.price * comboMult * vipMult * rushMult * machineBonus) + tipBonus);
+    const earnedGems = order.customer.vip ? 1 : 0;
+
+    saveData.coins += totalCoins;
+    saveData.gems += earnedGems;
+    gameState.shiftCoins += totalCoins;
+    gameState.shiftGems += earnedGems;
+    gameState.ordersServed += 1;
+
+    updateQuestProgress('serve_any', 1);
+    updateQuestProgress('combo_5', gameState.combo, true);
+    updateQuestProgress('earn_coins', totalCoins);
+    if (order.customer.vip) updateQuestProgress('serve_vip', 1);
+
+    writeSave();
+    spawnFloatingPopup(idx, `+${totalCoins} 🪙${earnedGems ? ' +1 💎' : ''}`, 'text-[#ffd15c]');
+
+    gameState.slots[idx] = null;
+    renderSlot(idx);
+    gameState.spawnCooldown = Math.min(gameState.spawnCooldown, 0.9);
+  }
+
+  function updateComboUI() {
+    const pill = document.getElementById('combo-pill');
+    const text = document.getElementById('combo-text');
+    if (!pill || !text) return;
+    if (gameState.combo >= 2) {
+      const mult = Math.min(3, 1 + Math.floor(gameState.combo / 2) * 0.25).toFixed(2).replace(/\.00$/, '');
+      text.textContent = `COMBO x${mult} (${gameState.combo}🔥)`;
+      pill.classList.remove('opacity-0', 'scale-90');
+      pill.classList.add('opacity-100', 'scale-100');
+    } else {
+      pill.classList.add('opacity-0', 'scale-90');
+      pill.classList.remove('opacity-100', 'scale-100');
+    }
+  }
+
+  function triggerRushHour(active) {
+    gameState.rushHour = active;
+    const banner = document.getElementById('rush-banner');
+    if (banner) banner.classList.toggle('hidden', !active);
+    if (active) {
+      playSfx('vip');
+      showToast('RUSH HOUR! Customers arrive fast & pay 2X COINS!', '⚡');
+    }
+  }
+
+  function startGame(mode) {
+    initAudio();
+    startBgMusic();
+    closeAllModals();
+    const startScreen = document.getElementById('screen-start');
+    if (startScreen) startScreen.classList.add('hidden');
+
+    gameState.active = true;
+    gameState.paused = false;
+    gameState.mode = mode;
+    gameState.shiftCoins = 0;
+    gameState.shiftGems = 0;
+    gameState.ordersServed = 0;
+    gameState.combo = 0;
+    gameState.bestCombo = 0;
+    gameState.slots = [null, null, null];
+    gameState.tray = [];
+    gameState.spawnCooldown = 0.5;
+
+    if (mode === 'campaign') {
+      gameState.shiftDuration = 75;
+      gameState.timeLeft = 75;
+      gameState.targetCoins = 100 + (saveData.day - 1) * 45;
+      triggerRushHour(false);
+      gameState.rushTimer = 32;
+    } else {
+      gameState.shiftDuration = 90;
+      gameState.timeLeft = 90;
+      gameState.targetCoins = 99999;
+      triggerRushHour(true);
+      gameState.rushTimer = 999;
+    }
+
+    renderStations();
+    renderTray();
+    updateComboUI();
+    [0, 1, 2].forEach(i => renderSlot(i));
+    syncHUD();
+
+    gameState.lastTick = performance.now();
+    animationFrameId = requestAnimationFrame(gameLoop);
+  }
+
+  function gameLoop(now) {
+    if (!gameState.active) return;
+    const dt = Math.min(0.1, (now - gameState.lastTick) / 1000);
+    gameState.lastTick = now;
+
+    if (!gameState.paused) {
+      gameState.timeLeft -= dt;
+
+      if (gameState.mode === 'campaign') {
+        gameState.rushTimer -= dt;
+        if (gameState.rushTimer <= 0 && !gameState.rushHour && gameState.timeLeft > 15) {
+          triggerRushHour(true);
+          gameState.rushTimer = 18;
+        } else if (gameState.rushTimer <= 0 && gameState.rushHour) {
+          triggerRushHour(false);
+          gameState.rushTimer = 999;
+        }
+      }
+
+      gameState.spawnCooldown -= dt;
+      if (gameState.spawnCooldown <= 0) {
+        spawnCustomer();
+        const baseRate = gameState.rushHour ? 2.2 : Math.max(2.6, 4.4 - saveData.day * 0.12);
+        gameState.spawnCooldown = baseRate;
+      }
+
+      for (let i = 0; i < 3; i++) {
+        const order = gameState.slots[i];
+        if (order) {
+          order.patience -= dt;
+          if (order.patience <= 0) {
+            playSfx('error');
+            gameState.combo = 0;
+            updateComboUI();
+            spawnFloatingPopup(i, 'Left Unhappy 💔', 'text-[#ff5964]');
+            gameState.slots[i] = null;
+            renderSlot(i);
+          } else {
+            const bar = document.getElementById(`patience-bar-${i}`);
+            if (bar) {
+              const pct = Math.max(0, (order.patience / order.maxPatience) * 100);
+              bar.style.width = `${pct}%`;
+              if (pct < 30) bar.className = 'h-full bg-[#e64848] transition-all duration-150';
+              else if (pct < 60) bar.className = 'h-full bg-[#f5b82e] transition-all duration-150';
+            }
+          }
+        }
+      }
+
+      syncHUD();
+
+      if (gameState.timeLeft <= 0) {
+        endShift();
+        return;
+      }
+    }
+
+    animationFrameId = requestAnimationFrame(gameLoop);
+  }
+
+  function endShift() {
+    gameState.active = false;
+    triggerRushHour(false);
+
+    const modal = document.getElementById('modal-round-end');
+    if (!modal) return;
+    const title = document.getElementById('end-title');
+    const subtitle = document.getElementById('end-subtitle');
+    const emoji = document.getElementById('end-emoji');
+    const nextBtn = document.getElementById('btn-next-shift');
+
+    document.getElementById('end-served').textContent = gameState.ordersServed;
+    document.getElementById('end-combo').textContent = `${gameState.bestCombo}x`;
+    document.getElementById('end-coins').textContent = `+${gameState.shiftCoins} 🪙`;
+    document.getElementById('end-gems').textContent = `+${gameState.shiftGems} 💎`;
+
+    if (gameState.mode === 'campaign') {
+      const passed = gameState.shiftCoins >= gameState.targetCoins;
+      if (passed) {
+        saveData.day += 1;
+        saveData.gems += 2;
+        writeSave();
+        if (emoji) emoji.textContent = '🎉';
+        if (title) title.textContent = `Day ${saveData.day - 1} Cleared!`;
+        if (subtitle) subtitle.textContent = 'You reached your daily goal & earned +2 bonus Gems!';
+        if (nextBtn) nextBtn.textContent = `Start Day ${saveData.day} ➡️`;
+        playSfx('vip');
+      } else {
+        if (emoji) emoji.textContent = '☕';
+        if (title) title.textContent = 'Almost There!';
+        if (subtitle) subtitle.textContent = `Goal was ${gameState.targetCoins} coins. Keep your coins & try again!`;
+        if (nextBtn) nextBtn.textContent = `Retry Day ${saveData.day} 🔄`;
+        playSfx('clear');
+      }
+    } else {
+      if (emoji) emoji.textContent = '⚡';
+      if (title) title.textContent = 'Rush Hour Over!';
+      if (subtitle) subtitle.textContent = 'Amazing speed behind the espresso bar!';
+      if (nextBtn) nextBtn.textContent = 'Play Rush Again ⚡';
+      playSfx('serve');
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function nextShiftAction() {
+    const modal = document.getElementById('modal-round-end');
+    if (modal) modal.classList.add('hidden');
+    startGame(gameState.mode);
+  }
+
+  function returnToMenu() {
+    gameState.active = false;
+    triggerRushHour(false);
+    closeAllModals();
+    const modalEnd = document.getElementById('modal-round-end');
+    if (modalEnd) modalEnd.classList.add('hidden');
+    const startScreen = document.getElementById('screen-start');
+    if (startScreen) startScreen.classList.remove('hidden');
+    syncHUD();
+  }
+
+  function openModal(modalId) {
+    if (gameState.active) gameState.paused = true;
+    closeAllModals(false);
+    const el = document.getElementById(modalId);
+    if (el) el.classList.remove('hidden');
+
+    if (modalId === 'modal-recipes') renderRecipeModal();
+    if (modalId === 'modal-challenges') renderChallengesModal();
+    if (modalId === 'modal-shop') renderShopModal();
+  }
+
+  function closeAllModals(resumeGame = true) {
+    ['modal-recipes', 'modal-challenges', 'modal-shop'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+    if (resumeGame && gameState.active) {
+      gameState.paused = false;
+      gameState.lastTick = performance.now();
+    }
+  }
+
+  function renderRecipeModal() {
+    const list = document.getElementById('recipe-list');
+    if (!list) return;
+    list.innerHTML = RECIPES.map(r => {
+      const unlocked = saveData.unlockedRecipes.includes(r.id);
+      const steps = r.ingredients.map(i => `
+        <span class="inline-flex items-center gap-1 bg-[#fcecd8] border border-[#c88a55] px-2 py-0.5 rounded-lg text-xs font-bold text-[#4a2a14]">
+          ${INGREDIENTS[i].icon} ${INGREDIENTS[i].name}
+        </span>
+      `).join('<span class="mx-1 font-bold text-[#a36636]">+</span>');
+
+      return `
+        <div class="flex items-center justify-between p-3 rounded-2xl border-2 ${unlocked ? 'bg-white border-[#d9b38c]' : 'bg-[#f2e6d8] border-[#cbb59d] opacity-75'}">
+          <div class="flex items-center gap-3">
+            <div class="text-3xl bg-[#fcecd8] w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-[#e0b88f]">${r.icon}</div>
             <div>
-              <div class="text-[10px] text-slate-400 uppercase tracking-widest font-extrabold">Your Tray</div>
-              <div id="tray-items" class="text-xs font-mono text-amber-200 font-bold mt-0.5">Empty</div>
+              <div class="font-display font-bold text-base text-[#3b2314] flex items-center gap-2">
+                <span>${r.name}</span>
+                <span class="text-xs bg-[#e6f7ef] text-[#1b4332] px-2 py-0.5 rounded-full">🪙 ${r.price}</span>
+              </div>
+              <div class="mt-1 flex flex-wrap items-center gap-y-1">${steps}</div>
             </div>
-            <div class="flex gap-2">
-              <button id="clear-tray-btn" class="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 font-extrabold text-xs cursor-pointer transition">Clear</button>
-              <button id="serve-btn" disabled class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-lg">SERVE ✓</button>
+          </div>
+          <div class="shrink-0 ml-2">
+            ${unlocked
+              ? `<span class="text-xs font-extrabold text-[#2d6a4f] bg-[#d8f3dc] px-2.5 py-1 rounded-xl">Unlocked</span>`
+              : `<button onclick="window.openTinyCafeModal && window.openTinyCafeModal('modal-shop')" class="cartoon-btn bg-[#e69138] text-white text-xs font-display font-bold px-3 py-1.5 rounded-xl">Unlock in Shop</button>`
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderChallengesModal() {
+    const list = document.getElementById('challenges-list');
+    if (!list) return;
+    list.innerHTML = saveData.daily.quests.map((q, idx) => {
+      const done = q.progress >= q.target;
+      const pct = Math.min(100, Math.round((q.progress / q.target) * 100));
+      return `
+        <div class="p-3.5 rounded-2xl bg-white border-2 border-[#d9b38c]">
+          <div class="flex justify-between items-start mb-1.5">
+            <div class="font-display font-bold text-sm sm:text-base text-[#3b2314]">${q.label}</div>
+            <div class="text-xs font-extrabold text-[#8c522b] bg-[#fcecd8] px-2 py-0.5 rounded-lg">
+              +${q.rewardCoins} 🪙  +${q.rewardGems} 💎
             </div>
+          </div>
+          <div class="w-full h-3 bg-[#ebd5b9] rounded-full overflow-hidden mb-2">
+            <div class="h-full bg-[#40b37a] transition-all" style="width: ${pct}%"></div>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-[#7c583e]">Progress: ${q.progress} / ${q.target}</span>
+            ${q.claimed
+              ? `<span class="text-xs font-extrabold text-[#2d6a4f] bg-[#d8f3dc] px-3 py-1 rounded-xl">Claimed ✓</span>`
+              : done
+                ? `<button onclick="window.claimTinyCafeQuest && window.claimTinyCafeQuest(${idx})" class="cartoon-btn bg-[#40b37a] text-white text-xs font-display font-bold px-3.5 py-1.5 rounded-xl">Claim Reward!</button>`
+                : `<span class="text-xs font-bold text-[#a36636]">In Progress</span>`
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function claimQuest(idx) {
+    const q = saveData.daily.quests[idx];
+    if (!q || q.claimed || q.progress < q.target) return;
+    q.claimed = true;
+    saveData.coins += q.rewardCoins;
+    saveData.gems += q.rewardGems;
+    writeSave();
+    playSfx('vip');
+    showToast(`Claimed +${q.rewardCoins} Coins & +${q.rewardGems} Gems!`, '🎁');
+    renderChallengesModal();
+  }
+
+  function switchShopTab(tab) {
+    gameState.activeShopTab = tab;
+    ['recipes', 'upgrades', 'decor'].forEach(t => {
+      const btn = document.getElementById(`tab-${t}`);
+      if (btn) {
+        if (t === tab) btn.className = 'flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#e69138] text-white';
+        else btn.className = 'flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#ebd5b9] text-[#5c361c]';
+      }
+    });
+    renderShopModal();
+  }
+
+  function renderShopModal() {
+    syncHUD();
+    const container = document.getElementById('shop-items-container');
+    if (!container) return;
+    const tab = gameState.activeShopTab;
+
+    if (tab === 'recipes') {
+      container.innerHTML = RECIPES.filter(r => r.unlockCost > 0).map(r => {
+        const owned = saveData.unlockedRecipes.includes(r.id);
+        return `
+          <div class="flex items-center justify-between p-3 rounded-2xl bg-white border-2 border-[#d9b38c]">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl bg-[#fcecd8] w-12 h-12 rounded-2xl flex items-center justify-center">${r.icon}</span>
+              <div>
+                <div class="font-display font-bold text-sm sm:text-base text-[#3b2314]">${r.name}</div>
+                <div class="text-xs text-[#7c583e] font-bold">${r.desc} (Sells for 🪙 ${r.price})</div>
+              </div>
+            </div>
+            ${owned
+              ? `<span class="text-xs font-extrabold text-[#2d6a4f] bg-[#d8f3dc] px-3 py-1.5 rounded-xl">Unlocked</span>`
+              : `<button onclick="window.buyTinyCafeRecipe && window.buyTinyCafeRecipe('${r.id}')" class="cartoon-btn bg-[#40b37a] text-white font-display font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl shrink-0">🪙 ${r.unlockCost}</button>`
+            }
+          </div>
+        `;
+      }).join('');
+    } else if (tab === 'upgrades') {
+      const upgrades = [
+        { key: 'machineLevel',  name: 'Espresso Machine Pro', icon: '☕', level: saveData.machineLevel,  cost: saveData.machineLevel * 110,  desc: '+15% drink value per level.' },
+        { key: 'patienceLevel', name: 'Cozy Lounge Seating',  icon: '🛋️', level: saveData.patienceLevel, cost: saveData.patienceLevel * 100, desc: '+4s customer patience per level.' },
+        { key: 'tipLevel',      name: 'Golden Tip Jar',       icon: '🫙', level: saveData.tipLevel,      cost: saveData.tipLevel * 95,       desc: '+4 bonus tip coins per order.' }
+      ];
+      container.innerHTML = upgrades.map(u => {
+        const maxed = u.level >= 5;
+        return `
+          <div class="flex items-center justify-between p-3 rounded-2xl bg-white border-2 border-[#d9b38c]">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl bg-[#fcecd8] w-12 h-12 rounded-2xl flex items-center justify-center">${u.icon}</span>
+              <div>
+                <div class="font-display font-bold text-sm sm:text-base text-[#3b2314]">${u.name} <span class="text-xs text-[#d97706]">Lv.${u.level}/5</span></div>
+                <div class="text-xs text-[#7c583e] font-bold">${u.desc}</div>
+              </div>
+            </div>
+            ${maxed
+              ? `<span class="text-xs font-extrabold text-[#2d6a4f] bg-[#d8f3dc] px-3 py-1.5 rounded-xl">MAX</span>`
+              : `<button onclick="window.buyTinyCafeUpgrade && window.buyTinyCafeUpgrade('${u.key}', ${u.cost})" class="cartoon-btn bg-[#e69138] text-white font-display font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl shrink-0">🪙 ${u.cost}</button>`
+            }
+          </div>
+        `;
+      }).join('');
+    } else {
+      const themesHtml = THEMES.map(t => {
+        const owned = saveData.unlockedThemes.includes(t.id);
+        const equipped = saveData.theme === t.id;
+        return `
+          <div class="flex items-center justify-between p-3 rounded-2xl bg-white border-2 border-[#d9b38c]">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl bg-[#fcecd8] w-12 h-12 rounded-2xl flex items-center justify-center">${t.icon}</span>
+              <div>
+                <div class="font-display font-bold text-sm text-[#3b2314]">${t.name}</div>
+                <div class="text-xs text-[#7c583e] font-bold">${t.desc}</div>
+              </div>
+            </div>
+            ${equipped
+              ? `<span class="text-xs font-extrabold text-[#2d6a4f] bg-[#d8f3dc] px-3 py-1.5 rounded-xl">Active</span>`
+              : owned
+                ? `<button onclick="window.equipTinyCafeTheme && window.equipTinyCafeTheme('${t.id}')" class="cartoon-btn bg-[#6bc4a6] text-[#1c3b30] font-display font-bold text-xs px-3 py-1.5 rounded-xl">Equip</button>`
+                : `<button onclick="window.buyTinyCafeTheme && window.buyTinyCafeTheme('${t.id}', ${t.cost})" class="cartoon-btn bg-[#f2798f] text-white font-display font-bold text-xs px-3 py-1.5 rounded-xl">🪙 ${t.cost}</button>`
+            }
+          </div>
+        `;
+      }).join('');
+
+      const decorHtml = DECOR_ITEMS.map(d => {
+        const owned = saveData.decor[d.id];
+        return `
+          <div class="flex items-center justify-between p-3 rounded-2xl bg-white border-2 border-[#d9b38c]">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl bg-[#fcecd8] w-12 h-12 rounded-2xl flex items-center justify-center">${d.icon}</span>
+              <div>
+                <div class="font-display font-bold text-sm text-[#3b2314]">${d.name}</div>
+                <div class="text-xs text-[#7c583e] font-bold">${d.desc}</div>
+              </div>
+            </div>
+            ${owned
+              ? `<span class="text-xs font-extrabold text-[#2d6a4f] bg-[#d8f3dc] px-3 py-1.5 rounded-xl">Placed ✓</span>`
+              : `<button onclick="window.buyTinyCafeDecor && window.buyTinyCafeDecor('${d.id}', ${d.cost})" class="cartoon-btn bg-[#f2798f] text-white font-display font-bold text-xs px-3 py-1.5 rounded-xl">🪙 ${d.cost}</button>`
+            }
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `<div class="text-xs font-extrabold uppercase text-[#8c522b] mb-1">Café Themes</div>${themesHtml}<div class="text-xs font-extrabold uppercase text-[#8c522b] mt-3 mb-1">Cozy Decorations</div>${decorHtml}`;
+    }
+  }
+
+  function buyRecipe(recipeId) {
+    const recipe = RECIPES.find(r => r.id === recipeId);
+    if (!recipe || saveData.unlockedRecipes.includes(recipeId)) return;
+    if (saveData.coins < recipe.unlockCost) {
+      playSfx('error');
+      showToast('Not enough coins yet!', '🪙');
+      return;
+    }
+    saveData.coins -= recipe.unlockCost;
+    saveData.unlockedRecipes.push(recipeId);
+    writeSave();
+    renderStations();
+    playSfx('vip');
+    showToast(`Unlocked ${recipe.name}!`, recipe.icon);
+    renderShopModal();
+  }
+
+  function buyUpgrade(key, cost) {
+    if (saveData[key] >= 5) return;
+    if (saveData.coins < cost) {
+      playSfx('error');
+      showToast('Not enough coins!', '🪙');
+      return;
+    }
+    saveData.coins -= cost;
+    saveData[key] += 1;
+    writeSave();
+    playSfx('serve');
+    showToast('Upgrade installed!', '⚙️');
+    renderShopModal();
+  }
+
+  function buyTheme(themeId, cost) {
+    if (saveData.coins < cost) {
+      playSfx('error');
+      showToast('Not enough coins!', '🪙');
+      return;
+    }
+    saveData.coins -= cost;
+    saveData.unlockedThemes.push(themeId);
+    saveData.theme = themeId;
+    writeSave();
+    applyThemeAndDecor();
+    playSfx('vip');
+    showToast('New Café Theme applied!', '🎨');
+    renderShopModal();
+  }
+
+  function equipTheme(themeId) {
+    saveData.theme = themeId;
+    writeSave();
+    applyThemeAndDecor();
+    playSfx('tap');
+    renderShopModal();
+  }
+
+  function buyDecor(decorId, cost) {
+    if (saveData.coins < cost) {
+      playSfx('error');
+      showToast('Not enough coins!', '🪙');
+      return;
+    }
+    saveData.coins -= cost;
+    saveData.decor[decorId] = true;
+    writeSave();
+    applyThemeAndDecor();
+    playSfx('vip');
+    showToast('Decoration added to your café!', '✨');
+    renderShopModal();
+  }
+
+  let toastTimeout = null;
+  function showToast(msg, icon = '✨') {
+    const box = document.getElementById('toast-box');
+    if (!box) return;
+    const msgEl = document.getElementById('toast-msg');
+    const iconEl = document.getElementById('toast-icon');
+    if (msgEl) msgEl.textContent = msg;
+    if (iconEl) iconEl.textContent = icon;
+    box.classList.remove('hidden');
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => box.classList.add('hidden'), 2200);
+  }
+
+  // Inject HTML markup into the active stage
+  stage.innerHTML = `
+    <div id="tiny-cafe-app" class="relative w-full h-full max-w-5xl mx-auto flex flex-col overflow-hidden shadow-2xl md:border-x-4 border-[#4a2a14] cafe-wall ${saveData.theme}">
+      <div class="absolute top-0 left-0 right-0 h-44 pointer-events-none flex justify-around z-0">
+        <div class="relative flex flex-col items-center">
+          <div class="w-1 h-7 bg-[#3b2314]"></div>
+          <div class="w-14 h-7 rounded-t-full border-b-4 border-[#3b2314]" style="background: var(--lamp-shade);"></div>
+          <div class="w-5 h-2.5 rounded-b-full bg-[#fff5cc] -mt-0.5 shadow-[0_0_18px_#ffd86b]"></div>
+          <div class="w-40 h-36 lamp-glow -mt-1"></div>
+        </div>
+        <div class="relative hidden sm:flex flex-col items-center">
+          <div class="w-1 h-5 bg-[#3b2314]"></div>
+          <div class="w-14 h-7 rounded-t-full border-b-4 border-[#3b2314]" style="background: var(--lamp-shade);"></div>
+          <div class="w-5 h-2.5 rounded-b-full bg-[#fff5cc] -mt-0.5 shadow-[0_0_18px_#ffd86b]"></div>
+          <div class="w-40 h-36 lamp-glow -mt-1"></div>
+        </div>
+        <div class="relative flex flex-col items-center">
+          <div class="w-1 h-7 bg-[#3b2314]"></div>
+          <div class="w-14 h-7 rounded-t-full border-b-4 border-[#3b2314]" style="background: var(--lamp-shade);"></div>
+          <div class="w-5 h-2.5 rounded-b-full bg-[#fff5cc] -mt-0.5 shadow-[0_0_18px_#ffd86b]"></div>
+          <div class="w-40 h-36 lamp-glow -mt-1"></div>
+        </div>
+      </div>
+
+      <div id="decor-fairy-lights" class="${saveData.decor.fairyLights ? '' : 'hidden'} absolute top-11 left-0 right-0 z-10 pointer-events-none px-4 flex justify-between items-center">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#ffe680] shadow-[0_0_8px_#ffd23f]" style="animation: fairyTwinkle 1.6s infinite 0.1s;"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#ff9ebb] shadow-[0_0_8px_#ff7aa2]" style="animation: fairyTwinkle 1.8s infinite 0.4s;"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#9bf6ff] shadow-[0_0_8px_#64dfdf]" style="animation: fairyTwinkle 1.5s infinite 0.7s;"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#ffe680] shadow-[0_0_8px_#ffd23f]" style="animation: fairyTwinkle 1.9s infinite 0.2s;"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#caffbf] shadow-[0_0_8px_#80ed99]" style="animation: fairyTwinkle 1.7s infinite 0.5s;"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#ff9ebb] shadow-[0_0_8px_#ff7aa2]" style="animation: fairyTwinkle 1.6s infinite 0.9s;"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#ffe680] shadow-[0_0_8px_#ffd23f]" style="animation: fairyTwinkle 2.0s infinite 0.3s;"></span>
+      </div>
+
+      <header class="relative z-20 flex items-center justify-between px-3 py-2 bg-[#4a2a14]/95 text-[#fffaf2] border-b-4 border-[#2e180a] shadow-md gap-1.5">
+        <div class="flex items-center gap-1.5 sm:gap-2.5">
+          <button id="btn-home-cafe" class="cartoon-btn bg-[#8c522b] hover:bg-[#a16136] text-white px-2.5 py-1.5 rounded-xl font-display text-xs sm:text-sm flex items-center gap-1 border-2 border-[#c88a55]" title="Hub Lobby">
+            <span>🏠</span>
+            <span class="hidden sm:inline">Hub</span>
+          </button>
+
+          <div class="flex items-center gap-1 bg-[#2e180a] px-2.5 py-1 rounded-xl border border-[#7c4a27]">
+            <span class="text-base sm:text-lg">🪙</span>
+            <span id="hud-coins" class="font-display font-bold text-sm sm:text-base text-[#ffd15c]">${saveData.coins}</span>
+          </div>
+
+          <div class="flex items-center gap-1 bg-[#2e180a] px-2.5 py-1 rounded-xl border border-[#7c4a27]">
+            <span class="text-base sm:text-lg">💎</span>
+            <span id="hud-gems" class="font-display font-bold text-sm sm:text-base text-[#7ae7ff]">${saveData.gems}</span>
           </div>
         </div>
 
-        <!-- Station Stations -->
-        <div class="grid grid-cols-1 gap-3">
-          <div id="station-coffee" class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-amber-500/40 cursor-pointer transition shadow-lg">
-            <div class="flex items-center gap-3">
-              <span class="text-2xl">☕</span>
-              <div>
-                <div class="font-extrabold text-sm text-white">Espresso Grinder</div>
-                <div id="coffee-status" class="text-xs text-slate-400">Tap to Brew</div>
-              </div>
+        <div id="hud-center-status" class="flex items-center gap-2 bg-[#63391d] px-3 py-1 rounded-2xl border-2 border-[#a36636]">
+          <div class="text-center">
+            <div id="hud-mode-label" class="text-[10px] uppercase tracking-wider text-[#f5d0a9] font-bold leading-none">Day 1</div>
+            <div id="hud-goal-text" class="font-display text-xs sm:text-sm font-bold text-white leading-tight">Goal: 0 / 120</div>
+          </div>
+          <div class="h-6 w-[2px] bg-[#8c522b]"></div>
+          <div class="flex items-center gap-1">
+            <span class="text-sm">⏱️</span>
+            <span id="hud-timer" class="font-display font-bold text-sm sm:text-base text-[#ffe28a] tabular-nums">01:15</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <button id="btn-recipes-modal" class="cartoon-btn bg-[#e69138] hover:bg-[#f09e48] text-[#3b2314] px-2.5 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm border-2 border-[#fff0d4] flex items-center gap-1">
+            <span>📖</span>
+            <span class="hidden md:inline">Menu</span>
+          </button>
+          <button id="btn-challenges-modal" class="relative cartoon-btn bg-[#6bc4a6] hover:bg-[#7bd4b6] text-[#1c3b30] px-2.5 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm border-2 border-[#d4fff0] flex items-center gap-1">
+            <span>🎯</span>
+            <span id="badge-challenge" class="hidden absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-[#f24968] rounded-full border-2 border-white"></span>
+          </button>
+          <button id="btn-shop-modal" class="cartoon-btn bg-[#f2798f] hover:bg-[#ff8ca1] text-white px-2.5 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm border-2 border-[#ffd6de] flex items-center gap-1">
+            <span>🛍️</span>
+          </button>
+          <button id="btn-audio" class="cartoon-btn bg-[#5c361c] hover:bg-[#734525] text-white w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center border-2 border-[#9e6238]">
+            <span id="audio-icon">🔊</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="relative z-20 flex items-center justify-between px-3 py-1.5 pointer-events-none">
+        <div id="combo-pill" class="opacity-0 transition-all duration-200 transform scale-90 flex items-center gap-1.5 bg-gradient-to-r from-[#ff6b35] to-[#f7b801] text-white px-3 py-1 rounded-full shadow-lg border-2 border-white">
+          <span class="text-base">🔥</span>
+          <span id="combo-text" class="font-display font-bold text-xs sm:text-sm tracking-wide">COMBO x1.5!</span>
+        </div>
+        <div id="rush-banner" class="hidden anim-rush flex items-center gap-1.5 bg-gradient-to-r from-[#e63946] via-[#ff7b00] to-[#e63946] text-white px-3.5 py-1 rounded-full shadow-lg border-2 border-[#ffe66d]">
+          <span class="text-sm sm:text-base">⚡</span>
+          <span class="font-display font-bold text-xs sm:text-sm tracking-wider uppercase">RUSH HOUR! 2X COINS</span>
+          <span class="text-sm sm:text-base">⚡</span>
+        </div>
+        <div id="coffee-speed-badge" class="bg-[#3b2314]/80 text-[#ffe6c7] px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-[#a36636]/50">
+          ☕ Machine Lv.<span id="hud-machine-lv">${saveData.machineLevel}</span>
+        </div>
+      </div>
+
+      <main id="cafe-floor" class="relative flex-1 flex flex-col justify-end px-2 sm:px-6 pb-2 z-10 overflow-hidden">
+        <div class="absolute top-2 left-4 right-4 flex justify-between items-start pointer-events-none opacity-95">
+          <div id="decor-wall-art" class="${saveData.decor.wallArt ? '' : 'hidden'} sm:flex flex-col items-center bg-[#fffaf2] p-1.5 rounded-xl border-4 border-[#8c522b] shadow-md transform -rotate-2">
+            <div class="w-16 h-12 rounded-lg bg-gradient-to-b from-[#a8dadc] to-[#f1faee] flex flex-col items-center justify-center relative overflow-hidden">
+              <div class="w-5 h-5 rounded-full bg-[#ffb703] absolute top-1.5 right-2"></div>
+              <div class="text-xl mt-2">🏔️</div>
             </div>
-            <div class="w-28 bg-black/60 h-2.5 rounded-full overflow-hidden border border-white/10">
-              <div id="coffee-bar" class="h-full bg-amber-400 w-0 transition-all"></div>
+            <span class="text-[9px] font-bold text-[#6b3e1d] mt-0.5">Cozy Peak</span>
+          </div>
+
+          <div class="mx-auto bg-[#2b3a34] border-4 border-[#8c522b] rounded-2xl px-3.5 py-1.5 shadow-md text-center">
+            <div class="font-display text-[#ffe8b3] text-xs sm:text-sm tracking-wide flex items-center justify-center gap-1.5">
+              <span>✨</span>
+              <span id="cafe-name-sign">TINY CAFÉ</span>
+              <span>✨</span>
+            </div>
+            <div id="unlocked-count-sign" class="text-[10px] text-[#a7d7c5] font-bold">${saveData.unlockedRecipes.length} Recipes on Menu</div>
+          </div>
+
+          <div id="decor-plant" class="${saveData.decor.plant ? '' : 'hidden'} sm:flex flex-col items-center">
+            <div class="text-3xl leading-none filter drop-shadow">🌿</div>
+            <div class="w-8 h-6 bg-[#d97236] rounded-b-xl border-t-4 border-[#b55621] shadow"></div>
+          </div>
+        </div>
+
+        <div id="customer-slots" class="grid grid-cols-3 gap-2 sm:gap-4 items-end w-full max-w-4xl mx-auto pt-12">
+          <div id="slot-0" class="customer-slot relative flex flex-col items-center justify-end min-h-[195px] sm:min-h-[235px]"></div>
+          <div id="slot-1" class="customer-slot relative flex flex-col items-center justify-end min-h-[195px] sm:min-h-[235px]"></div>
+          <div id="slot-2" class="customer-slot relative flex flex-col items-center justify-end min-h-[195px] sm:min-h-[235px]"></div>
+        </div>
+      </main>
+
+      <section class="relative z-20 flex flex-col shadow-[0_-8px_20px_rgba(35,18,8,0.35)]">
+        <div class="counter-surface px-3 py-2 sm:px-5 sm:py-2.5 flex items-center justify-between gap-2">
+          <button id="btn-clear-tray" class="cartoon-btn bg-[#e64848] hover:bg-[#f25c5c] text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl font-display font-bold text-xs sm:text-sm border-2 border-[#ffc2c2] flex flex-col sm:flex-row items-center gap-1 shrink-0">
+            <span class="text-base sm:text-lg">🗑️</span>
+            <span>Clear</span>
+          </button>
+
+          <div id="serving-tray" class="flex-1 max-w-xl bg-[#fffaf2]/95 border-4 border-[#8c522b] rounded-2xl px-3 py-1.5 sm:py-2 flex items-center justify-between gap-2 shadow-inner min-h-[58px] sm:min-h-[66px]">
+            <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto custom-scroll py-0.5" id="tray-items-container">
+              <span class="text-xs sm:text-sm font-bold text-[#9c785c] italic">Tap ingredients below to prep order...</span>
+            </div>
+            <div id="tray-match-preview" class="hidden shrink-0 flex items-center gap-1.5 bg-[#e6f7ef] border-2 border-[#52b788] px-2.5 py-1 rounded-xl">
+              <span id="tray-match-icon" class="text-lg sm:text-xl">☕</span>
+              <span id="tray-match-name" class="font-display font-bold text-xs sm:text-sm text-[#1b4332] hidden sm:inline">Espresso</span>
             </div>
           </div>
 
-          <div id="station-food" class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-amber-500/40 cursor-pointer transition shadow-lg">
-            <div class="flex items-center gap-3">
-              <span class="text-2xl">🍳</span>
-              <div>
-                <div class="font-extrabold text-sm text-white">Kitchen Grill</div>
-                <div id="food-status" class="text-xs text-slate-400">Tap to Cook</div>
-              </div>
+          <button id="btn-serve" disabled class="cartoon-btn bg-[#40b37a] hover:bg-[#4ec98c] disabled:opacity-50 disabled:cursor-not-allowed text-white px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-2xl font-display font-bold text-xs sm:text-base border-2 border-[#b7f5d6] flex flex-col sm:flex-row items-center gap-1 shrink-0">
+            <span class="text-base sm:text-lg">🛎️</span>
+            <span>Serve</span>
+          </button>
+        </div>
+
+        <div class="counter-body px-2.5 py-2.5 sm:px-5 sm:py-3.5">
+          <div id="stations-grid" class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 max-w-4xl mx-auto"></div>
+        </div>
+      </section>
+
+      <div id="screen-start" class="absolute inset-0 z-50 flex items-center justify-center p-4 bg-[#241309]/80 backdrop-blur-sm">
+        <div class="bg-[#fffaf2] border-4 border-[#6b3e1d] rounded-3xl max-w-lg w-full p-5 sm:p-7 shadow-2xl text-center relative overflow-hidden">
+          <div class="absolute -top-10 -left-10 w-32 h-32 bg-[#ffd166]/25 rounded-full pointer-events-none"></div>
+          <div class="absolute -bottom-10 -right-10 w-36 h-36 bg-[#f2798f]/20 rounded-full pointer-events-none"></div>
+
+          <div class="inline-flex items-center gap-2 bg-[#fcecd8] border-2 border-[#d99b66] px-3.5 py-1 rounded-full text-xs font-extrabold text-[#7c4722] mb-2">
+            <span>✨ ARCADE HUB EDITION ✨</span>
+          </div>
+
+          <div class="text-5xl sm:text-6xl mb-1 anim-bob">☕🧸🥐</div>
+          <h1 class="font-display text-3xl sm:text-5xl font-bold text-[#3b2314] tracking-tight">Tiny Café</h1>
+          <p class="text-xs sm:text-sm font-bold text-[#7c583e] mt-1 mb-4">Cozy counter service, cute VIP guests & handcrafted treats!</p>
+
+          <div class="bg-[#f7e7d2] border-2 border-[#d9b38c] rounded-2xl p-3 mb-5 flex items-center justify-around">
+            <div>
+              <div class="text-[11px] font-extrabold uppercase text-[#8c5a36]">Café Day</div>
+              <div id="start-day" class="font-display text-xl font-bold text-[#3b2314]">Day ${saveData.day}</div>
             </div>
-            <div class="w-28 bg-black/60 h-2.5 rounded-full overflow-hidden border border-white/10">
-              <div id="food-bar" class="h-full bg-amber-400 w-0 transition-all"></div>
+            <div class="h-8 w-[2px] bg-[#d9b38c]"></div>
+            <div>
+              <div class="text-[11px] font-extrabold uppercase text-[#8c5a36]">Coins</div>
+              <div id="start-coins" class="font-display text-xl font-bold text-[#d97706]">🪙 ${saveData.coins}</div>
+            </div>
+            <div class="h-8 w-[2px] bg-[#d9b38c]"></div>
+            <div>
+              <div class="text-[11px] font-extrabold uppercase text-[#8c5a36]">Gems</div>
+              <div id="start-gems" class="font-display text-xl font-bold text-[#0284c7]">💎 ${saveData.gems}</div>
             </div>
           </div>
 
-          <div id="station-dessert" class="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/10 hover:border-amber-500/40 cursor-pointer transition shadow-lg">
-            <div class="flex items-center gap-3">
-              <span class="text-2xl">🧁</span>
-              <div>
-                <div class="font-extrabold text-sm text-white">Pastry Case</div>
-                <div id="dessert-status" class="text-xs text-slate-400">Tap to Plate</div>
-              </div>
-            </div>
-            <div class="w-28 bg-black/60 h-2.5 rounded-full overflow-hidden border border-white/10">
-              <div id="dessert-bar" class="h-full bg-amber-400 w-0 transition-all"></div>
-            </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <button id="btn-start-campaign" class="cartoon-btn bg-gradient-to-b from-[#ff9f43] to-[#e67e22] text-white p-3.5 rounded-2xl border-2 border-[#ffe0b2] flex flex-col items-center">
+              <span class="text-2xl mb-0.5">📅</span>
+              <span class="font-display text-lg font-bold">Café Career</span>
+              <span class="text-[11px] font-bold text-[#fff3e0]">Complete daily coin goals & unlock recipes</span>
+            </button>
+            <button id="btn-start-rush" class="cartoon-btn bg-gradient-to-b from-[#f25c78] to-[#d63353] text-white p-3.5 rounded-2xl border-2 border-[#ffc2ce] flex flex-col items-center">
+              <span class="text-2xl mb-0.5">⚡</span>
+              <span class="font-display text-lg font-bold">Rush Hour Endless</span>
+              <span class="text-[11px] font-bold text-[#ffe5ec]">Non-stop fast orders, VIPs & high scores</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <button id="btn-start-recipes" class="cartoon-btn bg-[#fcecd8] hover:bg-[#f5dec0] text-[#5c361c] py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm border-2 border-[#c88a55]">📖 Recipes</button>
+            <button id="btn-start-challenges" class="cartoon-btn bg-[#e3f7ef] hover:bg-[#ccf0e1] text-[#1e4d3b] py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm border-2 border-[#6bc4a6]">🎯 Daily Quests</button>
+            <button id="btn-start-shop" class="cartoon-btn bg-[#fde8ec] hover:bg-[#fbd0d9] text-[#6e2132] py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm border-2 border-[#f2798f]">🛍️ Café Shop</button>
           </div>
         </div>
       </div>
 
-      <!-- Upgrades Shop -->
-      <div class="max-w-4xl mx-auto w-full mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 pb-6">
-        <button id="upg-grinder" class="p-3 rounded-2xl bg-black/40 hover:bg-black/60 border border-white/10 text-left text-xs font-extrabold text-slate-200 cursor-pointer transition">Grinder Lv.1</button>
-        <button id="upg-oven" class="p-3 rounded-2xl bg-black/40 hover:bg-black/60 border border-white/10 text-left text-xs font-extrabold text-slate-200 cursor-pointer transition">Grill Lv.1</button>
-        <button id="upg-bakery" class="p-3 rounded-2xl bg-black/40 hover:bg-black/60 border border-white/10 text-left text-xs font-extrabold text-slate-200 cursor-pointer transition">Pastry Lv.1</button>
-        <button id="upg-decor" class="p-3 rounded-2xl bg-black/40 hover:bg-black/60 border border-white/10 text-left text-xs font-extrabold text-slate-200 cursor-pointer transition">Decor Lv.1</button>
+      <div id="modal-round-end" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-[#241309]/80 backdrop-blur-sm">
+        <div class="bg-[#fffaf2] border-4 border-[#6b3e1d] rounded-3xl max-w-md w-full p-6 shadow-2xl text-center">
+          <div id="end-emoji" class="text-5xl mb-2 anim-bob">🎉</div>
+          <h2 id="end-title" class="font-display text-3xl font-bold text-[#3b2314]">Shift Complete!</h2>
+          <p id="end-subtitle" class="text-xs sm:text-sm font-bold text-[#7c583e] mt-1 mb-4">Wonderful hospitality today!</p>
+
+          <div class="bg-[#f7e7d2] border-2 border-[#d9b38c] rounded-2xl p-3.5 mb-5 space-y-2 text-sm font-bold">
+            <div class="flex justify-between"><span class="text-[#6b3e1d]">Orders Served:</span><span id="end-served" class="font-display text-[#3b2314]">0</span></div>
+            <div class="flex justify-between"><span class="text-[#6b3e1d]">Best Combo:</span><span id="end-combo" class="font-display text-[#d97706]">x1</span></div>
+            <div class="flex justify-between"><span class="text-[#6b3e1d]">Coins Earned:</span><span id="end-coins" class="font-display text-[#15803d]">+0 🪙</span></div>
+            <div class="flex justify-between"><span class="text-[#6b3e1d]">Bonus Gems:</span><span id="end-gems" class="font-display text-[#0284c7]">+0 💎</span></div>
+          </div>
+
+          <div class="flex gap-2.5">
+            <button id="btn-modal-menu" class="cartoon-btn flex-1 bg-[#e5d0b8] text-[#4a2a14] py-3 rounded-2xl font-display font-bold text-sm border-2 border-[#b8936d]">🏠 Menu</button>
+            <button id="btn-next-shift" class="cartoon-btn flex-1 bg-[#40b37a] text-white py-3 rounded-2xl font-display font-bold text-sm border-2 border-[#b7f5d6]">Next Day ➡️</button>
+          </div>
+        </div>
       </div>
 
-      <!-- Toast Container -->
-      <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none"></div>
+      <div id="modal-recipes" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-[#241309]/75 backdrop-blur-sm">
+        <div class="bg-[#fffaf2] border-4 border-[#6b3e1d] rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col p-5 shadow-2xl">
+          <div class="flex items-center justify-between pb-3 border-b-2 border-[#ebd5b9]">
+            <div class="flex items-center gap-2"><span class="text-2xl">📖</span><h2 class="font-display text-2xl font-bold text-[#3b2314]">Tiny Café Menu</h2></div>
+            <button id="btn-close-recipes" class="cartoon-btn bg-[#e64848] text-white w-8 h-8 rounded-xl font-bold">✕</button>
+          </div>
+          <p class="text-xs font-bold text-[#7c583e] mt-2 mb-3">Tap ingredients on the counter in any order to craft these recipes!</p>
+          <div id="recipe-list" class="flex-1 overflow-y-auto custom-scroll space-y-2.5 pr-1"></div>
+        </div>
+      </div>
+
+      <div id="modal-challenges" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-[#241309]/75 backdrop-blur-sm">
+        <div class="bg-[#fffaf2] border-4 border-[#6b3e1d] rounded-3xl max-w-md w-full max-h-[85vh] flex flex-col p-5 shadow-2xl">
+          <div class="flex items-center justify-between pb-3 border-b-2 border-[#ebd5b9]">
+            <div class="flex items-center gap-2"><span class="text-2xl">🎯</span><h2 class="font-display text-2xl font-bold text-[#3b2314]">Daily Challenges</h2></div>
+            <button id="btn-close-challenges" class="cartoon-btn bg-[#e64848] text-white w-8 h-8 rounded-xl font-bold">✕</button>
+          </div>
+          <p class="text-xs font-bold text-[#7c583e] mt-2 mb-3">Fresh café goals every day! Complete them for bonus coins & gems.</p>
+          <div id="challenges-list" class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-1"></div>
+        </div>
+      </div>
+
+      <div id="modal-shop" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-[#241309]/75 backdrop-blur-sm">
+        <div class="bg-[#fffaf2] border-4 border-[#6b3e1d] rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col p-5 shadow-2xl">
+          <div class="flex items-center justify-between pb-3 border-b-2 border-[#ebd5b9]">
+            <div class="flex items-center gap-2"><span class="text-2xl">🛍️</span><h2 class="font-display text-2xl font-bold text-[#3b2314]">Café Shop & Decor</h2></div>
+            <div class="flex items-center gap-2">
+              <span class="bg-[#2e180a] text-[#ffd15c] px-2.5 py-1 rounded-xl font-display text-xs font-bold">🪙 <span id="shop-coins">${saveData.coins}</span></span>
+              <span class="bg-[#2e180a] text-[#7ae7ff] px-2.5 py-1 rounded-xl font-display text-xs font-bold">💎 <span id="shop-gems">${saveData.gems}</span></span>
+              <button id="btn-close-shop" class="cartoon-btn bg-[#e64848] text-white w-8 h-8 rounded-xl font-bold">✕</button>
+            </div>
+          </div>
+          <div class="flex gap-2 my-3">
+            <button id="tab-recipes" class="flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#e69138] text-white">🍰 New Recipes</button>
+            <button id="tab-upgrades" class="flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#ebd5b9] text-[#5c361c]">⚙️ Equipment</button>
+            <button id="tab-decor" class="flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#ebd5b9] text-[#5c361c]">🎨 Themes & Decor</button>
+          </div>
+          <div id="shop-items-container" class="flex-1 overflow-y-auto custom-scroll space-y-2.5 pr-1"></div>
+        </div>
+      </div>
+
+      <div id="toast-box" class="hidden fixed top-16 left-1/2 transform -translate-x-1/2 z-[70] bg-[#3b2314] text-[#fffaf2] border-2 border-[#ffd15c] px-4 py-2 rounded-2xl shadow-xl font-display text-xs sm:text-sm flex items-center gap-2">
+        <span id="toast-icon">✨</span>
+        <span id="toast-msg">Notification</span>
+      </div>
     </div>
   `;
 
-  // Game Logic Functions
-  function loadProgress() {
-    const saved = localStorage.getItem("tinyCafeData_v2");
-    if (saved) {
-      gameData = { ...gameData, ...JSON.parse(saved) };
-    }
-  }
-  function saveProgress() {
-    localStorage.setItem("tinyCafeData_v2", JSON.stringify(gameData));
-  }
-  function showToast(message) {
-    const container = document.getElementById("toast-container");
-    if (!container) return;
-    const toast = document.createElement("div");
-    toast.className = "px-4 py-2 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-300 font-bold text-xs shadow-2xl animate-bounce";
-    toast.innerText = message;
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 2400);
-  }
-  function updateUI() {
-    const cEl = document.getElementById("stat-coins");
-    const rEl = document.getElementById("stat-rating");
-    const cpEl = document.getElementById("stat-combo");
-    const dEl = document.getElementById("stat-day");
-    if (cEl) cEl.innerText = `🪙 ${gameData.coins}`;
-    if (rEl) rEl.innerText = `⭐ ${gameData.rating}`;
-    if (cpEl) cpEl.innerText = `🔥 x${combo}`;
-    if (dEl) dEl.innerText = `📅 Day ${gameData.day}`;
+  // Attach global helpers for inline button handlers
+  window.serveTinyCafeSlot = serveSlot;
+  window.openTinyCafeModal = openModal;
+  window.claimTinyCafeQuest = claimQuest;
+  window.buyTinyCafeRecipe = buyRecipe;
+  window.buyTinyCafeUpgrade = buyUpgrade;
+  window.buyTinyCafeTheme = buyTheme;
+  window.equipTinyCafeTheme = equipTheme;
+  window.buyTinyCafeDecor = buyDecor;
 
-    const ug = document.getElementById("upg-grinder");
-    const uo = document.getElementById("upg-oven");
-    const ub = document.getElementById("upg-bakery");
-    const ud = document.getElementById("upg-decor");
-    if (ug) ug.innerText = `Grinder Lv.${gameData.upgrades.grinder} (${getUpgradeCost("grinder")} 🪙)`;
-    if (uo) uo.innerText = `Grill Lv.${gameData.upgrades.oven} (${getUpgradeCost("oven")} 🪙)`;
-    if (ub) ub.innerText = `Pastry Lv.${gameData.upgrades.bakery} (${getUpgradeCost("bakery")} 🪙)`;
-    if (ud) ud.innerText = `Decor Lv.${gameData.upgrades.decor} (${getUpgradeCost("decor")} 🪙)`;
-  }
-  function getUpgradeCost(type) {
-    const baseCosts = { grinder: 50, oven: 75, bakery: 60, decor: 100 };
-    return Math.round(baseCosts[type] * Math.pow(1.45, gameData.upgrades[type] - 1));
-  }
+  // Bind Listeners
+  document.getElementById('btn-home-cafe').onclick = () => { if (typeof openHubHome === 'function') openHubHome(); };
+  document.getElementById('btn-recipes-modal').onclick = () => openModal('modal-recipes');
+  document.getElementById('btn-challenges-modal').onclick = () => openModal('modal-challenges');
+  document.getElementById('btn-shop-modal').onclick = () => openModal('modal-shop');
+  document.getElementById('btn-audio').onclick = toggleAudio;
+  document.getElementById('btn-clear-tray').onclick = clearTray;
+  document.getElementById('btn-serve').onclick = serveMatchingCustomer;
 
-  function nextCustomer() {
-    if (currentOrder) return;
-    const template = recipes[Math.floor(Math.random() * recipes.length)];
-    const guest = customers[Math.floor(Math.random() * customers.length)];
-    const isVIP = Math.random() < 0.22;
-    currentOrder = {
-      ...template,
-      isVIP,
-      reward: isVIP ? Math.round(template.reward * 1.5) : template.reward
-    };
-    playerTray = [];
-    updateTrayUI();
-    
-    const avatarEl = document.getElementById("customer-avatar");
-    const nameEl = document.getElementById("customer-name");
-    const orderEl = document.getElementById("customer-order");
-    const vipEl = document.getElementById("vip-badge");
-    const cardEl = document.getElementById("customer-card");
-    const waitingEl = document.getElementById("waiting-text");
+  document.getElementById('btn-start-campaign').onclick = () => startGame('campaign');
+  document.getElementById('btn-start-rush').onclick = () => startGame('rush');
+  document.getElementById('btn-start-recipes').onclick = () => openModal('modal-recipes');
+  document.getElementById('btn-start-challenges').onclick = () => openModal('modal-challenges');
+  document.getElementById('btn-start-shop').onclick = () => openModal('modal-shop');
 
-    if (avatarEl) avatarEl.innerText = guest.avatar;
-    if (nameEl) nameEl.innerText = guest.name;
-    if (orderEl) orderEl.innerText = `Order: ${currentOrder.name} (${currentOrder.items.map(i => itemLabels[i]).join(" + ")})`;
-    if (vipEl) {
-      if (isVIP) vipEl.classList.remove("hidden");
-      else vipEl.classList.add("hidden");
-    }
-    if (cardEl) cardEl.classList.remove("hidden");
-    if (waitingEl) waitingEl.classList.add("hidden");
+  document.getElementById('btn-modal-menu').onclick = returnToMenu;
+  document.getElementById('btn-next-shift').onclick = nextShiftAction;
 
-    patienceLevel = 100;
-    const bar = document.getElementById("patience-bar");
-    if (bar) {
-      bar.style.width = "100%";
-      bar.style.backgroundColor = "#10b981";
-    }
-    if (patienceTimer) clearInterval(patienceTimer);
-    const drainSpeed = isVIP ? 1.8 : 1.2;
-    patienceTimer = setInterval(() => {
-      patienceLevel -= drainSpeed;
-      if (bar) {
-        bar.style.width = Math.max(0, patienceLevel) + "%";
-        if (patienceLevel < 50 && patienceLevel >= 25) bar.style.backgroundColor = "#f59e0b";
-        else if (patienceLevel < 25) bar.style.backgroundColor = "#ef4444";
-      }
-      if (patienceLevel <= 0) {
-        clearInterval(patienceTimer);
-        failOrder();
-      }
-    }, 300);
-  }
+  document.getElementById('btn-close-recipes').onclick = () => closeAllModals();
+  document.getElementById('btn-close-challenges').onclick = () => closeAllModals();
+  document.getElementById('btn-close-shop').onclick = () => closeAllModals();
 
-  function prepareStation(type) {
-    if (!currentOrder) {
-      showToast("Wait for a customer first!");
-      return;
-    }
-    if (stationBusy[type]) return;
-    if (playerTray.length >= 3) {
-      showToast("Tray is full!");
-      return;
-    }
-    sfx.click();
-    stationBusy[type] = true;
-    const stationEl = document.getElementById(`station-${type}`);
-    const statusEl = document.getElementById(`${type}-status`);
-    const barEl = document.getElementById(`${type}-bar`);
-    if (stationEl) stationEl.classList.add("border-amber-400");
-    if (statusEl) statusEl.innerText = "Preparing...";
-    
-    const levelMap = { coffee: gameData.upgrades.grinder, food: gameData.upgrades.oven, dessert: gameData.upgrades.bakery };
-    const prepDuration = Math.max(450, 1500 - (levelMap[type] - 1) * 220);
-    const startTime = performance.now();
+  document.getElementById('tab-recipes').onclick = () => switchShopTab('recipes');
+  document.getElementById('tab-upgrades').onclick = () => switchShopTab('upgrades');
+  document.getElementById('tab-decor').onclick = () => switchShopTab('decor');
 
-    function animateProgress(now) {
-      const elapsed = now - startTime;
-      const pct = Math.min(100, (elapsed / prepDuration) * 100);
-      if (barEl) barEl.style.width = pct + "%";
-      if (pct < 100) {
-        requestAnimationFrame(animateProgress);
-      } else {
-        stationBusy[type] = false;
-        if (stationEl) stationEl.classList.remove("border-amber-400");
-        if (barEl) barEl.style.width = "0%";
-        if (statusEl) statusEl.innerText = "Ready!";
-        playerTray.push(type);
-        sfx.brewComplete();
-        updateTrayUI();
-        checkOrderMatch();
-        setTimeout(() => {
-          if (!stationBusy[type] && statusEl) {
-            statusEl.innerText = type === "coffee" ? "Tap to Brew" : type === "food" ? "Tap to Cook" : "Tap to Plate";
-          }
-        }, 900);
-      }
-    }
-    requestAnimationFrame(animateProgress);
-  }
+  ensureDailyQuests();
+  applyThemeAndDecor();
+  renderStations();
+  renderTray();
+  syncHUD();
 
-  function updateTrayUI() {
-    const el = document.getElementById("tray-items");
-    if (el) el.innerText = playerTray.length > 0 ? playerTray.map(i => itemLabels[i]).join(" + ") : "Empty";
-  }
-
-  function checkOrderMatch() {
-    if (!currentOrder) return;
-    const needed = [...currentOrder.items].sort().join(",");
-    const current = [...playerTray].sort().join(",");
-    const serveBtn = document.getElementById("serve-btn");
-    if (serveBtn) serveBtn.disabled = needed !== current;
-  }
-
-  function serveCustomer() {
-    if (!currentOrder) return;
-    clearInterval(patienceTimer);
-    const decorBonus = (gameData.upgrades.decor - 1) * 4;
-    const speedBonus = patienceLevel > 60 ? 5 : 0;
-    const totalEarned = Math.round((currentOrder.reward + decorBonus + speedBonus) * (1 + (combo - 1) * 0.1));
-    gameData.coins += totalEarned;
-    gameData.ordersServed++;
-    gameData.rating = Math.min(5.0, Number((gameData.rating + 0.1).toFixed(1)));
-    combo++;
-    if (gameData.ordersServed % 5 === 0) {
-      gameData.day++;
-      showToast(`🌅 Day ${gameData.day} started! +${totalEarned} 🪙`);
-    } else {
-      showToast(`Served! +${totalEarned} 🪙 (Combo x${combo})`);
-    }
-    sfx.serveSuccess();
-    finishOrderCleanup();
-  }
-
-  function failOrder() {
-    combo = 1;
-    gameData.rating = Math.max(1.0, Number((gameData.rating - 0.3).toFixed(1)));
-    sfx.fail();
-    showToast("Customer left! Rating dropped.");
-    finishOrderCleanup();
-  }
-
-  function finishOrderCleanup() {
-    currentOrder = null;
-    playerTray = [];
-    updateTrayUI();
-    const cardEl = document.getElementById("customer-card");
-    const waitingEl = document.getElementById("waiting-text");
-    const serveBtn = document.getElementById("serve-btn");
-    if (cardEl) cardEl.classList.add("hidden");
-    if (waitingEl) waitingEl.classList.remove("hidden");
-    if (serveBtn) serveBtn.disabled = true;
-    saveProgress();
-    updateUI();
-    setTimeout(nextCustomer, 1500);
-  }
-
-  function buyUpgrade(type) {
-    const cost = getUpgradeCost(type);
-    if (gameData.coins >= cost) {
-      gameData.coins -= cost;
-      gameData.upgrades[type]++;
-      sfx.upgrade();
-      saveProgress();
-      updateUI();
-      showToast(`Upgraded ${type.toUpperCase()} to Lv.${gameData.upgrades[type]}!`);
-    } else {
-      sfx.fail();
-      showToast(`Need ${cost} 🪙 for this upgrade!`);
-    }
-  }
-
-  // Event Listeners Binding
-  document.getElementById("mute-btn").onclick = () => {
-    sfx.muted = !sfx.muted;
-    document.getElementById("mute-btn").innerText = sfx.muted ? "🔇" : "🔊";
-    if (!sfx.muted) sfx.click();
-  };
-  document.getElementById("station-coffee").onclick = () => prepareStation("coffee");
-  document.getElementById("station-food").onclick = () => prepareStation("food");
-  document.getElementById("station-dessert").onclick = () => prepareStation("dessert");
-  document.getElementById("clear-tray-btn").onclick = () => {
-    if (playerTray.length === 0) return;
-    sfx.click();
-    playerTray = [];
-    updateTrayUI();
-    const serveBtn = document.getElementById("serve-btn");
-    if (serveBtn) serveBtn.disabled = true;
-    showToast("Tray cleared");
-  };
-  document.getElementById("serve-btn").onclick = serveCustomer;
-
-  document.getElementById("upg-grinder").onclick = () => buyUpgrade("grinder");
-  document.getElementById("upg-oven").onclick = () => buyUpgrade("oven");
-  document.getElementById("upg-bakery").onclick = () => buyUpgrade("bakery");
-  document.getElementById("upg-decor").onclick = () => buyUpgrade("decor");
-
-  // Initialize Game State
-  loadProgress();
-  updateUI();
-  setTimeout(nextCustomer, 1000);
-
-  // Cleanup Function when switching away from Tiny Café
   return () => {
-    if (patienceTimer) clearInterval(patienceTimer);
+    gameState.active = false;
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    stopBgMusic();
   };
 }
