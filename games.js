@@ -521,9 +521,7 @@ function initCoinScatter(stage, meta) {
   renderScatterGrid(false);
 }
 
-// ----------------------------------------------------
-// 5. CHESS (Arcade Game -> Included with Hero Score Reward)
-// ----------------------------------------------------
+
 function initChess(stage) {
   const GLYPHS = {
     wK:'♔', wQ:'♕', wR:'♖', wB:'♗', wN:'♘', wP:'♙',
