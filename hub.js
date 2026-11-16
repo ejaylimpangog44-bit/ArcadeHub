@@ -59,19 +59,6 @@ if (foxWidget) {
   };
 }
 
-// Placeholder functions for Wardrobe, Shop, and Streak & Spin
-function openWardrobe() {
-  alert('🧥 Opening Wardrobe: Customize your Fox & Astronaut skins!');
-}
-
-function openShop() {
-  alert('🛒 Opening Arcade Shop!');
-}
-
-function openStreakSpin() {
-  alert('🔥 Opening Streak & Spin Lucky Wheel!');
-}
-
 const AudioFX = (() => {
   let ctx = null;
   let sfxEnabled = true;
