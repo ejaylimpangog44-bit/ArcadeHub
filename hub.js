@@ -358,11 +358,178 @@ const GAMES = [
   { id: 'fruitmaster', num: 11, name: 'Fruit Master', cat: 'Action', icon: '🍉', envName: 'Tropical Bamboo & Sakura Dojo', bg: 'linear-gradient(160deg, #14532d 0%, #1e3a2f 45%, #3f2e21 100%)', theme: 'bamboo_dojo' },
   { id: 'whackamole', num: 12, name: 'Whack-a-Mole', cat: 'Action', icon: '🔨', envName: 'Sunlit Meadow & Garden Hills', bg: 'linear-gradient(180deg, #0284c7 0%, #38bdf8 42%, #16a34a 43%, #14532d 100%)', theme: 'sunny_meadow' },
   { id: 'cybersnake', num: 13, name: 'Cyber Snake', cat: 'Action', icon: '🐍', envName: 'Original Version Preserved', bg: 'radial-gradient(circle at 50% 50%, #0f172a 0%, #090a10 100%)', theme: 'preserved', locked: true },
-  { id: 'towerstack', num: 14, name: 'Tower Stack', cat: 'Action', icon: '🏗️', envName: 'Twilight Skyline to Stratosphere', bg: 'linear-gradient(160deg, #090d16 0%, #1e1b4b 45%, #6d28d9 80%, #f43f5e 100%)', theme: 'skyline_climb' },
-  { id: 'carracing', num: 15, name: 'Car Racing', cat: 'Racing', icon: '🏎️', envName: 'Neon Sunset Canyon Highway', bg: 'linear-gradient(160deg, #0f0722 0%, #3b0764 42%, #be123c 55%, #090a0f 56%)', theme: 'synth_highway' },
+  { id: 'towerstack', num: 14, name: 'Tower Stack', cat: 'Action', icon: '🏗️', envName: 'Twilight Skyline to Stratosphere', bg: 'linear-gradient(180deg, #090d16 0%, #1e1b4b 45%, #6d28d9 80%, #f43f5e 100%)', theme: 'skyline_climb' },
+  { id: 'carracing', num: 15, name: 'Car Racing', cat: 'Racing', icon: '🏎️', envName: 'Neon Sunset Canyon Highway', bg: 'linear-gradient(180deg, #0f0722 0%, #3b0764 42%, #be123c 55%, #090a0f 56%)', theme: 'synth_highway' },
   { id: 'brickbreaker', num: 16, name: 'Brick Breaker', cat: 'Racing', icon: '🧱', envName: 'Cosmic Synthwave Core', bg: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #03050a 100%)', theme: 'cosmic_core' },
   { id: 'stickrun', num: 17, name: 'Stick Run', cat: 'Runner', icon: '🏃', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' }
 ];
+
+let activeGameId = null;
+let activeCleanup = null;
+
+const BgEngine = (() => {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let w = 0, h = 0;
+  let theme = 'hub';
+  let particles = [];
+  let tick = 0;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function setTheme(newTheme) {
+    theme = newTheme;
+    particles = [];
+    const count = 42;
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: 1.5 + Math.random() * 4,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: -0.2 - Math.random() * 0.7,
+        phase: Math.random() * Math.PI * 2,
+        char: ['♠','♥','♦','♣'][i % 4]
+      });
+    }
+  }
+
+  function loop() {
+    tick += 0.016;
+    ctx.clearRect(0, 0, w, h);
+
+    if (theme === 'casino_green' || theme === 'vip_table') {
+      ctx.save();
+      ctx.font = '28px Inter';
+      ctx.textAlign = 'center';
+      particles.forEach((p, idx) => {
+        p.y += p.vy * 0.4;
+        if (p.y < -30) p.y = h + 30;
+        if (idx % 4 === 0) {
+          ctx.fillStyle = 'rgba(251, 191, 36, 0.05)';
+          ctx.fillText(p.char, p.x, p.y);
+        } else {
+          ctx.fillStyle = 'rgba(253, 224, 71, 0.14)';
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 0.6, 0, Math.PI * 2); ctx.fill();
+        }
+      });
+      ctx.restore();
+    } else if (theme === 'gold_vault') {
+      particles.forEach(p => {
+        p.y += p.vy * 1.4;
+        p.x += Math.sin(tick + p.phase) * 0.4;
+        if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+        ctx.fillStyle = 'rgba(251, 191, 36, 0.35)';
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      });
+    } else if (theme === 'matrix_vault') {
+      ctx.font = '13px "JetBrains Mono", monospace';
+      particles.forEach((p, i) => {
+        p.y += 2.2;
+        if (p.y > h) p.y = -20;
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.22)';
+        ctx.fillText((i + Math.floor(tick * 8)) % 2 === 0 ? '1' : '0', p.x, p.y);
+      });
+    } else if (theme === 'bamboo_dojo') {
+      particles.forEach(p => {
+        p.y += 0.8;
+        p.x += Math.sin(tick * 1.2 + p.phase) * 0.9;
+        if (p.y > h + 15) p.y = -15; p.x = Math.random() * w;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(tick + p.phase);
+        ctx.fillStyle = 'rgba(244, 114, 182, 0.32)';
+        ctx.beginPath(); ctx.ellipse(0, 0, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      });
+    } else if (theme === 'sunny_meadow' || theme === 'stick_world') {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+      for (let i = 0; i < 6; i++) {
+        const cx = ((i * 290 + tick * (14 + i * 2)) % (w + 260)) - 130;
+        const cy = 65 + (i % 3) * 48;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+        ctx.arc(cx + 24, cy - 8, 34, 0, Math.PI * 2);
+        ctx.arc(cx + 52, cy, 26, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (theme === 'concert_hall') {
+      for (let i = 0; i < 4; i++) {
+        const bx = w * (0.2 + i * 0.2) + Math.sin(tick * 0.7 + i) * 35;
+        const grad = ctx.createLinearGradient(bx, 0, bx, h);
+        grad.addColorStop(0, 'rgba(129, 140, 248, 0.18)');
+        grad.addColorStop(1, 'rgba(129, 140, 248, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(bx - 30, 0); ctx.lineTo(bx + 30, 0);
+        ctx.lineTo(bx + 130, h); ctx.lineTo(bx - 130, h);
+        ctx.closePath(); ctx.fill();
+      }
+    } else if (theme === 'cosmic_core' || theme === 'skyline_climb' || theme === 'hub') {
+      particles.forEach(p => {
+        p.y += p.vy * 0.35;
+        if (p.y < -10) p.y = h + 10;
+        const alpha = 0.15 + 0.2 * Math.sin(tick * 2 + p.phase);
+        ctx.fillStyle = `rgba(167, 139, 250, ${alpha})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 0.65, 0, Math.PI * 2); ctx.fill();
+      });
+    }
+
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  return { setTheme };
+})();
+
+function openHubHome() {
+  if (activeCleanup) {
+    try { activeCleanup(); } catch (e) {}
+    activeCleanup = null;
+  }
+  activeGameId = null;
+
+  document.getElementById('hub-header').classList.remove('hidden');
+  document.getElementById('universal-game-bar').classList.add('hidden');
+
+  const stage = document.getElementById('game-stage');
+  stage.classList.remove('in-game');
+
+  document.getElementById('app-shell').style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
+  BgEngine.setTheme('hub');
+
+  stage.innerHTML = `
+    <div class="w-full h-full overflow-y-auto px-4 sm:px-8 py-6">
+      <div class="max-w-6xl mx-auto">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 pb-10">
+          ${GAMES.map(g => `
+            <button onclick="launchGame('${g.id}')" class="group relative overflow-hidden rounded-2xl p-4 text-left border border-white/10 hover:border-pink-400/50 transition-all flex flex-col justify-between min-h-[148px]" style="background:${g.bg}">
+              <div class="absolute inset-0 bg-black/35 group-hover:bg-black/15 transition"></div>
+              <div class="relative z-10 flex items-center justify-between w-full">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${g.locked ? 'bg-amber-500/30 text-amber-200' : 'bg-emerald-500/30 text-emerald-200'}">
+                  ${g.locked ? 'ORIGINAL' : 'FULL V2'}
+                </span>
+                <span class="text-[11px] font-mono text-white/60">#${g.num}</span>
+              </div>
+              <div class="relative z-10 my-2 text-center">
+                <div class="text-3xl sm:text-4xl drop-shadow-md group-hover:scale-110 transition-transform">${g.icon}</div>
+              </div>
+              <div class="relative z-10">
+                <div class="font-extrabold text-sm text-white leading-tight">${g.name}</div>
+                <div class="text-[10px] text-white/75 line-clamp-1 mt-0.5">${g.envName}</div>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 function launchGame(id) {
   const meta = GAMES.find(g => g.id === id);
