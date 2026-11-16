@@ -35,8 +35,8 @@
   </div>
 </div>
 
-<!-- Floating Assistive Touch Fox Widget with z-[120] so it stays on top of the shop/hero modal -->
-<div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-2xl flex items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
+<!-- Floating Assistive Touch Fox Widget (Hidden initially, appears ONLY inside the Hub Lobby) -->
+<div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-2xl hidden items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
   <span class="transform group-hover:scale-110 transition">🦊</span>
 </div>
 
@@ -90,7 +90,7 @@
     <div id="tab-rewards" class="hero-tab-panel">
       <div class="rewards-split">
         <div class="reward-card">
-          <!-- Title removed, 24h PHT countdown timer active -->
+          <!-- Title text removed, 24h PHT cooldown timer active -->
           <div id="streak-cooldown-timer" class="text-sm font-mono text-amber-400 font-bold my-2 text-center">24:00:00</div>
           <div id="streak-days-row" class="streak-row"></div>
           <button id="claim-streak-btn" class="action-btn">Claim Daily</button>
@@ -297,6 +297,36 @@
   }
 
   setInterval(updatePHTCountdown, 1000);
+
+  // Helper to show/hide the floating fox widget based on login state
+  function updateFoxVisibility() {
+    const fox = document.getElementById('assistive-touch-fox');
+    const loginScreen = document.getElementById('login-screen');
+    if (fox && loginScreen) {
+      if (loginScreen.classList.contains('hidden')) {
+        fox.classList.remove('hidden');
+        fox.classList.add('flex');
+      } else {
+        fox.classList.remove('flex');
+        fox.classList.add('hidden');
+      }
+    }
+  }
+
+  // Hook into name submission to reveal the Fox in the lobby
+  const originalSubmitPlayerName = window.submitPlayerName;
+  // We ensure the fox displays whenever the app shell unhides
+  const observer = new MutationObserver(() => {
+    updateFoxVisibility();
+  });
+  
+  window.addEventListener('DOMContentLoaded', () => {
+    const loginScreen = document.getElementById('login-screen');
+    if (loginScreen) {
+      observer.observe(loginScreen, { attributes: true, attributeFilter: ['class'] });
+    }
+    updateFoxVisibility();
+  });
 
   function openHeroModal() {
     const backdrop = document.getElementById('hero-modal-backdrop');
