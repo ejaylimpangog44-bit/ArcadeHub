@@ -3305,6 +3305,7 @@ function initStickRun(stage) {
   };
 }
 
+
 // ----------------------------------------------------
 // TINY CAFÉ (Cute Cartoon & Cozy Café Edition)
 // ----------------------------------------------------
@@ -3393,6 +3394,7 @@ function initTinyCafe(stage) {
   let musicInterval = null;
   let musicStep = 0;
   let animationFrameId = null;
+  let toastTimeout = null;
 
   function loadSave() {
     try {
@@ -3805,7 +3807,7 @@ function initTinyCafe(stage) {
 
     slotEl.innerHTML = `
       <div onclick="window.serveTinyCafeSlot && window.serveTinyCafeSlot(${idx})" class="cursor-pointer w-full flex flex-col items-center group ${isNew ? 'anim-enter' : ''}">
-        <div class="relative bg-[#fffaf2] border-3 ${order.customer.vip ? 'border-[#f5b82e] anim-vip-glow' : 'border-[#5c361c]'} rounded-2xl p-2 sm:p-2.5 shadow-lg mb-1.5 w-full max-w-[165px]">
+        <div class="relative bg-[#fffaf2] border-4 ${order.customer.vip ? 'border-[#f5b82e] anim-vip-glow' : 'border-[#5c361c]'} rounded-2xl p-2 sm:p-2.5 shadow-lg mb-1.5 w-full max-w-[165px]">
           ${order.customer.vip ? `<div class="text-[9px] font-extrabold uppercase tracking-wider text-center bg-[#f5b82e] text-[#3b2314] rounded-full px-1.5 mb-1">⭐ ${order.customer.title}</div>` : ''}
           <div class="flex items-center justify-center gap-1.5">
             <span class="text-2xl sm:text-3xl leading-none">${order.recipe.icon}</span>
@@ -4392,7 +4394,6 @@ function initTinyCafe(stage) {
     renderShopModal();
   }
 
-  let toastTimeout = null;
   function showToast(msg, icon = '✨') {
     const box = document.getElementById('toast-box');
     if (!box) return;
@@ -4726,6 +4727,7 @@ function initTinyCafe(stage) {
   return () => {
     gameState.active = false;
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    if (toastTimeout) clearTimeout(toastTimeout);
     stopBgMusic();
   };
 }
