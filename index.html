@@ -35,7 +35,7 @@
   </div>
 </div>
 
-<!-- Floating Assistive Touch Fox Widget (Hidden initially, appears inside Hub Lobby) -->
+<!-- Floating Assistive Touch Fox Widget (Appears inside Hub Lobby) -->
 <div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-2xl hidden items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
   <span class="transform group-hover:scale-110 transition">🦊</span>
 </div>
@@ -90,7 +90,7 @@
     <div id="tab-rewards" class="hero-tab-panel">
       <div class="rewards-split">
         <div class="reward-card">
-          <!-- Title text removed, 24h PHT cooldown timer active -->
+          <!-- 24h PHT countdown timer active -->
           <div id="streak-cooldown-timer" class="text-sm font-mono text-amber-400 font-bold my-2 text-center">24:00:00</div>
           <div id="streak-days-row" class="streak-row"></div>
           <button id="claim-streak-btn" class="action-btn">Claim Daily</button>
@@ -225,8 +225,8 @@
   </main>
 </div>
 
-<!-- Custom Alert Modal Overlay placed at the very bottom of body with highest z-[200] priority -->
-<div id="custom-alert-modal" class="fixed inset-0 z-[200] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+<!-- Custom Alert Modal Overlay placed at the absolute bottom of body with z-[9999] highest priority -->
+<div id="custom-alert-modal" class="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
   <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 text-center">
     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-pink-600 flex items-center justify-center mx-auto text-xl shadow-lg">🔔</div>
     <div>
@@ -245,7 +245,7 @@
 </audio>
 
 <script>
-  // Custom Alert Modal System replacing browser native alerts
+  // Custom Alert Modal System replacing browser native alerts globally
   function showCustomAlert(message, title = "Arcade Hub Notice") {
     document.getElementById('custom-alert-title').textContent = title;
     document.getElementById('custom-alert-message').textContent = message;
