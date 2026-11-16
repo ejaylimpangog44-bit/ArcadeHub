@@ -1,11 +1,11 @@
 function initTinyCafe(stage) {
   stage.innerHTML = `
-    <div id="cafe-root" class="relative w-full h-full bg-slate-950 flex flex-col p-2 pt-1 select-none text-white overflow-y-auto pb-28 transition-colors duration-1000" style="background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 50%, #0f172a 100%);">
+    <div id="cafe-root" class="relative w-full h-full bg-slate-950 flex flex-col select-none text-white overflow-y-auto pb-28 transition-colors duration-1000" style="background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 50%, #0f172a 100%);">
       <!-- Cloud Dissolve Intro Overlay -->
       <div id="cafe-intro-clouds" class="absolute inset-0 z-50 bg-sky-900 flex flex-col items-center justify-center transition-transform duration-1000">
         <div class="text-5xl mb-3 animate-bounce">🧾🍳☕</div>
         <h2 class="text-xl font-black text-amber-300 mb-1">Tiny Café &amp; Pro Bistro</h2>
-        <p class="text-xs text-sky-200 mb-4 text-center max-w-xs">Fixed sticky serve buttons &amp; smooth mobile layout!</p>
+        <p class="text-xs text-sky-200 mb-4 text-center max-w-xs">Polished top bar, instant station tabs, and sticky serve buttons!</p>
         <button onclick="startCafeShift()" class="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl shadow-xl hover:scale-105 transition text-xs">Start Bistro Shift 🚀</button>
       </div>
 
@@ -25,29 +25,35 @@ function initTinyCafe(stage) {
         </div>
       </div>
 
-      <!-- Top HUD -->
-      <div class="flex items-center justify-between w-full bg-black/70 p-2 rounded-xl border border-white/10 shrink-0 text-xs mb-1.5">
-        <span id="cafe-coins" class="text-amber-400 font-black">🪙 500</span>
-        <span id="day-goal-text" class="text-amber-300 font-bold">📅 DAY 1 (0/10)</span>
-        <span id="customer-patience-text" class="text-cyan-300 font-mono font-bold">⏳ 01:00</span>
+      <!-- Polished Top Bar (No Empty Gaps: Hub | Coins & Day Goal | Settings) -->
+      <div class="flex items-center justify-between w-full bg-black/80 px-3 py-2 border-b border-white/10 shrink-0 text-xs">
+        <button onclick="location.reload()" class="bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-lg font-bold text-slate-200 active:scale-95 transition">← Hub</button>
+        <div class="flex items-center gap-3 font-black">
+          <span id="cafe-coins" class="text-amber-400">🪙 500</span>
+          <span id="day-goal-text" class="text-cyan-300">📅 DAY 1 (0/10)</span>
+        </div>
+        <button onclick="alert('Tiny Café & Bistro v3.2 • Pro Edition')" class="bg-white/10 hover:bg-white/20 px-2 py-1 rounded-lg active:scale-95 transition">⚙️</button>
       </div>
 
-      <!-- Customer Counter & Receipt Ticket -->
-      <div class="w-full bg-slate-900/90 border border-white/15 rounded-2xl p-2.5 shadow-lg flex items-center justify-center gap-3 shrink-0 backdrop-blur-md mb-2">
-        <div id="customer-avatar" class="text-3xl animate-bounce">🧑‍💼</div>
-        <div class="bg-amber-50 text-slate-950 px-3 py-1.5 rounded-xl font-mono text-[11px] shadow-md w-56 border-b-4 border-dashed border-amber-300 relative">
-          <div class="text-[9px] font-black uppercase text-center border-b border-slate-300 pb-0.5 mb-0.5 text-slate-700">🧾 Customer Receipt Ticket</div>
-          <div id="receipt-order-text" class="font-bold text-center text-slate-900">Loading order...</div>
+      <!-- Game Content Padding Container -->
+      <div class="p-2 flex flex-col flex-1">
+        <!-- Customer Counter & Receipt Ticket -->
+        <div class="w-full bg-slate-900/90 border border-white/15 rounded-2xl p-2.5 shadow-lg flex items-center justify-center gap-3 shrink-0 backdrop-blur-md mb-2">
+          <div id="customer-avatar" class="text-3xl animate-bounce">🧑‍💼</div>
+          <div class="bg-amber-50 text-slate-950 px-3 py-1.5 rounded-xl font-mono text-[11px] shadow-md w-56 border-b-4 border-dashed border-amber-300 relative">
+            <div class="text-[9px] font-black uppercase text-center border-b border-slate-300 pb-0.5 mb-0.5 text-slate-700">🧾 Customer Receipt Ticket</div>
+            <div id="receipt-order-text" class="font-bold text-center text-slate-900">Loading order...</div>
+          </div>
+        </div>
+
+        <!-- WORKSPACE AREA -->
+        <div id="workspace-container" class="w-full flex-1 flex flex-col mb-4">
+          <!-- Dynamically rendered via JS -->
         </div>
       </div>
 
-      <!-- WORKSPACE AREA -->
-      <div id="workspace-container" class="w-full flex-1 flex flex-col mb-4">
-        <!-- Dynamically rendered via JS -->
-      </div>
-
-      <!-- Preparation Tray & Serve Actions (Sticky Pinned at Bottom for Easy Tapping) -->
-      <div class="sticky bottom-2 w-full bg-black/95 backdrop-blur-md border border-white/20 rounded-2xl p-3 text-center shadow-2xl z-30">
+      <!-- Preparation Tray & Serve Actions (Sticky Pinned at Bottom) -->
+      <div class="sticky bottom-2 w-full bg-black/95 backdrop-blur-md border border-white/20 rounded-2xl p-3 text-center shadow-2xl z-30 mx-auto max-w-md">
         <div class="text-[11px] text-slate-300 mb-1.5 uppercase font-black">Tray: <span id="cup-tray" class="text-pink-400 font-mono">[ Empty ]</span></div>
         <div class="flex gap-2">
           <button onclick="resetTray()" class="py-2.5 px-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs transition active:scale-95">Clear 🗑️</button>
@@ -95,10 +101,7 @@ function initTinyCafe(stage) {
     gameInterval = setInterval(() => {
       customerTimeLeft--;
       let secs = customerTimeLeft % 60;
-      const timerEl = document.getElementById('customer-patience-text');
       
-      if (timerEl) timerEl.textContent = `⏳ 00:${String(secs).padStart(2,'0')}`;
-
       if (customerTimeLeft <= 0) {
         coins = Math.max(0, coins - 40);
         document.getElementById('cafe-coins').textContent = `🪙 ${coins}`;
@@ -122,7 +125,7 @@ function initTinyCafe(stage) {
 
     container.innerHTML = `
       <div class="w-full flex flex-col bg-black/40 border border-white/10 rounded-2xl p-2.5">
-        <!-- Quick Switch Header -->
+        <!-- Quick Switch Header Tabs -->
         <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2 shrink-0">
           <span class="text-xs font-black ${isKitchen ? 'text-amber-300' : 'text-sky-300'}">
             ${isKitchen ? '🍳 Kitchen Equipment (10s Cook)' : '☕ Brewing Stand (Drinks Station)'}
@@ -173,23 +176,23 @@ function initTinyCafe(stage) {
               <span id="badge-Waffle" class="px-2 py-1 bg-amber-700 text-white font-black rounded text-[9px]">Bake</span>
             </button>
           ` : `
-            <button onclick="addDrink('Beans', '🫘')" class="bg-slate-900 border border-sky-500/30 rounded-xl p-3 flex items-center gap-2">
+            <button onclick="addDrink('Beans')" class="bg-slate-900 border border-sky-500/30 rounded-xl p-3 flex items-center gap-2">
               <span class="text-xl">🫘</span>
               <div class="text-left"><div class="text-xs font-bold">Beans</div><div class="text-[9px] text-sky-400">Brew Coffee</div></div>
             </button>
-            <button onclick="addDrink('Milk', '🥛')" class="bg-slate-900 border border-indigo-500/30 rounded-xl p-3 flex items-center gap-2">
+            <button onclick="addDrink('Milk')" class="bg-slate-900 border border-indigo-500/30 rounded-xl p-3 flex items-center gap-2">
               <span class="text-xl">🥛</span>
               <div class="text-left"><div class="text-xs font-bold">Milk</div><div class="text-[9px] text-indigo-400">Dairy Mixer</div></div>
             </button>
-            <button onclick="addDrink('Sugar', '🧊')" class="bg-slate-900 border border-cyan-500/30 rounded-xl p-3 flex items-center gap-2">
+            <button onclick="addDrink('Sugar')" class="bg-slate-900 border border-cyan-500/30 rounded-xl p-3 flex items-center gap-2">
               <span class="text-xl">🧊</span>
               <div class="text-left"><div class="text-xs font-bold">Sugar</div><div class="text-[9px] text-cyan-400">Sweetener</div></div>
             </button>
-            <button onclick="addDrink('Choco', '🍫')" class="bg-slate-900 border border-pink-500/30 rounded-xl p-3 flex items-center gap-2">
+            <button onclick="addDrink('Choco')" class="bg-slate-900 border border-pink-500/30 rounded-xl p-3 flex items-center gap-2">
               <span class="text-xl">🍫</span>
               <div class="text-left"><div class="text-xs font-bold">Choco</div><div class="text-[9px] text-pink-400">Syrup Topping</div></div>
             </button>
-            <button onclick="addDrink('Cheese', '🧀')" class="bg-slate-900 border border-amber-500/30 rounded-xl p-3 flex items-center gap-2">
+            <button onclick="addDrink('Cheese')" class="bg-slate-900 border border-amber-500/30 rounded-xl p-3 flex items-center gap-2">
               <span class="text-xl">🧀</span>
               <div class="text-left"><div class="text-xs font-bold">Cheese</div><div class="text-[9px] text-amber-400">Foam Topping</div></div>
             </button>
