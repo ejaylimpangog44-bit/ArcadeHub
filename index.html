@@ -21,7 +21,7 @@
     </div>
     <div>
       <h1 class="text-2xl font-black text-white tracking-tight">Welcome to Arcade Hub</h1>
-      <p class="text-xs text-slate-400 mt-1">Enter your player name to start playing across all 17 full-viewport worlds.</p>
+      <p class="text-xs text-slate-400 mt-1">Enter your player name to start playing across all full-viewport worlds.</p>
     </div>
     <div class="flex flex-col gap-3">
       <input type="text" id="player-name-input" placeholder="Enter your name (e.g. AJ)" maxlength="16" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/15 text-white placeholder-slate-500 text-center font-bold text-sm focus:outline-none focus:border-pink-500 transition" />
@@ -34,24 +34,10 @@
     </div>
   </div>
 </div>
-<div id="app-shell" class="hidden flex flex-col h-screen w-screen overflow-hidden">
-  <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
-  <header id="hub-header" class="hud-glass relative z-30 w-full px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0">
-    <div class="flex items-center gap-2.5">
-      <button onclick="openHubHome()" class="flex items-center gap-2.5 group text-left focus:outline-none">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/25 group-hover:scale-105 transition">
-          <span class="text-lg">🎮</span>
-        </div>
-        <div>
-          <span class="font-extrabold text-sm sm:text-base tracking-tight bg-gradient-to-r from-pink-400 to-violet-300 bg-clip-text text-transparent block leading-tight">Arcade Hub</span>
-          <p class="text-[10px] text-slate-400 tracking-widest uppercase font-semibold">Player: <span id="header-player-name" class="text-pink-400 font-bold">AJ</span></p>
-        </div>
-      </button>
-    </div>
-<!-- Compact Assistive Touch Fox Widget -->
-<div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-xl flex items-center justify-center text-xl cursor-pointer select-none touch-none active:scale-95 transition group" title="Fox Companion Hub">
-  <span class="transform group-hover:scale-110 transition">🦊👨‍🚀</span>
+<!-- Floating Assistive Touch Fox Widget Restored -->
+<div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-2xl flex items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
+  <span class="transform group-hover:scale-110 transition">🦊</span>
 </div>
 
 <div id="hero-modal-backdrop" class="hero-backdrop hidden">
@@ -122,14 +108,32 @@
     </div>
   </div>
 </div>
+
+<div id="app-shell" class="hidden flex flex-col h-screen w-screen overflow-hidden">
+  <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+  <header id="hub-header" class="hud-glass relative z-30 w-full px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0">
+    <div class="flex items-center gap-2.5">
+      <button onclick="openHubHome()" class="flex items-center gap-2.5 group text-left focus:outline-none">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/25 group-hover:scale-105 transition">
+          <span class="text-lg">🎮</span>
+        </div>
+        <div>
+          <span class="font-extrabold text-sm sm:text-base tracking-tight bg-gradient-to-r from-pink-400 to-violet-300 bg-clip-text text-transparent block leading-tight">Arcade Hub</span>
+          <p class="text-[10px] text-slate-400 tracking-widest uppercase font-semibold">Player: <span id="header-player-name" class="text-pink-400 font-bold">AJ</span></p>
+        </div>
+      </button>
+    </div>
+
     <div class="flex items-center gap-2">
-      <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+      <!-- Header Fox Level Button -->
+      <button onclick="openHeroModal()" class="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition cursor-pointer text-left">
         <span class="text-base">🦊</span>
         <div class="leading-tight">
-          <div class="text-[10px] font-bold text-amber-400">LVL <span id="hud-lvl">6</span></div>
-          <div class="text-[10px] font-mono text-slate-300"><span id="hud-xp">2,118</span> XP</div>
+          <div class="text-[10px] font-bold text-amber-400">LVL <span id="hud-lvl">1</span></div>
+          <div class="text-[10px] font-mono text-slate-300"><span id="hud-xp">0</span> XP</div>
         </div>
-      </div>
+      </button>
 
       <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition border border-white/10" title="Settings, QR & Fullscreen">
         ⚙️
@@ -227,7 +231,6 @@
 </audio>
 
 <script>
-  // Safe wrapper helpers for hero modal interactions
   function openHeroModal() {
     const backdrop = document.getElementById('hero-modal-backdrop');
     if (backdrop) {
