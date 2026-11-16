@@ -1,3 +1,7 @@
+/* ==========================================
+   ARCADE HUB — HERO & ECONOMY SYSTEM (hero.js)
+   ========================================== */
+
 (() => {
   const STORAGE_KEY = "arcadehub_hero_state_v1";
   const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
@@ -49,8 +53,8 @@
   ];
 
   const defaultState = {
-    xp: 0,
-    coins: 100,
+    xp: 2118,
+    coins: 500,
     owned: {
       avatars: ["fox"],
       borders: ["border-default"],
@@ -61,7 +65,7 @@
       border: "border-default",
       outfit: "vest"
     },
-    streakCount: 0,
+    streakCount: 1,
     lastStreakPhtDate: "",
     lastSpinTimestamp: 0,
     wheelRotation: 0,
@@ -312,113 +316,146 @@
     }
   }
 
+  // Modal Controllers exposed globally for HTML buttons
+  window.openHeroModal = function(defaultTab = "wardrobe") {
+    const backdrop = document.getElementById("hero-modal-backdrop");
+    const foxMenu = document.getElementById("fox-menu-modal");
+    if (foxMenu) foxMenu.classList.add("hidden");
+    if (backdrop) {
+      renderUI();
+      backdrop.classList.remove("hidden");
+      requestAnimationFrame(() => backdrop.classList.add("open"));
+    }
+  };
+
+  window.closeHeroModal = function() {
+    const backdrop = document.getElementById("hero-modal-backdrop");
+    if (backdrop) {
+      backdrop.classList.remove("open");
+      setTimeout(() => backdrop.classList.add("hidden"), 280);
+      scheduleFade(3000);
+    }
+  };
+
+  window.openWardrobe = function() { window.openHeroModal("wardrobe"); };
+  window.openShop = function() { window.openHeroModal("shop"); };
+  window.openStreakSpin = function() { window.openHeroModal("rewards"); };
+
   function setupInteractions() {
     const pill = document.getElementById("hero-companion");
     const backdrop = document.getElementById("hero-modal-backdrop");
     const closeBtn = document.getElementById("close-hero-modal");
-    if (!pill || !backdrop || !closeBtn) return;
+    const foxMenu = document.getElementById("fox-menu-modal");
+    const assistiveFox = document.getElementById("assistive-touch-fox");
+    const closeFoxMenu = document.getElementById("close-fox-menu");
 
-    pill.style.top = `${state.position.top}px`;
-    if (state.position.side === "left") {
-      pill.classList.remove("edge-right");
-      pill.classList.add("edge-left");
-      pill.style.left = "14px";
-      pill.style.right = "auto";
-    } else {
-      pill.classList.remove("edge-left");
-      pill.classList.add("edge-right");
-      pill.style.right = "14px";
-      pill.style.left = "auto";
+    if (assistiveFox && foxMenu) {
+      assistiveFox.addEventListener("click", () => {
+        foxMenu.classList.remove("hidden");
+        foxMenu.classList.add("flex");
+      });
     }
 
-    let isDragging = false;
-    let moved = false;
-    let startX = 0;
-    let startY = 0;
-    let origLeft = 0;
-    let origTop = 0;
+    if (closeFoxMenu && foxMenu) {
+      closeFoxMenu.addEventListener("click", () => {
+        foxMenu.classList.add("hidden");
+        foxMenu.classList.remove("flex");
+      });
+    }
 
-    pill.addEventListener("pointerdown", e => {
-      isDragging = true;
-      moved = false;
-      clearTimeout(fadeTimer);
-      pill.classList.remove("faded");
-      pill.classList.add("dragging");
-      const rect = pill.getBoundingClientRect();
-      startX = e.clientX;
-      startY = e.clientY;
-      origLeft = rect.left;
-      origTop = rect.top;
-      pill.setPointerCapture(e.pointerId);
-    });
-
-    pill.addEventListener("pointermove", e => {
-      if (!isDragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
-      if (!moved) return;
-
-      const maxLeft = window.innerWidth - pill.offsetWidth - 8;
-      const maxTop = window.innerHeight - pill.offsetHeight - 8;
-      const nextLeft = Math.max(8, Math.min(maxLeft, origLeft + dx));
-      const nextTop = Math.max(8, Math.min(maxTop, origTop + dy));
-
-      pill.style.left = `${nextLeft}px`;
-      pill.style.right = "auto";
-      pill.style.top = `${nextTop}px`;
-    });
-
-    pill.addEventListener("pointerup", e => {
-      if (!isDragging) return;
-      isDragging = false;
-      pill.classList.remove("dragging");
-      pill.releasePointerCapture(e.pointerId);
-
-      if (!moved) {
-        openHeroModal();
-        return;
-      }
-
-      const rect = pill.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const snapLeft = centerX < window.innerWidth / 2;
-
-      if (snapLeft) {
+    if (pill) {
+      pill.style.top = `${state.position.top}px`;
+      if (state.position.side === "left") {
         pill.classList.remove("edge-right");
         pill.classList.add("edge-left");
         pill.style.left = "14px";
         pill.style.right = "auto";
-        state.position.side = "left";
       } else {
         pill.classList.remove("edge-left");
         pill.classList.add("edge-right");
         pill.style.right = "14px";
         pill.style.left = "auto";
-        state.position.side = "right";
       }
 
-      state.position.top = Math.round(rect.top);
-      saveState();
-      scheduleFade(3500);
-    });
+      let isDragging = false;
+      let moved = false;
+      let startX = 0;
+      let startY = 0;
+      let origLeft = 0;
+      let origTop = 0;
 
-    function openHeroModal() {
-      renderUI();
-      backdrop.classList.remove("hidden");
-      requestAnimationFrame(() => backdrop.classList.add("open"));
+      pill.addEventListener("pointerdown", e => {
+        isDragging = true;
+        moved = false;
+        clearTimeout(fadeTimer);
+        pill.classList.remove("faded");
+        pill.classList.add("dragging");
+        const rect = pill.getBoundingClientRect();
+        startX = e.clientX;
+        startY = e.clientY;
+        origLeft = rect.left;
+        origTop = rect.top;
+        pill.setPointerCapture(e.pointerId);
+      });
+
+      pill.addEventListener("pointermove", e => {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+        if (!moved) return;
+
+        const maxLeft = window.innerWidth - pill.offsetWidth - 8;
+        const maxTop = window.innerHeight - pill.offsetHeight - 8;
+        const nextLeft = Math.max(8, Math.min(maxLeft, origLeft + dx));
+        const nextTop = Math.max(8, Math.min(maxTop, origTop + dy));
+
+        pill.style.left = `${nextLeft}px`;
+        pill.style.right = "auto";
+        pill.style.top = `${nextTop}px`;
+      });
+
+      pill.addEventListener("pointerup", e => {
+        if (!isDragging) return;
+        isDragging = false;
+        pill.classList.remove("dragging");
+        pill.releasePointerCapture(e.pointerId);
+
+        if (!moved) {
+          window.openHeroModal("wardrobe");
+          return;
+        }
+
+        const rect = pill.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const snapLeft = centerX < window.innerWidth / 2;
+
+        if (snapLeft) {
+          pill.classList.remove("edge-right");
+          pill.classList.add("edge-left");
+          pill.style.left = "14px";
+          pill.style.right = "auto";
+          state.position.side = "left";
+        } else {
+          pill.classList.remove("edge-left");
+          pill.classList.add("edge-right");
+          pill.style.right = "14px";
+          pill.style.left = "auto";
+          state.position.side = "right";
+        }
+
+        state.position.top = Math.round(rect.top);
+        saveState();
+        scheduleFade(3500);
+      });
     }
 
-    function closeHeroModal() {
-      backdrop.classList.remove("open");
-      setTimeout(() => backdrop.classList.add("hidden"), 280);
-      scheduleFade(3000);
+    if (closeBtn && backdrop) {
+      closeBtn.addEventListener("click", window.closeHeroModal);
+      backdrop.addEventListener("click", e => {
+        if (e.target === backdrop) window.closeHeroModal();
+      });
     }
-
-    closeBtn.addEventListener("click", closeHeroModal);
-    backdrop.addEventListener("click", e => {
-      if (e.target === backdrop) closeHeroModal();
-    });
 
     document.querySelectorAll(".hero-tab").forEach(btn => {
       btn.addEventListener("click", () => {
