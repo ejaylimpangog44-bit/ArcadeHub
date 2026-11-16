@@ -40,13 +40,15 @@ function initPianoTiles(stage) {
 
   const canvas = document.getElementById('pt-canvas');
   const ctx = canvas.getContext('2d');
-  let w = canvas.width = canvas.parentElement.clientWidth;
-  let h = canvas.height = canvas.parentElement.clientHeight;
+  
+  let parentEl = canvas.parentElement;
+  let w = canvas.width = parentEl ? parentEl.clientWidth || 360 : 360;
+  let h = canvas.height = parentEl ? parentEl.clientHeight || 540 : 540;
 
   const onResize = () => {
     if (!canvas.parentElement) return;
-    w = canvas.width = canvas.parentElement.clientWidth;
-    h = canvas.height = canvas.parentElement.clientHeight;
+    w = canvas.width = canvas.parentElement.clientWidth || 360;
+    h = canvas.height = canvas.parentElement.clientHeight || 540;
   };
   window.addEventListener('resize', onResize);
 
@@ -79,6 +81,15 @@ function initPianoTiles(stage) {
 
   let raf;
   function loop() {
+    if (canvas.parentElement) {
+      const cw = canvas.parentElement.clientWidth;
+      const ch = canvas.parentElement.clientHeight;
+      if (cw && ch && (canvas.width !== cw || canvas.height !== ch)) {
+        w = canvas.width = cw;
+        h = canvas.height = ch;
+      }
+    }
+
     ctx.clearRect(0, 0, w, h);
     const colWidth = w / 4;
 
