@@ -569,7 +569,7 @@ function launchGame(id) {
     carracing: initCarRacing,
     brickbreaker: initBrickBreaker,
     stickrun: initStickRun,
-    'tiny-cafe': initTinyCafe
+    tiny-cafe: initTinyCafe
   };
 
   if (runners[id]) {
