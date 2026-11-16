@@ -14,9 +14,10 @@ function initZombieSurvival(stage) {
   let w = canvas.width = stage.clientWidth;
   let h = canvas.height = stage.clientHeight;
 
-  let player = { x: w / 2, y: h / 2, hp: 100, maxHp: 100, speed: 3.5, weaponLvl: 1 };
-  let zombies = [], bullets = [], loot = [], kills = 0, alive = true, shootTimer = 0, raf;
+  let player = { x: w / 2, y: h / 2, hp: 100, maxHp: 100, speed: 4, weaponLvl: 1, vx: 0, vy: 0 };
+  let zombies = [], bullets = [], loot = [], kills = 0, alive = true, shootTimer = 0, animTick = 0, raf;
   let keys = { w: false, a: false, s: false, d: false };
+  let lastX = player.x, lastY = player.y;
 
   window.addEventListener('keydown', e => {
     if (e.key === 'w' || e.key === 'ArrowUp') keys.w = true;
@@ -40,28 +41,42 @@ function initZombieSurvival(stage) {
     ctx.clearRect(0, 0, w, h);
 
     if (alive) {
-      if (keys.w) player.y = Math.max(30, player.y - player.speed);
-      if (keys.s) player.y = Math.min(h - 30, player.y + player.speed);
-      if (keys.a) player.x = Math.max(30, player.x - player.speed);
-      if (keys.d) player.x = Math.min(w - 30, player.x + player.speed);
+      let targetX = player.x;
+      let targetY = player.y;
+
+      if (keys.w) targetY = Math.max(30, player.y - player.speed);
+      if (keys.s) targetY = Math.min(h - 30, player.y + player.speed);
+      if (keys.a) targetX = Math.max(30, player.x - player.speed);
+      if (keys.d) targetX = Math.min(w - 30, player.x + player.speed);
+
+      player.vx = targetX - lastX;
+      player.vy = targetY - lastY;
+      player.x = targetX;
+      player.y = targetY;
+      lastX = player.x;
+      lastY = player.y;
+
+      if (Math.hypot(player.vx, player.vy) > 0.3) {
+        animTick += 0.25;
+      }
 
       shootTimer++;
-      if (shootTimer >= Math.max(10, 28 - player.weaponLvl * 4)) {
+      let nearestZombie = null;
+      let minDist = Infinity;
+      zombies.forEach(z => {
+        let d = Math.hypot(z.x - player.x, z.y - player.y);
+        if (d < minDist) { minDist = d; nearestZombie = z; }
+      });
+
+      if (shootTimer >= Math.max(10, 26 - player.weaponLvl * 4)) {
         shootTimer = 0;
-        let target = null;
-        let minDist = Infinity;
-        zombies.forEach(z => {
-          let d = Math.hypot(z.x - player.x, z.y - player.y);
-          if (d < minDist) { minDist = d; target = z; }
-        });
-        if (target) {
-          const angle = Math.atan2(target.y - player.y, target.x - player.x);
-          bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 11, vy: Math.sin(angle) * 11 });
+        if (nearestZombie) {
+          const angle = Math.atan2(nearestZombie.y - player.y, nearestZombie.x - player.x);
+          bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle) * 12, vy: Math.sin(angle) * 12 });
           if (typeof AudioFX !== 'undefined') AudioFX.hit();
         }
       }
 
-      // Spawn zombies strictly outside screen borders (no more spawn-camping!)
       if (Math.random() < 0.035) {
         const isBoss = kills > 0 && kills % 15 === 0 && !zombies.some(z => z.isBoss);
         const side = Math.floor(Math.random() * 4);
@@ -74,8 +89,8 @@ function initZombieSurvival(stage) {
         zombies.push({
           x: sx,
           y: sy,
-          hp: isBoss ? 30 : 3,
-          maxHp: isBoss ? 30 : 3,
+          hp: isBoss ? 35 : 3,
+          maxHp: isBoss ? 35 : 3,
           speed: isBoss ? 1.1 : 1.7 + Math.random() * 0.7,
           isBoss,
           r: isBoss ? 32 : 18
@@ -83,7 +98,7 @@ function initZombieSurvival(stage) {
       }
     }
 
-    // Draw Loot Boxes
+    // Draw Loot
     loot.forEach(l => {
       ctx.font = '22px Inter';
       ctx.fillText('📦', l.x, l.y);
@@ -98,7 +113,7 @@ function initZombieSurvival(stage) {
     });
     loot = loot.filter(l => !l.collected);
 
-    // Draw Bullets & Collisions
+    // Draw Bullets
     bullets.forEach(b => {
       b.x += b.vx; b.y += b.vy;
       ctx.fillStyle = '#fde047';
@@ -141,17 +156,54 @@ function initZombieSurvival(stage) {
       }
     });
 
-    // Draw Stickman Runner Player
-    ctx.font = '32px Inter';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🏃', player.x, player.y);
+    // --- DRAW ANIMATED STICKMAN WITH RED HEADBAND & PISTOL ---
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    const aimAngle = nearestZombie ? Math.atan2(nearestZombie.y - player.y, nearestZombie.x - player.x) : 0;
+
+    // Head & Red Headband
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(0, -14, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ef4444'; // Red headband
+    ctx.fillRect(-8, -17, 16, 4);
+
+    // Torso
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, -7);
+    ctx.lineTo(0, 10);
+    ctx.stroke();
+
+    // Running Legs (animated with Math.sin)
+    const legCycle = Math.sin(animTick) * 12;
+    ctx.beginPath();
+    ctx.moveTo(0, 10);
+    ctx.lineTo(-8 + legCycle, 24);
+    ctx.moveTo(0, 10);
+    ctx.lineTo(8 - legCycle, 24);
+    ctx.stroke();
+
+    // Arms & Pistol pointing at zombies
+    ctx.save();
+    ctx.rotate(aimAngle);
+    ctx.beginPath();
+    ctx.moveTo(0, -2);
+    ctx.lineTo(16, -2);
+    ctx.stroke();
+    // Gun barrel
+    ctx.fillStyle = '#fde047';
+    ctx.fillRect(14, -5, 8, 4);
+    ctx.restore();
+
+    ctx.restore();
 
     if (!alive) {
       ctx.fillStyle = 'rgba(0,0,0,0.85)';
       ctx.fillRect(0, 0, w, h);
       ctx.fillStyle = '#fff';
       ctx.font = '900 28px Inter';
+      ctx.textAlign = 'center';
       ctx.fillText(`Overrun! Total Kills: ${kills}`, w / 2, h / 2 - 15);
       ctx.font = '700 15px Inter';
       ctx.fillStyle = '#fde047';
