@@ -3305,7 +3305,6 @@ function initStickRun(stage) {
   };
 }
 
-
 // ----------------------------------------------------
 // TINY CAFÉ (Cute Cartoon & Cozy Café Edition)
 // ----------------------------------------------------
@@ -4535,7 +4534,7 @@ function initTinyCafe(stage) {
         </div>
       </main>
 
-      <section class="relative z-20 flex flex-col shadow-[0_-8px_20px_rgba(35,18,8,0.35)]">
+      <section class="relative z-20 flex flex-col shadow-[0_-8px_20px_rgba(35,18,8,0.35)] pb-10 sm:pb-4">
         <div class="counter-surface px-3 py-2 sm:px-5 sm:py-2.5 flex items-center justify-between gap-2">
           <button id="btn-clear-tray" class="cartoon-btn bg-[#e64848] hover:bg-[#f25c5c] text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl font-display font-bold text-xs sm:text-sm border-2 border-[#ffc2c2] flex flex-col sm:flex-row items-center gap-1 shrink-0">
             <span class="text-base sm:text-lg">🗑️</span>
@@ -4558,7 +4557,7 @@ function initTinyCafe(stage) {
           </button>
         </div>
 
-        <div class="counter-body px-2.5 py-2.5 sm:px-5 sm:py-3.5">
+        <div class="counter-body px-2.5 py-2.5 sm:px-5 sm:py-3.5 pb-10 sm:pb-4">
           <div id="stations-grid" class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 max-w-4xl mx-auto"></div>
         </div>
       </section>
@@ -4675,7 +4674,7 @@ function initTinyCafe(stage) {
         </div>
       </div>
 
-      <div id="toast-box" class="hidden fixed top-16 left-1/2 transform -translate-x-1/2 z-[70] bg-[#3b2314] text-[#fffaf2] border-2 border-[#ffd15c] px-4 py-2 rounded-2xl shadow-xl font-display text-xs sm:text-sm flex items-center gap-2">
+      <div id="toast-box" class="hidden absolute top-16 left-1/2 transform -translate-x-1/2 z-[70] bg-[#3b2314] text-[#fffaf2] border-2 border-[#ffd15c] px-4 py-2 rounded-2xl shadow-xl font-display text-xs sm:text-sm flex items-center gap-2">
         <span id="toast-icon">✨</span>
         <span id="toast-msg">Notification</span>
       </div>
