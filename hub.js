@@ -358,7 +358,8 @@ const GAMES = [
   { id: 'towerstack', num: 14, name: 'Tower Stack', cat: 'Action', icon: '🏗️', envName: 'Twilight Skyline to Stratosphere', bg: 'linear-gradient(180deg, #090d16 0%, #1e1b4b 45%, #6d28d9 80%, #f43f5e 100%)', theme: 'skyline_climb' },
   { id: 'carracing', num: 15, name: 'Car Racing', cat: 'Racing', icon: '🏎️', envName: 'Neon Sunset Canyon Highway', bg: 'linear-gradient(180deg, #0f0722 0%, #3b0764 42%, #be123c 55%, #090a0f 56%)', theme: 'synth_highway' },
   { id: 'brickbreaker', num: 16, name: 'Brick Breaker', cat: 'Racing', icon: '🧱', envName: 'Cosmic Synthwave Core', bg: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #03050a 100%)', theme: 'cosmic_core' },
-  { id: 'stickrun', num: 17, name: 'Stick Run', cat: 'Runner', icon: '🏃', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' }
+  { id: 'stickrun', num: 17, name: 'Stick Run', cat: 'Runner', icon: '🏃', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' },
+  { id: 'tiny-cafe', num: 18, name: 'Tiny Café', cat: 'Strategy', icon: '☕', envName: 'Cozy Time-Management Café', bg: 'linear-gradient(180deg, #78350f 0%, #451a03 55%, #1c0a00 100%)', theme: 'cafe_warm' }
 ];
 
 let activeGameId = null;
@@ -467,7 +468,7 @@ const BgEngine = (() => {
         ctx.lineTo(bx + 130, h); ctx.lineTo(bx - 130, h);
         ctx.closePath(); ctx.fill();
       }
-    } else if (theme === 'cosmic_core' || theme === 'skyline_climb' || theme === 'hub') {
+    } else {
       particles.forEach(p => {
         p.y += p.vy * 0.35;
         if (p.y < -10) p.y = h + 10;
@@ -567,7 +568,8 @@ function launchGame(id) {
     towerstack: initTowerStack,
     carracing: initCarRacing,
     brickbreaker: initBrickBreaker,
-    stickrun: initStickRun
+    stickrun: initStickRun,
+    'tiny-cafe': initTinyCafe
   };
 
   if (runners[id]) {
