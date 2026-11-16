@@ -5,7 +5,7 @@ function initTinyCafe(stage) {
       <div id="cafe-intro-clouds" class="absolute inset-0 z-50 bg-sky-900 flex flex-col items-center justify-center transition-transform duration-1000">
         <div class="text-5xl mb-3 animate-bounce">🧾🍳☕</div>
         <h2 class="text-xl font-black text-amber-300 mb-1">Tiny Café &amp; Pro Bistro</h2>
-        <p class="text-xs text-sky-200 mb-4 text-center max-w-xs">Polished top bar, instant station tabs, and sticky serve buttons!</p>
+        <p class="text-xs text-sky-200 mb-4 text-center max-w-xs">Clean top bar, instant station tabs, and sticky serve buttons!</p>
         <button onclick="startCafeShift()" class="px-6 py-3 bg-amber-500 text-slate-950 font-black rounded-xl shadow-xl hover:scale-105 transition text-xs">Start Bistro Shift 🚀</button>
       </div>
 
@@ -25,10 +25,10 @@ function initTinyCafe(stage) {
         </div>
       </div>
 
-      <!-- Polished Top Bar (No Empty Gaps: Hub | Coins & Day Goal | Settings) -->
+      <!-- Polished Top Bar (Clean Intro Gap Removed) -->
       <div class="flex items-center justify-between w-full bg-black/80 px-3 py-2 border-b border-white/10 shrink-0 text-xs">
         <button onclick="location.reload()" class="bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-lg font-bold text-slate-200 active:scale-95 transition">← Hub</button>
-        <div class="flex items-center gap-3 font-black">
+        <div id="top-stats-container" class="flex items-center gap-3 font-black opacity-0 transition-opacity duration-500">
           <span id="cafe-coins" class="text-amber-400">🪙 500</span>
           <span id="day-goal-text" class="text-cyan-300">📅 DAY 1 (0/10)</span>
         </div>
@@ -93,6 +93,11 @@ function initTinyCafe(stage) {
       cloudEl.style.transform = 'translateY(-100%)';
       setTimeout(() => cloudEl.remove(), 1000);
     }
+    
+    // Reveal top stats cleanly once shift starts
+    const topStats = document.getElementById('top-stats-container');
+    if (topStats) topStats.classList.remove('opacity-0');
+
     if (typeof AudioFX !== 'undefined') AudioFX.coin();
     window.spawnNextCustomer();
     renderWorkspace();
