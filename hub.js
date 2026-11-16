@@ -1,4 +1,3 @@
-// Toggle Assistive Touch Fox Menu
 const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal');
 const closeFoxBtn = document.getElementById('close-fox-menu');
@@ -19,7 +18,6 @@ if (closeFoxBtn && foxModal) {
   };
 }
 
-// Make the Assistive Touch Fox draggable anywhere on screen
 if (foxWidget) {
   let isDragging = false;
   let startX, startY, initialX, initialY;
@@ -262,7 +260,6 @@ function syncFullscreenLabel() {
 document.addEventListener('fullscreenchange', syncFullscreenLabel);
 document.addEventListener('webkitfullscreenchange', syncFullscreenLabel);
 
-// Background Music Auto Pause/Resume on Browser Tab / Window Focus Loss
 document.addEventListener('visibilitychange', () => {
   const bgm = document.getElementById('bgm-audio');
   if (!bgm) return;
@@ -354,7 +351,7 @@ const GAMES = [
   { id: 'tictactoe', num: 7, name: 'Tic-Tac-Toe', cat: 'Puzzle', icon: '❌', envName: 'Chalkboard & Neon Laser Grid', bg: 'radial-gradient(circle at 50% 50%, #111827 0%, #060913 100%)', theme: 'neon_chalk' },
   { id: 'numberguess', num: 8, name: 'Number Guess', cat: 'Puzzle', icon: '🔢', envName: 'Cryptographic Matrix Vault', bg: 'radial-gradient(circle at 50% 30%, #052e16 0%, #02120a 70%, #000804 100%)', theme: 'matrix_vault' },
   { id: 'wordscape', num: 9, name: 'Wordscape Pro', cat: 'Puzzle', icon: '📝', envName: 'Sunset Mountain Valley Sky', bg: 'linear-gradient(180deg, #1e1b4b 0%, #4c1d95 38%, #be185d 75%, #f59e0b 100%)', theme: 'sunset_valley' },
-  { id: 'pianotiles', num: 10, name: 'Piano Tiles', cat: 'Action', icon: '🎹', envName: 'Grand Spotlight Concert Hall', bg: 'radial-gradient(circle at 50% 0%, #312e81 0%, #0f172a 55%, #020617 100%)', theme: 'concert_hall' },
+  { id: 'basketball', num: 10, name: 'Basketball Hoops', cat: 'Action', icon: '🏀', envName: 'Neon Streetball Court', bg: 'radial-gradient(circle at 50% 0%, #7c2d12 0%, #1e1b4b 55%, #020617 100%)', theme: 'streetball_court' },
   { id: 'fruitmaster', num: 11, name: 'Fruit Master', cat: 'Action', icon: '🍉', envName: 'Tropical Bamboo & Sakura Dojo', bg: 'linear-gradient(160deg, #14532d 0%, #1e3a2f 45%, #3f2e21 100%)', theme: 'bamboo_dojo' },
   { id: 'whackamole', num: 12, name: 'Whack-a-Mole', cat: 'Action', icon: '🔨', envName: 'Sunlit Meadow & Garden Hills', bg: 'linear-gradient(180deg, #0284c7 0%, #38bdf8 42%, #16a34a 43%, #14532d 100%)', theme: 'sunny_meadow' },
   { id: 'cybersnake', num: 13, name: 'Cyber Snake', cat: 'Action', icon: '🐍', envName: 'Original Version Preserved', bg: 'radial-gradient(circle at 50% 50%, #0f172a 0%, #090a10 100%)', theme: 'preserved', locked: true },
@@ -458,12 +455,12 @@ const BgEngine = (() => {
         ctx.arc(cx + 52, cy, 26, 0, Math.PI * 2);
         ctx.fill();
       }
-    } else if (theme === 'concert_hall') {
+    } else if (theme === 'streetball_court') {
       for (let i = 0; i < 4; i++) {
         const bx = w * (0.2 + i * 0.2) + Math.sin(tick * 0.7 + i) * 35;
         const grad = ctx.createLinearGradient(bx, 0, bx, h);
-        grad.addColorStop(0, 'rgba(129, 140, 248, 0.18)');
-        grad.addColorStop(1, 'rgba(129, 140, 248, 0)');
+        grad.addColorStop(0, 'rgba(249, 115, 22, 0.18)');
+        grad.addColorStop(1, 'rgba(249, 115, 22, 0)');
         ctx.fillStyle = grad;
         ctx.beginPath();
         ctx.moveTo(bx - 30, 0); ctx.lineTo(bx + 30, 0);
@@ -563,7 +560,7 @@ function launchGame(id) {
     tictactoe: initTicTacToe,
     numberguess: initNumberGuess,
     wordscape: initWordscape,
-    pianotiles: initPianoTiles,
+    basketball: initBasketballHoops,
     fruitmaster: initFruitMaster,
     whackamole: initWhackAMole,
     cybersnake: initCyberSnakePreserved,
