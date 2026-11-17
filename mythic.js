@@ -1329,11 +1329,20 @@ function gameLoop(timestamp) {
 function startGame() {
     sfx.init();
 
-    // Automatically request fullscreen when launching the game from the hub lobby
+    // 1. Automatically lock screen orientation to landscape
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(err => {
+            console.log("Orientation lock not allowed or supported:", err);
+        });
+    }
+
+    // 2. Automatically request browser fullscreen mode on launch
     if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(err => {
             console.log("Fullscreen request blocked or denied:", err);
         });
+    } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
     }
 
     state.running = true;
@@ -1393,7 +1402,7 @@ function triggerGameOver() {
 
 // --- RETURN TO HUB FUNCTION ---
 function returnToHub() {
-    // Navigate back to your hub lobby grid selection
+    // Keeps fullscreen active and immediately navigates back to your hub lobby grid selection
     window.location.href = 'index.html?hub=true';
 }
 
