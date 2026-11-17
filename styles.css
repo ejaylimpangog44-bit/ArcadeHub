@@ -1,4 +1,4 @@
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
@@ -73,15 +73,16 @@ html, body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
 @keyframes floatFade {
-  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.85); }
-  20% { opacity: 1; transform: translate(-50%, -6px) scale(1.05); }
-  80% { opacity: 1; transform: translate(-50%, -26px) scale(1); }
+  0%   { opacity: 0; transform: translate(-50%, 8px) scale(0.85); }
+  20%  { opacity: 1; transform: translate(-50%, -6px) scale(1.05); }
+  80%  { opacity: 1; transform: translate(-50%, -26px) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -42px) scale(0.95); }
 }
 
@@ -157,6 +158,9 @@ html, body {
   padding: 20px;
 }
 
+/* ==========================================================
+   POWER SCREEN & PULL CHAIN FIXES (Restored & Prevented Cut-off)
+   ========================================================== */
 .power-screen {
   position: fixed;
   inset: 0;
@@ -167,18 +171,28 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 20px 20px 60px 20px;
+  overflow-y: auto;
   z-index: 9999;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+.power-screen.powered-on {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .neon-sign-container {
   position: relative;
   width: 100%;
   max-width: 520px;
+  margin: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   cursor: pointer;
+  padding-bottom: 90px;
 }
 
 .neon-sign {
@@ -195,4 +209,40 @@ html, body {
   background: #0d0d12;
   text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
   box-shadow: 0 0 20px rgba(255, 0, 127, 0.4);
+}
+
+.pull-chain-assembly {
+  position: absolute;
+  top: 100%;
+  right: 18%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: top center;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 10;
+}
+
+.chain-wire {
+  width: 3px;
+  height: 75px;
+  background: linear-gradient(to bottom, #666, #ccc);
+}
+
+.pull-handle {
+  width: 26px;
+  height: 44px;
+  background: radial-gradient(circle at 30% 30%, #ffcc00, #b38600);
+  border-radius: 50% 50% 40% 40%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+  cursor: grab;
+  transition: transform 0.1s ease;
+}
+
+.pull-handle:active {
+  cursor: grabbing;
+}
+
+.pull-chain-assembly.pulled {
+  transform: translateY(35px) scaleY(0.85);
 }
