@@ -9,6 +9,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isPoweredOn) return;
     isPoweredOn = true;
 
+    // 1. Automatically trigger Fullscreen & Landscape lock on first touch gesture
+    const docEl = document.documentElement;
+    const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+    if (requestFs) {
+      requestFs.call(docEl).catch(err => console.log("Fullscreen request blocked:", err));
+    }
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+
     playPowerAudio();
 
     pullChain.classList.add("pulled");
