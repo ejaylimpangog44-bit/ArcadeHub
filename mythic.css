@@ -5,7 +5,7 @@
     touch-action: none;
 }
 
-body, html {
+html, body {
     margin: 0;
     padding: 0;
     width: 100%;
@@ -15,10 +15,36 @@ body, html {
     font-family: 'Fredoka', 'Inter', sans-serif;
 }
 
-canvas {
+#landscapeWrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #14170c;
+}
+
+#gameCanvas {
     display: block;
     width: 100%;
     height: 100%;
+}
+
+/* Automatically force landscape layout when phone is held vertically (portrait) */
+@media screen and (orientation: portrait) {
+    #landscapeWrapper {
+        position: fixed;
+        top: 0;
+        left: 100vw;
+        width: 100vh;
+        height: 100vw;
+        transform: rotate(90deg);
+        transform-origin: top left;
+    }
+
+    /* Scope fixed overlays inside the rotated wrapper */
+    #landscapeWrapper > .fixed {
+        position: absolute;
+    }
 }
 
 /* Outlined Arcade Text Effect */
@@ -123,36 +149,4 @@ canvas {
 
 .animate-pop-in {
     animation: popIn 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
-}
-
-/* Ensure canvas and html/body fill the screen completely in landscape */
-html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #000;
-}
-
-#gameCanvas {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain;
-}
-
-/* Force reliable landscape rotation on mobile phones */
-@media screen and (max-width: 900px) and (orientation: portrait) {
-    html, body {
-        width: 100vh !important;
-        height: 100vw !important;
-        transform: rotate(90deg);
-        transform-origin: top left;
-        position: absolute;
-        top: 0;
-        left: 100%;
-        overflow: hidden !important;
-        margin: 0;
-    }
 }
