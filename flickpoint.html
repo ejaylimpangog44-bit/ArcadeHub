@@ -102,6 +102,24 @@
             <div id="target-container"></div>
         </div>
 
+                <!-- Custom Pause Modal Overlay -->
+        <div id="pause-modal" class="view" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 100;">
+            <div class="lab-card-modal text-center" style="max-width: 400px;">
+                <h2 class="modal-title" style="margin-bottom: 8px;">TRIAL PAUSED</h2>
+                <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 24px;">Testing session currently suspended.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="lab-pill-btn primary" onclick="resumeGame()">
+                        RESUME TRIAL
+                    </button>
+                    <button class="lab-pill-btn" onclick="quitToMenu()" style="text-align: center; justify-content: center; color: #ef4444; border-color: #fecaca;">
+                        ABORT TO MENU
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
         <!-- Session Results View -->
         <div id="results-view" class="view">
             <div class="lab-card-modal text-center">
