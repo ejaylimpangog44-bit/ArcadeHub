@@ -523,15 +523,17 @@ html, body {
 
 .power-screen {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
   background-color: #08080c;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
   z-index: 9999;
   transition: opacity 0.6s ease, visibility 0.6s ease;
 }
@@ -544,6 +546,8 @@ html, body {
 
 .neon-sign-container {
   position: relative;
+  width: 100%;
+  max-width: 520px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -552,18 +556,20 @@ html, body {
 }
 
 .neon-sign {
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
   font-family: 'Courier New', monospace;
-  font-size: 3rem;
+  font-size: clamp(1.75rem, 6.5vw, 3rem);
   font-weight: 800;
-  letter-spacing: 6px;
+  letter-spacing: clamp(3px, 1.2vw, 6px);
   color: #222;
   text-transform: uppercase;
   text-shadow: none;
   transition: all 0.3s ease;
-  margin-bottom: 40px;
   border: 2px solid #222;
-  padding: 20px 40px;
-  border-radius: 12px;
+  padding: clamp(24px, 5vh, 40px) 16px;
+  border-radius: 16px;
   background: #0d0d12;
 }
 
@@ -590,7 +596,7 @@ html, body {
 .pull-chain-assembly {
   position: absolute;
   top: 100%;
-  right: 20%;
+  right: 16%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -600,16 +606,16 @@ html, body {
 
 .chain-wire {
   width: 3px;
-  height: 90px;
+  height: clamp(70px, 12vh, 100px);
   background: linear-gradient(to bottom, #666, #ccc);
 }
 
 .pull-handle {
-  width: 20px;
-  height: 35px;
+  width: 24px;
+  height: 40px;
   background: radial-gradient(circle at 30% 30%, #ffcc00, #b38600);
   border-radius: 50% 50% 40% 40%;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
   cursor: grab;
   transition: transform 0.1s ease;
 }
@@ -623,9 +629,10 @@ html, body {
 }
 
 .power-hint {
-  margin-top: 50px;
+  margin-top: clamp(95px, 16vh, 130px);
   color: #777;
   font-size: 0.9rem;
   letter-spacing: 1px;
   font-family: system-ui, sans-serif;
+  text-align: center;
 }
