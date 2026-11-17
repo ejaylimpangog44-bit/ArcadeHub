@@ -15,7 +15,7 @@ html, body {
   color: #f8fafc;
 }
 
-/* Bulletproof Centered Portrait-to-Landscape Rotation Wrapper */
+/* Universal Bulletproof Centered Portrait-to-Landscape Rotation Wrapper */
 @media screen and (orientation: portrait) {
   html, body {
     width: 100vw !important;
@@ -27,8 +27,8 @@ html, body {
     transform: none !important;
   }
 
-  /* Center-pivot scale and rotation to completely prevent address-bar clipping */
-  #app-shell, .power-screen, #login-screen {
+  /* Center-pivot scale and rotation for app shell, game containers, and canvases */
+  #app-shell, .power-screen, #login-screen, .game-container, #landscapeWrapper, body > div {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
