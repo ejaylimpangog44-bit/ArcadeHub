@@ -662,21 +662,82 @@ html, body {
   text-align: center;
 }
 
-/* Universal Auto-Fit Scaling for All Arcade Hub Games & Layouts */
+/* ==========================================================================
+   UNIVERSAL MULTI-GAME FLUID EXPANSION & VIEWPORT FIT (ALL 19 GAMES)
+   ========================================================================== */
+
 @media screen and (orientation: portrait), screen and (max-height: 750px), screen and (max-width: 900px) {
-  /* Automatically shrink all game boards, grids, tables, and inner containers to fit the screen */
+  
+  /* 1. Universal Container Expansion: Stop all game shells and containers from shrinking */
   .game-container, 
   .game-stage, 
   .play-area, 
   .grid-container, 
   #coin-scatter-container,
+  #game-canvas-wrap,
   div[class*="game"],
   div[class*="board"],
-  div[class*="grid"] {
-    max-height: 82vh !important;
-    max-width: 92vw !important;
-    transform: scale(0.82);
-    transform-origin: center center;
-    box-sizing: border-box;
+  div[class*="grid"],
+  div[class*="table"] {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    transform: none !important; /* Removes arbitrary shrunken scaling */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 4px !important;
+  }
+
+  /* 2. Grid & Board Games (Coin Scatter v2, Tic-Tac-Toe, Dama, Chess, Number Guess, Wordscape Pro) */
+  .scatter-grid, 
+  .matrix-grid,
+  .chess-board,
+  .dama-board,
+  .tictactoe-grid,
+  table {
+    width: auto !important;
+    height: auto !important;
+    max-width: 98vw !important;
+    max-height: 92vh !important;
+    object-fit: contain !important;
+  }
+
+  /* 3. Card Games (Speed Solitaire, Blackjack21, High-Low) */
+  .cards-wrapper, 
+  .card-table, 
+  .dealer-area, 
+  .player-hand {
+    width: 100% !important;
+    max-width: 98vw !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  /* 4. Action & Canvas Games (Mythic Survivors, Cyber Snake, Brick Breaker, Fruit Master, Basketball Hoops, Car Racing, Stick Run, Tower Stack, Whack-a-Mole) */
+  canvas, 
+  .game-canvas,
+  #gameCanvas {
+    width: auto !important;
+    height: auto !important;
+    max-width: 100vw !important;
+    max-height: 95vh !important;
+    object-fit: contain !important;
+  }
+
+  /* 5. Simulation / Management Games (Tiny Café) */
+  .cafe-container, 
+  .cafe-counter, 
+  .management-stage {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 98vw !important;
+    max-height: 94vh !important;
   }
 }
