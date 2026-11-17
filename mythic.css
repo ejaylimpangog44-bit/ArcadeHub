@@ -141,3 +141,18 @@ html, body {
     height: 100% !important;
     object-fit: contain;
 }
+
+/* Force reliable landscape rotation on mobile phones */
+@media screen and (max-width: 900px) and (orientation: portrait) {
+    html, body {
+        width: 100vh !important;
+        height: 100vw !important;
+        transform: rotate(90deg);
+        transform-origin: top left;
+        position: absolute;
+        top: 0;
+        left: 100%;
+        overflow: hidden !important;
+        margin: 0;
+    }
+}
