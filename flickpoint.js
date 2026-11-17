@@ -1,4 +1,4 @@
-// Universal Fullscreen Toggle Function (for your settings button or shortcuts)
+// Universal Fullscreen Toggle matching your Hub implementation
 function toggleFullScreen() {
     const docEl = document.documentElement;
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -10,8 +10,8 @@ function toggleFullScreen() {
     } else {
         if (document.exitFullscreen) {
             document.exitFullscreen().catch(() => {});
-        } else if (docEl.webkitExitFullscreen) {
-            docEl.webkitExitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
         }
     }
 }
