@@ -674,18 +674,44 @@ html, body {
   position: relative;
 }
 
-/* When a PORTRAIT game is active */
-#app-shell.force-portrait {
-  max-width: 480px !important;
-  max-height: 100vh !important;
-  margin: 0 auto !important;
-  display: flex !important;
-  flex-direction: column !important;
+/* When a PORTRAIT game is active: Force full screen portrait layout */
+html.force-portrait-mode,
+body.force-portrait-mode {
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
   transform: none !important;
 }
 
-/* When a LANDSCAPE game is active on mobile */
+#app-shell.force-portrait {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transform: none !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 50;
+}
+
+/* When a LANDSCAPE game or Hub is active on mobile in portrait orientation: Rotate to landscape */
 @media screen and (orientation: portrait) {
+  html.force-landscape-mode,
+  body.force-landscape-mode {
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
   #app-shell.force-landscape {
     position: fixed !important;
     top: 50% !important;
@@ -695,10 +721,11 @@ html, body {
     transform: translate(-50%, -50%) rotate(90deg) !important;
     transform-origin: center center !important;
     overflow: hidden !important;
+    z-index: 50;
   }
 }
 
-/* If already in landscape natively, landscape games fill the screen normally */
+/* Native landscape display */
 @media screen and (orientation: landscape) {
   #app-shell.force-landscape {
     width: 100vw !important;
