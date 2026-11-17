@@ -1,3 +1,21 @@
+// Universal Fullscreen Toggle Function (for your settings button or shortcuts)
+function toggleFullScreen() {
+    const docEl = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (docEl.requestFullscreen) {
+            docEl.requestFullscreen().catch(() => {});
+        } else if (docEl.webkitRequestFullscreen) {
+            docEl.webkitRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
+    }
+}
+
 let currentMode = 'flick';
 let currentDifficulty = 'normal';
 let sessionDuration = 30;
@@ -32,6 +50,16 @@ function selectMode(mode, element) {
 }
 
 function startSession() {
+    // Automatically trigger fullscreen on mobile/desktop when starting a session via button tap
+    const docEl = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (docEl.requestFullscreen) {
+            docEl.requestFullscreen().catch(() => {});
+        } else if (docEl.webkitRequestFullscreen) {
+            docEl.webkitRequestFullscreen();
+        }
+    }
+
     currentDifficulty = document.getElementById('difficulty-select').value;
     sessionDuration = parseInt(document.getElementById('duration-select').value);
     
