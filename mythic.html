@@ -1,155 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mythic Survivors - ArcadeHub</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Mythic Survivors — ArcadeHub</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@700;800;900&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="mythic.css">
+    <link rel="stylesheet" href="mythic.css" />
 </head>
-<body class="relative w-full h-full overflow-hidden">
+<body>
+    <!-- Dedicated Landscape Rotation Wrapper -->
+    <div id="landscapeWrapper">
+        <!-- Main Game Canvas -->
+        <canvas id="gameCanvas"></canvas>
 
-    <!-- Main Game Canvas -->
-    <canvas id="gameCanvas"></canvas>
-
-    <!-- TOP HUD OVERLAY -->
-    <div id="hudOverlay" class="pointer-events-none fixed inset-x-0 top-0 z-20 p-2.5 sm:p-4 flex flex-col gap-2">
-        <!-- Top Row: XP Bar + Right Counters -->
-        <div class="flex items-center justify-between gap-2 sm:gap-4 w-full">
-            <!-- Left: Diamond Level Badge + Bright Green XP Bar -->
-            <div class="flex items-center flex-1 max-w-xl relative">
-                <!-- Level Diamond Badge -->
-                <div class="relative z-10 w-9 h-9 sm:w-11 sm:h-11 rotate-45 rounded-md bg-gradient-to-br from-sky-400 via-blue-600 to-indigo-900 border-2 border-sky-200 shadow-lg flex items-center justify-center shrink-0">
-                    <span id="hudLevel" class="-rotate-45 text-white font-extrabold text-sm sm:text-base text-outline-sm">1</span>
+        <!-- Top Gameplay HUD -->
+        <div id="topHud" class="fixed top-0 inset-x-0 z-20 p-2 sm:p-3 flex items-center justify-between pointer-events-none">
+            <!-- Left: Level Badge, XP Bar & Active Skill Slots -->
+            <div class="flex flex-col gap-1.5">
+                <div class="flex items-center gap-2">
+                    <!-- Level Diamond Badge -->
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rotate-45 bg-gradient-to-br from-sky-400 to-blue-700 border-2 border-white shadow-lg flex items-center justify-center rounded-md">
+                        <span id="hudLevel" class="-rotate-45 text-white font-black text-sm sm:text-base text-outline-sm">1</span>
+                    </div>
+                    <!-- XP Progress Bar -->
+                    <div class="w-36 sm:w-56 h-4 sm:h-5 bg-black/75 rounded-full border-2 border-stone-700 p-0.5 shadow-inner overflow-hidden">
+                        <div id="hudXpFill" class="h-full bg-gradient-to-r from-lime-400 to-emerald-500 rounded-full transition-all duration-150" style="width: 0%;"></div>
+                    </div>
                 </div>
-                <!-- XP Track -->
-                <div class="-ml-3 flex-1 h-5 sm:h-6 bg-[#141e46] border-2 border-[#0b1026] rounded-r-full overflow-hidden shadow-inner relative">
-                    <div id="hudXpFill" class="h-full bg-gradient-to-b from-[#4eff26] via-[#1cd909] to-[#119c03] transition-all duration-150 rounded-r-full" style="width: 0%;"></div>
-                    <div class="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent h-1/2 pointer-events-none"></div>
-                </div>
+                <!-- Active Abilities Row -->
+                <div id="activeSlotsBar" class="flex items-center gap-1.5 pl-1"></div>
             </div>
 
-            <!-- Right: Skull Kills, Gold, Gems & Controls -->
-            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
-                <!-- Skull Kill Counter -->
-                <div class="flex items-center gap-1 bg-black/55 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/15">
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-stone-200 drop-shadow" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C7.58 2 4 5.58 4 10c0 2.76 1.4 5.19 3.53 6.63V20a1 1 0 0 0 1 1h6.94a1 1 0 0 0 1-1v-3.37C18.6 15.19 20 12.76 20 10c0-4.42-3.58-8-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
-                    </svg>
-                    <span id="hudKills" class="text-white font-extrabold text-xs sm:text-sm text-outline-sm">× 0</span>
+            <!-- Center-Right: Kills, Gold, Gems & Timer -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="flex items-center gap-1.5 bg-black/65 px-2.5 py-1 rounded-full border border-white/15 text-white font-extrabold text-xs sm:text-sm text-outline-sm">
+                    <span>💀</span>
+                    <span id="hudKills">× 0</span>
                 </div>
-
-                <!-- Gold Coin Counter -->
-                <div class="flex items-center gap-1.5 bg-black/55 backdrop-blur-xs px-2.5 py-1 rounded-full border border-amber-400/25">
-                    <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-yellow-200 via-amber-400 to-amber-600 border border-amber-900 flex items-center justify-center text-[10px] font-black text-amber-950 shadow">$</span>
-                    <span id="hudGold" class="text-white font-extrabold text-xs sm:text-sm text-outline-sm">0</span>
+                <div class="flex items-center gap-1 bg-black/65 px-2.5 py-1 rounded-full border border-amber-400/30 text-amber-300 font-extrabold text-xs sm:text-sm text-outline-sm">
+                    <span>🪙</span>
+                    <span id="hudGold">0</span>
                 </div>
-
-                <!-- Gem Counter -->
-                <div class="hidden xs:flex sm:flex items-center gap-1.5 bg-black/55 backdrop-blur-xs px-2.5 py-1 rounded-full border border-fuchsia-400/25">
-                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-fuchsia-400 drop-shadow" viewBox="0 0 24 24" fill="currentColor">
-                        <polygon points="12 2 21 9 12 22 3 9"/>
-                    </svg>
-                    <span id="hudGems" class="text-white font-extrabold text-xs sm:text-sm text-outline-sm">0</span>
+                <div class="hidden sm:flex items-center gap-1 bg-black/65 px-2.5 py-1 rounded-full border border-fuchsia-400/30 text-fuchsia-300 font-extrabold text-xs sm:text-sm text-outline-sm">
+                    <span>💎</span>
+                    <span id="hudGems">0</span>
                 </div>
-
-                <!-- Sound Toggle -->
-                <button id="btnMute" class="pointer-events-auto w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 flex items-center justify-center text-white transition active:scale-90" title="Toggle Audio">
-                    <svg id="iconSoundOn" class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                        <path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                <div class="bg-black/75 px-3 py-1 rounded-full border border-white/20 text-white font-black text-xs sm:text-sm tracking-wider text-outline-sm">
+                    <span id="hudTimer">00:00</span>
+                </div>
+                <!-- Sound Toggle Button -->
+                <button id="btnMute" class="pointer-events-auto w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/75 hover:bg-black border border-white/25 flex items-center justify-center text-white shadow active:scale-95 transition">
+                    <svg id="iconSoundOn" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zm4.54 3.46a5 5 0 010 7.07m2.83-9.9a9 9 0 010 12.73" />
                     </svg>
-                    <svg id="iconSoundOff" class="w-4 h-4 sm:w-5 sm:h-5 hidden text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                        <path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+                    <svg id="iconSoundOff" class="w-4 h-4 sm:w-5 sm:h-5 hidden text-red-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zm12 4l-6 6m0-6l6 6" />
                     </svg>
                 </button>
             </div>
         </div>
 
-        <!-- Second Row: Active Skill Slots & Timer -->
-        <div class="flex items-center justify-between w-full">
-            <!-- Active Ability Slots -->
-            <div id="activeSlotsBar" class="flex items-center gap-1.5 bg-black/55 border border-white/20 rounded-xl p-1 backdrop-blur-xs">
-                <!-- Populated dynamically with equipped ability icons -->
+        <!-- Start Screen Overlay -->
+        <div id="startScreen" class="fixed inset-0 z-30 bg-black/65 backdrop-blur-[2px] flex flex-col items-center justify-center p-4 text-center">
+            <div class="px-3.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 font-extrabold text-[11px] sm:text-xs tracking-widest uppercase mb-2">
+                ArcadeHub Original
             </div>
+            <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight text-outline mb-2">
+                MYTHIC <span class="text-amber-400">SURVIVORS</span>
+            </h1>
+            <p class="max-w-md text-stone-200 font-semibold text-xs sm:text-sm mb-4 leading-relaxed">
+                Slay endless hordes of undead walkers &amp; giant brutes, harvest glowing XP gems, and evolve devastating abilities!
+            </p>
 
-            <!-- Survival Timer -->
-            <div class="bg-black/50 border border-white/15 px-3 py-0.5 rounded-full text-amber-200 font-bold text-xs sm:text-sm text-outline-sm tracking-wider">
-                <span id="hudTimer">00:00</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- LEVEL UP MODAL OVERLAY -->
-    <div id="levelUpModal" class="hidden fixed inset-0 z-40 bg-black/82 backdrop-blur-xs flex flex-col items-center justify-center px-2 sm:px-6 py-4">
-        <!-- Golden Ribbon Header -->
-        <div class="gold-ribbon px-8 sm:px-14 py-1.5 sm:py-2 rounded-sm mb-2 sm:mb-3 animate-pop-in">
-            <h2 class="text-white font-black text-2xl sm:text-4xl tracking-wide text-outline">Level Up</h2>
-        </div>
-
-        <!-- Yellow Subtitle -->
-        <p class="text-[#ffdf38] font-extrabold text-base sm:text-xl mb-3 sm:mb-5 text-outline-sm tracking-wide">
-            Choose a new ability!
-        </p>
-
-        <!-- 3 Vertical Banner Ability Cards Container -->
-        <div id="cardsContainer" class="grid grid-cols-3 gap-2 sm:gap-5 w-full max-w-4xl items-stretch">
-            <!-- Cards generated dynamically by JS -->
-        </div>
-    </div>
-
-    <!-- START SCREEN OVERLAY -->
-    <div id="startScreen" class="fixed inset-0 z-50 bg-gradient-to-b from-black/80 via-black/65 to-black/85 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center">
-        <div class="mb-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-extrabold tracking-widest uppercase">
-            ArcadeHub Original
-        </div>
-        <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight text-outline mb-2">
-            MYTHIC <span class="text-[#ffdf38]">SURVIVORS</span>
-        </h1>
-        <p class="text-stone-200 text-sm sm:text-base max-w-md mb-7 font-medium">
-            Slay endless hordes of undead walkers &amp; giant brutes, harvest glowing XP gems, and evolve devastating abilities!
-        </p>
-        <div class="mb-5 inline-block text-amber-300 font-bold text-sm cursor-pointer hover:underline tracking-wide bg-black/40 px-4 py-2 rounded-xl border border-amber-400/30 transition-all" onclick="returnToHub()">
-            ← RETURN TO ARCADEHUB
-        </div>
-        <button id="btnStartGame" class="group relative px-10 py-4 rounded-2xl bg-gradient-to-b from-[#3ae823] to-[#139c06] hover:from-[#4eff36] hover:to-[#18b809] border-2 border-[#a8ff9e] shadow-[0_6px_0_#095202,0_12px_24px_rgba(0,0,0,0.6)] active:translate-y-1 active:shadow-[0_2px_0_#095202] transition-all cursor-pointer">
-            <span class="text-white font-black text-xl sm:text-2xl tracking-wider text-outline">PLAY NOW</span>
-        </button>
-
-        <div class="mt-7 flex flex-wrap items-center justify-center gap-4 text-xs text-stone-300 font-semibold">
-            <span class="bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">🕹️ Drag Anywhere / WASD / Arrows</span>
-            <span class="bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">⚔️ Auto-Attack &amp; Ability Combos</span>
-        </div>
-    </div>
-
-    <!-- GAME OVER SCREEN OVERLAY -->
-    <div id="gameOverScreen" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-        <div class="bg-gradient-to-b from-stone-800 to-stone-900 border-2 border-amber-500/50 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl animate-pop-in">
-            <h2 class="text-3xl sm:text-4xl font-black text-rose-500 text-outline mb-1">DEFEATED</h2>
-            <p class="text-stone-300 text-sm mb-6 font-semibold">The horde overwhelmed your survivor!</p>
-
-            <div class="grid grid-cols-2 gap-3 mb-6 text-left">
-                <div class="bg-black/45 p-3 rounded-xl border border-white/10">
-                    <div class="text-xs text-stone-400 font-bold uppercase">Time Survived</div>
-                    <div id="statTime" class="text-xl font-black text-white">00:00</div>
-                </div>
-                <div class="bg-black/45 p-3 rounded-xl border border-white/10">
-                    <div class="text-xs text-stone-400 font-bold uppercase">Level Reached</div>
-                    <div id="statLevel" class="text-xl font-black text-sky-400">1</div>
-                </div>
-                <div class="bg-black/45 p-3 rounded-xl border border-white/10">
-                    <div class="text-xs text-stone-400 font-bold uppercase">Enemies Slain</div>
-                    <div id="statKills" class="text-xl font-black text-emerald-400">0</div>
-                </div>
-                <div class="bg-black/45 p-3 rounded-xl border border-white/10">
-                    <div class="text-xs text-stone-400 font-bold uppercase">Gold Earned</div>
-                    <div id="statGold" class="text-xl font-black text-amber-400">0</div>
-                </div>
-            </div>
-
-            <button id="btnRestartGame" class="w-full py-3.5 rounded-2xl bg-gradient-to-b from-[#ffdf38] to-[#e09200] hover:brightness-110 border-2 border-amber-100 shadow-[0_5px_0_#784800] active:translate-y-1 transition-all cursor-pointer">
-                <span class="text-white font-black text-xl text-outline">PLAY AGAIN</span>
+            <button onclick="returnToHub()" class="mb-3 px-4 py-1.5 rounded-xl bg-stone-900/90 hover:bg-stone-800 border border-amber-400/40 text-amber-300 font-extrabold text-xs tracking-wider uppercase transition active:scale-95">
+                ← Return to ArcadeHub
             </button>
+
+            <button id="btnStartGame" class="px-8 py-3 sm:px-10 sm:py-3.5 rounded-2xl bg-gradient-to-b from-lime-400 to-green-600 hover:from-lime-300 hover:to-green-500 border-b-4 border-green-800 text-white font-black text-lg sm:text-xl tracking-wide text-outline shadow-xl active:translate-y-0.5 transition cursor-pointer">
+                PLAY NOW
+            </button>
+
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs font-bold text-stone-300">
+                <span class="bg-black/60 px-3 py-1 rounded-lg border border-white/10">🕹️ Drag Anywhere / WASD / Arrows</span>
+                <span class="bg-black/60 px-3 py-1 rounded-lg border border-white/10">⚔️ Auto-Attack &amp; Ability Combos</span>
+            </div>
+        </div>
+
+        <!-- Level Up Ability Selection Modal -->
+        <div id="levelUpModal" class="hidden fixed inset-0 z-40 bg-black/75 backdrop-blur-xs flex flex-col items-center justify-center p-3 sm:p-5">
+            <div class="gold-ribbon px-7 py-1.5 sm:px-10 sm:py-2 rounded-xl mb-3 sm:mb-5">
+                <h2 class="text-white font-black text-lg sm:text-2xl tracking-wider uppercase text-outline">
+                    Level Up!
+                </h2>
+            </div>
+            <div id="cardsContainer" class="w-full max-w-3xl grid grid-cols-3 gap-2.5 sm:gap-5 px-1"></div>
+        </div>
+
+        <!-- Game Over Screen Overlay -->
+        <div id="gameOverScreen" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center">
+            <h2 class="text-3xl sm:text-5xl font-black text-red-500 tracking-wide text-outline mb-1">
+                YOU FALLEN
+            </h2>
+            <p class="text-stone-300 font-bold text-xs sm:text-sm mb-4">The horde overwhelmed your defenses</p>
+
+            <div class="grid grid-cols-4 gap-2 sm:gap-3 bg-stone-900/90 border border-white/15 rounded-2xl p-3 sm:p-4 mb-5 w-full max-w-md">
+                <div class="flex flex-col">
+                    <span class="text-[10px] sm:text-xs text-stone-400 font-bold uppercase">Survived</span>
+                    <span id="statTime" class="text-white font-black text-sm sm:text-lg">00:00</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] sm:text-xs text-stone-400 font-bold uppercase">Level</span>
+                    <span id="statLevel" class="text-sky-400 font-black text-sm sm:text-lg">1</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] sm:text-xs text-stone-400 font-bold uppercase">Kills</span>
+                    <span id="statKills" class="text-red-400 font-black text-sm sm:text-lg">0</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] sm:text-xs text-stone-400 font-bold uppercase">Gold</span>
+                    <span id="statGold" class="text-amber-400 font-black text-sm sm:text-lg">0</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="returnToHub()" class="px-5 py-3 rounded-xl bg-stone-800 hover:bg-stone-700 border border-white/20 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition active:scale-95">
+                    Lobby
+                </button>
+                <button id="btnRestartGame" class="px-7 py-3 rounded-xl bg-gradient-to-b from-amber-400 to-orange-600 hover:from-amber-300 hover:to-orange-500 border-b-4 border-orange-800 text-white font-black text-sm sm:text-base uppercase tracking-wider text-outline shadow-lg active:translate-y-0.5 transition">
+                    Play Again
+                </button>
+            </div>
         </div>
     </div>
 
