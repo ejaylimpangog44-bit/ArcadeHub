@@ -607,16 +607,20 @@ window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('hub') === 'true') {
     const powerScreen = document.getElementById('power-screen');
+    const loginScreen = document.getElementById('login-screen');
     const appShell = document.getElementById('app-shell');
+    const headerName = document.getElementById('header-player-name');
     
-    if (powerScreen) {
-      powerScreen.style.display = 'none'; // Instantly hide the power-screen intro
-    }
-    if (appShell) {
-      appShell.classList.remove('hidden');
-    }
+    // Hide BOTH startup overlays
+    if (powerScreen) powerScreen.style.display = 'none';
+    if (loginScreen) loginScreen.classList.add('hidden');
     
+    // Reveal the main app shell and set the player name
+    if (appShell) appShell.classList.remove('hidden');
     window.playerName = 'AJ';
+    if (headerName) headerName.textContent = window.playerName;
+    
+    // Jump straight to the game card selection lobby
     openHubHome();
   }
 });
