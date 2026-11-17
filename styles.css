@@ -661,3 +661,22 @@ html, body {
   font-family: system-ui, sans-serif;
   text-align: center;
 }
+
+/* Universal Auto-Fit Scaling for All Arcade Hub Games & Layouts */
+@media screen and (orientation: portrait), screen and (max-height: 750px), screen and (max-width: 900px) {
+  /* Automatically shrink all game boards, grids, tables, and inner containers to fit the screen */
+  .game-container, 
+  .game-stage, 
+  .play-area, 
+  .grid-container, 
+  #coin-scatter-container,
+  div[class*="game"],
+  div[class*="board"],
+  div[class*="grid"] {
+    max-height: 82vh !important;
+    max-width: 92vw !important;
+    transform: scale(0.82);
+    transform-origin: center center;
+    box-sizing: border-box;
+  }
+}
