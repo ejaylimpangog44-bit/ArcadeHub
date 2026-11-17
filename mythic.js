@@ -163,7 +163,6 @@ function isPortraitRotated() {
 
 function resizeCanvas() {
     if (isPortraitRotated()) {
-        // Swap dimensions to match the CSS-rotated 100vh x 100vw landscape wrapper
         width = window.innerHeight;
         height = window.innerWidth;
     } else {
@@ -177,7 +176,6 @@ window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 60));
 resizeCanvas();
 
-// Convert screen touch coordinates into rotated landscape coordinates
 function getGameCoords(clientX, clientY) {
     if (isPortraitRotated()) {
         return {
@@ -472,7 +470,6 @@ function getNearestEnemy(maxRange = 650) {
 
 // --- TRIGGER PLAYER ABILITIES ---
 function updateAbilities(dt) {
-    // 1. Crimson Cleave
     if (state.abilities.crimson_cleave) {
         const lvl = state.abilities.crimson_cleave;
         player.cooldowns.crimson_cleave -= dt;
@@ -511,7 +508,6 @@ function updateAbilities(dt) {
         }
     }
 
-    // 2. Nightfall Flip
     if (state.abilities.nightfall_flip) {
         const lvl = state.abilities.nightfall_flip;
         player.cooldowns.nightfall_flip -= dt;
@@ -543,7 +539,6 @@ function updateAbilities(dt) {
         }
     }
 
-    // 3. Reaper Spiral
     if (state.abilities.reaper_spiral) {
         const lvl = state.abilities.reaper_spiral;
         player.cooldowns.reaper_spiral -= dt;
@@ -569,7 +564,6 @@ function updateAbilities(dt) {
         }
     }
 
-    // 4. Storm Arc
     if (state.abilities.chain_lightning) {
         const lvl = state.abilities.chain_lightning;
         player.cooldowns.chain_lightning -= dt;
@@ -710,7 +704,6 @@ function selectAbility(id) {
     state.lastTimestamp = performance.now();
 }
 
-// --- UPDATE TOP-LEFT ACTIVE SKILL SLOTS ---
 function updateActiveSlotsHUD() {
     const bar = document.getElementById('activeSlotsBar');
     bar.innerHTML = '';
@@ -1349,24 +1342,24 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
+// --- FULLSCREEN & ORIENTATION LOCK HELPER ---
+function triggerGameFullscreenAndLock() {
+    const docEl = document.documentElement;
+    const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+    if (requestFs) {
+        requestFs.call(docEl).catch(err => console.log("Fullscreen request blocked:", err));
+    }
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+    }
+}
+
 // --- START, RESTART & GAME OVER HANDLERS ---
 function startGame() {
     sfx.init();
 
-    // 1. Request browser fullscreen first, then lock hardware orientation once active
-    const docEl = document.documentElement;
-    const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen;
-
-    if (requestFs) {
-        requestFs.call(docEl).then(() => {
-            resizeCanvas();
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').then(() => {
-                    resizeCanvas();
-                }).catch(() => {});
-            }
-        }).catch(() => {});
-    }
+    // Automatically trigger Fullscreen & Landscape lock on game start gesture
+    triggerGameFullscreenAndLock();
 
     state.running = true;
     state.paused = false;
