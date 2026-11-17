@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mythic Survivors - ArcadeHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="mythic.css">
+</head>
+<body class="relative w-full h-full overflow-hidden">
+
+    <!-- Main Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- TOP HUD OVERLAY -->
+    <div id="hudOverlay" class="pointer-events-none fixed inset-x-0 top-0 z-20 p-2.5 sm:p-4 flex flex-col gap-2">
+        <!-- Top Row: XP Bar + Right Counters -->
+        <div class="flex items-center justify-between gap-2 sm:gap-4 w-full">
+            <!-- Left: Diamond Level Badge + Bright Green XP Bar -->
+            <div class="flex items-center flex-1 max-w-xl relative">
+                <!-- Level Diamond Badge -->
+                <div class="relative z-10 w-9 h-9 sm:w-11 sm:h-11 rotate-45 rounded-md bg-gradient-to-br from-sky-400 via-blue-600 to-indigo-900 border-2 border-sky-200 shadow-lg flex items-center justify-center shrink-0">
+                    <span id="hudLevel" class="-rotate-45 text-white font-extrabold text-sm sm:text-base text-outline-sm">1</span>
+                </div>
+                <!-- XP Track -->
+                <div class="-ml-3 flex-1 h-5 sm:h-6 bg-[#141e46] border-2 border-[#0b1026] rounded-r-full overflow-hidden shadow-inner relative">
+                    <div id="hudXpFill" class="h-full bg-gradient-to-b from-[#4eff26] via-[#1cd909] to-[#119c03] transition-all duration-150 rounded-r-full" style="width: 0%;"></div>
+                    <div class="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent h-1/2 pointer-events-none"></div>
+                </div>
+            </div>
+
+            <!-- Right: Skull Kills, Gold, Gems & Controls -->
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <!-- Skull Kill Counter -->
+                <div class="flex items-center gap-1 bg-black/55 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/15">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-stone-200 drop-shadow" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C7.58 2 4 5.58 4 10c0 2.76 1.4 5.19 3.53 6.63V20a1 1 0 0 0 1 1h6.94a1 1 0 0 0 1-1v-3.37C18.6 15.19 20 12.76 20 10c0-4.42-3.58-8-8-8zm-2.5 11a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+                    </svg>
+                    <span id="hudKills" class="text-white font-extrabold text-xs sm:text-sm text-outline-sm">× 0</span>
+                </div>
+
+                <!-- Gold Coin Counter -->
+                <div class="flex items-center gap-1.5 bg-black/55 backdrop-blur-xs px-2.5 py-1 rounded-full border border-amber-400/25">
+                    <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-yellow-200 via-amber-400 to-amber-600 border border-amber-900 flex items-center justify-center text-[10px] font-black text-amber-950 shadow">$</span>
+                    <span id="hudGold" class="text-white font-extrabold text-xs sm:text-sm text-outline-sm">0</span>
+                </div>
+
+                <!-- Gem Counter -->
+                <div class="hidden xs:flex sm:flex items-center gap-1.5 bg-black/55 backdrop-blur-xs px-2.5 py-1 rounded-full border border-fuchsia-400/25">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-fuchsia-400 drop-shadow" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="12 2 21 9 12 22 3 9"/>
+                    </svg>
+                    <span id="hudGems" class="text-white font-extrabold text-xs sm:text-sm text-outline-sm">0</span>
+                </div>
+
+                <!-- Sound Toggle -->
+                <button id="btnMute" class="pointer-events-auto w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 flex items-center justify-center text-white transition active:scale-90" title="Toggle Audio">
+                    <svg id="iconSoundOn" class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                    </svg>
+                    <svg id="iconSoundOff" class="w-4 h-4 sm:w-5 sm:h-5 hidden text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Second Row: Active Skill Slots & Timer -->
+        <div class="flex items-center justify-between w-full">
+            <!-- Active Ability Slots -->
+            <div id="activeSlotsBar" class="flex items-center gap-1.5 bg-black/55 border border-white/20 rounded-xl p-1 backdrop-blur-xs">
+                <!-- Populated dynamically with equipped ability icons -->
+            </div>
+
+            <!-- Survival Timer -->
+            <div class="bg-black/50 border border-white/15 px-3 py-0.5 rounded-full text-amber-200 font-bold text-xs sm:text-sm text-outline-sm tracking-wider">
+                <span id="hudTimer">00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEVEL UP MODAL OVERLAY -->
+    <div id="levelUpModal" class="hidden fixed inset-0 z-40 bg-black/82 backdrop-blur-xs flex flex-col items-center justify-center px-2 sm:px-6 py-4">
+        <!-- Golden Ribbon Header -->
+        <div class="gold-ribbon px-8 sm:px-14 py-1.5 sm:py-2 rounded-sm mb-2 sm:mb-3 animate-pop-in">
+            <h2 class="text-white font-black text-2xl sm:text-4xl tracking-wide text-outline">Level Up</h2>
+        </div>
+
+        <!-- Yellow Subtitle -->
+        <p class="text-[#ffdf38] font-extrabold text-base sm:text-xl mb-3 sm:mb-5 text-outline-sm tracking-wide">
+            Choose a new ability!
+        </p>
+
+        <!-- 3 Vertical Banner Ability Cards Container -->
+        <div id="cardsContainer" class="grid grid-cols-3 gap-2 sm:gap-5 w-full max-w-4xl items-stretch">
+            <!-- Cards generated dynamically by JS -->
+        </div>
+    </div>
+
+    <!-- START SCREEN OVERLAY -->
+    <div id="startScreen" class="fixed inset-0 z-50 bg-gradient-to-b from-black/80 via-black/65 to-black/85 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center">
+        <div class="mb-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-extrabold tracking-widest uppercase">
+            ArcadeHub Original
+        </div>
+        <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight text-outline mb-2">
+            MYTHIC <span class="text-[#ffdf38]">SURVIVORS</span>
+        </h1>
+        <p class="text-stone-200 text-sm sm:text-base max-w-md mb-7 font-medium">
+            Slay endless hordes of undead walkers &amp; giant brutes, harvest glowing XP gems, and evolve devastating abilities!
+        </p>
+
+        <button id="btnStartGame" class="group relative px-10 py-4 rounded-2xl bg-gradient-to-b from-[#3ae823] to-[#139c06] hover:from-[#4eff36] hover:to-[#18b809] border-2 border-[#a8ff9e] shadow-[0_6px_0_#095202,0_12px_24px_rgba(0,0,0,0.6)] active:translate-y-1 active:shadow-[0_2px_0_#095202] transition-all cursor-pointer">
+            <span class="text-white font-black text-xl sm:text-2xl tracking-wider text-outline">PLAY NOW</span>
+        </button>
+
+        <div class="mt-7 flex flex-wrap items-center justify-center gap-4 text-xs text-stone-300 font-semibold">
+            <span class="bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">🕹️ Drag Anywhere / WASD / Arrows</span>
+            <span class="bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">⚔️ Auto-Attack &amp; Ability Combos</span>
+        </div>
+    </div>
+
+    <!-- GAME OVER SCREEN OVERLAY -->
+    <div id="gameOverScreen" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+        <div class="bg-gradient-to-b from-stone-800 to-stone-900 border-2 border-amber-500/50 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl animate-pop-in">
+            <h2 class="text-3xl sm:text-4xl font-black text-rose-500 text-outline mb-1">DEFEATED</h2>
+            <p class="text-stone-300 text-sm mb-6 font-semibold">The horde overwhelmed your survivor!</p>
+
+            <div class="grid grid-cols-2 gap-3 mb-6 text-left">
+                <div class="bg-black/45 p-3 rounded-xl border border-white/10">
+                    <div class="text-xs text-stone-400 font-bold uppercase">Time Survived</div>
+                    <div id="statTime" class="text-xl font-black text-white">00:00</div>
+                </div>
+                <div class="bg-black/45 p-3 rounded-xl border border-white/10">
+                    <div class="text-xs text-stone-400 font-bold uppercase">Level Reached</div>
+                    <div id="statLevel" class="text-xl font-black text-sky-400">1</div>
+                </div>
+                <div class="bg-black/45 p-3 rounded-xl border border-white/10">
+                    <div class="text-xs text-stone-400 font-bold uppercase">Enemies Slain</div>
+                    <div id="statKills" class="text-xl font-black text-emerald-400">0</div>
+                </div>
+                <div class="bg-black/45 p-3 rounded-xl border border-white/10">
+                    <div class="text-xs text-stone-400 font-bold uppercase">Gold Earned</div>
+                    <div id="statGold" class="text-xl font-black text-amber-400">0</div>
+                </div>
+            </div>
+
+            <button id="btnRestartGame" class="w-full py-3.5 rounded-2xl bg-gradient-to-b from-[#ffdf38] to-[#e09200] hover:brightness-110 border-2 border-amber-100 shadow-[0_5px_0_#784800] active:translate-y-1 transition-all cursor-pointer">
+                <span class="text-white font-black text-xl text-outline">PLAY AGAIN</span>
+            </button>
+        </div>
+    </div>
+
+    <script src="mythic.js"></script>
+</body>
+</html>

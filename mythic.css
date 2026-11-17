@@ -1,0 +1,126 @@
+* {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #14170c;
+    font-family: 'Fredoka', 'Inter', sans-serif;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Outlined Arcade Text Effect */
+.text-outline {
+    text-shadow:
+        -1.5px -1.5px 0 #000,
+         1.5px -1.5px 0 #000,
+        -1.5px  1.5px 0 #000,
+         1.5px  1.5px 0 #000,
+         0px    2.5px 0 #000;
+}
+
+.text-outline-sm {
+    text-shadow:
+        -1px -1px 0 #000,
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000,
+         0px  1.5px 0 #000;
+}
+
+/* Golden Ribbon Banner for Level Up */
+.gold-ribbon {
+    position: relative;
+    background: linear-gradient(180deg, #ffdf38 0%, #f5a600 100%);
+    border: 3px solid #6b3d00;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.65), inset 0 2px 0 rgba(255,255,255,0.6);
+}
+
+.gold-ribbon::before,
+.gold-ribbon::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    width: 34px;
+    height: 100%;
+    background: linear-gradient(180deg, #e09600 0%, #b87100 100%);
+    border: 2.5px solid #593200;
+    z-index: -1;
+}
+
+.gold-ribbon::before {
+    left: -26px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 28% 50%);
+}
+
+.gold-ribbon::after {
+    right: -26px;
+    clip-path: polygon(0 0, 100% 0, 72% 50%, 100% 100%, 0 100%);
+}
+
+/* Vertical Ability Banner Cards */
+.ability-card {
+    position: relative;
+    transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), filter 0.16s ease;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 91%, 50% 100%, 0% 91%);
+    cursor: pointer;
+}
+
+.ability-card:hover {
+    transform: translateY(-6px) scale(1.025);
+    filter: brightness(1.08);
+}
+
+.ability-card:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+.card-green {
+    background: linear-gradient(180deg, rgba(16, 118, 22, 0.96) 0%, rgba(12, 158, 24, 0.96) 65%, rgba(6, 94, 14, 0.98) 100%);
+}
+
+.card-green-header {
+    background: linear-gradient(180deg, #25d634 0%, #119e1d 100%);
+    border-top: 2px solid #7cff87;
+    border-bottom: 2px solid #08520e;
+}
+
+.card-gold {
+    background: linear-gradient(180deg, rgba(168, 92, 8, 0.96) 0%, rgba(214, 134, 12, 0.96) 65%, rgba(138, 72, 4, 0.98) 100%);
+}
+
+.card-gold-header {
+    background: linear-gradient(180deg, #ff9924 0%, #d96b06 100%);
+    border-top: 2px solid #ffd28c;
+    border-bottom: 2px solid #6e3300;
+}
+
+/* Subtle vertical beam glow behind each card */
+.card-beam-green {
+    background: linear-gradient(180deg, rgba(24, 190, 42, 0.25) 0%, rgba(24, 190, 42, 0.02) 100%);
+}
+
+.card-beam-gold {
+    background: linear-gradient(180deg, rgba(235, 165, 20, 0.25) 0%, rgba(235, 165, 20, 0.02) 100%);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.82) translateY(18px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.animate-pop-in {
+    animation: popIn 0.28s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
