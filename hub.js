@@ -18,45 +18,6 @@ if (closeFoxBtn && foxModal) {
   };
 }
 
-if (foxWidget) {
-  let isDragging = false;
-  let startX, startY, initialX, initialY;
-
-  foxWidget.onpointerdown = (e) => {
-    isDragging = false;
-    startX = e.clientX;
-    startY = e.clientY;
-    initialX = foxWidget.offsetLeft;
-    initialY = foxWidget.offsetTop;
-    foxWidget.setPointerCapture(e.pointerId);
-  };
-
-  foxWidget.onpointermove = (e) => {
-    if (!startX || !startY) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (Math.hypot(dx, dy) > 6) {
-      isDragging = true;
-      foxWidget.style.left = `${initialX + dx}px`;
-      foxWidget.style.top = `${initialY + dy}px`;
-      foxWidget.style.right = 'auto';
-      foxWidget.style.bottom = 'auto';
-    }
-  };
-
-  foxWidget.onpointerup = (e) => {
-    if (!isDragging) {
-      if (foxModal) {
-        foxModal.classList.remove('hidden');
-        foxModal.classList.add('flex');
-      }
-      if (typeof AudioFX !== 'undefined') AudioFX.click();
-    }
-    startX = null;
-    startY = null;
-  };
-}
-
 const AudioFX = (() => {
   let ctx = null;
   let sfxEnabled = true;
@@ -104,214 +65,10 @@ const AudioFX = (() => {
     },
     slice() { playTone(900, 'sawtooth', 0.09, 0.09, 240); },
     hit() { playTone(160, 'square', 0.11, 0.12, 65); },
-    jump() { playTone(280, 'sine', 0.14, 0.1, 620); },
-    note(midi) {
-      const f = 440 * Math.pow(2, (midi - 69) / 12);
-      playTone(f, 'triangle', 0.28, 0.14);
-    }
+    jump() { playTone(280, 'sine', 0.14, 0.1, 620); }
   };
 })();
 
-const SupabaseDB = (() => {
-  const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
-  let client = null;
-
-  function init() {
-    if (window.supabase && !client) {
-      try {
-        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      } catch (e) {}
-    }
-  }
-
-  async function submitScore(gameId, score, playerName = window.playerName || 'AJ') {
-    init();
-    if (!client) return;
-    try {
-      await client.from('high_scores').insert([{ game_id: gameId, score, player_name: playerName, created_at: new Date() }]);
-    } catch (e) {}
-  }
-
-  async function fetchHighScores(gameId) {
-    init();
-    if (!client) return [];
-    try {
-      const { data } = await client.from('high_scores').select('*').eq('game_id', gameId).order('score', { ascending: false }).limit(5);
-      return data || [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  return { submitScore, fetchHighScores };
-})();
-
-let bgmEnabled = true;
-
-function toggleBGM() {
-  bgmEnabled = !bgmEnabled;
-  const bgm = document.getElementById('bgm-audio');
-  const btn = document.getElementById('bgm-toggle-btn');
-  if (bgm) {
-    if (bgmEnabled) {
-      bgm.play().catch(() => {});
-    } else {
-      bgm.pause();
-    }
-  }
-  if (btn) {
-    btn.textContent = bgmEnabled ? 'ON' : 'OFF';
-    btn.className = bgmEnabled
-      ? 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition'
-      : 'px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-extrabold text-xs transition';
-  }
-  AudioFX.click();
-}
-
-function updateBGMVolume(val) {
-  const bgm = document.getElementById('bgm-audio');
-  const label = document.getElementById('bgm-vol-label');
-  if (bgm) bgm.volume = Number(val) / 100;
-  if (label) label.textContent = `${val}%`;
-}
-
-function toggleSFX() {
-  const on = AudioFX.toggle();
-  const btn = document.getElementById('sfx-toggle-btn');
-  if (btn) {
-    btn.textContent = on ? 'ON' : 'OFF';
-    btn.className = on
-      ? 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition'
-      : 'px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-extrabold text-xs transition';
-  }
-  if (on) AudioFX.click();
-}
-
-let qrGenerated = false;
-function openSettingsModal() {
-  AudioFX.click();
-  const modal = document.getElementById('settings-modal');
-  if (!qrGenerated && window.QRCode) {
-    const container = document.getElementById('qrcode-container');
-    if (container) {
-      container.innerHTML = '';
-      new QRCode(container, {
-        text: 'https://arcadehubgames-july12.vercel.app/',
-        width: 170,
-        height: 170,
-        colorDark: '#0f172a',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-      });
-      qrGenerated = true;
-    }
-  }
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
-}
-
-function closeSettingsModal() {
-  AudioFX.click();
-  const modal = document.getElementById('settings-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
-}
-
-function copyHubLink() {
-  navigator.clipboard?.writeText('https://arcadehubgames-july12.vercel.app/');
-  const btn = document.getElementById('copy-link-btn');
-  if (btn) {
-    btn.textContent = '✓ Copied!';
-    setTimeout(() => { btn.textContent = '📋 Copy URL'; }, 1600);
-  }
-  AudioFX.coin();
-}
-
-function toggleFullScreen() {
-  AudioFX.click();
-  const docEl = document.documentElement;
-  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-    if (docEl.requestFullscreen) {
-      docEl.requestFullscreen().catch(() => {});
-    } else if (docEl.webkitRequestFullscreen) {
-      docEl.webkitRequestFullscreen();
-    }
-  } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen().catch(() => {});
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    }
-  }
-}
-
-function syncFullscreenLabel() {
-  const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
-  const label = document.getElementById('fs-label');
-  const icon = document.getElementById('fs-icon');
-  if (label) label.textContent = isFs ? 'Exit Fullscreen Display' : 'Toggle Fullscreen Display';
-  if (icon) icon.textContent = isFs ? '🗗' : '⛶';
-}
-document.addEventListener('fullscreenchange', syncFullscreenLabel);
-document.addEventListener('webkitfullscreenchange', syncFullscreenLabel);
-
-window.playerName = 'AJ';
-const RANDOM_NAMES = ['CyberGamer', 'PixelNinja', 'ArcadeLegend', 'NeonFox', 'RetroMaster', 'BitHero', 'SpeedRunner', 'GlitchWizard'];
-
-function randomizePlayerName() {
-  const randomName = RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)] + Math.floor(10 + Math.random() * 89);
-  document.getElementById('player-name-input').value = randomName;
-}
-
-function submitPlayerName() {
-  const input = document.getElementById('player-name-input').value.trim();
-  if (input) {
-    window.playerName = input;
-  } else {
-    window.playerName = 'Player_' + Math.floor(100 + Math.random() * 899);
-  }
-  document.getElementById('header-player-name').textContent = window.playerName;
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('app-shell').classList.remove('hidden');
-  AudioFX.click();
-  const bgm = document.getElementById('bgm-audio');
-  if (bgm && bgmEnabled) {
-    bgm.volume = 0.5;
-    bgm.play().catch(() => {});
-  }
-  openHubHome();
-}
-
-let userXP = 2118;
-function addXP(amount, x = window.innerWidth / 2, y = window.innerHeight / 2, label = null) {
-  userXP += amount;
-  const lvl = Math.floor(userXP / 350) + 1;
-  const xpEl = document.getElementById('hud-xp');
-  const lvlEl = document.getElementById('hud-lvl');
-  if (xpEl) xpEl.textContent = userXP.toLocaleString();
-  if (lvlEl) lvlEl.textContent = lvl;
-  spawnPopup(label || `+${amount} XP`, x, y, '#fbbf24');
-}
-
-function spawnPopup(text, x, y, color = '#38bdf8') {
-  const el = document.createElement('div');
-  el.className = 'score-popup text-sm sm:text-base tracking-wide';
-  el.style.left = `${x}px`;
-  el.style.top = `${y}px`;
-  el.style.color = color;
-  el.textContent = text;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1100);
-}
-
-/* ==========================================================
-   GAME DATABASE WITH EXPLICIT ORIENTATION TAGS (Portrait / Landscape)
-   ========================================================== */
 const GAMES = [
   // 📱 Portrait Mode Games (14)
   { id: 'solitaire', num: 1, name: 'Speed Solitaire', cat: 'Card', icon: '🃏', orientation: 'portrait', envName: 'Emerald Velvet Casino Table', bg: 'radial-gradient(circle at 50% 35%, #0f5132 0%, #062c1b 65%, #02140c 100%)', theme: 'casino_green' },
@@ -340,126 +97,6 @@ const GAMES = [
 let activeGameId = null;
 let activeCleanup = null;
 
-const BgEngine = (() => {
-  const canvas = document.getElementById('bg-canvas');
-  const ctx = canvas.getContext('2d');
-  let w = 0, h = 0;
-  let theme = 'hub';
-  let particles = [];
-  let tick = 0;
-
-  function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
-  function setTheme(newTheme) {
-    theme = newTheme;
-    particles = [];
-    const count = 42;
-    for (let i = 0; i < count; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: 1.5 + Math.random() * 4,
-        vx: (Math.random() - 0.5) * 0.6,
-        vy: -0.2 - Math.random() * 0.7,
-        phase: Math.random() * Math.PI * 2,
-        char: ['♠','♥','♦','♣'][i % 4]
-      });
-    }
-  }
-
-  function loop() {
-    tick += 0.016;
-    ctx.clearRect(0, 0, w, h);
-
-    if (theme === 'casino_green' || theme === 'vip_table') {
-      ctx.save();
-      ctx.font = '28px Inter';
-      ctx.textAlign = 'center';
-      particles.forEach((p, idx) => {
-        p.y += p.vy * 0.4;
-        if (p.y < -30) p.y = h + 30;
-        if (idx % 4 === 0) {
-          ctx.fillStyle = 'rgba(251, 191, 36, 0.05)';
-          ctx.fillText(p.char, p.x, p.y);
-        } else {
-          ctx.fillStyle = 'rgba(253, 224, 71, 0.14)';
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 0.6, 0, Math.PI * 2); ctx.fill();
-        }
-      });
-      ctx.restore();
-    } else if (theme === 'gold_vault') {
-      particles.forEach(p => {
-        p.y += p.vy * 1.4;
-        p.x += Math.sin(tick + p.phase) * 0.4;
-        if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
-        ctx.fillStyle = 'rgba(251, 191, 36, 0.35)';
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-      });
-    } else if (theme === 'matrix_vault') {
-      ctx.font = '13px "JetBrains Mono", monospace';
-      particles.forEach((p, i) => {
-        p.y += 2.2;
-        if (p.y > h) p.y = -20;
-        ctx.fillStyle = 'rgba(34, 197, 94, 0.22)';
-        ctx.fillText((i + Math.floor(tick * 8)) % 2 === 0 ? '1' : '0', p.x, p.y);
-      });
-    } else if (theme === 'bamboo_dojo') {
-      particles.forEach(p => {
-        p.y += 0.8;
-        p.x += Math.sin(tick * 1.2 + p.phase) * 0.9;
-        if (p.y > h + 15) p.y = -15; p.x = Math.random() * w;
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(tick + p.phase);
-        ctx.fillStyle = 'rgba(244, 114, 182, 0.32)';
-        ctx.beginPath(); ctx.ellipse(0, 0, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
-      });
-    } else if (theme === 'sunny_meadow' || theme === 'stick_world') {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
-      for (let i = 0; i < 6; i++) {
-        const cx = ((i * 290 + tick * (14 + i * 2)) % (w + 260)) - 130;
-        const cy = 65 + (i % 3) * 48;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 28, 0, Math.PI * 2);
-        ctx.arc(cx + 24, cy - 8, 34, 0, Math.PI * 2);
-        ctx.arc(cx + 52, cy, 26, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    } else if (theme === 'streetball_court') {
-      for (let i = 0; i < 4; i++) {
-        const bx = w * (0.2 + i * 0.2) + Math.sin(tick * 0.7 + i) * 35;
-        const grad = ctx.createLinearGradient(bx, 0, bx, h);
-        grad.addColorStop(0, 'rgba(249, 115, 22, 0.18)');
-        grad.addColorStop(1, 'rgba(249, 115, 22, 0)');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.moveTo(bx - 30, 0); ctx.lineTo(bx + 30, 0);
-        ctx.lineTo(bx + 130, h); ctx.lineTo(bx - 130, h);
-        ctx.closePath(); ctx.fill();
-      }
-    } else {
-      particles.forEach(p => {
-        p.y += p.vy * 0.35;
-        if (p.y < -10) p.y = h + 10;
-        const alpha = 0.15 + 0.2 * Math.sin(tick * 2 + p.phase);
-        ctx.fillStyle = `rgba(167, 139, 250, ${alpha})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 0.65, 0, Math.PI * 2); ctx.fill();
-      });
-    }
-
-    requestAnimationFrame(loop);
-  }
-  loop();
-
-  return { setTheme };
-})();
-
 function openHubHome() {
   if (activeCleanup) {
     try { activeCleanup(); } catch (e) {}
@@ -474,16 +111,12 @@ function openHubHome() {
   stage.classList.remove('in-game');
   stage.className = "relative z-10 flex-1 w-full min-h-0 overflow-hidden flex flex-col items-center justify-center";
 
-  document.getElementById('app-shell').style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
-  BgEngine.setTheme('hub');
-
   const portraitGames = GAMES.filter(g => g.orientation === 'portrait');
   const landscapeGames = GAMES.filter(g => g.orientation === 'landscape');
 
   stage.innerHTML = `
     <div class="w-full h-full overflow-y-auto px-4 sm:px-8 py-6">
       <div class="max-w-6xl mx-auto flex flex-col gap-8 pb-12">
-        
         <div>
           <div class="flex items-center gap-2 mb-4">
             <span class="text-xl">📱</span>
@@ -494,9 +127,7 @@ function openHubHome() {
               <button onclick="launchGame('${g.id}')" class="group relative overflow-hidden rounded-2xl p-4 text-left border border-white/10 hover:border-pink-400/50 transition-all flex flex-col justify-between min-h-[148px]" style="background:${g.bg}">
                 <div class="absolute inset-0 bg-black/35 group-hover:bg-black/15 transition"></div>
                 <div class="relative z-10 flex items-center justify-between w-full">
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${g.locked ? 'bg-amber-500/30 text-amber-200' : 'bg-emerald-500/30 text-emerald-200'}">
-                    ${g.locked ? 'ORIGINAL' : 'PORTRAIT'}
-                  </span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200">PORTRAIT</span>
                   <span class="text-[11px] font-mono text-white/60">#${g.num}</span>
                 </div>
                 <div class="relative z-10 my-2 text-center">
@@ -521,9 +152,7 @@ function openHubHome() {
               <button onclick="launchGame('${g.id}')" class="group relative overflow-hidden rounded-2xl p-4 text-left border border-white/10 hover:border-cyan-400/50 transition-all flex flex-col justify-between min-h-[148px]" style="background:${g.bg}">
                 <div class="absolute inset-0 bg-black/35 group-hover:bg-black/15 transition"></div>
                 <div class="relative z-10 flex items-center justify-between w-full">
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/30 text-cyan-200">
-                    LANDSCAPE
-                  </span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/30 text-cyan-200">LANDSCAPE</span>
                   <span class="text-[11px] font-mono text-white/60">#${g.num}</span>
                 </div>
                 <div class="relative z-10 my-2 text-center">
@@ -537,7 +166,6 @@ function openHubHome() {
             `).join('')}
           </div>
         </div>
-
       </div>
     </div>
   `;
@@ -568,14 +196,12 @@ function launchGame(id) {
   document.getElementById('universal-game-bar').classList.remove('hidden');
 
   document.getElementById('app-shell').style.background = meta.bg;
-  BgEngine.setTheme(meta.theme);
 
   const stage = document.getElementById('game-stage');
   stage.classList.add('in-game');
   
-  // Apply orientation container wrapper to prevent grid distortion & scaling breakages
+  // Apply correct orientation class (Landscape games now take full horizontal width)
   stage.className = `relative z-10 flex-1 w-full min-h-0 overflow-hidden flex flex-col items-center justify-center ${meta.orientation === 'landscape' ? 'game-viewport-landscape' : 'game-viewport-portrait'}`;
-  
   stage.innerHTML = '';
 
   const runners = {
@@ -595,29 +221,10 @@ function launchGame(id) {
     towerstack: initTowerStack,
     carracing: initCarRacing,
     brickbreaker: initBrickBreaker,
-    stickrun: initStickRun,
-    'tiny-cafe': initTinyCafe
+    stickrun: initStickRun
   };
 
   if (runners[id]) {
     activeCleanup = runners[id](stage, meta) || null;
   }
 }
-
-window.addEventListener('DOMContentLoaded', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('hub') === 'true') {
-    const powerScreen = document.getElementById('power-screen');
-    const loginScreen = document.getElementById('login-screen');
-    const appShell = document.getElementById('app-shell');
-    const headerName = document.getElementById('header-player-name');
-    
-    if (powerScreen) powerScreen.style.display = 'none';
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (appShell) appShell.classList.remove('hidden');
-    window.playerName = 'AJ';
-    if (headerName) headerName.textContent = window.playerName;
-    
-    openHubHome();
-  }
-});
