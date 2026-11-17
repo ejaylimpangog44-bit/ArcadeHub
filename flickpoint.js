@@ -1,3 +1,26 @@
+// Automatically trigger fullscreen as soon as FlickPoint loads
+window.addEventListener('DOMContentLoaded', () => {
+    const docEl = document.documentElement;
+    
+    // Attempt automatic fullscreen on load
+    const triggerFS = () => {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen().catch(() => {});
+            } else if (docEl.webkitRequestFullscreen) {
+                docEl.webkitRequestFullscreen();
+            }
+        }
+    };
+
+    triggerFS();
+
+    // Fallback: If browser blocks autoplay/auto-fullscreen, trigger it on the first tap anywhere
+    document.body.addEventListener('click', () => {
+        triggerFS();
+    }, { once: true });
+});
+
 // Universal Fullscreen Toggle matching your Hub implementation
 function toggleFullScreen() {
     const docEl = document.documentElement;
