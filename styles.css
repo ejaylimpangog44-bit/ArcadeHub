@@ -15,7 +15,7 @@ html, body {
   color: #f8fafc;
 }
 
-/* Robust orientation rotation wrapper to fix split-screen/clipping issues */
+/* Corrected portrait-to-landscape rotation wrapper */
 @media screen and (orientation: portrait) {
   html, body {
     width: 100vh !important;
@@ -23,7 +23,7 @@ html, body {
     overflow: hidden !important;
     position: fixed;
     top: 0;
-    left: 0;
+    left: 100%; /* Crucial: shifts it back into the viewport before rotation */
     transform: rotate(90deg);
     transform-origin: top left;
   }
