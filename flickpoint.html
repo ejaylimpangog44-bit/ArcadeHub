@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlickPoint - ArcadeHub</title>
+    <link rel="stylesheet" href="flickpoint.css">
+</head>
+<body>
+    <div id="app-container">
+        <!-- Main Menu View -->
+        <div id="main-menu" class="view active">
+            <header class="hub-header">
+                <h1>FLICKPOINT</h1>
+                <p>Precision Aim Training Facility</p>
+            </header>
+            <div class="menu-cards">
+                <button class="menu-btn primary" onclick="switchView('training-setup')">Training Grounds</button>
+                <button class="menu-btn" onclick="switchView('stats-view')">Performance & Stats</button>
+                <button class="menu-btn" onclick="switchView('settings-view')">Settings</button>
+                <button class="menu-btn" onclick="window.location.href='index.html'">Back to ArcadeHub</button>
+            </div>
+        </div>
+
+        <!-- Training Setup View -->
+        <div id="training-setup" class="view">
+            <h2>Select Training Mode</h2>
+            <div class="mode-grid">
+                <button class="mode-card" onclick="selectMode('flick')"><h3>Flick Shot</h3><p>Random target acquisition</p></button>
+                <button class="mode-card" onclick="selectMode('grid')"><h3>Grid Shot</h3><p>Multiple simultaneous targets</p></button>
+                <button class="mode-card" onclick="selectMode('tracking')"><h3>Tracking</h3><p>Follow moving targets</p></button>
+                <button class="mode-card" onclick="selectMode('precision')"><h3>Precision Shot</h3><p>Center-zone bonus targets</p></button>
+            </div>
+            
+            <div class="config-row">
+                <label>Difficulty:</label>
+                <select id="difficulty-select">
+                    <option value="easy">Easy</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="hard">Hard</option>
+                    <option value="insane">Insane</option>
+                </select>
+            </div>
+
+            <div class="config-row">
+                <label>Duration:</label>
+                <select id="duration-select">
+                    <option value="15">15 seconds</option>
+                    <option value="30" selected>30 seconds</option>
+                    <option value="60">60 seconds</option>
+                </select>
+            </div>
+
+            <button class="menu-btn primary" onclick="startSession()">Start Training</button>
+            <button class="menu-btn" onclick="switchView('main-menu')">Back</button>
+        </div>
+
+        <!-- Active Game Arena View -->
+        <div id="game-arena" class="view">
+            <div id="hud-top">
+                <div id="hud-score">SCORE: 0</div>
+                <div id="hud-accuracy">ACCURACY: 100%</div>
+                <div id="hud-streak">STREAK: 0</div>
+                <div id="hud-timer">30s</div>
+                <button id="pause-btn" onclick="pauseGame()">PAUSE</button>
+            </div>
+            <div id="target-container"></div>
+        </div>
+
+        <!-- Session Results View -->
+        <div id="results-view" class="view">
+            <h2>Session Complete</h2>
+            <div class="stats-card-grid">
+                <div class="stat-box"><span id="res-score">0</span><label>Total Score</label></div>
+                <div class="stat-box"><span id="res-accuracy">0%</span><label>Accuracy</label></div>
+                <div class="stat-box"><span id="res-hits">0</span><label>Targets Hit</label></div>
+                <div class="stat-box"><span id="res-reaction">0ms</span><label>Avg Reaction</label></div>
+            </div>
+            <button class="menu-btn primary" onclick="switchView('training-setup')">Play Again</button>
+            <button class="menu-btn" onclick="switchView('main-menu')">Main Menu</button>
+        </div>
+
+        <!-- Statistics & Performance View -->
+        <div id="stats-view" class="view">
+            <h2>Performance History</h2>
+            <div id="history-list"></div>
+            <button class="menu-btn" onclick="switchView('main-menu')">Back to Menu</button>
+        </div>
+
+        <!-- Settings View -->
+        <div id="settings-view" class="view">
+            <h2>Training Settings</h2>
+            <div class="config-row">
+                <label>Crosshair Style:</label>
+                <select id="setting-crosshair" onchange="saveSettings()">
+                    <option value="dot">Dot</option>
+                    <option value="circle" selected>Circle</option>
+                    <option value="cross">Cross</option>
+                </select>
+            </div>
+            <button class="menu-btn" onclick="switchView('main-menu')">Back to Menu</button>
+        </div>
+    </div>
+    <script src="flickpoint.js"></script>
+</body>
+</html>
