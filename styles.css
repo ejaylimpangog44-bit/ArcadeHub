@@ -638,70 +638,142 @@ html, body {
 }
 
 /* ==========================================================================
-   AUTOMATIC ORIENTATION MANAGER STYLES
+   ARCADE HUB VIEWPORT SYSTEM
+   Native orientation only. Game profiles affect layout sizing, never rotate
+   the document or apply transforms to body/app-shell.
    ========================================================================== */
 
-/* Default App Shell Base */
+html, body {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  overscroll-behavior: none;
+}
+
 #app-shell {
-  width: 100vw;
+  position: fixed;
+  inset: 0;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  isolation: isolate;
+}
+
+#game-stage {
   position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
-/* 1. PORTRAIT EXCEPTION: When a portrait game is active, disable ALL rotation and scaling */
-html.force-portrait-mode,
-body.force-portrait-mode,
-html.force-portrait-mode #app-shell,
-html.force-portrait-mode #game-stage {
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  position: fixed !important;
-  inset: 0 !important;
-  transform: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow-y: auto !important;
-  z-index: 9999 !important;
+#game-stage.in-game {
+  padding-top: 46px;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* 2. ROTATION WRAPPER: Only applies to Hub and Landscape games when held in portrait */
-@media screen and (orientation: portrait) {
-  html:not(.force-portrait-mode), 
-  body:not(.force-portrait-mode) {
-    width: 100vw !important;
-    height: 100vh !important;
-    overflow: hidden !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    transform: none !important;
-  }
+/* Portrait profile: fit the width; allow vertical scrolling when needed. */
+#app-shell.game-mode-portrait #game-stage,
+#game-stage.game-mode-portrait {
+  --game-layout-direction: column;
+  --game-content-max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
 
-  html:not(.force-portrait-mode) #app-shell, 
-  html:not(.force-portrait-mode) .power-screen, 
-  html:not(.force-portrait-mode) #login-screen, 
-  html:not(.force-portrait-mode) .game-container, 
-  html:not(.force-portrait-mode) #landscapeWrapper, 
-  html:not(.force-portrait-mode) body > div {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    width: 100vh !important;
-    height: 100vw !important;
-    transform: translate(-50%, -50%) rotate(90deg) !important;
-    transform-origin: center center !important;
-    overflow: hidden !important;
+/* Landscape profile: fill the available stage without stretching the page. */
+#app-shell.game-mode-landscape #game-stage,
+#game-stage.game-mode-landscape {
+  --game-layout-direction: row;
+  --game-content-max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Unlisted/new games get a safe responsive layout instead of a forced default. */
+#app-shell.game-mode-responsive #game-stage,
+#game-stage.game-mode-responsive {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+/* Common direct game roots: constrain them without overriding aspect ratios. */
+#game-stage.in-game > .game-container,
+#game-stage.in-game > .game-wrapper,
+#game-stage.in-game > #landscapeWrapper,
+#game-stage.in-game > .game-screen,
+#game-stage.in-game > .game-root {
+  width: min(100%, var(--game-content-max-width, 100%));
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+#game-stage canvas,
+#game-stage video,
+#game-stage iframe {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Lobby grid stays in normal document flow and scrolls inside the app shell. */
+#game-stage:not(.in-game) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#game-stage:not(.in-game) > div {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+/* Keep nested flex/grid children from forcing horizontal overflow. */
+#app-shell *, #game-stage * {
+  box-sizing: border-box;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  #game-stage.in-game { padding-top: 42px; }
+}
+
+@media (orientation: portrait) and (max-width: 420px) {
+  #game-stage.game-mode-portrait {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }
 
-/* Native landscape display */
-@media screen and (orientation: landscape) {
-  #app-shell.force-landscape {
-    width: 100vw !important;
-    height: 100vh !important;
-    transform: none !important;
-  }
+/* Fullscreen remains an optional, user-triggered setting only. */
+:fullscreen #app-shell,
+:-webkit-full-screen #app-shell {
+  width: 100%;
+  height: 100%;
 }
