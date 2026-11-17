@@ -116,6 +116,7 @@ function startSession() {
     }
 }
 
+
 function spawnTargetNode() {
     if (timeLeft <= 0) return;
     
