@@ -46,7 +46,7 @@
 </div>
 
 <!-- Floating Assistive Touch Fox Widget -->
-<div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-2xl hidden items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
+<div id="assistive-touch-fox" onclick="openHeroModal()" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-2xl hidden items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub">
   <span class="transform group-hover:scale-110 transition">🦊</span>
 </div>
 
@@ -143,20 +143,21 @@
         </div>
       </button>
 
-      <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition border border-white/10" title="Settings, QR & Fullscreen">
+      <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition border border-white/10" title="Settings">
         ⚙️
       </button>
     </div>
   </header>
 
-  <div id="universal-game-bar" class="hidden fixed top-3 left-3 right-3 z-30 flex items-center justify-between pointer-events-none">
-    <button onclick="openHubHome()" class="pointer-events-auto px-3.5 py-2 rounded-xl bg-slate-950/75 hover:bg-slate-900/90 text-white font-bold text-xs backdrop-blur-md border border-white/15 shadow-lg flex items-center gap-1.5 transition active:scale-95">
-      <span>←</span>
-      <span>Hub</span>
+  <!-- REFACTORED FLOATING IN-GAME NAVIGATOR BAR (Placed safely inside viewport) -->
+  <div id="universal-game-bar" class="hidden absolute top-4 left-4 right-4 z-40 flex items-center justify-between pointer-events-none">
+    <button onclick="openHubHome()" class="pointer-events-auto px-4 py-2.5 rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-extrabold text-xs backdrop-blur-xl border border-white/20 shadow-2xl flex items-center gap-2 transition active:scale-95 group">
+      <span class="text-pink-400 group-hover:-translate-x-0.5 transition-transform">←</span>
+      <span>Arcade Hub</span>
     </button>
 
     <div class="pointer-events-auto flex items-center gap-2">
-      <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-slate-950/75 hover:bg-slate-900/90 text-white text-sm backdrop-blur-md border border-white/15 shadow-lg flex items-center justify-center transition active:scale-95" title="Settings">
+      <button onclick="openSettingsModal()" class="w-10 h-10 rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white text-base backdrop-blur-xl border border-white/20 shadow-2xl flex items-center justify-center transition active:scale-95" title="Settings">
         ⚙️
       </button>
     </div>
@@ -229,7 +230,6 @@
     </div>
   </div>
 
-  <!-- Game Stage with Orientation Guardians -->
   <main id="game-stage" class="relative z-10 flex-1 w-full min-h-0 overflow-hidden flex flex-col items-center justify-center">
   </main>
 </div>
