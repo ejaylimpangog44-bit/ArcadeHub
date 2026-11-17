@@ -1,0 +1,45 @@
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #0b0f19; color: #e2e8f0; height: 100vh; width: 100vw; overflow: hidden; }
+#app-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
+.view { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; padding: 20px; background: #0b0f19; position: absolute; top: 0; left: 0; }
+.view.active { display: flex; }
+
+.hub-header { text-align: center; margin-bottom: 25px; }
+.hub-header h1 { font-size: 2.3rem; color: #00f0ff; letter-spacing: 2px; }
+.hub-header p { color: #94a3b8; font-size: 0.95rem; }
+
+.menu-cards, .mode-grid { display: flex; flex-direction: column; gap: 12px; width: 300px; max-width: 90%; }
+.menu-btn, .mode-card { background: #1e293b; border: 1px solid #334155; color: #fff; padding: 12px 18px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; text-align: center; }
+.menu-btn:hover, .mode-card:hover { background: #334155; border-color: #00f0ff; }
+.menu-btn.primary { background: #00f0ff; color: #0b0f19; font-weight: bold; border: none; }
+.menu-btn.primary:hover { background: #38bdf8; }
+
+.config-row { display: flex; justify-content: space-between; width: 300px; max-width: 90%; margin: 10px 0; align-items: center; font-size: 0.9rem; }
+.config-row select { background: #1e293b; color: #fff; border: 1px solid #334155; padding: 6px 10px; border-radius: 6px; }
+
+/* Game Arena */
+#game-arena { background: radial-gradient(circle, #111827 0%, #030712 100%); cursor: crosshair; position: relative; padding: 0; justify-content: flex-start; align-items: stretch; }
+#hud-top { position: absolute; top: 15px; right: 20px; display: flex; gap: 20px; background: rgba(15, 23, 42, 0.9); padding: 8px 16px; border-radius: 8px; border: 1px solid #1e293b; font-weight: bold; font-size: 0.95rem; align-items: center; z-index: 10; }
+#pause-btn { background: #334155; border: none; color: #fff; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+#pause-btn:hover { background: #ef4444; }
+#target-container { width: 100%; height: 100%; position: relative; overflow: hidden; }
+
+/* Targets */
+.aim-target { position: absolute; border-radius: 50%; background: radial-gradient(circle, #00f0ff 20%, #0284c7 80%); border: 2px solid #38bdf8; box-shadow: 0 0 12px rgba(0, 240, 255, 0.6); cursor: crosshair; animation: popIn 0.12s ease-out; transform: translate(-50%, -50%); }
+.aim-target.center-zone::after { content: ''; position: absolute; top: 30%; left: 30%; width: 40%; height: 40%; background: #ffffff; border-radius: 50%; box-shadow: 0 0 8px #ffffff; }
+@keyframes popIn { 0% { transform: translate(-50%, -50%) scale(0); } 100% { transform: translate(-50%, -50%) scale(1); } }
+
+/* Results & Stats */
+.stats-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 340px; margin-bottom: 20px; }
+.stat-box { background: #1e293b; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #334155; }
+.stat-box span { display: block; font-size: 1.6rem; color: #00f0ff; font-weight: bold; }
+.stat-box label { color: #94a3b8; font-size: 0.8rem; }
+#history-list { width: 360px; max-height: 250px; overflow-y: auto; background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+
+/* Mobile Landscape Enforcement */
+@media screen and (max-width: 900px) and (orientation: portrait) {
+    #app-container::before {
+        content: "Please rotate your device to Landscape mode for the best training experience.";
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0b0f19; color: #00f0ff; display: flex; justify-content: center; align-items: center; text-align: center; padding: 30px; font-size: 1.2rem; font-weight: bold; z-index: 9999;
+    }
+}
