@@ -10,8 +10,8 @@ function toggleFullScreen() {
     } else {
         if (document.exitFullscreen) {
             document.exitFullscreen().catch(() => {});
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
+        } else if (docEl.webkitExitFullscreen) {
+            docEl.webkitExitFullscreen();
         }
     }
 }
@@ -119,7 +119,9 @@ function spawnTargetNode() {
     const maxX = container.clientWidth - cfg.size - 40;
     const maxY = container.clientHeight - cfg.size - 40;
     const randomX = Math.floor(Math.random() * Math.max(50, maxX)) + 20;
-    const randomY = Math.floor(Math.random() * Math.max(50, maxY)) + 20;
+    
+    // Leave a safe buffer at the top so targets never spawn behind the HUD bar
+    const randomY = Math.floor(Math.random() * Math.max(50, maxY - 80)) + 70;
 
     target.style.left = `${randomX}px`;
     target.style.top = `${randomY}px`;
