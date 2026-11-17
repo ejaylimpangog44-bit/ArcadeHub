@@ -521,6 +521,21 @@ function openHubHome() {
   }
   activeGameId = null;
 
+  // Reset document root and body flags back to landscape/hub grid state
+  const htmlEl = document.documentElement;
+  const bodyEl = document.body;
+  const appShell = document.getElementById('app-shell');
+
+  htmlEl.classList.remove('force-portrait-mode', 'force-landscape-mode');
+  bodyEl.classList.remove('force-portrait-mode', 'force-landscape-mode');
+  htmlEl.classList.add('force-landscape-mode');
+  bodyEl.classList.add('force-landscape-mode');
+
+  if (appShell) {
+    appShell.classList.remove('force-portrait', 'force-landscape');
+    appShell.classList.add('force-landscape');
+  }
+
   document.getElementById('hub-header').classList.remove('hidden');
   document.getElementById('universal-game-bar').classList.add('hidden');
 
@@ -577,17 +592,27 @@ function launchGame(id) {
 
   // Automatic Orientation Manager
   const appShell = document.getElementById('app-shell');
-  if (appShell) {
-    appShell.classList.remove('force-portrait', 'force-landscape');
-    if (portraitGameIds.includes(id)) {
-      appShell.classList.add('force-portrait');
-      console.log(`[Orientation Manager] Switching ${meta.name} to PORTRAIT mode.`);
-    } else if (landscapeGameIds.includes(id)) {
-      appShell.classList.add('force-landscape');
-      console.log(`[Orientation Manager] Switching ${meta.name} to LANDSCAPE mode.`);
-    } else {
-      appShell.classList.add('force-landscape'); // Default fallback
-    }
+  const htmlEl = document.documentElement;
+  const bodyEl = document.body;
+
+  htmlEl.classList.remove('force-portrait-mode', 'force-landscape-mode');
+  bodyEl.classList.remove('force-portrait-mode', 'force-landscape-mode');
+  if (appShell) appShell.classList.remove('force-portrait', 'force-landscape');
+
+  if (portraitGameIds.includes(id)) {
+    htmlEl.classList.add('force-portrait-mode');
+    bodyEl.classList.add('force-portrait-mode');
+    if (appShell) appShell.classList.add('force-portrait');
+    console.log(`[Orientation Manager] Switching ${meta.name} to FULLSCREEN PORTRAIT mode.`);
+  } else if (landscapeGameIds.includes(id)) {
+    htmlEl.classList.add('force-landscape-mode');
+    bodyEl.classList.add('force-landscape-mode');
+    if (appShell) appShell.classList.add('force-landscape');
+    console.log(`[Orientation Manager] Switching ${meta.name} to LANDSCAPE mode.`);
+  } else {
+    htmlEl.classList.add('force-landscape-mode');
+    bodyEl.classList.add('force-landscape-mode');
+    if (appShell) appShell.classList.add('force-landscape');
   }
 
   // If the game is FlickPoint, redirect straight to your standalone HTML file!
