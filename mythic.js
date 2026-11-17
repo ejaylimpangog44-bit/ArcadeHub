@@ -150,21 +150,43 @@ const ABILITY_CATALOG = [
     }
 ];
 
-// --- CANVAS & ENGINE SETUP ---
+// --- CANVAS & LANDSCAPE ORIENTATION HELPERS ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 let width = window.innerWidth;
 let height = window.innerHeight;
 
+function isPortraitRotated() {
+    return window.innerHeight > window.innerWidth;
+}
+
 function resizeCanvas() {
-    width = window.innerWidth;
-    height = window.innerHeight;
+    if (isPortraitRotated()) {
+        // Swap dimensions to match the CSS-rotated 100vh x 100vw landscape wrapper
+        width = window.innerHeight;
+        height = window.innerWidth;
+    } else {
+        width = window.innerWidth;
+        height = window.innerHeight;
+    }
     canvas.width = width;
     canvas.height = height;
 }
 window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 60));
 resizeCanvas();
+
+// Convert screen touch coordinates into rotated landscape coordinates
+function getGameCoords(clientX, clientY) {
+    if (isPortraitRotated()) {
+        return {
+            x: clientY,
+            y: window.innerWidth - clientX
+        };
+    }
+    return { x: clientX, y: clientY };
+}
 
 // --- GAME STATE ---
 const state = {
@@ -232,19 +254,21 @@ const joystick = {
 
 canvas.addEventListener('pointerdown', (e) => {
     if (!state.running || state.paused || state.gameOver) return;
+    const pos = getGameCoords(e.clientX, e.clientY);
     joystick.active = true;
-    joystick.originX = e.clientX;
-    joystick.originY = e.clientY;
-    joystick.currX = e.clientX;
-    joystick.currY = e.clientY;
+    joystick.originX = pos.x;
+    joystick.originY = pos.y;
+    joystick.currX = pos.x;
+    joystick.currY = pos.y;
     joystick.dx = 0;
     joystick.dy = 0;
 });
 
 window.addEventListener('pointermove', (e) => {
     if (!joystick.active) return;
-    joystick.currX = e.clientX;
-    joystick.currY = e.clientY;
+    const pos = getGameCoords(e.clientX, e.clientY);
+    joystick.currX = pos.x;
+    joystick.currY = pos.y;
     const diffX = joystick.currX - joystick.originX;
     const diffY = joystick.currY - joystick.originY;
     const dist = Math.hypot(diffX, diffY);
@@ -1329,20 +1353,19 @@ function gameLoop(timestamp) {
 function startGame() {
     sfx.init();
 
-    // 1. Automatically lock screen orientation to landscape
-    if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('landscape').catch(err => {
-            console.log("Orientation lock not allowed or supported:", err);
-        });
-    }
+    // 1. Request browser fullscreen first, then lock hardware orientation once active
+    const docEl = document.documentElement;
+    const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen;
 
-    // 2. Automatically request browser fullscreen mode on launch
-    if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(err => {
-            console.log("Fullscreen request blocked or denied:", err);
-        });
-    } else if (document.documentElement.webkitRequestFullscreen) {
-        document.documentElement.webkitRequestFullscreen();
+    if (requestFs) {
+        requestFs.call(docEl).then(() => {
+            resizeCanvas();
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').then(() => {
+                    resizeCanvas();
+                }).catch(() => {});
+            }
+        }).catch(() => {});
     }
 
     state.running = true;
@@ -1387,6 +1410,7 @@ function startGame() {
     document.getElementById('gameOverScreen').classList.add('hidden');
     document.getElementById('levelUpModal').classList.add('hidden');
 
+    resizeCanvas();
     state.lastTimestamp = performance.now();
 }
 
@@ -1402,7 +1426,6 @@ function triggerGameOver() {
 
 // --- RETURN TO HUB FUNCTION ---
 function returnToHub() {
-    // Keeps fullscreen active and immediately navigates back to your hub lobby grid selection
     window.location.href = 'index.html?hub=true';
 }
 
@@ -1417,6 +1440,7 @@ document.getElementById('btnMute').addEventListener('click', () => {
 });
 
 window.onload = function () {
+    resizeCanvas();
     updateActiveSlotsHUD();
     state.lastTimestamp = performance.now();
     requestAnimationFrame(gameLoop);
