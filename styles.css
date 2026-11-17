@@ -26,6 +26,67 @@ html, body {
   overflow: hidden;
 }
 
+/* ==========================================================
+   UNIVERSAL ORIENTATION & ASPECT RATIO GUARDIANS
+   ========================================================== */
+#game-stage {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game-stage.in-game {
+  padding-top: 46px;
+}
+
+/* Portrait Mode Game Container Wrapper */
+.game-viewport-portrait {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  max-height: 920px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.7);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Landscape Mode Game Container Wrapper */
+.game-viewport-landscape {
+  width: 100%;
+  max-width: 1120px;
+  height: 100%;
+  max-height: 640px;
+  aspect-ratio: 16 / 9;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 45px rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+}
+
+@media (max-width: 768px) {
+  .game-viewport-landscape {
+    max-width: 100%;
+    max-height: 100%;
+    aspect-ratio: auto;
+    border-radius: 0;
+    border: none;
+  }
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -80,10 +141,6 @@ html, body {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-}
-
-#game-stage.in-game {
-  padding-top: 46px;
 }
 
 #qrcode-container img,
@@ -199,25 +256,6 @@ html, body {
 .border-gold { border-color: #facc15; box-shadow: 0 0 12px rgba(250, 204, 21, 0.6); }
 .border-neon { border-color: #22d3ee; box-shadow: 0 0 12px rgba(34, 211, 238, 0.65); }
 .border-crimson { border-color: #f43f5e; box-shadow: 0 0 12px rgba(244, 63, 94, 0.65); }
-
-.hero-stats {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.15;
-}
-
-.hero-lvl {
-  color: #facc15;
-  font-weight: 800;
-  font-size: 0.95rem;
-  letter-spacing: 0.03em;
-}
-
-.hero-xp {
-  color: #cbd5e1;
-  font-weight: 600;
-  font-size: 0.82rem;
-}
 
 .hero-backdrop {
   position: fixed;
@@ -390,23 +428,6 @@ html, body {
 .cosmetic-card.equipped {
   border-color: #22c55e;
   background: rgba(34, 197, 94, 0.1);
-}
-
-.cosmetic-preview {
-  font-size: 1.8rem;
-  margin-bottom: 6px;
-}
-
-.cosmetic-name {
-  font-size: 0.8rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.cosmetic-tag {
-  font-size: 0.72rem;
-  color: #facc15;
-  font-weight: 600;
 }
 
 .shop-xp-banner {
@@ -626,154 +647,4 @@ html, body {
 
 .pull-chain-assembly.pulled {
   transform: translateY(35px) scaleY(0.85);
-}
-
-.power-hint {
-  margin-top: clamp(95px, 16vh, 130px);
-  color: #777;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
-  font-family: system-ui, sans-serif;
-  text-align: center;
-}
-
-/* ==========================================================================
-   ARCADE HUB VIEWPORT SYSTEM
-   Native orientation only. Game profiles affect layout sizing, never rotate
-   the document or apply transforms to body/app-shell.
-   ========================================================================== */
-
-html, body {
-  width: 100%;
-  min-width: 0;
-  min-height: 100%;
-  overscroll-behavior: none;
-}
-
-#app-shell {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  isolation: isolate;
-}
-
-#game-stage {
-  position: relative;
-  flex: 1 1 auto;
-  width: 100%;
-  min-width: 0;
-  min-height: 0;
-  height: auto;
-  overflow: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  box-sizing: border-box;
-}
-
-#game-stage.in-game {
-  padding-top: 46px;
-  padding-left: env(safe-area-inset-left, 0px);
-  padding-right: env(safe-area-inset-right, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* Portrait profile: fit the width; allow vertical scrolling when needed. */
-#app-shell.game-mode-portrait #game-stage,
-#game-stage.game-mode-portrait {
-  --game-layout-direction: column;
-  --game-content-max-width: 720px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-/* Landscape profile: fill the available stage without stretching the page. */
-#app-shell.game-mode-landscape #game-stage,
-#game-stage.game-mode-landscape {
-  --game-layout-direction: row;
-  --game-content-max-width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* Unlisted/new games get a safe responsive layout instead of a forced default. */
-#app-shell.game-mode-responsive #game-stage,
-#game-stage.game-mode-responsive {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: auto;
-}
-
-/* Common direct game roots: constrain them without overriding aspect ratios. */
-#game-stage.in-game > .game-container,
-#game-stage.in-game > .game-wrapper,
-#game-stage.in-game > #landscapeWrapper,
-#game-stage.in-game > .game-screen,
-#game-stage.in-game > .game-root {
-  width: min(100%, var(--game-content-max-width, 100%));
-  max-width: 100%;
-  min-width: 0;
-  min-height: 0;
-  box-sizing: border-box;
-}
-
-#game-stage canvas,
-#game-stage video,
-#game-stage iframe {
-  max-width: 100%;
-  max-height: 100%;
-}
-
-/* Lobby grid stays in normal document flow and scrolls inside the app shell. */
-#game-stage:not(.in-game) {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-#game-stage:not(.in-game) > div {
-  width: 100%;
-  min-width: 0;
-  min-height: 100%;
-  box-sizing: border-box;
-}
-
-/* Keep nested flex/grid children from forcing horizontal overflow. */
-#app-shell *, #game-stage * {
-  box-sizing: border-box;
-}
-
-@media (orientation: landscape) and (max-height: 520px) {
-  #game-stage.in-game { padding-top: 42px; }
-}
-
-@media (orientation: portrait) and (max-width: 420px) {
-  #game-stage.game-mode-portrait {
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-}
-
-/* Fullscreen remains an optional, user-triggered setting only. */
-:fullscreen #app-shell,
-:-webkit-full-screen #app-shell {
-  width: 100%;
-  height: 100%;
 }
