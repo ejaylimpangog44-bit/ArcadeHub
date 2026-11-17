@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Arcade Hub — Full-Viewport Edition</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -242,6 +244,18 @@
 </audio>
 
 <script>
+  // Global interaction listener to enforce and maintain fullscreen state on every tap/click
+  document.addEventListener('click', () => {
+    const docEl = document.documentElement;
+    const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+    if (requestFs && !document.fullscreenElement && !document.webkitFullscreenElement) {
+      requestFs.call(docEl).catch(() => {});
+    }
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+  }, { capture: true, passive: true });
+
   // Intercept shop / insufficient coin alerts and trigger phone vibration instead of modal overlay
   window.alert = function(msg) {
     if (msg && (msg.toLowerCase().includes('coin') || msg.toLowerCase().includes('balance') || msg.toLowerCase().includes('shop') || msg.toLowerCase().includes('enough'))) {
@@ -339,6 +353,35 @@
     
     if (selectedTab) selectedTab.classList.add('active');
     if (selectedPanel) selectedPanel.classList.add('active');
+  }
+
+  function submitPlayerName() {
+    // Enforce full screen and orientation lock right on name entry submission
+    const docEl = document.documentElement;
+    const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+    if (requestFs) {
+      requestFs.call(docEl).catch(() => {});
+    }
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+
+    const input = document.getElementById('player-name-input').value.trim();
+    if (input) {
+      window.playerName = input;
+    } else {
+      window.playerName = 'Player_' + Math.floor(100 + Math.random() * 899);
+    }
+    document.getElementById('header-player-name').textContent = window.playerName;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app-shell').classList.remove('hidden');
+    AudioFX.click();
+    const bgm = document.getElementById('bgm-audio');
+    if (bgm && bgmEnabled) {
+      bgm.volume = 0.5;
+      bgm.play().catch(() => {});
+    }
+    openHubHome();
   }
 </script>
 
