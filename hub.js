@@ -590,32 +590,33 @@ function launchGame(id) {
   if (!meta) return;
   AudioFX.click();
 
-  // Automatic Orientation Manager
   const appShell = document.getElementById('app-shell');
   const htmlEl = document.documentElement;
   const bodyEl = document.body;
 
+  // Clear previous modes
   htmlEl.classList.remove('force-portrait-mode', 'force-landscape-mode');
   bodyEl.classList.remove('force-portrait-mode', 'force-landscape-mode');
   if (appShell) appShell.classList.remove('force-portrait', 'force-landscape');
 
+  // Check master lists
   if (portraitGameIds.includes(id)) {
     htmlEl.classList.add('force-portrait-mode');
     bodyEl.classList.add('force-portrait-mode');
     if (appShell) appShell.classList.add('force-portrait');
-    console.log(`[Orientation Manager] Switching ${meta.name} to FULLSCREEN PORTRAIT mode.`);
+    console.log(`[Orientation Manager] Exception applied: ${meta.name} running in PORTRAIT mode.`);
   } else if (landscapeGameIds.includes(id)) {
     htmlEl.classList.add('force-landscape-mode');
     bodyEl.classList.add('force-landscape-mode');
     if (appShell) appShell.classList.add('force-landscape');
-    console.log(`[Orientation Manager] Switching ${meta.name} to LANDSCAPE mode.`);
+    console.log(`[Orientation Manager] ${meta.name} running in LANDSCAPE rotation mode.`);
   } else {
     htmlEl.classList.add('force-landscape-mode');
     bodyEl.classList.add('force-landscape-mode');
     if (appShell) appShell.classList.add('force-landscape');
   }
 
-  // If the game is FlickPoint, redirect straight to your standalone HTML file!
+  // Handle external redirects (FlickPoint, Mythic, etc.)
   if (id === 'flickpoint') {
     window.location.href = 'flickpoint.html';
     return;
