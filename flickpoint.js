@@ -13,10 +13,10 @@ let gameTimer = null;
 let reactionTimes = [];
 
 const DIFFICULTIES = {
-    easy: { size: 70, interval: 1200 },
-    normal: { size: 50, interval: 900 },
-    hard: { size: 35, interval: 650 },
-    insane: { size: 24, interval: 450 }
+    easy: { size: 75, interval: 1200 },
+    normal: { size: 55, interval: 900 },
+    hard: { size: 40, interval: 650 },
+    insane: { size: 28, interval: 450 }
 };
 
 function switchView(viewId) {
@@ -25,10 +25,10 @@ function switchView(viewId) {
     if (viewId === 'stats-view') renderStatsHistory();
 }
 
-function selectMode(mode) {
+function selectMode(mode, element) {
     currentMode = mode;
-    document.querySelectorAll('.mode-card').forEach(c => c.style.borderColor = '#334155');
-    event.currentTarget.style.borderColor = '#00f0ff';
+    document.querySelectorAll('.mode-select-pill').forEach(c => c.classList.remove('active'));
+    element.classList.add('active');
 }
 
 function startSession() {
@@ -50,13 +50,11 @@ function startSession() {
     const container = document.getElementById('target-container');
     container.innerHTML = '';
     
-    // Desktop Pointer Lock support
     const arena = document.getElementById('game-arena');
     if (!('ontouchstart' in window)) {
         arena.requestPointerLock();
     }
 
-    // Register missed clicks accurately relative to container
     container.onclick = (e) => {
         if (e.target === container) {
             misses++;
@@ -66,14 +64,12 @@ function startSession() {
         }
     };
 
-    // Start Countdown
     gameTimer = setInterval(() => {
         timeLeft--;
         document.getElementById('hud-timer').textContent = `${timeLeft}s`;
         if (timeLeft <= 0) endSession();
     }, 1000);
 
-    // Initial spawns
     spawnTargetNode();
     if (currentMode === 'grid') {
         spawnTargetNode();
@@ -92,7 +88,6 @@ function spawnTargetNode() {
     target.style.width = `${cfg.size}px`;
     target.style.height = `${cfg.size}px`;
 
-    // Keep targets safely inside bounds
     const maxX = container.clientWidth - cfg.size - 40;
     const maxY = container.clientHeight - cfg.size - 40;
     const randomX = Math.floor(Math.random() * Math.max(50, maxX)) + 20;
@@ -113,7 +108,6 @@ function spawnTargetNode() {
         currentStreak++;
         if (currentStreak > bestStreak) bestStreak = currentStreak;
 
-        // Center zone bonus detection
         const rect = target.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const clickY = e.clientY - rect.top;
@@ -149,23 +143,30 @@ function updateHUD() {
 function pauseGame() {
     clearInterval(gameTimer);
     document.exitPointerLock();
-    if(confirm("Game Paused. Resume?")) {
-        if (!('ontouchstart' in window)) document.getElementById('game-arena').requestPointerLock();
-        gameTimer = setInterval(() => {
-            timeLeft--;
-            document.getElementById('hud-timer').textContent = `${timeLeft}s`;
-            if (timeLeft <= 0) endSession();
-        }, 1000);
-    } else {
-        switchView('main-menu');
+    document.getElementById('pause-modal').classList.add('active');
+}
+
+function resumeGame() {
+    document.getElementById('pause-modal').classList.remove('active');
+    if (!('ontouchstart' in window)) {
+        document.getElementById('game-arena').requestPointerLock();
     }
+    gameTimer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('hud-timer').textContent = `${timeLeft}s`;
+        if (timeLeft <= 0) endSession();
+    }, 1000);
+}
+
+function quitToMenu() {
+    document.getElementById('pause-modal').classList.remove('active');
+    switchView('main-menu');
 }
 
 function endSession() {
     clearInterval(gameTimer);
     document.exitPointerLock();
     
-    const activeSeconds = sessionDuration - timeLeft;
     const accuracy = totalShots > 0 ? Number(((hits / totalShots) * 100).toFixed(1)) : 0;
     const avgReaction = reactionTimes.length > 0 ? Math.round(reactionTimes.reduce((a,b) => a+b, 0) / reactionTimes.length) : 0;
 
@@ -192,7 +193,7 @@ function endSession() {
 }
 
 function saveSessionToLocalStorage(newSession) {
-    const STORAGE_KEY = "arcadehub_flickpoint";
+    const STORAGE_KEY = "arcadehub_aimlabs";
     let data;
     try {
         data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { sessions: [], records: { bestScore: 0, bestAccuracy: 0, fastestReaction: null, bestStreak: 0 } };
@@ -214,7 +215,7 @@ function saveSessionToLocalStorage(newSession) {
 }
 
 function renderStatsHistory() {
-    const STORAGE_KEY = "arcadehub_flickpoint";
+    const STORAGE_KEY = "arcadehub_aimlabs";
     const list = document.getElementById('history-list');
     let data;
     try {
@@ -222,26 +223,22 @@ function renderStatsHistory() {
     } catch(e) { data = null; }
 
     if (!data || !data.sessions || data.sessions.length === 0) {
-        list.innerHTML = '<p style="color:#94a3b8; text-align:center;">No training sessions recorded yet.</p>';
+        list.innerHTML = '<p style="color:#64748b; text-align:center; font-size:0.8rem;">No trial logs recorded.</p>';
         return;
     }
 
     let html = `
-        <div style="margin-bottom:12px; padding:8px; background:#0f172a; border-radius:6px; font-size:0.8rem;">
-            <strong>Personal Bests:</strong> Score: ${data.records.bestScore} | Acc: ${data.records.bestAccuracy}% | React: ${data.records.fastestReaction || 0}ms
+        <div style="margin-bottom:12px; padding:8px 12px; background:#ffffff; border-radius:8px; font-size:0.75rem; border:1px solid #e2e8f0;">
+            <strong>Benchmarks:</strong> High Score: ${data.records.bestScore} | Best Acc: ${data.records.bestAccuracy}% | Best React: ${data.records.fastestReaction || 0}ms
         </div>
     `;
 
     html += data.sessions.map(s => `
-        <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #334155; font-size:0.8rem;">
-            <span><strong style="color:#00f0ff;">${s.mode.toUpperCase()}</strong> (${s.difficulty})</span>
+        <div style="display:flex; justify-content:space-between; padding:8px 4px; border-bottom:1px solid #e2e8f0; font-size:0.75rem;">
+            <span><strong style="color:#0284c7;">${s.mode.toUpperCase()}</strong> (${s.difficulty})</span>
             <span>Score: <strong>${s.score}</strong> | Acc: <strong>${s.accuracy}%</strong></span>
         </div>
     `).join('');
 
     list.innerHTML = html;
-}
-
-function saveSettings() {
-    // Optional placeholder for settings persistence
 }
