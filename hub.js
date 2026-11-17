@@ -601,3 +601,15 @@ function launchGame(id) {
     activeCleanup = runners[id](stage, meta) || null;
   }
 }
+
+// Auto-open hub lobby if redirected with ?hub=true from FlickPoint
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('hub') === 'true') {
+    const loginScreen = document.getElementById('login-screen');
+    const appShell = document.getElementById('app-shell');
+    if (loginScreen) loginScreen.classList.add('hidden');
+    if (appShell) appShell.classList.remove('hidden');
+    openHubHome();
+  }
+});
