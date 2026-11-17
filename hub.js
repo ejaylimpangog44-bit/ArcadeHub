@@ -568,7 +568,11 @@ function launchGame(id) {
     window.location.href = 'flickpoint.html';
     return;
   }
-
+  if (id === 'mythic') {
+    window.location.href = 'mythic.html';
+    return;
+  }
+  
   if (activeCleanup) {
     try { activeCleanup(); } catch (e) {}
     activeCleanup = null;
