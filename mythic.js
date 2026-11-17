@@ -1328,6 +1328,14 @@ function gameLoop(timestamp) {
 // --- START, RESTART & GAME OVER HANDLERS ---
 function startGame() {
     sfx.init();
+
+    // Automatically request fullscreen when launching the game from the hub lobby
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log("Fullscreen request blocked or denied:", err);
+        });
+    }
+
     state.running = true;
     state.paused = false;
     state.gameOver = false;
@@ -1381,6 +1389,12 @@ function triggerGameOver() {
     document.getElementById('statKills').textContent = state.kills;
     document.getElementById('statGold').textContent = state.gold;
     document.getElementById('gameOverScreen').classList.remove('hidden');
+}
+
+// --- RETURN TO HUB FUNCTION ---
+function returnToHub() {
+    // Navigate back to your hub lobby grid selection
+    window.location.href = 'index.html?hub=true';
 }
 
 document.getElementById('btnStartGame').addEventListener('click', startGame);
