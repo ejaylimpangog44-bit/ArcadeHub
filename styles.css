@@ -15,6 +15,21 @@ html, body {
   color: #f8fafc;
 }
 
+/* Force automatic landscape rotation wrapper on mobile devices */
+@media screen and (orientation: portrait) {
+  body {
+    width: 100vh !important;
+    height: 100vw !important;
+    transform: rotate(90deg);
+    transform-origin: top left;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    overflow: hidden !important;
+    margin: 0;
+  }
+}
+
 #app-shell {
   position: fixed;
   inset: 0;
