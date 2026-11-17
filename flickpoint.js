@@ -16,6 +16,17 @@ function toggleFullScreen() {
     }
 }
 
+function syncFullscreenLabel() {
+    const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    const label = document.getElementById('fs-label');
+    const icon = document.getElementById('fs-icon');
+    if (label) label.textContent = isFs ? 'Exit Fullscreen Display' : 'Toggle Fullscreen Display';
+    if (icon) icon.textContent = isFs ? '🗗' : '⛶';
+}
+
+document.addEventListener('fullscreenchange', syncFullscreenLabel);
+document.addEventListener('webkitfullscreenchange', syncFullscreenLabel);
+
 let currentMode = 'flick';
 let currentDifficulty = 'normal';
 let sessionDuration = 30;
