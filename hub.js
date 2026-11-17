@@ -368,6 +368,16 @@ const GAMES = [
     envName: 'Cozy Cartoon Café',
     bg: 'radial-gradient(circle at 50% 25%, #fff5e6 0%, #f5dec0 65%, #e4c096 100%)',
     theme: 'wood'
+  },
+  {
+    id: 'flickpoint',
+    num: 19,
+    name: 'FlickPoint',
+    cat: 'Action',
+    icon: '🎯',
+    envName: 'Precision FPS Aim Training Facility',
+    bg: 'radial-gradient(circle at 50% 20%, #111827 0%, #030712 70%, #000000 100%)',
+    theme: 'neon_chalk'
   }
 ];
 
@@ -542,6 +552,12 @@ function launchGame(id) {
   const meta = GAMES.find(g => g.id === id);
   if (!meta) return;
   AudioFX.click();
+
+  // If the game is FlickPoint, redirect straight to your standalone HTML file!
+  if (id === 'flickpoint') {
+    window.location.href = 'flickpoint.html';
+    return;
+  }
 
   if (activeCleanup) {
     try { activeCleanup(); } catch (e) {}
