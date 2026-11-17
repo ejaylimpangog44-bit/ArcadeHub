@@ -1,45 +1,67 @@
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-body { background-color: #0b0f19; color: #e2e8f0; height: 100vh; width: 100vw; overflow: hidden; }
-#app-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; }
-.view { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; padding: 20px; background: #0b0f19; position: absolute; top: 0; left: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0. 0; font-family: 'Inter', 'Segoe UI', sans-serif; }
+body { background-color: #f1f5f9; color: #0f172a; height: 100vh; width: 100vw; overflow: hidden; }
+#app-container { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; position: relative; background-image: linear-gradient(rgba(203, 213, 225, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(203, 213, 225, 0.3) 1px, transparent 1px); background-size: 30px 30px; background-color: #f8fafc; }
+
+.view { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: center; align-items: center; padding: 20px; position: absolute; top: 0; left: 0; }
 .view.active { display: flex; }
 
-.hub-header { text-align: center; margin-bottom: 25px; }
-.hub-header h1 { font-size: 2.3rem; color: #00f0ff; letter-spacing: 2px; }
-.hub-header p { color: #94a3b8; font-size: 0.95rem; }
+/* Clinical Lab Cards */
+.lab-card-main { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 35px 45px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); text-align: center; max-width: 500px; width: 90%; }
+.lab-card-modal { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 30px 40px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); max-width: 650px; width: 95%; }
 
-.menu-cards, .mode-grid { display: flex; flex-direction: column; gap: 12px; width: 300px; max-width: 90%; }
-.menu-btn, .mode-card { background: #1e293b; border: 1px solid #334155; color: #fff; padding: 12px 18px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; text-align: center; }
-.menu-btn:hover, .mode-card:hover { background: #334155; border-color: #00f0ff; }
-.menu-btn.primary { background: #00f0ff; color: #0b0f19; font-weight: bold; border: none; }
-.menu-btn.primary:hover { background: #38bdf8; }
+.lab-header-row { margin-bottom: 12px; }
+.lab-badge { background: #e0f2fe; color: #0284c7; font-size: 0.7rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: 1px; }
+.lab-title { font-size: 2rem; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; margin-bottom: 4px; }
+.lab-subtitle { font-size: 0.85rem; color: #64748b; margin-bottom: 25px; }
 
-.config-row { display: flex; justify-content: space-between; width: 300px; max-width: 90%; margin: 10px 0; align-items: center; font-size: 0.9rem; }
-.config-row select { background: #1e293b; color: #fff; border: 1px solid #334155; padding: 6px 10px; border-radius: 6px; }
+/* Clinical Pill Buttons */
+.menu-actions-row { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.lab-pill-btn { display: flex; justify-content: space-between; align-items: center; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 14px 20px; border-radius: 14px; cursor: pointer; font-size: 0.85rem; font-weight: 700; transition: all 0.2s; width: 100%; text-align: left; }
+.lab-pill-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+.lab-pill-btn.primary { background: #0284c7; border-color: #0284c7; color: #ffffff; justify-content: center; text-align: center; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); }
+.lab-pill-btn.primary:hover { background: #0369a1; }
+.return-link { margin-top: 20px; font-size: 0.75rem; font-weight: 700; color: #64748b; cursor: pointer; letter-spacing: 0.5px; }
+.return-link:hover { color: #0f172a; }
+
+/* Modal layout */
+.modal-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; }
+.modal-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; letter-spacing: 0.5px; }
+.close-text { font-size: 0.75rem; font-weight: 700; color: #64748b; cursor: pointer; }
+.config-grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.config-column { display: flex; flex-direction: column; gap: 10px; }
+.config-label { font-size: 0.7rem; font-weight: 800; color: #64748b; letter-spacing: 0.5px; margin-bottom: 4px; }
+
+.mode-select-pill { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+.mode-select-pill:hover { background: #f1f5f9; }
+.mode-select-pill.active { background: #e0f2fe; border-color: #0284c7; }
+.mode-select-pill strong { display: block; font-size: 0.8rem; color: #0f172a; }
+.mode-select-pill p { font-size: 0.7rem; color: #64748b; margin-top: 2px; }
+
+.lab-select { width: 100%; background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; color: #0f172a; outline: none; cursor: pointer; }
 
 /* Game Arena */
-#game-arena { background: radial-gradient(circle, #111827 0%, #030712 100%); cursor: crosshair; position: relative; padding: 0; justify-content: flex-start; align-items: stretch; }
-#hud-top { position: absolute; top: 15px; right: 20px; display: flex; gap: 20px; background: rgba(15, 23, 42, 0.9); padding: 8px 16px; border-radius: 8px; border: 1px solid #1e293b; font-weight: bold; font-size: 0.95rem; align-items: center; z-index: 10; }
+#game-arena { background: #0f172a; cursor: crosshair; padding: 0; justify-content: flex-start; align-items: stretch; }
+#hud-top { position: absolute; top: 15px; right: 20px; display: flex; gap: 20px; background: rgba(15, 23, 42, 0.9); color: #ffffff; padding: 8px 16px; border-radius: 8px; border: 1px solid #334155; font-weight: bold; font-size: 0.95rem; align-items: center; z-index: 10; }
 #pause-btn { background: #334155; border: none; color: #fff; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 #pause-btn:hover { background: #ef4444; }
 #target-container { width: 100%; height: 100%; position: relative; overflow: hidden; }
 
-/* Targets */
-.aim-target { position: absolute; border-radius: 50%; background: radial-gradient(circle, #00f0ff 20%, #0284c7 80%); border: 2px solid #38bdf8; box-shadow: 0 0 12px rgba(0, 240, 255, 0.6); cursor: crosshair; animation: popIn 0.12s ease-out; transform: translate(-50%, -50%); }
-.aim-target.center-zone::after { content: ''; position: absolute; top: 30%; left: 30%; width: 40%; height: 40%; background: #ffffff; border-radius: 50%; box-shadow: 0 0 8px #ffffff; }
+/* Targets (Clean Clinical Blue Pill Style matching your screenshot) */
+.aim-target { position: absolute; border-radius: 50%; background: radial-gradient(circle, #38bdf8 20%, #0284c7 80%); border: 3px solid #ffffff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4); cursor: crosshair; animation: popIn 0.1s ease-out; transform: translate(-50%, -50%); }
+.aim-target.center-zone::after { content: ''; position: absolute; top: 30%; left: 30%; width: 40%; height: 40%; background: #ffffff; border-radius: 50%; }
 @keyframes popIn { 0% { transform: translate(-50%, -50%) scale(0); } 100% { transform: translate(-50%, -50%) scale(1); } }
 
 /* Results & Stats */
-.stats-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 340px; margin-bottom: 20px; }
-.stat-box { background: #1e293b; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #334155; }
-.stat-box span { display: block; font-size: 1.6rem; color: #00f0ff; font-weight: bold; }
-.stat-box label { color: #94a3b8; font-size: 0.8rem; }
-#history-list { width: 360px; max-height: 250px; overflow-y: auto; background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+.stats-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0; }
+.stat-box { background: #f8fafc; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; }
+.stat-box span { display: block; font-size: 1.5rem; color: #0284c7; font-weight: 900; }
+.stat-box label { color: #64748b; font-size: 0.75rem; font-weight: 700; }
+.history-container { max-height: 220px; overflow-y: auto; background: #f8fafc; padding: 12px; border-radius: 12px; margin: 15px 0; border: 1px solid #e2e8f0; }
 
 /* Mobile Landscape Enforcement */
 @media screen and (max-width: 900px) and (orientation: portrait) {
     #app-container::before {
-        content: "Please rotate your device to Landscape mode for the best training experience.";
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0b0f19; color: #00f0ff; display: flex; justify-content: center; align-items: center; text-align: center; padding: 30px; font-size: 1.2rem; font-weight: bold; z-index: 9999;
+        content: "Please rotate your device to Landscape mode for clinical testing.";
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #ffffff; color: #0f172a; display: flex; justify-content: center; align-items: center; text-align: center; padding: 30px; font-size: 1.1rem; font-weight: 800; z-index: 9999;
     }
 }
