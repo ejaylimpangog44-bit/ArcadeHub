@@ -378,7 +378,17 @@ const GAMES = [
     envName: 'Precision FPS Aim Training Facility',
     bg: 'radial-gradient(circle at 50% 20%, #111827 0%, #030712 70%, #000000 100%)',
     theme: 'neon_chalk'
-  }
+  },
+  {
+    id: 'mythic',
+    num: 20,
+    name: 'Mythic Survivors',
+    cat: 'Survival / Action',
+    icon: '⚔️',
+    envName: 'mythic.html',
+    bg: 'from-emerald-900 via-stone-900 to-black',
+    theme: 'emerald'
+}
 ];
 
 let activeGameId = null;
