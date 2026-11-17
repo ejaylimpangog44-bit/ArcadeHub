@@ -661,3 +661,48 @@ html, body {
   font-family: system-ui, sans-serif;
   text-align: center;
 }
+
+/* ==========================================================================
+   AUTOMATIC ORIENTATION MANAGER STYLES
+   ========================================================================== */
+
+/* Default App Shell Base */
+#app-shell {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* When a PORTRAIT game is active */
+#app-shell.force-portrait {
+  max-width: 480px !important;
+  max-height: 100vh !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transform: none !important;
+}
+
+/* When a LANDSCAPE game is active on mobile */
+@media screen and (orientation: portrait) {
+  #app-shell.force-landscape {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: 100vh !important;
+    height: 100vw !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+    transform-origin: center center !important;
+    overflow: hidden !important;
+  }
+}
+
+/* If already in landscape natively, landscape games fill the screen normally */
+@media screen and (orientation: landscape) {
+  #app-shell.force-landscape {
+    width: 100vw !important;
+    height: 100vh !important;
+    transform: none !important;
+  }
+}
