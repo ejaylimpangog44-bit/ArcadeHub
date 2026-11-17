@@ -260,38 +260,6 @@ function syncFullscreenLabel() {
 document.addEventListener('fullscreenchange', syncFullscreenLabel);
 document.addEventListener('webkitfullscreenchange', syncFullscreenLabel);
 
-document.addEventListener('visibilitychange', () => {
-  const bgm = document.getElementById('bgm-audio');
-  if (!bgm) return;
-  if (document.hidden) {
-    if (!bgm.paused) {
-      bgm.dataset.wasPlaying = 'true';
-      bgm.pause();
-    }
-  } else {
-    if (bgm.dataset.wasPlaying === 'true' && bgmEnabled) {
-      bgm.play().catch(() => {});
-      delete bgm.dataset.wasPlaying;
-    }
-  }
-});
-
-window.addEventListener('blur', () => {
-  const bgm = document.getElementById('bgm-audio');
-  if (bgm && !bgm.paused) {
-    bgm.dataset.wasPlaying = 'true';
-    bgm.pause();
-  }
-});
-
-window.addEventListener('focus', () => {
-  const bgm = document.getElementById('bgm-audio');
-  if (bgm && bgm.dataset.wasPlaying === 'true' && bgmEnabled) {
-    bgm.play().catch(() => {});
-    delete bgm.dataset.wasPlaying;
-  }
-});
-
 window.playerName = 'AJ';
 const RANDOM_NAMES = ['CyberGamer', 'PixelNinja', 'ArcadeLegend', 'NeonFox', 'RetroMaster', 'BitHero', 'SpeedRunner', 'GlitchWizard'];
 
@@ -341,54 +309,32 @@ function spawnPopup(text, x, y, color = '#38bdf8') {
   setTimeout(() => el.remove(), 1100);
 }
 
+/* ==========================================================
+   GAME DATABASE WITH EXPLICIT ORIENTATION TAGS (Portrait / Landscape)
+   ========================================================== */
 const GAMES = [
-  { id: 'solitaire', num: 1, name: 'Speed Solitaire', cat: 'Card', icon: '🃏', envName: 'Emerald Velvet Casino Table', bg: 'radial-gradient(circle at 50% 35%, #0f5132 0%, #062c1b 65%, #02140c 100%)', theme: 'casino_green' },
-  { id: 'coinscatter', num: 2, name: 'Coin Scatter v2', cat: 'Card', icon: '🎰', envName: 'Golden Vault & Neon Chamber', bg: 'radial-gradient(circle at 50% 25%, #451a03 0%, #1c0a00 60%, #090300 100%)', theme: 'gold_vault' },
-  { id: 'blackjack', num: 3, name: 'Blackjack 21', cat: 'Card', icon: '🂡', envName: 'VIP Mahogany & Royal Felt', bg: 'radial-gradient(circle at 50% 20%, #134e4a 0%, #042f2e 55%, #021312 100%)', theme: 'vip_table' },
-  { id: 'highlow', num: 4, name: 'High-Low', cat: 'Card', icon: '🔼', envName: 'Midnight Crimson Lounge', bg: 'radial-gradient(circle at 50% 30%, #4c0519 0%, #1f040d 65%, #0a0104 100%)', theme: 'crimson_lounge' },
-  { id: 'chess', num: 5, name: 'Chess', cat: 'Board', icon: '♟️', envName: 'Grandmaster Mahogany Study', bg: 'radial-gradient(circle at 50% 30%, #3e2723 0%, #1b100e 70%, #0c0706 100%)', theme: 'wood_study' },
-  { id: 'dama', num: 6, name: 'Dama', cat: 'Board', icon: '🔴', envName: 'Sunlit Narra & Bamboo Veranda', bg: 'radial-gradient(circle at 50% 25%, #5c3a21 0%, #2b180c 65%, #120904 100%)', theme: 'bamboo_sun' },
-  { id: 'tictactoe', num: 7, name: 'Tic-Tac-Toe', cat: 'Puzzle', icon: '❌', envName: 'Chalkboard & Neon Laser Grid', bg: 'radial-gradient(circle at 50% 50%, #111827 0%, #060913 100%)', theme: 'neon_chalk' },
-  { id: 'numberguess', num: 8, name: 'Number Guess', cat: 'Puzzle', icon: '🔢', envName: 'Cryptographic Matrix Vault', bg: 'radial-gradient(circle at 50% 30%, #052e16 0%, #02120a 70%, #000804 100%)', theme: 'matrix_vault' },
-  { id: 'wordscape', num: 9, name: 'Wordscape Pro', cat: 'Puzzle', icon: '📝', envName: 'Sunset Mountain Valley Sky', bg: 'linear-gradient(180deg, #1e1b4b 0%, #4c1d95 38%, #be185d 75%, #f59e0b 100%)', theme: 'sunset_valley' },
-  { id: 'basketball', num: 10, name: 'Basketball Hoops', cat: 'Action', icon: '🏀', envName: 'Neon Streetball Court', bg: 'radial-gradient(circle at 50% 0%, #7c2d12 0%, #1e1b4b 55%, #020617 100%)', theme: 'streetball_court' },
-  { id: 'fruitmaster', num: 11, name: 'Fruit Master', cat: 'Action', icon: '🍉', envName: 'Tropical Bamboo & Sakura Dojo', bg: 'linear-gradient(160deg, #14532d 0%, #1e3a2f 45%, #3f2e21 100%)', theme: 'bamboo_dojo' },
-  { id: 'whackamole', num: 12, name: 'Whack-a-Mole', cat: 'Action', icon: '🔨', envName: 'Sunlit Meadow & Garden Hills', bg: 'linear-gradient(180deg, #0284c7 0%, #38bdf8 42%, #16a34a 43%, #14532d 100%)', theme: 'sunny_meadow' },
-  { id: 'cybersnake', num: 13, name: 'Cyber Snake', cat: 'Action', icon: '🐍', envName: 'Original Version Preserved', bg: 'radial-gradient(circle at 50% 50%, #0f172a 0%, #090a10 100%)', theme: 'preserved', locked: true },
-  { id: 'towerstack', num: 14, name: 'Tower Stack', cat: 'Action', icon: '🏗️', envName: 'Twilight Skyline to Stratosphere', bg: 'linear-gradient(180deg, #090d16 0%, #1e1b4b 45%, #6d28d9 80%, #f43f5e 100%)', theme: 'skyline_climb' },
-  { id: 'carracing', num: 15, name: 'Car Racing', cat: 'Racing', icon: '🏎️', envName: 'Neon Sunset Canyon Highway', bg: 'linear-gradient(180deg, #0f0722 0%, #3b0764 42%, #be123c 55%, #090a0f 56%)', theme: 'synth_highway' },
-  { id: 'brickbreaker', num: 16, name: 'Brick Breaker', cat: 'Racing', icon: '🧱', envName: 'Cosmic Synthwave Core', bg: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #03050a 100%)', theme: 'cosmic_core' },
-  { id: 'stickrun', num: 17, name: 'Stick Run', cat: 'Runner', icon: '🏃', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' },
-  {
-    id: 'tiny-cafe',
-    num: 18,
-    name: 'Tiny Café',
-    cat: 'Strategy',
-    icon: '☕',
-    envName: 'Cozy Cartoon Café',
-    bg: 'radial-gradient(circle at 50% 25%, #fff5e6 0%, #f5dec0 65%, #e4c096 100%)',
-    theme: 'wood'
-  },
-  {
-    id: 'flickpoint',
-    num: 19,
-    name: 'FlickPoint',
-    cat: 'Action',
-    icon: '🎯',
-    envName: 'Precision FPS Aim Training Facility',
-    bg: 'radial-gradient(circle at 50% 20%, #111827 0%, #030712 70%, #000000 100%)',
-    theme: 'neon_chalk'
-  },
-  {
-    id: 'mythic',
-    num: 20,
-    name: 'Mythic Survivors',
-    cat: 'Survival / Action',
-    icon: '⚔️',
-    envName: 'mythic.html',
-    bg: 'from-emerald-900 via-stone-900 to-black',
-    theme: 'emerald'
-}
+  // 📱 Portrait Mode Games (14)
+  { id: 'solitaire', num: 1, name: 'Speed Solitaire', cat: 'Card', icon: '🃏', orientation: 'portrait', envName: 'Emerald Velvet Casino Table', bg: 'radial-gradient(circle at 50% 35%, #0f5132 0%, #062c1b 65%, #02140c 100%)', theme: 'casino_green' },
+  { id: 'coinscatter', num: 2, name: 'Coin Scatter v2', cat: 'Card', icon: '🎰', orientation: 'portrait', envName: 'Golden Vault & Neon Chamber', bg: 'radial-gradient(circle at 50% 25%, #451a03 0%, #1c0a00 60%, #090300 100%)', theme: 'gold_vault' },
+  { id: 'blackjack', num: 3, name: 'Blackjack 21', cat: 'Card', icon: '🂡', orientation: 'portrait', envName: 'VIP Mahogany & Royal Felt', bg: 'radial-gradient(circle at 50% 20%, #134e4a 0%, #042f2e 55%, #021312 100%)', theme: 'vip_table' },
+  { id: 'highlow', num: 4, name: 'High-Low', cat: 'Card', icon: '🔼', orientation: 'portrait', envName: 'Midnight Crimson Lounge', bg: 'radial-gradient(circle at 50% 30%, #4c0519 0%, #1f040d 65%, #0a0104 100%)', theme: 'crimson_lounge' },
+  { id: 'chess', num: 5, name: 'Chess', cat: 'Board', icon: '♟️', orientation: 'portrait', envName: 'Grandmaster Mahogany Study', bg: 'radial-gradient(circle at 50% 30%, #3e2723 0%, #1b100e 70%, #0c0706 100%)', theme: 'wood_study' },
+  { id: 'dama', num: 6, name: 'Dama', cat: 'Board', icon: '🔴', orientation: 'portrait', envName: 'Sunlit Narra & Bamboo Veranda', bg: 'radial-gradient(circle at 50% 25%, #5c3a21 0%, #2b180c 65%, #120904 100%)', theme: 'bamboo_sun' },
+  { id: 'tictactoe', num: 7, name: 'Tic-Tac-Toe', cat: 'Puzzle', icon: '❌', orientation: 'portrait', envName: 'Chalkboard & Neon Laser Grid', bg: 'radial-gradient(circle at 50% 50%, #111827 0%, #060913 100%)', theme: 'neon_chalk' },
+  { id: 'whackamole', num: 8, name: 'Whack-a-Mole', cat: 'Action', icon: '🔨', orientation: 'portrait', envName: 'Sunlit Meadow & Garden Hills', bg: 'linear-gradient(180deg, #0284c7 0%, #38bdf8 42%, #16a34a 43%, #14532d 100%)', theme: 'sunny_meadow' },
+  { id: 'basketball', num: 9, name: 'Basketball Hoops', cat: 'Action', icon: '🏀', orientation: 'portrait', envName: 'Neon Streetball Court', bg: 'radial-gradient(circle at 50% 0%, #7c2d12 0%, #1e1b4b 55%, #020617 100%)', theme: 'streetball_court' },
+  { id: 'towerstack', num: 10, name: 'Tower Stack', cat: 'Action', icon: '🏗️', orientation: 'portrait', envName: 'Twilight Skyline to Stratosphere', bg: 'linear-gradient(180deg, #090d16 0%, #1e1b4b 45%, #6d28d9 80%, #f43f5e 100%)', theme: 'skyline_climb' },
+  { id: 'cybersnake', num: 11, name: 'Cyber Snake', cat: 'Action', icon: '🐍', orientation: 'portrait', envName: 'Original Version Preserved', bg: 'radial-gradient(circle at 50% 50%, #0f172a 0%, #090a10 100%)', theme: 'preserved', locked: true },
+  { id: 'carracing', num: 12, name: 'Car Racing', cat: 'Racing', icon: '🏎️', orientation: 'portrait', envName: 'Neon Sunset Canyon Highway', bg: 'linear-gradient(180deg, #0f0722 0%, #3b0764 42%, #be123c 55%, #090a0f 56%)', theme: 'synth_highway' },
+  { id: 'brickbreaker', num: 13, name: 'Brick Breaker', cat: 'Racing', icon: '🧱', orientation: 'portrait', envName: 'Cosmic Synthwave Core', bg: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #03050a 100%)', theme: 'cosmic_core' },
+  { id: 'fruitmaster', num: 14, name: 'Fruit Master', cat: 'Action', icon: '🍉', orientation: 'portrait', envName: 'Tropical Bamboo & Sakura Dojo', bg: 'linear-gradient(160deg, #14532d 0%, #1e3a2f 45%, #3f2e21 100%)', theme: 'bamboo_dojo' },
+
+  // 🖥️ Landscape Mode Games (5)
+  { id: 'flickpoint', num: 1, name: 'Flickpoint', cat: 'Action', icon: '🎯', orientation: 'landscape', envName: 'Precision FPS Aim Training Facility', bg: 'radial-gradient(circle at 50% 20%, #111827 0%, #030712 70%, #000000 100%)', theme: 'neon_chalk' },
+  { id: 'mythic', num: 2, name: 'Mythic Survivors', cat: 'Survival / Action', icon: '⚔️', orientation: 'landscape', envName: 'Mythic Survival Battlefield', bg: 'radial-gradient(circle at 50% 30%, #064e3b 0%, #1c1917 65%, #000000 100%)', theme: 'emerald' },
+  { id: 'numberguess', num: 3, name: 'Number Guess', cat: 'Puzzle', icon: '🔢', orientation: 'landscape', envName: 'Cryptographic Matrix Vault', bg: 'radial-gradient(circle at 50% 30%, #052e16 0%, #02120a 70%, #000804 100%)', theme: 'matrix_vault' },
+  { id: 'wordscape', num: 4, name: 'Wordscape Pro', cat: 'Puzzle', icon: '📝', orientation: 'landscape', envName: 'Sunset Mountain Valley Sky', bg: 'linear-gradient(180deg, #1e1b4b 0%, #4c1d95 38%, #be185d 75%, #f59e0b 100%)', theme: 'sunset_valley' },
+  { id: 'stickrun', num: 5, name: 'Stick Run', cat: 'Runner', icon: '🏃', orientation: 'landscape', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' }
 ];
 
 let activeGameId = null;
@@ -521,102 +467,87 @@ function openHubHome() {
   }
   activeGameId = null;
 
-  // Reset document root and body flags back to landscape/hub grid state
-  const htmlEl = document.documentElement;
-  const bodyEl = document.body;
-  const appShell = document.getElementById('app-shell');
-
-  htmlEl.classList.remove('force-portrait-mode', 'force-landscape-mode');
-  bodyEl.classList.remove('force-portrait-mode', 'force-landscape-mode');
-  htmlEl.classList.add('force-landscape-mode');
-  bodyEl.classList.add('force-landscape-mode');
-
-  if (appShell) {
-    appShell.classList.remove('force-portrait', 'force-landscape');
-    appShell.classList.add('force-landscape');
-  }
-
   document.getElementById('hub-header').classList.remove('hidden');
   document.getElementById('universal-game-bar').classList.add('hidden');
 
   const stage = document.getElementById('game-stage');
   stage.classList.remove('in-game');
+  stage.className = "relative z-10 flex-1 w-full min-h-0 overflow-hidden flex flex-col items-center justify-center";
 
   document.getElementById('app-shell').style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
   BgEngine.setTheme('hub');
 
+  const portraitGames = GAMES.filter(g => g.orientation === 'portrait');
+  const landscapeGames = GAMES.filter(g => g.orientation === 'landscape');
+
   stage.innerHTML = `
     <div class="w-full h-full overflow-y-auto px-4 sm:px-8 py-6">
-      <div class="max-w-6xl mx-auto">
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 pb-10">
-          ${GAMES.map(g => `
-            <button onclick="launchGame('${g.id}')" class="group relative overflow-hidden rounded-2xl p-4 text-left border border-white/10 hover:border-pink-400/50 transition-all flex flex-col justify-between min-h-[148px]" style="background:${g.bg}">
-              <div class="absolute inset-0 bg-black/35 group-hover:bg-black/15 transition"></div>
-              <div class="relative z-10 flex items-center justify-between w-full">
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${g.locked ? 'bg-amber-500/30 text-amber-200' : 'bg-emerald-500/30 text-emerald-200'}">
-                  ${g.locked ? 'ORIGINAL' : 'FULL V2'}
-                </span>
-                <span class="text-[11px] font-mono text-white/60">#${g.num}</span>
-              </div>
-              <div class="relative z-10 my-2 text-center">
-                <div class="text-3xl sm:text-4xl drop-shadow-md group-hover:scale-110 transition-transform">${g.icon}</div>
-              </div>
-              <div class="relative z-10">
-                <div class="font-extrabold text-sm text-white leading-tight">${g.name}</div>
-                <div class="text-[10px] text-white/75 line-clamp-1 mt-0.5">${g.envName}</div>
-              </div>
-            </button>
-          `).join('')}
+      <div class="max-w-6xl mx-auto flex flex-col gap-8 pb-12">
+        
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-xl">📱</span>
+            <h2 class="text-lg font-black text-white tracking-wide">Portrait Mode Games (14)</h2>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            ${portraitGames.map(g => `
+              <button onclick="launchGame('${g.id}')" class="group relative overflow-hidden rounded-2xl p-4 text-left border border-white/10 hover:border-pink-400/50 transition-all flex flex-col justify-between min-h-[148px]" style="background:${g.bg}">
+                <div class="absolute inset-0 bg-black/35 group-hover:bg-black/15 transition"></div>
+                <div class="relative z-10 flex items-center justify-between w-full">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${g.locked ? 'bg-amber-500/30 text-amber-200' : 'bg-emerald-500/30 text-emerald-200'}">
+                    ${g.locked ? 'ORIGINAL' : 'PORTRAIT'}
+                  </span>
+                  <span class="text-[11px] font-mono text-white/60">#${g.num}</span>
+                </div>
+                <div class="relative z-10 my-2 text-center">
+                  <div class="text-3xl sm:text-4xl drop-shadow-md group-hover:scale-110 transition-transform">${g.icon}</div>
+                </div>
+                <div class="relative z-10">
+                  <div class="font-extrabold text-sm text-white leading-tight">${g.name}</div>
+                  <div class="text-[10px] text-white/75 line-clamp-1 mt-0.5">${g.envName}</div>
+                </div>
+              </button>
+            `).join('')}
+          </div>
         </div>
+
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-xl">🖥️</span>
+            <h2 class="text-lg font-black text-white tracking-wide">Landscape Mode Games (5)</h2>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            ${landscapeGames.map(g => `
+              <button onclick="launchGame('${g.id}')" class="group relative overflow-hidden rounded-2xl p-4 text-left border border-white/10 hover:border-cyan-400/50 transition-all flex flex-col justify-between min-h-[148px]" style="background:${g.bg}">
+                <div class="absolute inset-0 bg-black/35 group-hover:bg-black/15 transition"></div>
+                <div class="relative z-10 flex items-center justify-between w-full">
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/30 text-cyan-200">
+                    LANDSCAPE
+                  </span>
+                  <span class="text-[11px] font-mono text-white/60">#${g.num}</span>
+                </div>
+                <div class="relative z-10 my-2 text-center">
+                  <div class="text-3xl sm:text-4xl drop-shadow-md group-hover:scale-110 transition-transform">${g.icon}</div>
+                </div>
+                <div class="relative z-10">
+                  <div class="font-extrabold text-sm text-white leading-tight">${g.name}</div>
+                  <div class="text-[10px] text-white/75 line-clamp-1 mt-0.5">${g.envName}</div>
+                </div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
       </div>
     </div>
   `;
 }
-
-// Master lists for orientation handling based on your game IDs
-const portraitGameIds = [
-  'solitaire', 'coinscatter', 'blackjack', 'highlow', 
-  'chess', 'dama', 'tictactoe', 'whackamole', 'basketball', 
-  'towerstack', 'cybersnake', 'carracing', 'brickbreaker', 
-  'fruitmaster', 'tiny-cafe'
-];
-
-const landscapeGameIds = [
-  'flickpoint', 'mythic', 'numberguess', 'wordscape', 'stickrun'
-];
 
 function launchGame(id) {
   const meta = GAMES.find(g => g.id === id);
   if (!meta) return;
   AudioFX.click();
 
-  const appShell = document.getElementById('app-shell');
-  const htmlEl = document.documentElement;
-  const bodyEl = document.body;
-
-  // Clear previous modes
-  htmlEl.classList.remove('force-portrait-mode', 'force-landscape-mode');
-  bodyEl.classList.remove('force-portrait-mode', 'force-landscape-mode');
-  if (appShell) appShell.classList.remove('force-portrait', 'force-landscape');
-
-  // Check master lists
-  if (portraitGameIds.includes(id)) {
-    htmlEl.classList.add('force-portrait-mode');
-    bodyEl.classList.add('force-portrait-mode');
-    if (appShell) appShell.classList.add('force-portrait');
-    console.log(`[Orientation Manager] Exception applied: ${meta.name} running in PORTRAIT mode.`);
-  } else if (landscapeGameIds.includes(id)) {
-    htmlEl.classList.add('force-landscape-mode');
-    bodyEl.classList.add('force-landscape-mode');
-    if (appShell) appShell.classList.add('force-landscape');
-    console.log(`[Orientation Manager] ${meta.name} running in LANDSCAPE rotation mode.`);
-  } else {
-    htmlEl.classList.add('force-landscape-mode');
-    bodyEl.classList.add('force-landscape-mode');
-    if (appShell) appShell.classList.add('force-landscape');
-  }
-
-  // Handle external redirects (FlickPoint, Mythic, etc.)
   if (id === 'flickpoint') {
     window.location.href = 'flickpoint.html';
     return;
@@ -641,6 +572,10 @@ function launchGame(id) {
 
   const stage = document.getElementById('game-stage');
   stage.classList.add('in-game');
+  
+  // Apply orientation container wrapper to prevent grid distortion & scaling breakages
+  stage.className = `relative z-10 flex-1 w-full min-h-0 overflow-hidden flex flex-col items-center justify-center ${meta.orientation === 'landscape' ? 'game-viewport-landscape' : 'game-viewport-portrait'}`;
+  
   stage.innerHTML = '';
 
   const runners = {
@@ -669,7 +604,6 @@ function launchGame(id) {
   }
 }
 
-// Auto-open hub lobby if redirected with ?hub=true from FlickPoint
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('hub') === 'true') {
@@ -678,16 +612,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const appShell = document.getElementById('app-shell');
     const headerName = document.getElementById('header-player-name');
     
-    // Hide BOTH startup overlays
     if (powerScreen) powerScreen.style.display = 'none';
     if (loginScreen) loginScreen.classList.add('hidden');
-    
-    // Reveal the main app shell and set the player name
     if (appShell) appShell.classList.remove('hidden');
     window.playerName = 'AJ';
     if (headerName) headerName.textContent = window.playerName;
     
-    // Jump straight to the game card selection lobby
     openHubHome();
   }
 });
