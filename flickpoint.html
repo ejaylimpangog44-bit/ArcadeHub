@@ -119,22 +119,23 @@
             </div>
         </div>
 
-
-        <!-- Session Results View -->
-        <div id="results-view" class="view">
-            <div class="lab-card-modal text-center">
-                <h2 class="modal-title">TRIAL CONCLUDED</h2>
+               <!-- Session Results Modal Overlay -->
+        <div id="results-view" class="view" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 100;">
+            <div class="lab-card-modal text-center" style="max-width: 450px;">
+                <h2 class="modal-title" style="margin-bottom: 15px;">TRIAL CONCLUDED</h2>
                 <div class="stats-card-grid">
                     <div class="stat-box"><span id="res-score">0</span><label>Total Score</label></div>
                     <div class="stat-box"><span id="res-accuracy">0%</span><label>Accuracy</label></div>
                     <div class="stat-box"><span id="res-hits">0</span><label>Targets Hit</label></div>
                     <div class="stat-box"><span id="res-reaction">0ms</span><label>Avg Reaction</label></div>
                 </div>
-                <button class="lab-pill-btn primary" onclick="switchView('training-setup')">NEW TRIAL</button>
-                <button class="lab-pill-btn" style="margin-top: 10px;" onclick="switchView('main-menu')">MAIN MENU</button>
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+                    <button class="lab-pill-btn primary" onclick="switchView('training-setup')">NEW TRIAL</button>
+                    <button class="lab-pill-btn" onclick="switchView('main-menu')" style="text-align: center; justify-content: center;">MAIN MENU</button>
+                </div>
             </div>
         </div>
-
+        
         <!-- Statistics & Performance View -->
         <div id="stats-view" class="view">
             <div class="lab-card-modal">
