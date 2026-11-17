@@ -558,10 +558,37 @@ function openHubHome() {
   `;
 }
 
+// Master lists for orientation handling based on your game IDs
+const portraitGameIds = [
+  'solitaire', 'coinscatter', 'blackjack', 'highlow', 
+  'chess', 'dama', 'tictactoe', 'whackamole', 'basketball', 
+  'towerstack', 'cybersnake', 'carracing', 'brickbreaker', 
+  'fruitmaster', 'tiny-cafe'
+];
+
+const landscapeGameIds = [
+  'flickpoint', 'mythic', 'numberguess', 'wordscape', 'stickrun'
+];
+
 function launchGame(id) {
   const meta = GAMES.find(g => g.id === id);
   if (!meta) return;
   AudioFX.click();
+
+  // Automatic Orientation Manager
+  const appShell = document.getElementById('app-shell');
+  if (appShell) {
+    appShell.classList.remove('force-portrait', 'force-landscape');
+    if (portraitGameIds.includes(id)) {
+      appShell.classList.add('force-portrait');
+      console.log(`[Orientation Manager] Switching ${meta.name} to PORTRAIT mode.`);
+    } else if (landscapeGameIds.includes(id)) {
+      appShell.classList.add('force-landscape');
+      console.log(`[Orientation Manager] Switching ${meta.name} to LANDSCAPE mode.`);
+    } else {
+      appShell.classList.add('force-landscape'); // Default fallback
+    }
+  }
 
   // If the game is FlickPoint, redirect straight to your standalone HTML file!
   if (id === 'flickpoint') {
