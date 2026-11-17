@@ -15,9 +15,10 @@ html, body {
   color: #f8fafc;
 }
 
-/* Universal Bulletproof Centered Portrait-to-Landscape Rotation Wrapper */
+/* Universal Rotation Wrapper ONLY for Landscape/Hub, NOT for Portrait Games */
 @media screen and (orientation: portrait) {
-  html, body {
+  html:not(.force-portrait-mode), 
+  body:not(.force-portrait-mode) {
     width: 100vw !important;
     height: 100vh !important;
     overflow: hidden !important;
@@ -27,8 +28,13 @@ html, body {
     transform: none !important;
   }
 
-  /* Center-pivot scale and rotation for app shell, game containers, and canvases */
-  #app-shell, .power-screen, #login-screen, .game-container, #landscapeWrapper, body > div {
+  /* Only apply rotation if we are NOT in portrait mode */
+  html:not(.force-portrait-mode) #app-shell, 
+  html:not(.force-portrait-mode) .power-screen, 
+  html:not(.force-portrait-mode) #login-screen, 
+  html:not(.force-portrait-mode) .game-container, 
+  html:not(.force-portrait-mode) #landscapeWrapper, 
+  html:not(.force-portrait-mode) body > div {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
@@ -39,6 +45,7 @@ html, body {
     overflow: hidden !important;
   }
 }
+
 
 #app-shell {
   position: fixed;
