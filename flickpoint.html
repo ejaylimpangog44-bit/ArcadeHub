@@ -3,56 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlickPoint - ArcadeHub</title>
+    <title>Aim Labs - Clinical Diagnostics</title>
     <link rel="stylesheet" href="flickpoint.css">
 </head>
 <body>
     <div id="app-container">
-        <!-- Main Menu View -->
+        <!-- Main Menu / Hub View -->
         <div id="main-menu" class="view active">
-            <header class="hub-header">
-                <h1>FLICKPOINT</h1>
-                <p>Precision Aim Training Facility</p>
-            </header>
-            <div class="menu-cards">
-                <button class="menu-btn primary" onclick="switchView('training-setup')">Training Grounds</button>
-                <button class="menu-btn" onclick="switchView('stats-view')">Performance & Stats</button>
-                <button class="menu-btn" onclick="switchView('settings-view')">Settings</button>
-                <button class="menu-btn" onclick="window.location.href='index.html'">Back to ArcadeHub</button>
+            <div class="lab-card-main">
+                <div class="lab-header-row">
+                    <span class="lab-badge">LANDSCAPE RESEARCH MODE ACTIVE</span>
+                </div>
+                <h1 class="lab-title">AIM LABS</h1>
+                <p class="lab-subtitle">Cognitive Reflex & Ocular Precision Diagnostics</p>
+                
+                <div class="menu-actions-row">
+                    <button class="lab-pill-btn primary" onclick="switchView('training-setup')">
+                        <span>TRAINING GROUNDS</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                    <button class="lab-pill-btn" onclick="switchView('stats-view')">
+                        <span>DIAGNOSTIC STATS</span>
+                        <span class="btn-icon">📊</span>
+                    </button>
+                    <button class="lab-pill-btn" onclick="switchView('settings-view')">
+                        <span>CROSSHAIR & CONFIG</span>
+                        <span class="btn-icon">⚙️</span>
+                    </button>
+                </div>
+                <div class="return-link" onclick="window.location.href='index.html'">
+                    ← RETURN TO ARCADEHUB
+                </div>
             </div>
         </div>
 
         <!-- Training Setup View -->
         <div id="training-setup" class="view">
-            <h2>Select Training Mode</h2>
-            <div class="mode-grid">
-                <button class="mode-card" onclick="selectMode('flick')"><h3>Flick Shot</h3><p>Random target acquisition</p></button>
-                <button class="mode-card" onclick="selectMode('grid')"><h3>Grid Shot</h3><p>Multiple simultaneous targets</p></button>
-                <button class="mode-card" onclick="selectMode('tracking')"><h3>Tracking</h3><p>Follow moving targets</p></button>
-                <button class="mode-card" onclick="selectMode('precision')"><h3>Precision Shot</h3><p>Center-zone bonus targets</p></button>
-            </div>
-            
-            <div class="config-row">
-                <label>Difficulty:</label>
-                <select id="difficulty-select">
-                    <option value="easy">Easy</option>
-                    <option value="normal" selected>Normal</option>
-                    <option value="hard">Hard</option>
-                    <option value="insane">Insane</option>
-                </select>
-            </div>
+            <div class="lab-card-modal">
+                <div class="modal-header-flex">
+                    <h2 class="modal-title">CONFIGURE TRIAL PARAMETERS</h2>
+                    <span class="close-text" onclick="switchView('main-menu')">✕ CLOSE</span>
+                </div>
+                
+                <div class="config-grid-layout">
+                    <div class="config-column">
+                        <label class="config-label">DIAGNOSTIC MODE</label>
+                        <div class="mode-select-pill active" onclick="selectMode('flick', this)">
+                            <strong>🎯 FLICK SHOT</strong>
+                            <p>Discrete static target acquisition</p>
+                        </div>
+                        <div class="mode-select-pill" onclick="selectMode('grid', this)">
+                            <strong>⚡ GRID SHOT</strong>
+                            <p>Multi-point stimulus switching</p>
+                        </div>
+                        <div class="mode-select-pill" onclick="selectMode('tracking', this)">
+                            <strong>📈 TRACKING</strong>
+                            <p>Dynamic orbital pursuit vector</p>
+                        </div>
+                        <div class="mode-select-pill" onclick="selectMode('precision', this)">
+                            <strong>🎯 PRECISION</strong>
+                            <p>Central focal zone weighting</p>
+                        </div>
+                    </div>
 
-            <div class="config-row">
-                <label>Duration:</label>
-                <select id="duration-select">
-                    <option value="15">15 seconds</option>
-                    <option value="30" selected>30 seconds</option>
-                    <option value="60">60 seconds</option>
-                </select>
-            </div>
+                    <div class="config-column">
+                        <label class="config-label">TARGET SCALE</label>
+                        <select id="difficulty-select" class="lab-select">
+                            <option value="easy">Extended (Large)</option>
+                            <option value="normal" selected>Normal (Standard)</option>
+                            <option value="hard">Compact (Precision)</option>
+                            <option value="insane">Micro (Expert)</option>
+                        </select>
 
-            <button class="menu-btn primary" onclick="startSession()">Start Training</button>
-            <button class="menu-btn" onclick="switchView('main-menu')">Back</button>
+                        <label class="config-label" style="margin-top: 20px;">DURATION</label>
+                        <select id="duration-select" class="lab-select">
+                            <option value="15">15 Seconds</option>
+                            <option value="30" selected>30 Seconds</option>
+                            <option value="60">60 Seconds</option>
+                        </select>
+
+                        <button class="lab-pill-btn primary" style="margin-top: 35px;" onclick="startSession()">
+                            INITIALIZE TESTING CHAMBER
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Active Game Arena View -->
@@ -69,36 +104,42 @@
 
         <!-- Session Results View -->
         <div id="results-view" class="view">
-            <h2>Session Complete</h2>
-            <div class="stats-card-grid">
-                <div class="stat-box"><span id="res-score">0</span><label>Total Score</label></div>
-                <div class="stat-box"><span id="res-accuracy">0%</span><label>Accuracy</label></div>
-                <div class="stat-box"><span id="res-hits">0</span><label>Targets Hit</label></div>
-                <div class="stat-box"><span id="res-reaction">0ms</span><label>Avg Reaction</label></div>
+            <div class="lab-card-modal text-center">
+                <h2 class="modal-title">TRIAL CONCLUDED</h2>
+                <div class="stats-card-grid">
+                    <div class="stat-box"><span id="res-score">0</span><label>Total Score</label></div>
+                    <div class="stat-box"><span id="res-accuracy">0%</span><label>Accuracy</label></div>
+                    <div class="stat-box"><span id="res-hits">0</span><label>Targets Hit</label></div>
+                    <div class="stat-box"><span id="res-reaction">0ms</span><label>Avg Reaction</label></div>
+                </div>
+                <button class="lab-pill-btn primary" onclick="switchView('training-setup')">NEW TRIAL</button>
+                <button class="lab-pill-btn" style="margin-top: 10px;" onclick="switchView('main-menu')">MAIN MENU</button>
             </div>
-            <button class="menu-btn primary" onclick="switchView('training-setup')">Play Again</button>
-            <button class="menu-btn" onclick="switchView('main-menu')">Main Menu</button>
         </div>
 
         <!-- Statistics & Performance View -->
         <div id="stats-view" class="view">
-            <h2>Performance History</h2>
-            <div id="history-list"></div>
-            <button class="menu-btn" onclick="switchView('main-menu')">Back to Menu</button>
+            <div class="lab-card-modal">
+                <h2 class="modal-title">DIAGNOSTIC PERFORMANCE LOGS</h2>
+                <div id="history-list" class="history-container"></div>
+                <button class="lab-pill-btn primary" onclick="switchView('main-menu')">BACK TO MENU</button>
+            </div>
         </div>
 
         <!-- Settings View -->
         <div id="settings-view" class="view">
-            <h2>Training Settings</h2>
-            <div class="config-row">
-                <label>Crosshair Style:</label>
-                <select id="setting-crosshair" onchange="saveSettings()">
-                    <option value="dot">Dot</option>
-                    <option value="circle" selected>Circle</option>
-                    <option value="cross">Cross</option>
-                </select>
+            <div class="lab-card-modal">
+                <h2 class="modal-title">SYSTEM CONFIGURATION</h2>
+                <div class="config-row">
+                    <label>Crosshair Reticle:</label>
+                    <select id="setting-crosshair" class="lab-select">
+                        <option value="dot">Clinical Dot</option>
+                        <option value="circle" selected>Precision Ring</option>
+                        <option value="cross">Axis Cross</option>
+                    </select>
+                </div>
+                <button class="lab-pill-btn primary" style="margin-top: 25px;" onclick="switchView('main-menu')">SAVE & RETURN</button>
             </div>
-            <button class="menu-btn" onclick="switchView('main-menu')">Back to Menu</button>
         </div>
     </div>
     <script src="flickpoint.js"></script>
