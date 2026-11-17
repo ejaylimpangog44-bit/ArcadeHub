@@ -520,3 +520,112 @@ html, body {
   );
   transition: transform 3.2s cubic-bezier(0.15, 0.85, 0.2, 1);
 }
+
+.power-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: #08080c;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+.power-screen.powered-on {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.neon-sign-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.neon-sign {
+  font-family: 'Courier New', monospace;
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: #222;
+  text-transform: uppercase;
+  text-shadow: none;
+  transition: all 0.3s ease;
+  margin-bottom: 40px;
+  border: 2px solid #222;
+  padding: 20px 40px;
+  border-radius: 12px;
+  background: #0d0d12;
+}
+
+.power-screen.active-glow .neon-sign {
+  color: #fff;
+  border-color: #ff007f;
+  text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f, 0 0 40px #ff007f, 0 0 80px #ff007f;
+  box-shadow: 0 0 20px rgba(255, 0, 127, 0.4), inset 0 0 20px rgba(255, 0, 127, 0.4);
+  animation: neon-flicker 2s infinite alternate;
+}
+
+@keyframes neon-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f, 0 0 40px #ff007f, 0 0 80px #ff007f;
+    box-shadow: 0 0 20px rgba(255, 0, 127, 0.4), inset 0 0 20px rgba(255, 0, 127, 0.4);
+  }
+  20%, 24%, 55% {
+    text-shadow: none;
+    box-shadow: none;
+    color: #444;
+  }
+}
+
+.pull-chain-assembly {
+  position: absolute;
+  top: 100%;
+  right: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: top center;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.chain-wire {
+  width: 3px;
+  height: 90px;
+  background: linear-gradient(to bottom, #666, #ccc);
+}
+
+.pull-handle {
+  width: 20px;
+  height: 35px;
+  background: radial-gradient(circle at 30% 30%, #ffcc00, #b38600);
+  border-radius: 50% 50% 40% 40%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  cursor: grab;
+  transition: transform 0.1s ease;
+}
+
+.pull-handle:active {
+  cursor: grabbing;
+}
+
+.pull-chain-assembly.pulled {
+  transform: translateY(35px) scaleY(0.85);
+}
+
+.power-hint {
+  margin-top: 50px;
+  color: #777;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  font-family: system-ui, sans-serif;
+}
