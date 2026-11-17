@@ -606,10 +606,17 @@ function launchGame(id) {
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('hub') === 'true') {
-    const loginScreen = document.getElementById('login-screen');
+    const powerScreen = document.getElementById('power-screen');
     const appShell = document.getElementById('app-shell');
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (appShell) appShell.classList.remove('hidden');
+    
+    if (powerScreen) {
+      powerScreen.style.display = 'none'; // Instantly hide the power-screen intro
+    }
+    if (appShell) {
+      appShell.classList.remove('hidden');
+    }
+    
+    window.playerName = 'AJ';
     openHubHome();
   }
 });
