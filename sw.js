@@ -1,9 +1,22 @@
 const CACHE_NAME = 'arcadehub-cache-v2';
-const PRECACHE_ASSETS = [
+const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './styles.css',
+  './hub.js',
+  './games.js',
+  './basketball.js',
+  './hero.js',
+  './power.js',
+  './bgm.mp3',
   './manifest.json',
-  './1793408885987.jpg'
+  './1793408885987.jpg',
+  './flickpoint.html',
+  './flickpoint.css',
+  './flickpoint.js',
+  './mythic.html',
+  './mythic.css',
+  './mythic.js'
 ];
 
 self.addEventListener('install', (event) => {
