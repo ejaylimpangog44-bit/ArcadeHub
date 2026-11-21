@@ -7,8 +7,24 @@
     <link rel="stylesheet" href="flickpoint.css">
 </head>
 <body>
+    <div id="rotateGate" class="rotate-gate rotate-gate--flickpoint" aria-hidden="true">
+        <div class="rotate-gate__card">
+            <div class="rotate-gate__stage">
+                <div class="rotate-gate__device">
+                    <span class="rotate-gate__dot"></span>
+                </div>
+            </div>
+            <h2 class="rotate-gate__title">ROTATE TO LANDSCAPE</h2>
+            <p class="rotate-gate__subtitle">
+                Flickpoint requires a wide tactical view to line up precision shots and track moving targets.
+            </p>
+            <button type="button" class="rotate-gate__hub-btn" onclick="window.location.href='index.html?hub=true'">
+                ← Return to ArcadeHub
+            </button>
+        </div>
+    </div>
+
     <div id="app-container">
-        <!-- Main Menu / Hub View -->
         <div id="main-menu" class="view active">
             <div class="lab-card-main">
                 <div class="lab-header-row">
@@ -37,7 +53,6 @@
             </div>
         </div>
 
-        <!-- Training Setup View -->
         <div id="training-setup" class="view">
             <div class="lab-card-modal">
                 <div class="modal-header-flex">
@@ -90,7 +105,6 @@
             </div>
         </div>
 
-        <!-- Active Game Arena View -->
         <div id="game-arena" class="view">
             <div id="hud-top">
                 <div id="hud-score">SCORE: 0</div>
@@ -102,7 +116,6 @@
             <div id="target-container"></div>
         </div>
 
-                <!-- Custom Pause Modal Overlay -->
         <div id="pause-modal" class="view" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 100;">
             <div class="lab-card-modal text-center" style="max-width: 400px;">
                 <h2 class="modal-title" style="margin-bottom: 8px;">TRIAL PAUSED</h2>
@@ -119,7 +132,6 @@
             </div>
         </div>
 
-               <!-- Session Results Modal Overlay -->
         <div id="results-view" class="view" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 100;">
             <div class="lab-card-modal text-center" style="max-width: 450px;">
                 <h2 class="modal-title" style="margin-bottom: 15px;">TRIAL CONCLUDED</h2>
@@ -136,7 +148,6 @@
             </div>
         </div>
         
-        <!-- Statistics & Performance View -->
         <div id="stats-view" class="view">
             <div class="lab-card-modal">
                 <h2 class="modal-title">DIAGNOSTIC PERFORMANCE LOGS</h2>
@@ -145,14 +156,12 @@
             </div>
         </div>
 
-        <!-- Settings View -->
         <div id="settings-view" class="view">
             <div class="lab-card-modal">
                 <h2 class="modal-title">SYSTEM CONFIGURATION</h2>
                 <div style="margin: 20px 0; display: flex; flex-direction: column; gap: 12px;">
-             <!-- Universal Fullscreen Toggle Button matching Hub style -->
                     <button class="lab-pill-btn" onclick="toggleFullScreen()" style="justify-content: center; text-align: center;">
-            <span>⛶ Toggle Fullscreen Display</span>
+                        <span id="fs-icon">⛶</span> <span id="fs-label">Toggle Fullscreen Display</span>
                     </button>
                 </div>
                 <div class="config-row">
