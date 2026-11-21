@@ -14,30 +14,39 @@
     <link rel="stylesheet" href="mythic.css" />
 </head>
 <body>
-    <!-- Dedicated Landscape Rotation Wrapper -->
+    <div id="rotateGate" class="rotate-gate rotate-gate--mythic" aria-hidden="true">
+        <div class="rotate-gate__card">
+            <div class="rotate-gate__stage">
+                <div class="rotate-gate__device">
+                    <span class="rotate-gate__dot"></span>
+                </div>
+            </div>
+            <h2 class="rotate-gate__title">ROTATE TO LANDSCAPE</h2>
+            <p class="rotate-gate__subtitle">
+                Mythic Survivors requires a wide arena to brave encroaching hordes and unleash full-screen skills.
+            </p>
+            <button type="button" class="rotate-gate__hub-btn" onclick="returnToHub()">
+                ← Return to ArcadeHub
+            </button>
+        </div>
+    </div>
+
     <div id="landscapeWrapper">
-        <!-- Main Game Canvas -->
         <canvas id="gameCanvas"></canvas>
 
-        <!-- Top Gameplay HUD -->
         <div id="topHud" class="fixed top-0 inset-x-0 z-20 p-2 sm:p-3 flex items-center justify-between pointer-events-none">
-            <!-- Left: Level Badge, XP Bar & Active Skill Slots -->
             <div class="flex flex-col gap-1.5">
                 <div class="flex items-center gap-2">
-                    <!-- Level Diamond Badge -->
                     <div class="w-8 h-8 sm:w-10 sm:h-10 rotate-45 bg-gradient-to-br from-sky-400 to-blue-700 border-2 border-white shadow-lg flex items-center justify-center rounded-md">
                         <span id="hudLevel" class="-rotate-45 text-white font-black text-sm sm:text-base text-outline-sm">1</span>
                     </div>
-                    <!-- XP Progress Bar -->
                     <div class="w-36 sm:w-56 h-4 sm:h-5 bg-black/75 rounded-full border-2 border-stone-700 p-0.5 shadow-inner overflow-hidden">
                         <div id="hudXpFill" class="h-full bg-gradient-to-r from-lime-400 to-emerald-500 rounded-full transition-all duration-150" style="width: 0%;"></div>
                     </div>
                 </div>
-                <!-- Active Abilities Row -->
                 <div id="activeSlotsBar" class="flex items-center gap-1.5 pl-1"></div>
             </div>
 
-            <!-- Center-Right: Kills, Gold, Gems & Timer -->
             <div class="flex items-center gap-2 sm:gap-3">
                 <div class="flex items-center gap-1.5 bg-black/65 px-2.5 py-1 rounded-full border border-white/15 text-white font-extrabold text-xs sm:text-sm text-outline-sm">
                     <span>💀</span>
@@ -54,7 +63,6 @@
                 <div class="bg-black/75 px-3 py-1 rounded-full border border-white/20 text-white font-black text-xs sm:text-sm tracking-wider text-outline-sm">
                     <span id="hudTimer">00:00</span>
                 </div>
-                <!-- Sound Toggle Button -->
                 <button id="btnMute" class="pointer-events-auto w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/75 hover:bg-black border border-white/25 flex items-center justify-center text-white shadow active:scale-95 transition">
                     <svg id="iconSoundOn" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5zm4.54 3.46a5 5 0 010 7.07m2.83-9.9a9 9 0 010 12.73" />
@@ -66,7 +74,6 @@
             </div>
         </div>
 
-        <!-- Start Screen Overlay -->
         <div id="startScreen" class="fixed inset-0 z-30 bg-black/65 backdrop-blur-[2px] flex flex-col items-center justify-center p-4 text-center">
             <div class="px-3.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 font-extrabold text-[11px] sm:text-xs tracking-widest uppercase mb-2">
                 ArcadeHub Original
@@ -92,7 +99,6 @@
             </div>
         </div>
 
-        <!-- Level Up Ability Selection Modal -->
         <div id="levelUpModal" class="hidden fixed inset-0 z-40 bg-black/75 backdrop-blur-xs flex flex-col items-center justify-center p-3 sm:p-5">
             <div class="gold-ribbon px-7 py-1.5 sm:px-10 sm:py-2 rounded-xl mb-3 sm:mb-5">
                 <h2 class="text-white font-black text-lg sm:text-2xl tracking-wider uppercase text-outline">
@@ -102,7 +108,6 @@
             <div id="cardsContainer" class="w-full max-w-3xl grid grid-cols-3 gap-2.5 sm:gap-5 px-1"></div>
         </div>
 
-        <!-- Game Over Screen Overlay -->
         <div id="gameOverScreen" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 text-center">
             <h2 class="text-3xl sm:text-5xl font-black text-red-500 tracking-wide text-outline mb-1">
                 YOU FALLEN
