@@ -29,37 +29,116 @@ html, body {
     height: 100%;
 }
 
-/* Bulletproof Centered Portrait-to-Landscape Rotation Wrapper for Mythic Survivors */
-@media screen and (orientation: portrait) {
-  html, body {
-    width: 100vw !important;
-    height: 100vh !important;
-    overflow: hidden !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    transform: none !important;
-  }
+.rotate-gate {
+    --gate-accent: #f5b82e;
+    --gate-glow: rgba(245, 184, 46, 0.45);
+    --gate-bg: rgba(34, 24, 10, 0.96);
 
-  /* Center-pivot scale and rotation to prevent address-bar clipping on mobile */
-  .game-container, body > div, canvas, #landscapeWrapper {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    width: 100vh !important;
-    height: 100vw !important;
-    transform: translate(-50%, -50%) rotate(90deg) !important;
-    transform-origin: center center !important;
-    overflow: hidden !important;
-  }
-
-  /* Scope fixed overlays inside the rotated wrapper */
-  #landscapeWrapper > .fixed {
-    position: absolute;
-  }
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: radial-gradient(circle at center, var(--gate-bg) 0%, #06080c 100%);
+    color: #f8fafc;
+    text-align: center;
+    touch-action: auto;
 }
 
-/* Outlined Arcade Text Effect */
+.rotate-gate.is-visible {
+    display: flex;
+}
+
+.rotate-gate__card {
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.rotate-gate__stage {
+    width: 112px;
+    height: 112px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rotate-gate__device {
+    position: relative;
+    width: 44px;
+    height: 74px;
+    border: 2.5px solid var(--gate-accent);
+    border-radius: 10px;
+    box-shadow:
+        0 0 14px var(--gate-glow),
+        inset 0 0 10px var(--gate-glow);
+    animation: gateTiltLandscape 2.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.rotate-gate__dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gate-accent);
+    box-shadow: 0 0 8px var(--gate-accent);
+    transform: translate(-50%, -50%);
+}
+
+.rotate-gate__title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #ffffff;
+}
+
+.rotate-gate__subtitle {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: rgba(241, 245, 249, 0.78);
+}
+
+.rotate-gate__hub-btn {
+    margin-top: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fef08a;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+@keyframes gateTiltLandscape {
+    0%, 18% {
+        width: 44px;
+        height: 74px;
+        transform: rotate(0deg);
+    }
+    45%, 75% {
+        width: 74px;
+        height: 44px;
+        transform: rotate(90deg);
+    }
+    92%, 100% {
+        width: 44px;
+        height: 74px;
+        transform: rotate(0deg);
+    }
+}
+
 .text-outline {
     text-shadow:
         -1.5px -1.5px 0 #000,
@@ -78,7 +157,6 @@ html, body {
          0px  1.5px 0 #000;
 }
 
-/* Golden Ribbon Banner for Level Up */
 .gold-ribbon {
     position: relative;
     background: linear-gradient(180deg, #ffdf38 0%, #f5a600 100%);
@@ -108,7 +186,6 @@ html, body {
     clip-path: polygon(0 0, 100% 0, 72% 50%, 100% 100%, 0 100%);
 }
 
-/* Vertical Ability Banner Cards */
 .ability-card {
     position: relative;
     transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), filter 0.16s ease;
@@ -145,7 +222,6 @@ html, body {
     border-bottom: 2px solid #6e3300;
 }
 
-/* Subtle vertical beam glow behind each card */
 .card-beam-green {
     background: linear-gradient(180deg, rgba(24, 190, 42, 0.25) 0%, rgba(24, 190, 42, 0.02) 100%);
 }
