@@ -1,11 +1,3 @@
-/**
- * ============================================================================
- * MYTHIC SURVIVORS (ARCADEHUB EDITION)
- * Separated Modular Script (mythic.js)
- * ============================================================================
- */
-
-// --- WEB AUDIO SYNTHESIZER ---
 class SoundFX {
     constructor() {
         this.ctx = null;
@@ -64,7 +56,6 @@ class SoundFX {
 }
 const sfx = new SoundFX();
 
-// --- ABILITY DEFINITIONS ---
 const ABILITY_CATALOG = [
     {
         id: 'crimson_cleave',
@@ -150,43 +141,6 @@ const ABILITY_CATALOG = [
     }
 ];
 
-// --- CANVAS & LANDSCAPE ORIENTATION HELPERS ---
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-let width = window.innerWidth;
-let height = window.innerHeight;
-
-function isPortraitRotated() {
-    return window.innerHeight > window.innerWidth;
-}
-
-function resizeCanvas() {
-    if (isPortraitRotated()) {
-        width = window.innerHeight;
-        height = window.innerWidth;
-    } else {
-        width = window.innerWidth;
-        height = window.innerHeight;
-    }
-    canvas.width = width;
-    canvas.height = height;
-}
-window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 60));
-resizeCanvas();
-
-function getGameCoords(clientX, clientY) {
-    if (isPortraitRotated()) {
-        return {
-            x: clientY,
-            y: window.innerWidth - clientX
-        };
-    }
-    return { x: clientX, y: clientY };
-}
-
-// --- GAME STATE ---
 const state = {
     running: false,
     paused: false,
@@ -206,7 +160,56 @@ const state = {
     }
 };
 
-// --- PLAYER ENTITY ---
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const rotateGate = document.getElementById('rotateGate');
+
+let width = window.innerWidth;
+let height = window.innerHeight;
+let pausedByOrientation = false;
+
+function isPortraitBlocked() {
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const isSmallOrTouch = Math.min(window.innerWidth, window.innerHeight) <= 768 || window.matchMedia('(pointer: coarse)').matches;
+    return isPortrait && isSmallOrTouch;
+}
+
+function syncRotateGate() {
+    const blocked = isPortraitBlocked();
+    if (rotateGate) {
+        rotateGate.classList.toggle('is-visible', blocked);
+        rotateGate.setAttribute('aria-hidden', String(!blocked));
+    }
+
+    if (blocked && state.running && !state.paused && !state.gameOver) {
+        state.paused = true;
+        pausedByOrientation = true;
+    } else if (!blocked && pausedByOrientation && document.getElementById('levelUpModal')?.classList.contains('hidden')) {
+        state.paused = false;
+        pausedByOrientation = false;
+        state.lastTimestamp = performance.now();
+    }
+}
+
+function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+    syncRotateGate();
+}
+
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 80));
+if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
+    screen.orientation.addEventListener('change', () => setTimeout(resizeCanvas, 80));
+}
+resizeCanvas();
+
+function getGameCoords(clientX, clientY) {
+    return { x: clientX, y: clientY };
+}
+
 const player = {
     x: 0,
     y: 0,
@@ -230,7 +233,6 @@ const player = {
     slashAnim: 0
 };
 
-// --- INPUT HANDLING ---
 const keys = {};
 window.addEventListener('keydown', (e) => {
     keys[e.key.toLowerCase()] = true;
@@ -286,7 +288,6 @@ window.addEventListener('pointerup', () => {
     joystick.dy = 0;
 });
 
-// --- ENTITY POOLS ---
 let enemies = [];
 let projectiles = [];
 let gems = [];
@@ -296,7 +297,6 @@ let slashEffects = [];
 let lightningBolts = [];
 let spawnTimer = 0;
 
-// --- PROCEDURAL GROUND PATCHES ---
 const groundPatches = [];
 for (let i = 0; i < 90; i++) {
     groundPatches.push({
@@ -309,7 +309,6 @@ for (let i = 0; i < 90; i++) {
     });
 }
 
-// --- HELPER: SPAWN FLOATING DAMAGE NUMBER ---
 function spawnDamageNumber(x, y, amount, isCrit = false, isHeal = false) {
     floatingTexts.push({
         x: x + (Math.random() - 0.5) * 16,
@@ -323,7 +322,6 @@ function spawnDamageNumber(x, y, amount, isCrit = false, isHeal = false) {
     });
 }
 
-// --- HELPER: SPAWN HIT PARTICLES ---
 function spawnParticles(x, y, color, count = 6, speed = 130) {
     for (let i = 0; i < count; i++) {
         const ang = Math.random() * Math.PI * 2;
@@ -341,7 +339,6 @@ function spawnParticles(x, y, color, count = 6, speed = 130) {
     }
 }
 
-// --- SPAWN ENEMY ARCHETYPES ---
 function spawnEnemy() {
     const angle = Math.random() * Math.PI * 2;
     const spawnDist = Math.max(width, height) * 0.62 + 60;
@@ -399,7 +396,6 @@ function spawnEnemy() {
     }
 }
 
-// --- DAMAGE ENEMY LOGIC ---
 function damageEnemy(enemy, baseDmg, knockbackAngle = null, knockForce = 80) {
     const isCrit = Math.random() < player.critChance;
     const rawDmg = baseDmg * (isCrit ? player.critMult : 1) * (0.9 + Math.random() * 0.25);
@@ -453,7 +449,6 @@ function killEnemy(enemy) {
     }
 }
 
-// --- FIND NEAREST ENEMY ---
 function getNearestEnemy(maxRange = 650) {
     let best = null;
     let bestDist = maxRange;
@@ -468,7 +463,6 @@ function getNearestEnemy(maxRange = 650) {
     return best;
 }
 
-// --- TRIGGER PLAYER ABILITIES ---
 function updateAbilities(dt) {
     if (state.abilities.crimson_cleave) {
         const lvl = state.abilities.crimson_cleave;
@@ -608,7 +602,6 @@ function updateAbilities(dt) {
     }
 }
 
-// --- LEVEL UP & ABILITY CARD MODAL ---
 function triggerLevelUp() {
     state.paused = true;
     sfx.levelUp();
@@ -720,7 +713,6 @@ function updateActiveSlotsHUD() {
     });
 }
 
-// --- MAIN SIMULATION UPDATE ---
 function update(dt) {
     if (!state.running || state.paused || state.gameOver) return;
 
@@ -921,7 +913,6 @@ function update(dt) {
     updateHUD();
 }
 
-// --- UPDATE DOM HUD ELEMENTS ---
 function formatTime(secs) {
     const m = Math.floor(secs / 60).toString().padStart(2, '0');
     const s = Math.floor(secs % 60).toString().padStart(2, '0');
@@ -938,7 +929,6 @@ function updateHUD() {
     document.getElementById('hudTimer').textContent = formatTime(state.elapsedTime);
 }
 
-// --- RENDERING PIPELINE ---
 function render() {
     ctx.save();
 
@@ -1177,7 +1167,6 @@ function render() {
     }
 }
 
-// --- DRAW PLAYER ---
 function drawPlayer() {
     ctx.save();
     ctx.translate(player.x, player.y);
@@ -1248,7 +1237,6 @@ function drawPlayer() {
     ctx.restore();
 }
 
-// --- DRAW ENEMIES ---
 function drawEnemy(e) {
     ctx.save();
     ctx.translate(e.x, e.y);
@@ -1331,7 +1319,6 @@ function drawEnemy(e) {
     ctx.restore();
 }
 
-// --- GAME LOOP ---
 function gameLoop(timestamp) {
     const dt = Math.min(0.05, (timestamp - state.lastTimestamp) / 1000 || 0.016);
     state.lastTimestamp = timestamp;
@@ -1342,7 +1329,6 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-// --- FULLSCREEN & ORIENTATION LOCK HELPER ---
 function triggerGameFullscreenAndLock() {
     const docEl = document.documentElement;
     const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
@@ -1354,11 +1340,8 @@ function triggerGameFullscreenAndLock() {
     }
 }
 
-// --- START, RESTART & GAME OVER HANDLERS ---
 function startGame() {
     sfx.init();
-
-    // Automatically trigger Fullscreen & Landscape lock on game start gesture
     triggerGameFullscreenAndLock();
 
     state.running = true;
@@ -1417,7 +1400,6 @@ function triggerGameOver() {
     document.getElementById('gameOverScreen').classList.remove('hidden');
 }
 
-// --- RETURN TO HUB FUNCTION ---
 function returnToHub() {
     window.location.href = 'index.html?hub=true';
 }
