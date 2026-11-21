@@ -1,8 +1,6 @@
-// Automatically trigger fullscreen as soon as FlickPoint loads
 window.addEventListener('DOMContentLoaded', () => {
     const docEl = document.documentElement;
     
-    // Attempt automatic fullscreen on load
     const triggerFS = () => {
         if (!document.fullscreenElement && !document.webkitFullscreenElement) {
             if (docEl.requestFullscreen) {
@@ -15,13 +13,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     triggerFS();
 
-    // Fallback: If browser blocks autoplay/auto-fullscreen, trigger it on the first tap anywhere
     document.body.addEventListener('click', () => {
         triggerFS();
     }, { once: true });
 });
 
-// Universal Fullscreen Toggle matching your Hub implementation
 function toggleFullScreen() {
     const docEl = document.documentElement;
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -84,7 +80,6 @@ function selectMode(mode, element) {
 }
 
 function startSession() {
-    // Automatically trigger fullscreen on mobile/desktop when starting a session via button tap
     const docEl = document.documentElement;
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         if (docEl.requestFullscreen) {
@@ -139,7 +134,6 @@ function startSession() {
     }
 }
 
-
 function spawnTargetNode() {
     if (timeLeft <= 0) return;
     
@@ -154,8 +148,6 @@ function spawnTargetNode() {
     const maxX = container.clientWidth - cfg.size - 40;
     const maxY = container.clientHeight - cfg.size - 40;
     const randomX = Math.floor(Math.random() * Math.max(50, maxX)) + 20;
-    
-    // Leave a safe buffer at the top so targets never spawn behind the HUD bar
     const randomY = Math.floor(Math.random() * Math.max(50, maxY - 80)) + 70;
 
     target.style.left = `${randomX}px`;
@@ -307,3 +299,36 @@ function renderStatsHistory() {
 
     list.innerHTML = html;
 }
+
+(function initFlickpointOrientationGate() {
+    const gate = document.getElementById('rotateGate');
+    if (!gate) return;
+
+    function isPortraitBlocked() {
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const isSmallOrTouch = Math.min(window.innerWidth, window.innerHeight) <= 900 || window.matchMedia('(pointer: coarse)').matches;
+        return isPortrait && isSmallOrTouch;
+    }
+
+    function syncGate() {
+        const blocked = isPortraitBlocked();
+        gate.classList.toggle('is-visible', blocked);
+        gate.setAttribute('aria-hidden', String(!blocked));
+
+        if (blocked && gameTimer) {
+            clearInterval(gameTimer);
+            gameTimer = null;
+            if (document.pointerLockElement) {
+                document.exitPointerLock();
+            }
+        }
+    }
+
+    window.addEventListener('resize', syncGate);
+    window.addEventListener('orientationchange', () => setTimeout(syncGate, 80));
+    if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
+        screen.orientation.addEventListener('change', () => setTimeout(syncGate, 80));
+    }
+    window.addEventListener('DOMContentLoaded', syncGate);
+    syncGate();
+})();
