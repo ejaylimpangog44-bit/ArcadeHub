@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcadehub-cache-v3';
+const CACHE_NAME = 'arcadehub-cache-v5';
 
 const ASSETS_TO_CACHE = [
   './',
