@@ -575,6 +575,37 @@ html, body {
   transition: transform 3.2s cubic-bezier(0.15, 0.85, 0.2, 1);
 }
 
+#splash-screen,
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: #08080c url("./1793408885987.jpg") center / cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 10001;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.55s ease, visibility 0.55s ease;
+}
+
+.splash-full-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+#splash-screen.splash-hide,
+.splash-screen.splash-hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .power-screen,
 #power-screen {
   position: fixed;
@@ -626,7 +657,7 @@ html, body {
   border: 2px solid #222;
   padding: clamp(24px, 5vh, 40px) 16px;
   border-radius: 16px;
-  background: #0d0d12;
+  background: rgba(13, 13, 18, 0.55);
 }
 
 .power-screen.active-glow .neon-sign {
