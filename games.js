@@ -20,14 +20,12 @@ function createDeck() {
   return d;
 }
 
-// ----------------------------------------------------
-// 1. SPEED SOLITAIRE (Card Game -> Excluded from Hero Coins)
-// ----------------------------------------------------
 function initSpeedSolitaire(stage) {
   let stock = [], waste = [], foundations = [[],[],[],[]], tableau = [[],[],[],[],[],[],[]];
-  let score = 0, combo = 1, moves = 0, selected = null, seconds = 0;
+  let score = 0, combo = 1, moves = 0, selected = null, seconds = 0, active = true;
 
   function deal() {
+    if (!active) return;
     const deck = createDeck();
     foundations = [[],[],[],[]];
     tableau = [[],[],[],[],[],[],[]];
@@ -45,6 +43,7 @@ function initSpeedSolitaire(stage) {
   }
 
   const timer = setInterval(() => {
+    if (!active) return;
     seconds++;
     const el = document.getElementById('sol-time');
     if (el) el.textContent = `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;
@@ -74,6 +73,7 @@ function initSpeedSolitaire(stage) {
   }
 
   function drawStock() {
+    if (!active) return;
     AudioFX.card();
     if (stock.length > 0) {
       const c = stock.pop();
@@ -108,6 +108,7 @@ function initSpeedSolitaire(stage) {
   }
 
   function render() {
+    if (!active) return;
     const totalFound = foundations.reduce((a, b) => a + b.length, 0);
     stage.innerHTML = `
       <div class="w-full h-full flex flex-col justify-between px-3 sm:px-8 py-3 pb-12 sm:pb-6 overflow-y-auto">
@@ -172,7 +173,7 @@ function initSpeedSolitaire(stage) {
     document.getElementById('sol-stock')?.addEventListener('click', drawStock);
 
     document.getElementById('sol-waste')?.addEventListener('click', () => {
-      if (!waste.length) return;
+      if (!active || !waste.length) return;
       const top = waste[waste.length - 1];
       if (selected?.type === 'waste') {
         autoSend(top, { type: 'waste' });
@@ -185,6 +186,7 @@ function initSpeedSolitaire(stage) {
 
     document.querySelectorAll('.sol-found').forEach(el => {
       el.addEventListener('click', () => {
+        if (!active) return;
         const f = Number(el.dataset.found);
         if (!selected) return;
         const card = selected.type === 'waste' ? waste[waste.length - 1] : tableau[selected.col][selected.idx];
@@ -205,6 +207,7 @@ function initSpeedSolitaire(stage) {
 
     document.querySelectorAll('.sol-tab').forEach(el => {
       el.addEventListener('click', (e) => {
+        if (!active) return;
         const c = Number(el.dataset.tab);
         const cardEl = e.target.closest('.sol-card');
         if (cardEl) {
@@ -260,13 +263,18 @@ function initSpeedSolitaire(stage) {
   }
 
   deal();
-  return () => clearInterval(timer);
+  return () => {
+    active = false;
+    clearInterval(timer);
+  };
 }
 
-// ----------------------------------------------------
-// 2. COIN SCATTER V2 (Casino Game -> Excluded from Hero Coins)
-// ----------------------------------------------------
 function initCoinScatter(stage, meta) {
+  let active = true;
+  let shuffleInterval = null;
+  let bonusTimeout = null;
+  let tallyInterval = null;
+
   stage.innerHTML = `
     <div class="relative w-full h-full flex flex-col items-center justify-center p-3 sm:p-6 pb-12 sm:pb-6 overflow-y-auto select-none">
       <div class="max-w-xl w-full bg-slate-950/80 backdrop-blur-xl border border-white/15 rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col gap-5 text-center mt-12 sm:mt-0">
@@ -351,7 +359,7 @@ function initCoinScatter(stage, meta) {
   const betBtn = document.getElementById('bet-tier-btn');
   if (betBtn) {
     betBtn.onclick = () => {
-      if (isAutoSpinning) return;
+      if (!active || isAutoSpinning) return;
       currentBetIdx = (currentBetIdx + 1) % betTiers.length;
       currentBet = betTiers[currentBetIdx];
       betBtn.textContent = `${currentBet >= 1000 ? (currentBet/1000) + 'k' : currentBet} 🔼`;
@@ -360,6 +368,7 @@ function initCoinScatter(stage, meta) {
   }
 
   window.renderScatterGrid = function(highlightScatters = false) {
+    if (!active) return;
     const gridEl = document.getElementById('slot-grid');
     if (!gridEl) return;
     gridEl.innerHTML = '';
@@ -379,7 +388,7 @@ function initCoinScatter(stage, meta) {
   };
 
   window.triggerScatterSpin = function() {
-    if (isAutoSpinning) return;
+    if (!active || isAutoSpinning) return;
     const msgEl = document.getElementById('scatter-msg');
     const coinsEl = document.getElementById('scatter-coins');
     const spinBtn = document.getElementById('spin-btn');
@@ -399,19 +408,27 @@ function initCoinScatter(stage, meta) {
     isAutoSpinning = true;
     if (spinBtn) spinBtn.disabled = true;
 
+    if (shuffleInterval) clearInterval(shuffleInterval);
     let shuffles = 0;
-    const shuffleInterval = setInterval(() => {
+    shuffleInterval = setInterval(() => {
+      if (!active) {
+        clearInterval(shuffleInterval);
+        shuffleInterval = null;
+        return;
+      }
       currentGrid = currentGrid.map(row => row.map(() => symbols[Math.floor(Math.random() * symbols.length)]));
       window.renderScatterGrid(false);
       shuffles++;
       if (shuffles > 8) {
         clearInterval(shuffleInterval);
+        shuffleInterval = null;
         finalizeSpinResult();
       }
     }, 90);
   };
 
   function finalizeSpinResult() {
+    if (!active) return;
     currentGrid = currentGrid.map(row => row.map(() => symbols[Math.floor(Math.random() * symbols.length)]));
     
     let scatterCount = 0;
@@ -437,7 +454,10 @@ function initCoinScatter(stage, meta) {
       if (typeof AudioFX !== 'undefined') AudioFX.win();
       if (typeof addXP === 'function') addXP(50);
 
-      setTimeout(() => {
+      if (bonusTimeout) clearTimeout(bonusTimeout);
+      bonusTimeout = setTimeout(() => {
+        bonusTimeout = null;
+        if (!active) return;
         isAutoSpinning = false;
         if (spinBtn) spinBtn.disabled = false;
         runAutoBonusSpins();
@@ -456,7 +476,10 @@ function initCoinScatter(stage, meta) {
       isAutoSpinning = false;
       if (spinBtn) spinBtn.disabled = false;
 
-      setTimeout(() => {
+      if (bonusTimeout) clearTimeout(bonusTimeout);
+      bonusTimeout = setTimeout(() => {
+        bonusTimeout = null;
+        if (!active) return;
         if (freeSpinsRemaining > 0) {
           runAutoBonusSpins();
         } else {
@@ -481,6 +504,7 @@ function initCoinScatter(stage, meta) {
   }
 
   function runAutoBonusSpins() {
+    if (!active) return;
     if (freeSpinsRemaining <= 0) {
       showWinModal(totalBonusWon, "FREE SPINS FEATURE COMPLETE!");
       return;
@@ -491,6 +515,7 @@ function initCoinScatter(stage, meta) {
   }
 
   function showWinModal(targetWin, titleText) {
+    if (!active) return;
     const titleEl = document.getElementById('modal-title');
     const modalEl = document.getElementById('scatter-modal');
     const spinBtn = document.getElementById('spin-btn');
@@ -503,15 +528,22 @@ function initCoinScatter(stage, meta) {
     }
     if (spinBtn) spinBtn.textContent = "SPIN THE REELS 🎰";
     
+    if (tallyInterval) clearInterval(tallyInterval);
     let currentCount = 0;
     const step = Math.max(1, Math.floor(targetWin / 25));
     if (tallyEl) tallyEl.textContent = "0";
     
-    const countInterval = setInterval(() => {
+    tallyInterval = setInterval(() => {
+      if (!active) {
+        clearInterval(tallyInterval);
+        tallyInterval = null;
+        return;
+      }
       currentCount += step;
       if (currentCount >= targetWin) {
         currentCount = targetWin;
-        clearInterval(countInterval);
+        clearInterval(tallyInterval);
+        tallyInterval = null;
       }
       if (tallyEl) tallyEl.textContent = currentCount.toLocaleString();
     }, 40);
@@ -521,6 +553,11 @@ function initCoinScatter(stage, meta) {
   }
 
   window.closeScatterModal = function() {
+    if (!active) return;
+    if (tallyInterval) {
+      clearInterval(tallyInterval);
+      tallyInterval = null;
+    }
     const modalEl = document.getElementById('scatter-modal');
     const coinsEl = document.getElementById('scatter-coins');
     const spinsEl = document.getElementById('scatter-spins');
@@ -542,12 +579,17 @@ function initCoinScatter(stage, meta) {
   };
 
   window.renderScatterGrid(false);
+
+  return () => {
+    active = false;
+    if (shuffleInterval) clearInterval(shuffleInterval);
+    if (bonusTimeout) clearTimeout(bonusTimeout);
+    if (tallyInterval) clearInterval(tallyInterval);
+  };
 }
 
-// ----------------------------------------------------
-// 3. BLACKJACK 21 (Card Game -> Excluded from Hero Coins)
-// ----------------------------------------------------
 function initBlackjack(stage) {
+  let active = true;
   let bank = 2000, bet = 100, deck = [], player = [], dealer = [], phase = 'bet', status = 'Place your bet at the VIP Table';
 
   function handValue(hand) {
@@ -562,6 +604,7 @@ function initBlackjack(stage) {
   }
 
   function deal() {
+    if (!active) return;
     if (bank < bet) bank = 1000;
     bank -= bet;
     deck = createDeck();
@@ -575,7 +618,7 @@ function initBlackjack(stage) {
   }
 
   function hit() {
-    if (phase !== 'play') return;
+    if (!active || phase !== 'play') return;
     player.push(deck.pop());
     AudioFX.card();
     if (handValue(player) > 21) {
@@ -587,7 +630,7 @@ function initBlackjack(stage) {
   }
 
   function doubleDown() {
-    if (phase !== 'play' || player.length !== 2 || bank < bet) return;
+    if (!active || phase !== 'play' || player.length !== 2 || bank < bet) return;
     bank -= bet;
     bet *= 2;
     player.push(deck.pop());
@@ -604,6 +647,7 @@ function initBlackjack(stage) {
   }
 
   function stand(wasDouble = false) {
+    if (!active) return;
     phase = 'done';
     while (handValue(dealer) < 17) {
       dealer.push(deck.pop());
@@ -640,6 +684,7 @@ function initBlackjack(stage) {
   }
 
   function render() {
+    if (!active) return;
     const pVal = handValue(player);
     const dVal = phase === 'play' ? '?' : handValue(dealer);
     stage.innerHTML = `
@@ -687,22 +732,25 @@ function initBlackjack(stage) {
     document.getElementById('bj-dbl')?.addEventListener('click', doubleDown);
     document.getElementById('bj-deal')?.addEventListener('click', deal);
     document.querySelectorAll('.bj-chip').forEach(b => {
-      b.onclick = () => { bet = Number(b.dataset.chip); AudioFX.click(); render(); };
+      b.onclick = () => { if (!active) return; bet = Number(b.dataset.chip); AudioFX.click(); render(); };
     });
   }
 
   render();
+
+  return () => {
+    active = false;
+  };
 }
 
-// ----------------------------------------------------
-// 4. HIGH-LOE / HIGH-LOW (Card Game -> Excluded from Hero Coins)
-// ----------------------------------------------------
 function initHighLow(stage) {
+  let active = true;
   let deck = createDeck();
   let current = deck.pop();
   let streak = 0, pot = 100, banked = 500, msg = 'Will the next card be Higher or Lower?';
 
   function guess(dir) {
+    if (!active) return;
     if (deck.length < 5) deck = createDeck();
     const next = deck.pop();
     const win = (dir === 'hi' && next.val >= current.val) || (dir === 'lo' && next.val <= current.val);
@@ -723,7 +771,7 @@ function initHighLow(stage) {
   }
 
   function cashOut() {
-    if (streak === 0) return;
+    if (!active || streak === 0) return;
     banked += pot;
     AudioFX.win();
     addXP(30, window.innerWidth / 2, window.innerHeight * 0.4, `BANKED +${pot}!`);
@@ -738,6 +786,7 @@ function initHighLow(stage) {
   }
 
   function renderCard() {
+    if (!active) return;
     stage.innerHTML = `
       <div class="w-full h-full flex flex-col items-center justify-between px-4 py-5 pb-12 sm:pb-6 overflow-y-auto">
         <div class="flex items-center gap-3">
@@ -759,7 +808,7 @@ function initHighLow(stage) {
 
         <div class="flex items-center gap-3 pb-2">
           <button id="hl-lo" class="px-6 sm:px-8 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-sm sm:text-base shadow-lg">🔽 LOWER</button>
-          <button id="hl-cash" ${streak === 0 ? 'disabled' : ''} class="px-5 py-3.5 rounded-2xl bg-amber-400 disabled:opacity-40 text-slate-950 font-black text-xs sm:text-sm shadow-lg">💰 CASH OUT</button>
+          <button id="hl-cash" ${streak === 0 ? 'disabled' : ''} class="px-5 sm:px-8 py-3.5 rounded-2xl bg-amber-400 disabled:opacity-40 text-slate-950 font-black text-xs sm:text-sm shadow-lg">💰 CASH OUT</button>
           <button id="hl-hi" class="px-6 sm:px-8 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm sm:text-base shadow-lg">🔼 HIGHER</button>
         </div>
       </div>
@@ -770,12 +819,16 @@ function initHighLow(stage) {
   }
 
   render();
+
+  return () => {
+    active = false;
+  };
 }
 
-// ----------------------------------------------------
-// 5. CHESS (Arcade Game - Fixed Drawer Positioning)
-// ----------------------------------------------------
 function initChess(stage) {
+  let active = true;
+  let aiTimeout = null;
+
   const GLYPHS = {
     wK:'♔', wQ:'♕', wR:'♖', wB:'♗', wN:'♘', wP:'♙',
     bK:'♚', bQ:'♛', bR:'♜', bB:'♝', bN:'♞', bP:'♟'
@@ -789,6 +842,11 @@ function initChess(stage) {
   let configModalOpen = true;
 
   function reset() {
+    if (!active) return;
+    if (aiTimeout) {
+      clearTimeout(aiTimeout);
+      aiTimeout = null;
+    }
     const back = ['R','N','B','Q','K','B','N','R'];
     board = Array.from({ length: 8 }, (_, r) => Array.from({ length: 8 }, (_, c) => {
       if (r === 0) return 'b' + back[c];
@@ -887,6 +945,7 @@ function initChess(stage) {
   }
 
   function aiMove() {
+    if (!active) return;
     const all = [];
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -916,6 +975,7 @@ function initChess(stage) {
   }
 
   function render() {
+    if (!active) return;
     stage.innerHTML = `
       <div class="relative w-full h-full flex flex-col items-center justify-between px-3 py-3 pb-16 sm:pb-6 select-none overflow-y-auto">
         
@@ -953,7 +1013,6 @@ function initChess(stage) {
           Lost: ${capturedW.map(p => GLYPHS[p]).join(' ')}
         </div>
 
-        <!-- Settings Drawer Overlay (Positioned below top header) -->
         <div id="chess-drawer-bg" class="fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}"></div>
         
         <div class="fixed top-16 bottom-0 left-0 z-40 w-[82%] max-w-xs bg-slate-900 border-r-4 border-t-2 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto rounded-tr-3xl">
@@ -984,7 +1043,6 @@ function initChess(stage) {
           </button>
         </div>
 
-        <!-- Pre-Game Configuration Modal -->
         <div class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md ${configModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
           <div class="max-w-sm w-full bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-6 shadow-2xl text-center flex flex-col gap-5">
             <div class="text-4xl">♟️</div>
@@ -1008,25 +1066,26 @@ function initChess(stage) {
       </div>
     `;
 
-    document.getElementById('chess-menu').onclick = () => { drawerOpen = true; render(); };
-    document.getElementById('chess-reset-btn').onclick = () => { configModalOpen = true; render(); };
-    document.getElementById('chess-close-drawer').onclick = () => { drawerOpen = false; render(); };
-    document.getElementById('chess-drawer-bg').onclick = () => { drawerOpen = false; render(); };
+    document.getElementById('chess-menu').onclick = () => { if (!active) return; drawerOpen = true; render(); };
+    document.getElementById('chess-reset-btn').onclick = () => { if (!active) return; configModalOpen = true; render(); };
+    document.getElementById('chess-close-drawer').onclick = () => { if (!active) return; drawerOpen = false; render(); };
+    document.getElementById('chess-drawer-bg').onclick = () => { if (!active) return; drawerOpen = false; render(); };
 
-    document.getElementById('chess-mode-pve').onclick = () => { gameMode = 'pve'; render(); };
-    document.getElementById('chess-mode-pvp').onclick = () => { gameMode = 'pvp'; render(); };
-    document.getElementById('chess-cfg-pve').onclick = () => { gameMode = 'pve'; render(); };
-    document.getElementById('chess-cfg-pvp').onclick = () => { gameMode = 'pvp'; render(); };
+    document.getElementById('chess-mode-pve').onclick = () => { if (!active) return; gameMode = 'pve'; render(); };
+    document.getElementById('chess-mode-pvp').onclick = () => { if (!active) return; gameMode = 'pvp'; render(); };
+    document.getElementById('chess-cfg-pve').onclick = () => { if (!active) return; gameMode = 'pve'; render(); };
+    document.getElementById('chess-cfg-pvp').onclick = () => { if (!active) return; gameMode = 'pvp'; render(); };
 
-    document.getElementById('chess-diff-easy').onclick = () => { aiDifficulty = 'easy'; render(); };
-    document.getElementById('chess-diff-normal').onclick = () => { aiDifficulty = 'normal'; render(); };
-    document.getElementById('chess-diff-hard').onclick = () => { aiDifficulty = 'hard'; render(); };
+    document.getElementById('chess-diff-easy').onclick = () => { if (!active) return; aiDifficulty = 'easy'; render(); };
+    document.getElementById('chess-diff-normal').onclick = () => { if (!active) return; aiDifficulty = 'normal'; render(); };
+    document.getElementById('chess-diff-hard').onclick = () => { if (!active) return; aiDifficulty = 'hard'; render(); };
 
-    document.getElementById('chess-apply-drawer').onclick = () => { drawerOpen = false; reset(); };
-    document.getElementById('chess-start-btn').onclick = () => { reset(); };
+    document.getElementById('chess-apply-drawer').onclick = () => { if (!active) return; drawerOpen = false; reset(); };
+    document.getElementById('chess-start-btn').onclick = () => { if (!active) return; reset(); };
 
     document.querySelectorAll('.ch-sq').forEach(btn => {
       btn.onpointerup = (e) => {
+        if (!active) return;
         e.preventDefault();
         e.stopPropagation();
         if (turn !== 'w' && gameMode === 'pve') return;
@@ -1038,7 +1097,11 @@ function initChess(stage) {
           status = gameMode === 'pve' ? 'Grandmaster AI thinking...' : `Player ${turn === 'w' ? 'White' : 'Black'}'s Turn`;
           render();
           if (gameMode === 'pve' && turn === 'b') {
-            setTimeout(aiMove, 280);
+            if (aiTimeout) clearTimeout(aiTimeout);
+            aiTimeout = setTimeout(() => {
+              aiTimeout = null;
+              aiMove();
+            }, 280);
           }
           return;
         }
@@ -1057,18 +1120,28 @@ function initChess(stage) {
   }
 
   render();
+
+  return () => {
+    active = false;
+    if (aiTimeout) clearTimeout(aiTimeout);
+  };
 }
 
-// ----------------------------------------------------
-// 6. DAMA (Arcade Game - Fixed Drawer Positioning)
-// ----------------------------------------------------
 function initDama(stage) {
+  let active = true;
+  let aiTimeout = null;
+
   let board = [], turn = 'r', sel = null, moves = [], vsAI = true, status = 'Your Turn (Red Dama)';
   let redCaptured = 0, blueCaptured = 0, gameOver = false, winnerText = '';
   let drawerOpen = false;
   let configModalOpen = true;
 
   function reset() {
+    if (!active) return;
+    if (aiTimeout) {
+      clearTimeout(aiTimeout);
+      aiTimeout = null;
+    }
     board = Array.from({ length: 8 }, (_, r) => Array.from({ length: 8 }, (_, c) => {
       if ((r + c) % 2 === 1) {
         if (r < 3) return { side: 'b', king: false };
@@ -1161,6 +1234,7 @@ function initDama(stage) {
   }
 
   function triggerGameOver(msg) {
+    if (!active) return;
     gameOver = true;
     winnerText = msg;
     status = msg;
@@ -1171,7 +1245,7 @@ function initDama(stage) {
   }
 
   function aiTurn() {
-    if (gameOver) return;
+    if (!active || gameOver) return;
     const all = [];
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
@@ -1209,12 +1283,17 @@ function initDama(stage) {
       status = vsAI ? 'Your Turn (Red Dama)' : 'Red Dama (Player 1) Turn';
     } else {
       status = 'AI Chain Jumping!';
-      setTimeout(aiTurn, 500);
+      if (aiTimeout) clearTimeout(aiTimeout);
+      aiTimeout = setTimeout(() => {
+        aiTimeout = null;
+        aiTurn();
+      }, 500);
     }
     render();
   }
 
   function render() {
+    if (!active) return;
     stage.innerHTML = `
       <div class="relative w-full h-full flex flex-col items-center justify-between px-3 py-3 pb-16 sm:pb-6 select-none overflow-y-auto">
         
@@ -1253,7 +1332,6 @@ function initDama(stage) {
           }).join('')).join('')}
         </div>
 
-        <!-- Settings Drawer Overlay (Positioned below top header) -->
         <div id="dama-drawer-bg" class="fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}"></div>
         
         <div class="fixed top-16 bottom-0 left-0 z-40 w-[82%] max-w-xs bg-slate-900 border-r-4 border-t-2 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto rounded-tr-3xl">
@@ -1275,7 +1353,6 @@ function initDama(stage) {
           </button>
         </div>
 
-        <!-- Pre-Game Configuration Modal -->
         <div class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md ${configModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
           <div class="max-w-sm w-full bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-6 shadow-2xl text-center flex flex-col gap-5">
             <div class="text-4xl">🔴👑</div>
@@ -1296,7 +1373,6 @@ function initDama(stage) {
           </div>
         </div>
 
-        <!-- Winner Modal Overlay -->
         <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md ${gameOver ? 'flex' : 'hidden'} items-center justify-center p-4">
           <div class="max-w-sm w-full bg-slate-900 border-2 border-amber-400/60 rounded-3xl p-6 shadow-2xl text-center flex flex-col gap-4">
             <div class="text-5xl">🏆</div>
@@ -1313,23 +1389,23 @@ function initDama(stage) {
       </div>
     `;
 
-    document.getElementById('dama-menu').onclick = () => { drawerOpen = true; render(); };
-    document.getElementById('dama-reset-btn').onclick = () => { configModalOpen = true; render(); };
-    document.getElementById('dama-close-drawer').onclick = () => { drawerOpen = false; render(); };
-    document.getElementById('dama-drawer-bg').onclick = () => { drawerOpen = false; render(); };
+    document.getElementById('dama-menu').onclick = () => { if (!active) return; drawerOpen = true; render(); };
+    document.getElementById('dama-reset-btn').onclick = () => { if (!active) return; configModalOpen = true; render(); };
+    document.getElementById('dama-close-drawer').onclick = () => { if (!active) return; drawerOpen = false; render(); };
+    document.getElementById('dama-drawer-bg').onclick = () => { if (!active) return; drawerOpen = false; render(); };
 
-    document.getElementById('dama-mode-ai').onclick = () => { vsAI = true; render(); };
-    document.getElementById('dama-mode-pvp').onclick = () => { vsAI = false; render(); };
-    document.getElementById('dama-cfg-ai').onclick = () => { vsAI = true; render(); };
-    document.getElementById('dama-cfg-pvp').onclick = () => { vsAI = false; render(); };
+    document.getElementById('dama-mode-ai').onclick = () => { if (!active) return; vsAI = true; render(); };
+    document.getElementById('dama-mode-pvp').onclick = () => { if (!active) return; vsAI = false; render(); };
+    document.getElementById('dama-cfg-ai').onclick = () => { if (!active) return; vsAI = true; render(); };
+    document.getElementById('dama-cfg-pvp').onclick = () => { if (!active) return; vsAI = false; render(); };
 
-    document.getElementById('dama-apply-drawer').onclick = () => { drawerOpen = false; reset(); };
-    document.getElementById('dama-start-btn').onclick = () => { reset(); };
-    document.getElementById('dama-play-again-btn').onclick = () => { reset(); };
+    document.getElementById('dama-apply-drawer').onclick = () => { if (!active) return; drawerOpen = false; reset(); };
+    document.getElementById('dama-start-btn').onclick = () => { if (!active) return; reset(); };
+    document.getElementById('dama-play-again-btn').onclick = () => { if (!active) return; reset(); };
 
     document.querySelectorAll('.dm-sq').forEach(btn => {
       btn.onclick = () => {
-        if (gameOver) return;
+        if (!active || gameOver) return;
         const r = Number(btn.dataset.r), c = Number(btn.dataset.c);
         const currentSide = turn;
         if (vsAI && currentSide !== 'r') return;
@@ -1375,7 +1451,11 @@ function initDama(stage) {
           render();
 
           if (vsAI && turn === 'b' && !gameOver) {
-            setTimeout(aiTurn, 400);
+            if (aiTimeout) clearTimeout(aiTimeout);
+            aiTimeout = setTimeout(() => {
+              aiTimeout = null;
+              aiTurn();
+            }, 400);
           }
           return;
         }
@@ -1393,12 +1473,17 @@ function initDama(stage) {
   }
 
   reset();
+
+  return () => {
+    active = false;
+    if (aiTimeout) clearTimeout(aiTimeout);
+  };
 }
 
-// ----------------------------------------------------
-// 7. TIC-TAC-TOE (Arcade Game -> Included with Hero Score Reward)
-// ----------------------------------------------------
 function initTicTacToe(stage) {
+  let active = true;
+  let aiTimeout = null;
+
   let cells = Array(9).fill(null);
   let gameMode = 'pve'; 
   let difficulty = 'normal'; 
@@ -1416,6 +1501,11 @@ function initTicTacToe(stage) {
   }
 
   function resetGame() {
+    if (!active) return;
+    if (aiTimeout) {
+      clearTimeout(aiTimeout);
+      aiTimeout = null;
+    }
     cells = Array(9).fill(null);
     currentTurn = 'X';
     over = false;
@@ -1424,7 +1514,10 @@ function initTicTacToe(stage) {
     updateStatus();
     render();
     if (gameMode === 'pve' && currentTurn !== playerSymbol && !over) {
-      setTimeout(aiStep, 350);
+      aiTimeout = setTimeout(() => {
+        aiTimeout = null;
+        aiStep();
+      }, 350);
     }
   }
 
@@ -1499,7 +1592,7 @@ function initTicTacToe(stage) {
   }
 
   function aiStep() {
-    if (over || gameMode !== 'pve') return;
+    if (!active || over || gameMode !== 'pve') return;
     const aiSym = getAiSymbol();
     if (currentTurn !== aiSym) return;
 
@@ -1540,6 +1633,7 @@ function initTicTacToe(stage) {
   }
 
   function finishGame(res) {
+    if (!active) return;
     over = true;
     winLine = res.line;
     if (res.winner === 'draw') {
@@ -1568,6 +1662,7 @@ function initTicTacToe(stage) {
   }
 
   function render() {
+    if (!active) return;
     stage.innerHTML = `
       <div class="relative w-full h-full flex flex-col items-center justify-between p-4 bg-[#f4f1ea] text-stone-900 select-none overflow-hidden">
         
@@ -1654,31 +1749,37 @@ function initTicTacToe(stage) {
     `;
 
     document.getElementById('hamburger-btn')?.addEventListener('click', () => {
+      if (!active) return;
       drawerOpen = true;
       render();
     });
 
     window.closeDrawer = () => {
+      if (!active) return;
       drawerOpen = false;
       render();
     };
 
     window.setGameMode = (mode) => {
+      if (!active) return;
       gameMode = mode;
       render();
     };
 
     window.setDiff = (diff) => {
+      if (!active) return;
       difficulty = diff;
       render();
     };
 
     window.setSymbol = (sym) => {
+      if (!active) return;
       playerSymbol = sym;
       render();
     };
 
     window.applyDrawerSettings = () => {
+      if (!active) return;
       drawerOpen = false;
       resetGame();
     };
@@ -1687,7 +1788,7 @@ function initTicTacToe(stage) {
 
     document.querySelectorAll('.ttt-cell').forEach(btn => {
       btn.onclick = () => {
-        if (over || drawerOpen || endModalOpen) return;
+        if (!active || over || drawerOpen || endModalOpen) return;
         const i = Number(btn.dataset.i);
         if (cells[i] !== null) return;
         if (gameMode === 'pve' && currentTurn !== playerSymbol) return;
@@ -1703,7 +1804,11 @@ function initTicTacToe(stage) {
           render();
 
           if (gameMode === 'pve' && currentTurn !== playerSymbol && !over) {
-            setTimeout(aiStep, 350);
+            if (aiTimeout) clearTimeout(aiTimeout);
+            aiTimeout = setTimeout(() => {
+              aiTimeout = null;
+              aiStep();
+            }, 350);
           }
         }
       };
@@ -1711,15 +1816,20 @@ function initTicTacToe(stage) {
   }
 
   resetGame();
+
+  return () => {
+    active = false;
+    if (aiTimeout) clearTimeout(aiTimeout);
+  };
 }
 
-// ----------------------------------------------------
-// 8. NUMBER GUESS / VAULT DECODER (Arcade Game)
-// ----------------------------------------------------
 function initNumberGuess(stage) {
+  let active = true;
+  let focusTimeout = null;
   let maxRange = 100, target = 1 + Math.floor(Math.random() * 100), history = [], solved = false;
 
   function setTier(max) {
+    if (!active) return;
     maxRange = max;
     target = 1 + Math.floor(Math.random() * maxRange);
     history = [];
@@ -1728,7 +1838,7 @@ function initNumberGuess(stage) {
   }
 
   function submitGuess(val) {
-    if (solved || isNaN(val) || val < 1 || val > maxRange) return;
+    if (!active || solved || isNaN(val) || val < 1 || val > maxRange) return;
     const diff = Math.abs(target - val);
     let hint = 'EXACT MATCH!';
     let color = 'text-emerald-300';
@@ -1750,6 +1860,7 @@ function initNumberGuess(stage) {
   }
 
   function render() {
+    if (!active) return;
     stage.innerHTML = `
       <div class="w-full h-full flex flex-col items-center justify-center px-4 py-4 gap-4 max-w-lg mx-auto">
         <div class="flex items-center gap-2">
@@ -1792,16 +1903,23 @@ function initNumberGuess(stage) {
       e.preventDefault();
       submitGuess(Number(document.getElementById('ng-input').value));
     });
-    document.getElementById('ng-input')?.focus();
+    if (focusTimeout) clearTimeout(focusTimeout);
+    focusTimeout = setTimeout(() => {
+      focusTimeout = null;
+      if (active) document.getElementById('ng-input')?.focus();
+    }, 0);
   }
 
   render();
+
+  return () => {
+    active = false;
+    if (focusTimeout) clearTimeout(focusTimeout);
+  };
 }
 
-// ----------------------------------------------------
-// 9. WORDSCAPE (Arcade Game - Layout & Touch Fix)
-// ----------------------------------------------------
 function initWordscape(stage) {
+  let active = true;
   const PUZZLES = [
     { letters: ['S','T','A','R','E'], words: ['STAR','RATE','TEAR','SEAT','ARTS','STARE'] },
     { letters: ['P','L','A','N','E'], words: ['PLAN','LANE','PALE','LEAP','PANEL','PLANE'] },
@@ -1810,6 +1928,7 @@ function initWordscape(stage) {
   let pIdx = 0, found = [], currentWord = '', letters = [...PUZZLES[0].letters], bonus = 0;
 
   function loadPuzzle(idx) {
+    if (!active) return;
     pIdx = idx % PUZZLES.length;
     found = [];
     currentWord = '';
@@ -1818,12 +1937,14 @@ function initWordscape(stage) {
   }
 
   function addLetter(l) {
+    if (!active) return;
     currentWord += l;
     AudioFX.click();
     render();
   }
 
   function submitWord() {
+    if (!active) return;
     const p = PUZZLES[pIdx];
     if (p.words.includes(currentWord) && !found.includes(currentWord)) {
       found.push(currentWord);
@@ -1844,6 +1965,7 @@ function initWordscape(stage) {
   }
 
   function render() {
+    if (!active) return;
     const p = PUZZLES[pIdx];
     const allSolved = found.length === p.words.length;
     stage.innerHTML = `
@@ -1896,8 +2018,9 @@ function initWordscape(stage) {
     `;
 
     document.querySelectorAll('.ws-let').forEach(b => b.onclick = () => addLetter(b.dataset.l));
-    document.getElementById('ws-clr')?.addEventListener('click', () => { currentWord = ''; render(); });
+    document.getElementById('ws-clr')?.addEventListener('click', () => { if (!active) return; currentWord = ''; render(); });
     document.getElementById('ws-shuf')?.addEventListener('click', () => {
+      if (!active) return;
       letters.sort(() => Math.random() - 0.5);
       AudioFX.card();
       render();
@@ -1907,13 +2030,15 @@ function initWordscape(stage) {
   }
 
   loadPuzzle(0);
+
+  return () => {
+    active = false;
+  };
 }
 
-
-// ----------------------------------------------------
-// 10. FRUIT MASTER (Arcade Game - Freeze, Fire, and Bomb FX)
-// ----------------------------------------------------
 function initFruitMaster(stage) {
+  let active = true;
+
   stage.innerHTML = `
     <div class="relative w-full h-full bg-slate-950 overflow-hidden select-none">
       <div class="absolute top-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none gap-2 flex-wrap">
@@ -1945,14 +2070,15 @@ function initFruitMaster(stage) {
   let doubleTimer = 0; 
   let boomFlash = 0;
 
-  const onResize = () => { 
-    w = canvas.width = stage.clientWidth; 
-    h = canvas.height = stage.clientHeight; 
+  const onResize = () => {
+    if (!active) return;
+    w = canvas.width = stage.clientWidth;
+    h = canvas.height = stage.clientHeight;
   };
   window.addEventListener('resize', onResize);
 
   function spawnWave() {
-    if (!running) return;
+    if (!active || !running) return;
     const count = 1 + Math.floor(Math.random() * 3);
     for (let i = 0; i < count; i++) {
       const isBomb = Math.random() < 0.16;
@@ -1991,6 +2117,7 @@ function initFruitMaster(stage) {
   const spawner = setInterval(spawnWave, 1100);
 
   function handleSlice(x, y) {
+    if (!active || !running) return;
     slashes.push({ x, y, life: 1 });
     items.forEach(it => {
       if (!it.sliced && Math.hypot(it.x - x, it.y - y) < it.r + 18) {
@@ -2001,9 +2128,9 @@ function initFruitMaster(stage) {
           boomFlash = 25;
           if (navigator.vibrate) navigator.vibrate([220, 80, 220]);
           AudioFX.hit();
-          document.getElementById('fm-lives').textContent = '❤️'.repeat(Math.max(0, lives)) || '💀';
+          const livesEl = document.getElementById('fm-lives');
+          if (livesEl) livesEl.textContent = '❤️'.repeat(Math.max(0, lives)) || '💀';
 
-          // Bomb explosion debris
           for (let k = 0; k < 24; k++) {
             splashes.push({
               x: it.x, y: it.y,
@@ -2031,7 +2158,8 @@ function initFruitMaster(stage) {
           } else {
             const earned = it.pts * (doubleTimer > 0 ? 2 : 1);
             score += earned;
-            document.getElementById('fm-score').textContent = `🍉 SLICED: ${score}`;
+            const scoreEl = document.getElementById('fm-score');
+            if (scoreEl) scoreEl.textContent = `🍉 SLICED: ${score}`;
             if (doubleTimer > 0) spawnPopup(`+${earned} (2x!)`, x, y, '#fde047');
             if (score % 60 === 0) addXP(20, x, y, '+20 XP!');
           }
@@ -2060,15 +2188,28 @@ function initFruitMaster(stage) {
     });
   }
 
-  canvas.onpointerdown = (e) => { pointerDown = true; handleSlice(e.offsetX, e.offsetY); };
-  canvas.onpointermove = (e) => { if (pointerDown) handleSlice(e.offsetX, e.offsetY); };
-  canvas.onpointerup = () => { pointerDown = false; };
+  const onPointerDown = (e) => { pointerDown = true; handleSlice(e.offsetX, e.offsetY); };
+  const onPointerMove = (e) => { if (pointerDown) handleSlice(e.offsetX, e.offsetY); };
+  const onPointerUp = () => { pointerDown = false; };
+  const onRestartClick = () => {
+    if (!active) return;
+    score = 0; lives = 3; items = []; slicedHalves = []; splashes = []; running = true;
+    const scoreEl = document.getElementById('fm-score');
+    const livesEl = document.getElementById('fm-lives');
+    if (scoreEl) scoreEl.textContent = '🍉 SLICED: 0';
+    if (livesEl) livesEl.textContent = '❤️❤️❤️';
+    canvas.removeEventListener('click', onRestartClick);
+  };
+
+  canvas.addEventListener('pointerdown', onPointerDown);
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerup', onPointerUp);
 
   let raf;
   function loop() {
+    if (!active) return;
     ctx.save();
     
-    // Background Gradient (changes tint when Freeze or Fire active)
     const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
     if (freezeTimer > 0) {
       bgGrad.addColorStop(0, '#0284c7');
@@ -2092,7 +2233,6 @@ function initFruitMaster(stage) {
     if (doubleTimer > 0) doubleTimer--;
     if (boomFlash > 0) boomFlash--;
 
-    // Render Freeze Screen Vignette / Ice Crystals
     if (freezeTimer > 0) {
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
       ctx.lineWidth = 14;
@@ -2102,7 +2242,6 @@ function initFruitMaster(stage) {
       ctx.fillRect(0, 0, w, h);
     }
 
-    // Render Fire Screen Aura for 2x
     if (doubleTimer > 0) {
       ctx.strokeStyle = 'rgba(251, 146, 60, 0.55)';
       ctx.lineWidth = 16;
@@ -2112,7 +2251,6 @@ function initFruitMaster(stage) {
       ctx.fillRect(0, 0, w, h);
     }
 
-    // Render Bomb Explosion Flash
     if (boomFlash > 0) {
       ctx.fillStyle = `rgba(255, 255, 255, ${boomFlash / 30})`;
       ctx.fillRect(0, 0, w, h);
@@ -2213,12 +2351,8 @@ function initFruitMaster(stage) {
       ctx.font = '700 18px Inter';
       ctx.fillStyle = '#fde047';
       ctx.fillText(`Final Score: ${score} — Tap to Play Again`, w / 2, h / 2 + 15);
-      canvas.onclick = () => {
-        score = 0; lives = 3; items = []; slicedHalves = []; splashes = []; running = true;
-        document.getElementById('fm-score').textContent = '🍉 SLICED: 0';
-        document.getElementById('fm-lives').textContent = '❤️❤️❤️';
-        canvas.onclick = null;
-      };
+      canvas.removeEventListener('click', onRestartClick);
+      canvas.addEventListener('click', onRestartClick);
     }
 
     ctx.restore();
@@ -2227,28 +2361,31 @@ function initFruitMaster(stage) {
   loop();
 
   return () => {
+    active = false;
     running = false;
     clearInterval(spawner);
     cancelAnimationFrame(raf);
     window.removeEventListener('resize', onResize);
+    canvas.removeEventListener('pointerdown', onPointerDown);
+    canvas.removeEventListener('pointermove', onPointerMove);
+    canvas.removeEventListener('pointerup', onPointerUp);
+    canvas.removeEventListener('click', onRestartClick);
   };
 }
 
-// ----------------------------------------------------
-// 11. WHACK-A-MOLE (Arcade Game)
-// ----------------------------------------------------
 function initWhackAMole(stage) {
+  let active = true;
   let score = 0, timeLeft = 30, activeHole = -1, isGolden = false, playing = true;
 
   const popTimer = setInterval(() => {
-    if (!playing) return;
+    if (!active || !playing) return;
     activeHole = Math.floor(Math.random() * 9);
     isGolden = Math.random() < 0.22;
     render();
   }, 750);
 
   const secTimer = setInterval(() => {
-    if (!playing) return;
+    if (!active || !playing) return;
     timeLeft--;
     if (timeLeft <= 0) {
       playing = false;
@@ -2261,7 +2398,7 @@ function initWhackAMole(stage) {
   }, 1000);
 
   function whack(idx, e) {
-    if (!playing || idx !== activeHole) return;
+    if (!active || !playing || idx !== activeHole) return;
     const pts = isGolden ? 30 : 10;
     score += pts;
     AudioFX.hit();
@@ -2271,6 +2408,7 @@ function initWhackAMole(stage) {
   }
 
   function render() {
+    if (!active) return;
     stage.innerHTML = `
       <div class="w-full h-full flex flex-col items-center justify-between px-4 py-4">
         <div class="flex items-center gap-3">
@@ -2303,6 +2441,7 @@ function initWhackAMole(stage) {
     `;
 
     document.getElementById('wam-again')?.addEventListener('click', () => {
+      if (!active) return;
       score = 0; timeLeft = 30; playing = true; render();
     });
     document.querySelectorAll('.wam-hole').forEach(b => {
@@ -2311,13 +2450,18 @@ function initWhackAMole(stage) {
   }
 
   render();
-  return () => { clearInterval(popTimer); clearInterval(secTimer); };
+
+  return () => {
+    active = false;
+    playing = false;
+    clearInterval(popTimer);
+    clearInterval(secTimer);
+  };
 }
 
-// ----------------------------------------------------
-// 12. CYBER SNAKE (Arcade Game - Fullscreen & Fixed Food Collision)
-// ----------------------------------------------------
 function initCyberSnakePreserved(stage, meta) {
+  let active = true;
+
   stage.innerHTML = `
     <div class="relative w-full h-full bg-slate-950 overflow-hidden select-none flex flex-col items-center justify-center">
       <div class="absolute top-3 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
@@ -2366,6 +2510,7 @@ function initCyberSnakePreserved(stage, meta) {
   }
 
   function resetSnake() {
+    if (!active) return;
     score = 0;
     const scoreEl = document.getElementById('snake-score');
     if (scoreEl) scoreEl.textContent = score;
@@ -2382,13 +2527,16 @@ function initCyberSnakePreserved(stage, meta) {
   }
 
   const onResize = () => {
+    if (!active) return;
     w = canvas.width = stage.clientWidth;
     h = canvas.height = stage.clientHeight;
   };
   window.addEventListener('resize', onResize);
 
+  let animId;
   function loop() {
-    const animId = requestAnimationFrame(loop);
+    if (!active) return;
+    animId = requestAnimationFrame(loop);
     if (!running) return;
     if (++count < 6) return;
     count = 0;
@@ -2398,7 +2546,6 @@ function initCyberSnakePreserved(stage, meta) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Subtle background grid
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
     ctx.lineWidth = 1;
     for (let x = 0; x < canvas.width; x += grid) {
@@ -2411,7 +2558,6 @@ function initCyberSnakePreserved(stage, meta) {
     snake.x += snake.dx;
     snake.y += snake.dy;
 
-    // Edge collision (Game Over on screen boundary hit)
     if (snake.x < 0 || snake.x >= canvas.width || snake.y < 0 || snake.y >= canvas.height) {
       AudioFX.lose();
       if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
@@ -2423,7 +2569,6 @@ function initCyberSnakePreserved(stage, meta) {
     snake.cells.unshift({ x: snake.x, y: snake.y });
     if (snake.cells.length > snake.maxLen) snake.cells.pop();
 
-    // Draw Apple
     const ax = apple.x + grid / 2;
     const ay = apple.y + grid / 2;
     ctx.save();
@@ -2438,7 +2583,6 @@ function initCyberSnakePreserved(stage, meta) {
     ctx.fill();
     ctx.restore();
 
-    // Check Apple Collision with Head
     if (snake.x === apple.x && snake.y === apple.y) {
       snake.maxLen++;
       score += 10;
@@ -2449,7 +2593,6 @@ function initCyberSnakePreserved(stage, meta) {
       spawnApple();
     }
 
-    // Draw Snake
     snake.cells.forEach((cell, index) => {
       const isHead = index === 0;
       const cx = cell.x + grid / 2;
@@ -2475,7 +2618,6 @@ function initCyberSnakePreserved(stage, meta) {
       ctx.fill();
 
       if (isHead) {
-        // Eyes
         ctx.fillStyle = '#0f172a';
         let eyeOffsetX1 = 3, eyeOffsetY1 = -4;
         let eyeOffsetX2 = 3, eyeOffsetY2 = 4;
@@ -2490,7 +2632,6 @@ function initCyberSnakePreserved(stage, meta) {
       }
       ctx.restore();
 
-      // Self collision
       for (let i = index + 1; i < snake.cells.length; i++) {
         if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
           AudioFX.lose();
@@ -2500,8 +2641,6 @@ function initCyberSnakePreserved(stage, meta) {
         }
       }
     });
-
-    return animId;
   }
 
   const setDir = (newDx, newDy) => {
@@ -2512,6 +2651,7 @@ function initCyberSnakePreserved(stage, meta) {
   };
 
   const handleKey = (e) => {
+    if (!active) return;
     if (['ArrowUp', 'KeyW'].includes(e.code) && snake.dy === 0) setDir(0, -grid);
     else if (['ArrowDown', 'KeyS'].includes(e.code) && snake.dy === 0) setDir(0, grid);
     else if (['ArrowLeft', 'KeyA'].includes(e.code) && snake.dx === 0) setDir(-grid, 0);
@@ -2519,16 +2659,17 @@ function initCyberSnakePreserved(stage, meta) {
   };
   window.addEventListener('keydown', handleKey);
 
-  // Swipe Handling across entire screen
   let touchStartX = 0, touchStartY = 0;
 
-  canvas.ontouchstart = (e) => {
+  const onTouchStart = (e) => {
+    if (!active) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     e.preventDefault();
   };
 
-  canvas.ontouchend = (e) => {
+  const onTouchEnd = (e) => {
+    if (!active) return;
     if (!touchStartX || !touchStartY) return;
     let diffX = e.changedTouches[0].clientX - touchStartX;
     let diffY = e.changedTouches[0].clientY - touchStartY;
@@ -2543,20 +2684,25 @@ function initCyberSnakePreserved(stage, meta) {
     e.preventDefault();
   };
 
-  const animId = requestAnimationFrame(loop);
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+  canvas.addEventListener('touchend', onTouchEnd, { passive: false });
+
+  animId = requestAnimationFrame(loop);
 
   return () => {
+    active = false;
+    running = false;
     window.removeEventListener('keydown', handleKey);
     window.removeEventListener('resize', onResize);
-    running = false;
+    canvas.removeEventListener('touchstart', onTouchStart);
+    canvas.removeEventListener('touchend', onTouchEnd);
     cancelAnimationFrame(animId);
   };
 }
 
-// ----------------------------------------------------
-// 13. TOWER STACK (Arcade Game)
-// ----------------------------------------------------
 function initTowerStack(stage) {
+  let active = true;
+
   stage.innerHTML = `
     <div class="relative w-full h-full">
       <div class="absolute top-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
@@ -2575,6 +2721,7 @@ function initTowerStack(stage) {
   let stack = [], current = null, combo = 0, alive = true, raf;
 
   function reset() {
+    if (!active) return;
     const baseW = Math.min(220, w * 0.45);
     stack = [{ x: (w - baseW) / 2, w: baseW, hue: 260 }];
     combo = 0; alive = true;
@@ -2593,6 +2740,7 @@ function initTowerStack(stage) {
   }
 
   function dropBlock() {
+    if (!active) return;
     if (!alive) { reset(); return; }
     const top = stack[stack.length - 1];
     const diff = current.x - top.x;
@@ -2619,18 +2767,25 @@ function initTowerStack(stage) {
     }
 
     stack.push({ x: current.x, w: current.w, hue: current.hue });
-    document.getElementById('ts-score').textContent = `🏗️ FLOORS: ${stack.length - 1}`;
-    document.getElementById('ts-combo').textContent = combo > 0 ? `🔥 PERFECT ${combo}x` : 'TAP TO DROP';
+    const scoreEl = document.getElementById('ts-score');
+    const comboEl = document.getElementById('ts-combo');
+    if (scoreEl) scoreEl.textContent = `🏗️ FLOORS: ${stack.length - 1}`;
+    if (comboEl) comboEl.textContent = combo > 0 ? `🔥 PERFECT ${combo}x` : 'TAP TO DROP';
     spawnNext();
   }
 
-  canvas.onpointerdown = dropBlock;
-  const onKey = (e) => { if (e.code === 'Space') { e.preventDefault(); dropBlock(); } };
+  canvas.addEventListener('pointerdown', dropBlock);
+  const onKey = (e) => { if (!active) return; if (e.code === 'Space') { e.preventDefault(); dropBlock(); } };
   window.addEventListener('keydown', onKey);
-  const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
+  const onResize = () => {
+    if (!active) return;
+    w = canvas.width = stage.clientWidth;
+    h = canvas.height = stage.clientHeight;
+  };
   window.addEventListener('resize', onResize);
 
   function loop() {
+    if (!active) return;
     ctx.clearRect(0, 0, w, h);
     const blockH = 26;
     const camOffset = Math.max(0, (stack.length - 8) * blockH);
@@ -2672,17 +2827,18 @@ function initTowerStack(stage) {
   loop();
 
   return () => {
+    active = false;
     alive = false;
     cancelAnimationFrame(raf);
+    canvas.removeEventListener('pointerdown', dropBlock);
     window.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResize);
   };
 }
 
-// ----------------------------------------------------
-// 14. CAR RACING (Arcade Game)
-// ----------------------------------------------------
 function initCarRacing(stage) {
+  let active = true;
+
   stage.innerHTML = `
     <div class="relative w-full h-full">
       <div class="absolute top-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
@@ -2701,28 +2857,38 @@ function initCarRacing(stage) {
   let lane = 1, traffic = [], coins = [], dist = 0, stripeY = 0, alive = true, raf;
 
   function reset() {
+    if (!active) return;
     lane = 1; traffic = []; coins = []; dist = 0; alive = true;
   }
 
   function shiftLane(dir) {
+    if (!active) return;
     if (!alive) { reset(); return; }
     lane = Math.max(0, Math.min(2, lane + dir));
     AudioFX.click();
   }
 
-  canvas.onpointerdown = (e) => {
+  const onPointerDown = (e) => {
+    if (!active) return;
     if (e.offsetX < w / 2) shiftLane(-1);
     else shiftLane(1);
   };
+  canvas.addEventListener('pointerdown', onPointerDown);
   const onKey = (e) => {
+    if (!active) return;
     if (e.key === 'ArrowLeft' || e.key === 'a') shiftLane(-1);
     if (e.key === 'ArrowRight' || e.key === 'd') shiftLane(1);
   };
   window.addEventListener('keydown', onKey);
-  const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
+  const onResize = () => {
+    if (!active) return;
+    w = canvas.width = stage.clientWidth;
+    h = canvas.height = stage.clientHeight;
+  };
   window.addEventListener('resize', onResize);
 
   function loop() {
+    if (!active) return;
     ctx.clearRect(0, 0, w, h);
     const roadW = Math.min(360, w * 0.82);
     const roadX = (w - roadW) / 2;
@@ -2751,7 +2917,10 @@ function initCarRacing(stage) {
 
     if (alive) {
       dist += 1;
-      if (dist % 10 === 0) document.getElementById('cr-score').textContent = `🏎️ DIST: ${Math.floor(dist / 5)}m`;
+      if (dist % 10 === 0) {
+        const scoreEl = document.getElementById('cr-score');
+        if (scoreEl) scoreEl.textContent = `🏎️ DIST: ${Math.floor(dist / 5)}m`;
+      }
       if (Math.random() < 0.032) {
         const l = Math.floor(Math.random() * 3);
         if (!traffic.some(t => t.y < 140)) {
@@ -2822,17 +2991,18 @@ function initCarRacing(stage) {
   loop();
 
   return () => {
+    active = false;
     alive = false;
     cancelAnimationFrame(raf);
+    canvas.removeEventListener('pointerdown', onPointerDown);
     window.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResize);
   };
 }
 
-// ----------------------------------------------------
-// 15. BRICK BREAKER (Arcade Game)
-// ----------------------------------------------------
 function initBrickBreaker(stage) {
+  let active = true;
+
   stage.innerHTML = `
     <div class="relative w-full h-full">
       <div class="absolute top-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
@@ -2872,10 +3042,12 @@ function initBrickBreaker(stage) {
   }
   buildBricks();
 
-  canvas.onpointermove = (e) => {
+  const onPointerMove = (e) => {
+    if (!active) return;
     paddleX = Math.max(8, Math.min(w - paddleW - 8, e.offsetX - paddleW / 2));
   };
-  canvas.onpointerdown = (e) => {
+  const onPointerDown = (e) => {
+    if (!active) return;
     if (!alive) {
       score = 0; alive = true;
       ball = { x: w / 2, y: h - 90, vx: 4.5, vy: -4.8, r: 9 };
@@ -2884,11 +3056,18 @@ function initBrickBreaker(stage) {
     }
     paddleX = Math.max(8, Math.min(w - paddleW - 8, e.offsetX - paddleW / 2));
   };
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerdown', onPointerDown);
 
-  const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
+  const onResize = () => {
+    if (!active) return;
+    w = canvas.width = stage.clientWidth;
+    h = canvas.height = stage.clientHeight;
+  };
   window.addEventListener('resize', onResize);
 
   function loop() {
+    if (!active) return;
     ctx.clearRect(0, 0, w, h);
 
     if (alive) {
@@ -2912,7 +3091,8 @@ function initBrickBreaker(stage) {
           ball.vy *= -1;
           score += 15;
           AudioFX.coin();
-          document.getElementById('bb-score').textContent = `🧱 SCORE: ${score}`;
+          const scoreEl = document.getElementById('bb-score');
+          if (scoreEl) scoreEl.textContent = `🧱 SCORE: ${score}`;
           if (score % 150 === 0) addXP(20, ball.x, ball.y, '+20 XP!');
         }
       });
@@ -2967,16 +3147,18 @@ function initBrickBreaker(stage) {
   loop();
 
   return () => {
+    active = false;
     alive = false;
     cancelAnimationFrame(raf);
+    canvas.removeEventListener('pointermove', onPointerMove);
+    canvas.removeEventListener('pointerdown', onPointerDown);
     window.removeEventListener('resize', onResize);
   };
 }
 
-// ----------------------------------------------------
-// 16. STICK RUN (Arcade Game)
-// ----------------------------------------------------
 function initStickRun(stage) {
+  let active = true;
+
   stage.innerHTML = `
     <div class="relative w-full h-full">
       <div class="absolute top-3 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
@@ -3000,11 +3182,13 @@ function initStickRun(stage) {
   function groundY() { return h * 0.75; }
 
   function reset() {
+    if (!active) return;
     player = { x: Math.min(110, w * 0.18), y: groundY(), vy: 0, jumps: 0, runCycle: 0, sliding: false, slideTimer: 0 };
     obstacles = []; coins = []; dist = 0; coinCount = 0; alive = true;
   }
 
   function jump() {
+    if (!active) return;
     if (!alive) { reset(); return; }
     if (player.jumps < 2) {
       player.vy = -13.5;
@@ -3015,6 +3199,7 @@ function initStickRun(stage) {
   }
 
   function slide() {
+    if (!active) return;
     if (!alive) { reset(); return; }
     if (player.y === groundY() && !player.sliding) {
       player.sliding = true;
@@ -3024,13 +3209,15 @@ function initStickRun(stage) {
   }
   
   let touchStartX = 0, touchStartY = 0;
-  canvas.ontouchstart = (e) => {
+  const onTouchStart = (e) => {
+    if (!active) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     e.preventDefault();
   };
   
-  canvas.ontouchend = (e) => {
+  const onTouchEnd = (e) => {
+    if (!active) return;
     if (!touchStartX || !touchStartY) return;
     let diffX = e.changedTouches[0].clientX - touchStartX;
     let diffY = e.changedTouches[0].clientY - touchStartY;
@@ -3052,12 +3239,20 @@ function initStickRun(stage) {
     e.preventDefault();
   };
 
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+  canvas.addEventListener('touchend', onTouchEnd, { passive: false });
+
   const onKey = (e) => { 
+    if (!active) return;
     if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'w') { e.preventDefault(); jump(); }
     if (e.key === 'ArrowDown' || e.key === 's') { e.preventDefault(); slide(); }
   };
   window.addEventListener('keydown', onKey);
-  const onResize = () => { w = canvas.width = stage.clientWidth; h = canvas.height = stage.clientHeight; };
+  const onResize = () => {
+    if (!active) return;
+    w = canvas.width = stage.clientWidth;
+    h = canvas.height = stage.clientHeight;
+  };
   window.addEventListener('resize', onResize);
 
   function drawStickman(x, y, phase, inAir, sliding) {
@@ -3125,6 +3320,7 @@ function initStickRun(stage) {
   }
 
   function loop() {
+    if (!active) return;
     ctx.clearRect(0, 0, w, h);
     const gy = groundY();
     const speed = 6.2 + Math.min(7, dist / 450);
@@ -3148,7 +3344,10 @@ function initStickRun(stage) {
         player.jumps = 0;
       }
 
-      if (dist % 8 === 0) document.getElementById('sr-dist').textContent = `🏃 ${Math.floor(dist / 4)}m`;
+      if (dist % 8 === 0) {
+        const distEl = document.getElementById('sr-dist');
+        if (distEl) distEl.textContent = `🏃 ${Math.floor(dist / 4)}m`;
+      }
 
       if (Math.random() < 0.024 && !obstacles.some(o => o.x > w - 240)) {
         const types = ['box', 'saw', 'floatingSaw', 'combo'];
@@ -3195,7 +3394,8 @@ function initStickRun(stage) {
       if (alive && Math.hypot(c.x - player.x, c.y - (player.y - 26)) < 32) {
         c.taken = true;
         coinCount++;
-        document.getElementById('sr-coins').textContent = `🪙 ${coinCount}`;
+        const coinsEl = document.getElementById('sr-coins');
+        if (coinsEl) coinsEl.textContent = `🪙 ${coinCount}`;
         AudioFX.coin();
         addXP(10, player.x, player.y - 50, '+10 XP');
       }
@@ -3299,15 +3499,16 @@ function initStickRun(stage) {
   loop();
 
   return () => {
+    active = false;
+    alive = false;
     cancelAnimationFrame(raf);
+    canvas.removeEventListener('touchstart', onTouchStart);
+    canvas.removeEventListener('touchend', onTouchEnd);
     window.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', onResize);
   };
 }
 
-// ----------------------------------------------------
-// TINY CAFÉ (Cute Cartoon & Cozy Café Edition) - Fixed
-// ----------------------------------------------------
 function initTinyCafe(stage) {
   const INGREDIENTS = {
     espresso: { id: 'espresso', name: 'Espresso', icon: '☕', color: 'from-[#8c522b] to-[#593014]', border: 'border-[#d99b66]', unlockRecipe: 'espresso' },
@@ -3394,6 +3595,7 @@ function initTinyCafe(stage) {
   let musicStep = 0;
   let animationFrameId = null;
   let toastTimeout = null;
+  const popupTimeouts = new Set();
 
   function loadSave() {
     try {
@@ -3837,7 +4039,11 @@ function initTinyCafe(stage) {
     el.style.top = '28%';
     el.textContent = text;
     slotEl.appendChild(el);
-    setTimeout(() => el.remove(), 1150);
+    const tId = setTimeout(() => {
+      popupTimeouts.delete(tId);
+      el.remove();
+    }, 1150);
+    popupTimeouts.add(tId);
   }
 
   function serveMatchingCustomer() {
@@ -3884,7 +4090,11 @@ function initTinyCafe(stage) {
       const slotEl = document.getElementById(`slot-${idx}`);
       if (slotEl) {
         slotEl.classList.add('anim-shake');
-        setTimeout(() => slotEl.classList.remove('anim-shake'), 450);
+        const tId = setTimeout(() => {
+          popupTimeouts.delete(tId);
+          slotEl.classList.remove('anim-shake');
+        }, 450);
+        popupTimeouts.add(tId);
       }
       spawnFloatingPopup(idx, 'Wrong Order!', 'text-[#ff5964]');
       return;
@@ -3991,6 +4201,7 @@ function initTinyCafe(stage) {
     syncHUD();
 
     gameState.lastTick = performance.now();
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
     animationFrameId = requestAnimationFrame(gameLoop);
   }
 
@@ -4405,7 +4616,6 @@ function initTinyCafe(stage) {
     toastTimeout = setTimeout(() => box.classList.add('hidden'), 2200);
   }
 
-  // Inject HTML markup into the active stage
   stage.innerHTML = `
     <div id="tiny-cafe-app" class="relative w-full h-full max-w-5xl mx-auto flex flex-col overflow-hidden shadow-2xl md:border-x-4 border-[#4a2a14] cafe-wall ${saveData.theme}">
       <div class="absolute top-0 left-0 right-0 h-44 pointer-events-none flex justify-around z-0">
@@ -4517,166 +4727,176 @@ function initTinyCafe(stage) {
           </div>
 
           <div id="decor-plant" class="${saveData.decor.plant ? '' : 'hidden'} sm:flex flex-col items-center">
-            <div class="text-3xl leading-none filter drop-shadow">🌿</div>
-            <div class="w-8 h-6 bg-[#d97236] rounded-b-xl border-t-4 border-[#b55621] shadow"></div>
+            <div class="text-3xl leading-none drop-shadow">🌿</div>
+            <div class="w-8 h-6 rounded-b-lg bg-[#d97757] border-2 border-[#7c3f2b] -mt-1"></div>
           </div>
         </div>
 
-        <div id="customer-slots" class="grid grid-cols-3 gap-2 sm:gap-4 items-end w-full max-w-4xl mx-auto pt-12">
-          <div id="slot-0" class="customer-slot relative flex flex-col items-center justify-end min-h-[195px] sm:min-h-[235px]"></div>
-          <div id="slot-1" class="customer-slot relative flex flex-col items-center justify-end min-h-[195px] sm:min-h-[235px]"></div>
-          <div id="slot-2" class="customer-slot relative flex flex-col items-center justify-end min-h-[195px] sm:min-h-[235px]"></div>
+        <div id="customer-slots" class="relative z-10 grid grid-cols-3 gap-2 sm:gap-4 items-end w-full max-w-3xl mx-auto mb-1 min-h-[165px] sm:min-h-[195px]">
+          <div id="slot-0" class="customer-slot relative flex flex-col items-center justify-end h-full"></div>
+          <div id="slot-1" class="customer-slot relative flex flex-col items-center justify-end h-full"></div>
+          <div id="slot-2" class="customer-slot relative flex flex-col items-center justify-end h-full"></div>
+        </div>
+
+        <div class="relative z-20 w-full max-w-4xl mx-auto">
+          <div class="wood-counter h-4 sm:h-5 rounded-t-2xl border-t-4 border-[#d99b66] shadow-lg"></div>
+          <div class="bg-[#fff7eb]/95 border-x-4 border-b-4 border-[#5c361c] rounded-b-2xl p-2 sm:p-2.5 shadow-xl flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 flex-1 min-w-[170px]">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-[#7c4a27] shrink-0">Tray:</span>
+              <div id="tray-items-container" class="flex items-center gap-1.5 flex-wrap min-h-[34px] bg-[#f5e6d3] px-2.5 py-1 rounded-xl border-2 border-dashed border-[#c89666] flex-1">
+                <span class="text-xs font-bold text-[#9c785c] italic">Tap ingredients below to prep order...</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <div id="tray-match-preview" class="hidden items-center gap-1 bg-[#e6f7ef] border-2 border-[#40b37a] px-2.5 py-1 rounded-xl">
+                <span id="tray-match-icon" class="text-lg">☕</span>
+                <span id="tray-match-name" class="font-display font-bold text-xs text-[#1b4332]">Latte</span>
+              </div>
+
+              <button id="btn-clear-tray" class="cartoon-btn bg-[#f3d5b5] hover:bg-[#e7c39d] text-[#5c361c] font-display font-bold text-xs sm:text-sm px-3 py-1.5 rounded-xl border-2 border-[#9e6b43]">
+                Clear
+              </button>
+              <button id="btn-serve" disabled class="cartoon-btn bg-[#40b37a] hover:bg-[#4ec78b] disabled:opacity-45 disabled:cursor-not-allowed text-white font-display font-bold text-xs sm:text-sm px-4 py-1.5 rounded-xl border-2 border-[#1e6f46] flex items-center gap-1">
+                <span>Serve</span>
+                <span>🔔</span>
+              </button>
+            </div>
+          </div>
         </div>
       </main>
 
-      <section class="relative z-20 flex flex-col shadow-[0_-8px_20px_rgba(35,18,8,0.35)] pb-10 sm:pb-4">
-        <div class="counter-surface px-3 py-2 sm:px-5 sm:py-2.5 flex items-center justify-between gap-2">
-          <button id="btn-clear-tray" class="cartoon-btn bg-[#e64848] hover:bg-[#f25c5c] text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl font-display font-bold text-xs sm:text-sm border-2 border-[#ffc2c2] flex flex-col sm:flex-row items-center gap-1 shrink-0">
-            <span class="text-base sm:text-lg">🗑️</span>
-            <span>Clear</span>
-          </button>
-
-          <div id="serving-tray" class="flex-1 max-w-xl bg-[#fffaf2]/95 border-4 border-[#8c522b] rounded-2xl px-3 py-1.5 sm:py-2 flex items-center justify-between gap-2 shadow-inner min-h-[58px] sm:min-h-[66px]">
-            <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto custom-scroll py-0.5" id="tray-items-container">
-              <span class="text-xs sm:text-sm font-bold text-[#9c785c] italic">Tap ingredients below to prep order...</span>
-            </div>
-            <div id="tray-match-preview" class="hidden shrink-0 flex items-center gap-1.5 bg-[#e6f7ef] border-2 border-[#52b788] px-2.5 py-1 rounded-xl">
-              <span id="tray-match-icon" class="text-lg sm:text-xl">☕</span>
-              <span id="tray-match-name" class="font-display font-bold text-xs sm:text-sm text-[#1b4332] hidden sm:inline">Espresso</span>
-            </div>
-          </div>
-
-          <button id="btn-serve" disabled class="cartoon-btn bg-[#40b37a] hover:bg-[#4ec98c] disabled:opacity-50 disabled:cursor-not-allowed text-white px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-2xl font-display font-bold text-xs sm:text-base border-2 border-[#b7f5d6] flex flex-col sm:flex-row items-center gap-1 shrink-0">
-            <span class="text-base sm:text-lg">🛎️</span>
-            <span>Serve</span>
-          </button>
-        </div>
-
-        <div class="counter-body px-2.5 py-2.5 sm:px-5 sm:py-3.5 pb-10 sm:pb-4">
-          <div id="stations-grid" class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 max-w-4xl mx-auto"></div>
-        </div>
+      <section id="prep-stations" class="relative z-20 bg-[#4a2a14] border-t-4 border-[#2e180a] px-2.5 sm:px-5 pt-2.5 pb-3 shadow-[0_-6px_20px_rgba(0,0,0,0.35)]">
+        <div id="stations-grid" class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-2.5 max-w-4xl mx-auto"></div>
       </section>
 
-      <div id="screen-start" class="absolute inset-0 z-50 flex items-center justify-center p-4 bg-[#241309]/80 backdrop-blur-sm">
-        <div class="bg-[#fffaf2] border-4 border-[#6b3e1d] rounded-3xl max-w-lg w-full p-5 sm:p-7 shadow-2xl text-center relative overflow-hidden">
-          <div class="absolute -top-10 -left-10 w-32 h-32 bg-[#ffd166]/25 rounded-full pointer-events-none"></div>
-          <div class="absolute -bottom-10 -right-10 w-36 h-36 bg-[#f2798f]/20 rounded-full pointer-events-none"></div>
+      <div id="screen-start" class="absolute inset-0 z-30 flex items-center justify-center p-4 bg-[#2e180a]/75 backdrop-blur-xs">
+        <div class="max-w-md w-full bg-[#fffaf2] border-4 border-[#5c361c] rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
+          <div class="absolute -top-6 -right-6 text-7xl opacity-15 pointer-events-none">🥐</div>
+          <div class="absolute -bottom-6 -left-6 text-7xl opacity-15 pointer-events-none">☕</div>
 
-          <div class="inline-flex items-center gap-2 bg-[#fcecd8] border-2 border-[#d99b66] px-3.5 py-1 rounded-full text-xs font-extrabold text-[#7c4722] mb-2">
-            <span>✨ ARCADE HUB EDITION ✨</span>
+          <div class="inline-flex items-center gap-2 bg-[#fcecd8] border-2 border-[#d99b66] px-3.5 py-1 rounded-full text-xs font-extrabold text-[#7c4a27] mb-2">
+            <span>☀️</span>
+            <span id="start-day">Day 1</span>
+            <span>•</span>
+            <span id="start-coins">🪙 ${saveData.coins}</span>
+            <span>•</span>
+            <span id="start-gems">💎 ${saveData.gems}</span>
           </div>
 
-          <div class="text-5xl sm:text-6xl mb-1 anim-bob">☕🧸🥐</div>
-          <h1 class="font-display text-3xl sm:text-5xl font-bold text-[#3b2314] tracking-tight">Tiny Café</h1>
-          <p class="text-xs sm:text-sm font-bold text-[#7c583e] mt-1 mb-4">Cozy counter service, cute VIP guests & handcrafted treats!</p>
+          <h1 class="font-display text-3xl sm:text-4xl text-[#4a2a14] tracking-tight mb-1">Tiny Café</h1>
+          <p class="text-xs sm:text-sm text-[#7c583e] font-semibold mb-4">
+            Tap ingredients to craft drinks &amp; pastries, keep customers smiling, and grow your cozy shop!
+          </p>
 
-          <div class="bg-[#f7e7d2] border-2 border-[#d9b38c] rounded-2xl p-3 mb-5 flex items-center justify-around">
-            <div>
-              <div class="text-[11px] font-extrabold uppercase text-[#8c5a36]">Café Day</div>
-              <div id="start-day" class="font-display text-xl font-bold text-[#3b2314]">Day ${saveData.day}</div>
-            </div>
-            <div class="h-8 w-[2px] bg-[#d9b38c]"></div>
-            <div>
-              <div class="text-[11px] font-extrabold uppercase text-[#8c5a36]">Coins</div>
-              <div id="start-coins" class="font-display text-xl font-bold text-[#d97706]">🪙 ${saveData.coins}</div>
-            </div>
-            <div class="h-8 w-[2px] bg-[#d9b38c]"></div>
-            <div>
-              <div class="text-[11px] font-extrabold uppercase text-[#8c5a36]">Gems</div>
-              <div id="start-gems" class="font-display text-xl font-bold text-[#0284c7]">💎 ${saveData.gems}</div>
-            </div>
+          <div class="bg-[#fdf2e3] border-2 border-[#e5c39e] rounded-2xl p-3 mb-5 text-left space-y-1.5 text-xs text-[#5c361c]">
+            <div class="flex items-center gap-2"><span class="text-base">1️⃣</span><span><b>Prep:</b> Tap ingredients (like Espresso + Milk = Latte).</span></div>
+            <div class="flex items-center gap-2"><span class="text-base">2️⃣</span><span><b>Serve:</b> Tap <b>Serve 🔔</b> or tap the matching customer!</span></div>
+            <div class="flex items-center gap-2"><span class="text-base">3️⃣</span><span><b>Upgrade:</b> Unlock recipes, themes &amp; machines in the Shop.</span></div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-            <button id="btn-start-campaign" class="cartoon-btn bg-gradient-to-b from-[#ff9f43] to-[#e67e22] text-white p-3.5 rounded-2xl border-2 border-[#ffe0b2] flex flex-col items-center">
-              <span class="text-2xl mb-0.5">📅</span>
-              <span class="font-display text-lg font-bold">Café Career</span>
-              <span class="text-[11px] font-bold text-[#fff3e0]">Complete daily coin goals & unlock recipes</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button id="btn-start-campaign" class="cartoon-btn bg-[#40b37a] hover:bg-[#4cc78a] text-white font-display font-bold text-base py-3 px-4 rounded-2xl border-2 border-[#1b5e3c] flex items-center justify-center gap-2">
+              <span>☕</span>
+              <span>Start Shift</span>
             </button>
-            <button id="btn-start-rush" class="cartoon-btn bg-gradient-to-b from-[#f25c78] to-[#d63353] text-white p-3.5 rounded-2xl border-2 border-[#ffc2ce] flex flex-col items-center">
-              <span class="text-2xl mb-0.5">⚡</span>
-              <span class="font-display text-lg font-bold">Rush Hour Endless</span>
-              <span class="text-[11px] font-bold text-[#ffe5ec]">Non-stop fast orders, VIPs & high scores</span>
+            <button id="btn-start-rush" class="cartoon-btn bg-[#ff8c42] hover:bg-[#ff9d5c] text-white font-display font-bold text-base py-3 px-4 rounded-2xl border-2 border-[#9e4710] flex items-center justify-center gap-2">
+              <span>⚡</span>
+              <span>Rush Mode</span>
             </button>
           </div>
-
-          <div class="grid grid-cols-3 gap-2">
-            <button id="btn-start-recipes" class="cartoon-btn bg-[#fcecd8] hover:bg-[#f5dec0] text-[#5c361c] py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm border-2 border-[#c88a55]">📖 Recipes</button>
-            <button id="btn-start-challenges" class="cartoon-btn bg-[#e3f7ef] hover:bg-[#ccf0e1] text-[#1e4d3b] py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm border-2 border-[#6bc4a6]">🎯 Daily Quests</button>
-            <button id="btn-start-shop" class="cartoon-btn bg-[#fde8ec] hover:bg-[#fbd0d9] text-[#6e2132] py-2 px-2 rounded-xl font-display font-bold text-xs sm:text-sm border-2 border-[#f2798f]">🛍️ Café Shop</button>
-          </div>
         </div>
       </div>
 
-      <div id="modal-round-end" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-[#241309]/80 backdrop-blur-sm">
-        <div class="bg-[#fffaf2] border-4 border-[#6b3e1d] rounded-3xl max-w-md w-full p-6 shadow-2xl text-center">
-          <div id="end-emoji" class="text-5xl mb-2 anim-bob">🎉</div>
-          <h2 id="end-title" class="font-display text-3xl font-bold text-[#3b2314]">Shift Complete!</h2>
-          <p id="end-subtitle" class="text-xs sm:text-sm font-bold text-[#7c583e] mt-1 mb-4">Wonderful hospitality today!</p>
-
-          <div class="bg-[#f7e7d2] border-2 border-[#d9b38c] rounded-2xl p-3.5 mb-5 space-y-2 text-sm font-bold">
-            <div class="flex justify-between"><span class="text-[#6b3e1d]">Orders Served:</span><span id="end-served" class="font-display text-[#3b2314]">0</span></div>
-            <div class="flex justify-between"><span class="text-[#6b3e1d]">Best Combo:</span><span id="end-combo" class="font-display text-[#d97706]">x1</span></div>
-            <div class="flex justify-between"><span class="text-[#6b3e1d]">Coins Earned:</span><span id="end-coins" class="font-display text-[#15803d]">+0 🪙</span></div>
-            <div class="flex justify-between"><span class="text-[#6b3e1d]">Bonus Gems:</span><span id="end-gems" class="font-display text-[#0284c7]">+0 💎</span></div>
+      <div id="modal-recipes" class="hidden absolute inset-0 z-40 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+        <div class="bg-[#fffaf2] border-4 border-[#5c361c] rounded-3xl w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+          <div class="flex items-center justify-between px-5 py-3.5 bg-[#4a2a14] text-[#fffaf2]">
+            <h2 class="font-display text-lg sm:text-xl flex items-center gap-2"><span>📖</span><span>Café Recipe Book</span></h2>
+            <button id="btn-close-recipes" class="cartoon-btn bg-[#e65c5c] text-white font-bold w-8 h-8 rounded-xl flex items-center justify-center">✕</button>
           </div>
-
-          <div class="flex gap-2.5">
-            <button id="btn-modal-menu" class="cartoon-btn flex-1 bg-[#e5d0b8] text-[#4a2a14] py-3 rounded-2xl font-display font-bold text-sm border-2 border-[#b8936d]">🏠 Menu</button>
-            <button id="btn-next-shift" class="cartoon-btn flex-1 bg-[#40b37a] text-white py-3 rounded-2xl font-display font-bold text-sm border-2 border-[#b7f5d6]">Next Day ➡️</button>
-          </div>
+          <div id="recipe-list" class="p-4 overflow-y-auto space-y-2.5 flex-1"></div>
         </div>
       </div>
 
-      <div id="modal-recipes" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-[#241309]/75 backdrop-blur-sm">
-        <div class="bg-[#fffaf2] border-4 border-[#6b3e1d] rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col p-5 shadow-2xl">
-          <div class="flex items-center justify-between pb-3 border-b-2 border-[#ebd5b9]">
-            <div class="flex items-center gap-2"><span class="text-2xl">📖</span><h2 class="font-display text-2xl font-bold text-[#3b2314]">Tiny Café Menu</h2></div>
-            <button id="btn-close-recipes" class="cartoon-btn bg-[#e64848] text-white w-8 h-8 rounded-xl font-bold">✕</button>
+      <div id="modal-challenges" class="hidden absolute inset-0 z-40 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+        <div class="bg-[#fffaf2] border-4 border-[#5c361c] rounded-3xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+          <div class="flex items-center justify-between px-5 py-3.5 bg-[#4a2a14] text-[#fffaf2]">
+            <h2 class="font-display text-lg sm:text-xl flex items-center gap-2"><span>🎯</span><span>Daily Café Goals</span></h2>
+            <button id="btn-close-challenges" class="cartoon-btn bg-[#e65c5c] text-white font-bold w-8 h-8 rounded-xl flex items-center justify-center">✕</button>
           </div>
-          <p class="text-xs font-bold text-[#7c583e] mt-2 mb-3">Tap ingredients on the counter in any order to craft these recipes!</p>
-          <div id="recipe-list" class="flex-1 overflow-y-auto custom-scroll space-y-2.5 pr-1"></div>
+          <div id="challenges-list" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
         </div>
       </div>
 
-      <div id="modal-challenges" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-[#241309]/75 backdrop-blur-sm">
-        <div class="bg-[#fffaf2] border-4 border-[#6b3e1d] rounded-3xl max-w-md w-full max-h-[85vh] flex flex-col p-5 shadow-2xl">
-          <div class="flex items-center justify-between pb-3 border-b-2 border-[#ebd5b9]">
-            <div class="flex items-center gap-2"><span class="text-2xl">🎯</span><h2 class="font-display text-2xl font-bold text-[#3b2314]">Daily Challenges</h2></div>
-            <button id="btn-close-challenges" class="cartoon-btn bg-[#e64848] text-white w-8 h-8 rounded-xl font-bold">✕</button>
+      <div id="modal-shop" class="hidden absolute inset-0 z-40 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+        <div class="bg-[#fffaf2] border-4 border-[#5c361c] rounded-3xl w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+          <div class="flex items-center justify-between px-5 py-3.5 bg-[#4a2a14] text-[#fffaf2]">
+            <div class="flex items-center gap-3">
+              <h2 class="font-display text-lg sm:text-xl flex items-center gap-2"><span>🛍️</span><span>Café Shop</span></h2>
+              <div class="flex items-center gap-2 text-xs sm:text-sm font-bold bg-[#2e180a] px-3 py-1 rounded-xl">
+                <span>🪙 <span id="shop-coins">${saveData.coins}</span></span>
+                <span>•</span>
+                <span>💎 <span id="shop-gems">${saveData.gems}</span></span>
+              </div>
+            </div>
+            <button id="btn-close-shop" class="cartoon-btn bg-[#e65c5c] text-white font-bold w-8 h-8 rounded-xl flex items-center justify-center">✕</button>
           </div>
-          <p class="text-xs font-bold text-[#7c583e] mt-2 mb-3">Fresh café goals every day! Complete them for bonus coins & gems.</p>
-          <div id="challenges-list" class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-1"></div>
+
+          <div class="flex gap-1.5 p-2 bg-[#f5e6d3] border-b-2 border-[#dfc3a2]">
+            <button id="tab-recipes" class="flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#e69138] text-white">🍹 Recipes</button>
+            <button id="tab-upgrades" class="flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#ebd5b9] text-[#5c361c]">⚙️ Upgrades</button>
+            <button id="tab-decor" class="flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#ebd5b9] text-[#5c361c]">🎨 Café Style</button>
+          </div>
+
+          <div id="shop-items-container" class="p-4 overflow-y-auto space-y-2.5 flex-1"></div>
         </div>
       </div>
 
-      <div id="modal-shop" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-[#241309]/75 backdrop-blur-sm">
-        <div class="bg-[#fffaf2] border-4 border-[#6b3e1d] rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col p-5 shadow-2xl">
-          <div class="flex items-center justify-between pb-3 border-b-2 border-[#ebd5b9]">
-            <div class="flex items-center gap-2"><span class="text-2xl">🛍️</span><h2 class="font-display text-2xl font-bold text-[#3b2314]">Café Shop & Decor</h2></div>
-            <div class="flex items-center gap-2">
-              <span class="bg-[#2e180a] text-[#ffd15c] px-2.5 py-1 rounded-xl font-display text-xs font-bold">🪙 <span id="shop-coins">${saveData.coins}</span></span>
-              <span class="bg-[#2e180a] text-[#7ae7ff] px-2.5 py-1 rounded-xl font-display text-xs font-bold">💎 <span id="shop-gems">${saveData.gems}</span></span>
-              <button id="btn-close-shop" class="cartoon-btn bg-[#e64848] text-white w-8 h-8 rounded-xl font-bold">✕</button>
+      <div id="modal-round-end" class="hidden absolute inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-[#fffaf2] border-4 border-[#5c361c] rounded-3xl max-w-md w-full p-6 text-center shadow-2xl">
+          <div id="end-emoji" class="text-5xl mb-2">🎉</div>
+          <h2 id="end-title" class="font-display text-2xl sm:text-3xl text-[#4a2a14] mb-1">Shift Complete!</h2>
+          <p id="end-subtitle" class="text-xs sm:text-sm text-[#7c583e] font-semibold mb-4">You served wonderful treats today.</p>
+
+          <div class="bg-[#fdf2e3] border-2 border-[#e5c39e] rounded-2xl p-3.5 mb-5 grid grid-cols-2 gap-2.5 text-left">
+            <div class="bg-white p-2.5 rounded-xl border border-[#ebd5b9]">
+              <div class="text-[11px] font-bold text-[#8c684d]">Orders Served</div>
+              <div id="end-served" class="font-display text-xl text-[#3b2314]">0</div>
+            </div>
+            <div class="bg-white p-2.5 rounded-xl border border-[#ebd5b9]">
+              <div class="text-[11px] font-bold text-[#8c684d]">Best Combo</div>
+              <div id="end-combo" class="font-display text-xl text-[#e67e22]">0x</div>
+            </div>
+            <div class="bg-white p-2.5 rounded-xl border border-[#ebd5b9]">
+              <div class="text-[11px] font-bold text-[#8c684d]">Coins Earned</div>
+              <div id="end-coins" class="font-display text-xl text-[#d97706]">+0 🪙</div>
+            </div>
+            <div class="bg-white p-2.5 rounded-xl border border-[#ebd5b9]">
+              <div class="text-[11px] font-bold text-[#8c684d]">Gems Earned</div>
+              <div id="end-gems" class="font-display text-xl text-[#0284c7]">+0 💎</div>
             </div>
           </div>
-          <div class="flex gap-2 my-3">
-            <button id="tab-recipes" class="flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#e69138] text-white">🍰 New Recipes</button>
-            <button id="tab-upgrades" class="flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#ebd5b9] text-[#5c361c]">⚙️ Equipment</button>
-            <button id="tab-decor" class="flex-1 py-1.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-[#ebd5b9] text-[#5c361c]">🎨 Themes & Decor</button>
+
+          <div class="flex flex-col sm:flex-row gap-2.5">
+            <button id="btn-end-menu" class="cartoon-btn flex-1 bg-[#e8d5be] hover:bg-[#dcc3a5] text-[#4a2a14] font-display font-bold py-2.5 px-4 rounded-2xl border-2 border-[#9e7652]">
+              Café Menu
+            </button>
+            <button id="btn-next-shift" class="cartoon-btn flex-1 bg-[#40b37a] hover:bg-[#4cc78a] text-white font-display font-bold py-2.5 px-4 rounded-2xl border-2 border-[#1b5e3c]">
+              Next Shift ➡️
+            </button>
           </div>
-          <div id="shop-items-container" class="flex-1 overflow-y-auto custom-scroll space-y-2.5 pr-1"></div>
         </div>
       </div>
 
-      <div id="toast-box" class="hidden absolute top-16 left-1/2 transform -translate-x-1/2 z-[70] bg-[#3b2314] text-[#fffaf2] border-2 border-[#ffd15c] px-4 py-2 rounded-2xl shadow-xl font-display text-xs sm:text-sm flex items-center gap-2">
-        <span id="toast-icon">✨</span>
-        <span id="toast-msg">Notification</span>
+      <div id="toast-box" class="hidden fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+        <div class="bg-[#3b2314] text-[#fffaf2] border-2 border-[#ffd15c] px-4 py-2 rounded-2xl shadow-xl flex items-center gap-2 font-display text-xs sm:text-sm">
+          <span id="toast-icon">✨</span>
+          <span id="toast-msg">Notice!</span>
+        </div>
       </div>
     </div>
   `;
 
-  // Attach global helpers for inline button handlers
   window.serveTinyCafeSlot = serveSlot;
   window.openTinyCafeModal = openModal;
   window.claimTinyCafeQuest = claimQuest;
@@ -4686,66 +4906,39 @@ function initTinyCafe(stage) {
   window.equipTinyCafeTheme = equipTheme;
   window.buyTinyCafeDecor = buyDecor;
 
-  // Bind Listeners Safely (Guarded against missing elements)
-  const homeBtn = document.getElementById('btn-home-cafe');
-  if (homeBtn) homeBtn.onclick = () => { if (typeof openHubHome === 'function') openHubHome(); };
+  const onStartCampaign = () => startGame('campaign');
+  const onStartRush = () => startGame('rush');
+  const onServeClick = () => serveMatchingCustomer();
+  const onClearTrayClick = () => clearTray();
+  const onOpenRecipes = () => openModal('modal-recipes');
+  const onCloseRecipes = () => closeAllModals();
+  const onOpenChallenges = () => openModal('modal-challenges');
+  const onCloseChallenges = () => closeAllModals();
+  const onOpenShop = () => openModal('modal-shop');
+  const onCloseShop = () => closeAllModals();
+  const onAudioClick = () => toggleAudio();
+  const onNextShiftClick = () => nextShiftAction();
+  const onEndMenuClick = () => returnToMenu();
+  const onTabRecipes = () => switchShopTab('recipes');
+  const onTabUpgrades = () => switchShopTab('upgrades');
+  const onTabDecor = () => switchShopTab('decor');
 
-  const recipesModalBtn = document.getElementById('btn-recipes-modal');
-  if (recipesModalBtn) recipesModalBtn.onclick = () => openModal('modal-recipes');
-
-  const challengesModalBtn = document.getElementById('btn-challenges-modal');
-  if (challengesModalBtn) challengesModalBtn.onclick = () => openModal('modal-challenges');
-
-  const shopModalBtn = document.getElementById('btn-shop-modal');
-  if (shopModalBtn) shopModalBtn.onclick = () => openModal('modal-shop');
-
-  const audioBtn = document.getElementById('btn-audio');
-  if (audioBtn) audioBtn.onclick = toggleAudio;
-
-  const clearTrayBtn = document.getElementById('btn-clear-tray');
-  if (clearTrayBtn) clearTrayBtn.onclick = clearTray;
-
-  const serveBtn = document.getElementById('btn-serve');
-  if (serveBtn) serveBtn.onclick = serveMatchingCustomer;
-
-  const startCampaignBtn = document.getElementById('btn-start-campaign');
-  if (startCampaignBtn) startCampaignBtn.onclick = () => startGame('campaign');
-
-  const startRushBtn = document.getElementById('btn-start-rush');
-  if (startRushBtn) startRushBtn.onclick = () => startGame('rush');
-
-  const startRecipesBtn = document.getElementById('btn-start-recipes');
-  if (startRecipesBtn) startRecipesBtn.onclick = () => openModal('modal-recipes');
-
-  const startChallengesBtn = document.getElementById('btn-start-challenges');
-  if (startChallengesBtn) startChallengesBtn.onclick = () => openModal('modal-challenges');
-
-  const startShopBtn = document.getElementById('btn-start-shop');
-  if (startShopBtn) startShopBtn.onclick = () => openModal('modal-shop');
-
-  const modalMenuBtn = document.getElementById('btn-modal-menu');
-  if (modalMenuBtn) modalMenuBtn.onclick = returnToMenu;
-
-  const nextShiftBtn = document.getElementById('btn-next-shift');
-  if (nextShiftBtn) nextShiftBtn.onclick = nextShiftAction;
-
-  const closeRecipesBtn = document.getElementById('btn-close-recipes');
-  if (closeRecipesBtn) closeRecipesBtn.onclick = () => closeAllModals();
-
-  const closeChallengesBtn = document.getElementById('btn-close-challenges');
-  if (closeChallengesBtn) closeChallengesBtn.onclick = () => closeAllModals();
-
-  const closeShopBtn = document.getElementById('btn-close-shop');
-  if (closeShopBtn) closeShopBtn.onclick = () => closeAllModals();
-
-  const tabRecipes = document.getElementById('tab-recipes');
-  if (tabRecipes) tabRecipes.onclick = () => switchShopTab('recipes');
-
-  const tabUpgrades = document.getElementById('tab-upgrades');
-  if (tabUpgrades) tabUpgrades.onclick = () => switchShopTab('upgrades');
-
-  const tabDecor = document.getElementById('tab-decor');
-  if (tabDecor) tabDecor.onclick = () => switchShopTab('decor');
+  document.getElementById('btn-start-campaign')?.addEventListener('click', onStartCampaign);
+  document.getElementById('btn-start-rush')?.addEventListener('click', onStartRush);
+  document.getElementById('btn-serve')?.addEventListener('click', onServeClick);
+  document.getElementById('btn-clear-tray')?.addEventListener('click', onClearTrayClick);
+  document.getElementById('btn-recipes-modal')?.addEventListener('click', onOpenRecipes);
+  document.getElementById('btn-close-recipes')?.addEventListener('click', onCloseRecipes);
+  document.getElementById('btn-challenges-modal')?.addEventListener('click', onOpenChallenges);
+  document.getElementById('btn-close-challenges')?.addEventListener('click', onCloseChallenges);
+  document.getElementById('btn-shop-modal')?.addEventListener('click', onOpenShop);
+  document.getElementById('btn-close-shop')?.addEventListener('click', onCloseShop);
+  document.getElementById('btn-audio')?.addEventListener('click', onAudioClick);
+  document.getElementById('btn-next-shift')?.addEventListener('click', onNextShiftClick);
+  document.getElementById('btn-end-menu')?.addEventListener('click', onEndMenuClick);
+  document.getElementById('tab-recipes')?.addEventListener('click', onTabRecipes);
+  document.getElementById('tab-upgrades')?.addEventListener('click', onTabUpgrades);
+  document.getElementById('tab-decor')?.addEventListener('click', onTabDecor);
 
   ensureDailyQuests();
   applyThemeAndDecor();
@@ -4755,9 +4948,41 @@ function initTinyCafe(stage) {
 
   return () => {
     gameState.active = false;
+    gameState.paused = true;
+    stopBgMusic();
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
     if (toastTimeout) clearTimeout(toastTimeout);
-    stopBgMusic();
+    popupTimeouts.forEach(tId => clearTimeout(tId));
+    popupTimeouts.clear();
+    if (audioCtx && typeof audioCtx.close === 'function') {
+      audioCtx.close().catch(() => {});
+      audioCtx = null;
+    }
+
+    document.getElementById('btn-start-campaign')?.removeEventListener('click', onStartCampaign);
+    document.getElementById('btn-start-rush')?.removeEventListener('click', onStartRush);
+    document.getElementById('btn-serve')?.removeEventListener('click', onServeClick);
+    document.getElementById('btn-clear-tray')?.removeEventListener('click', onClearTrayClick);
+    document.getElementById('btn-recipes-modal')?.removeEventListener('click', onOpenRecipes);
+    document.getElementById('btn-close-recipes')?.removeEventListener('click', onCloseRecipes);
+    document.getElementById('btn-challenges-modal')?.removeEventListener('click', onOpenChallenges);
+    document.getElementById('btn-close-challenges')?.removeEventListener('click', onCloseChallenges);
+    document.getElementById('btn-shop-modal')?.removeEventListener('click', onOpenShop);
+    document.getElementById('btn-close-shop')?.removeEventListener('click', onCloseShop);
+    document.getElementById('btn-audio')?.removeEventListener('click', onAudioClick);
+    document.getElementById('btn-next-shift')?.removeEventListener('click', onNextShiftClick);
+    document.getElementById('btn-end-menu')?.removeEventListener('click', onEndMenuClick);
+    document.getElementById('tab-recipes')?.removeEventListener('click', onTabRecipes);
+    document.getElementById('tab-upgrades')?.removeEventListener('click', onTabUpgrades);
+    document.getElementById('tab-decor')?.removeEventListener('click', onTabDecor);
+
+    delete window.serveTinyCafeSlot;
+    delete window.openTinyCafeModal;
+    delete window.claimTinyCafeQuest;
+    delete window.buyTinyCafeRecipe;
+    delete window.buyTinyCafeUpgrade;
+    delete window.buyTinyCafeTheme;
+    delete window.equipTinyCafeTheme;
+    delete window.buyTinyCafeDecor;
   };
 }
-      
