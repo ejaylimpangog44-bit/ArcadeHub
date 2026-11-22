@@ -66,23 +66,11 @@ const AudioFX = (() => {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) ctx = new AudioCtx();
     }
-    if (ctx && ctx.state === 'suspended' && !document.hidden) ctx.resume().catch(() => {});
-  }
-
-  function suspendForBackground() {
-    if (ctx && ctx.state === 'running') {
-      ctx.suspend().catch(() => {});
-    }
-  }
-
-  function resumeFromBackground() {
-    if (ctx && ctx.state === 'suspended' && sfxEnabled && !document.hidden) {
-      ctx.resume().catch(() => {});
-    }
+    if (ctx && ctx.state === 'suspended') ctx.resume();
   }
 
   function playTone(freq = 440, type = 'sine', duration = 0.12, gainVal = 0.12, slideTo = null) {
-    if (!sfxEnabled || document.hidden) return;
+    if (!sfxEnabled) return;
     try {
       ensure();
       if (!ctx) return;
@@ -105,8 +93,6 @@ const AudioFX = (() => {
   return {
     get enabled() { return sfxEnabled; },
     toggle() { sfxEnabled = !sfxEnabled; return sfxEnabled; },
-    suspendForBackground,
-    resumeFromBackground,
     click() { playTone(620, 'triangle', 0.06, 0.08); },
     card() { playTone(380, 'sine', 0.07, 0.09, 520); },
     coin() { playTone(987.77, 'sine', 0.08, 0.1); setTimeout(() => playTone(1318.5, 'sine', 0.16, 0.1), 65); },
@@ -163,36 +149,14 @@ const SupabaseDB = (() => {
 
 let bgmEnabled = true;
 
-function pauseBgmForBackground() {
-  const bgm = document.getElementById('bgm-audio');
-  AudioFX.suspendForBackground();
-  if (!bgm) return;
-  if (!bgm.paused) {
-    bgm.dataset.wasPlaying = 'true';
-    bgm.pause();
-  }
-}
-
-function resumeBgmFromBackground() {
-  const bgm = document.getElementById('bgm-audio');
-  AudioFX.resumeFromBackground();
-  if (!bgm) return;
-  if (bgm.dataset.wasPlaying === 'true' && bgmEnabled && !document.hidden) {
-    bgm.play().catch(() => {});
-    delete bgm.dataset.wasPlaying;
-  }
-}
-
 function toggleBGM() {
   bgmEnabled = !bgmEnabled;
   const bgm = document.getElementById('bgm-audio');
   const btn = document.getElementById('bgm-toggle-btn');
   if (bgm) {
     if (bgmEnabled) {
-      delete bgm.dataset.wasPlaying;
       bgm.play().catch(() => {});
     } else {
-      delete bgm.dataset.wasPlaying;
       bgm.pause();
     }
   }
@@ -201,9 +165,6 @@ function toggleBGM() {
     btn.className = bgmEnabled
       ? 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition'
       : 'px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-extrabold text-xs transition';
-  }
-  if (typeof window.syncHamburgerStates === 'function') {
-    window.syncHamburgerStates();
   }
   AudioFX.click();
 }
@@ -223,9 +184,6 @@ function toggleSFX() {
     btn.className = on
       ? 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition'
       : 'px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-extrabold text-xs transition';
-  }
-  if (typeof window.syncHamburgerStates === 'function') {
-    window.syncHamburgerStates();
   }
   if (on) AudioFX.click();
 }
@@ -298,35 +256,40 @@ function syncFullscreenLabel() {
   const icon = document.getElementById('fs-icon');
   if (label) label.textContent = isFs ? 'Exit Fullscreen Display' : 'Toggle Fullscreen Display';
   if (icon) icon.textContent = isFs ? '🗗' : '⛶';
-  if (typeof window.syncHamburgerStates === 'function') {
-    window.syncHamburgerStates();
-  }
 }
 document.addEventListener('fullscreenchange', syncFullscreenLabel);
 document.addEventListener('webkitfullscreenchange', syncFullscreenLabel);
 
 document.addEventListener('visibilitychange', () => {
+  const bgm = document.getElementById('bgm-audio');
+  if (!bgm) return;
   if (document.hidden) {
-    pauseBgmForBackground();
+    if (!bgm.paused) {
+      bgm.dataset.wasPlaying = 'true';
+      bgm.pause();
+    }
   } else {
-    resumeBgmFromBackground();
+    if (bgm.dataset.wasPlaying === 'true' && bgmEnabled) {
+      bgm.play().catch(() => {});
+      delete bgm.dataset.wasPlaying;
+    }
   }
 });
 
-window.addEventListener('pagehide', () => {
-  pauseBgmForBackground();
-});
-
 window.addEventListener('blur', () => {
-  setTimeout(() => {
-    if (document.hidden || !document.hasFocus()) {
-      pauseBgmForBackground();
-    }
-  }, 150);
+  const bgm = document.getElementById('bgm-audio');
+  if (bgm && !bgm.paused) {
+    bgm.dataset.wasPlaying = 'true';
+    bgm.pause();
+  }
 });
 
 window.addEventListener('focus', () => {
-  resumeBgmFromBackground();
+  const bgm = document.getElementById('bgm-audio');
+  if (bgm && bgm.dataset.wasPlaying === 'true' && bgmEnabled) {
+    bgm.play().catch(() => {});
+    delete bgm.dataset.wasPlaying;
+  }
 });
 
 window.playerName = 'AJ';
@@ -879,13 +842,6 @@ function openHubHome() {
 
   updateSpotlightBanner();
   renderDiscoveryShelves();
-
-  if (typeof window.dockHamburgerBesideSearchBar === 'function') {
-    window.dockHamburgerBesideSearchBar();
-  }
-  if (typeof window.syncHamburgerStates === 'function') {
-    window.syncHamburgerStates();
-  }
 
   const searchInput = document.getElementById('discovery-search-input');
   const clearBtn = document.getElementById('discovery-clear-btn');
