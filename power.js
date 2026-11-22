@@ -9,29 +9,29 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isPoweredOn) return;
     isPoweredOn = true;
 
-    // 1. Automatically trigger Fullscreen & Landscape lock on first touch gesture
     const docEl = document.documentElement;
     const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
     if (requestFs) {
-      requestFs.call(docEl).catch(err => console.log("Fullscreen request blocked:", err));
+      requestFs.call(docEl).catch((err) => console.log("Fullscreen request blocked:", err));
     }
     if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('landscape').catch(() => {});
+      screen.orientation.lock("landscape").catch(() => {});
     }
 
     playPowerAudio();
 
-    pullChain.classList.add("pulled");
-    powerScreen.classList.add("active-glow");
+    if (pullChain) pullChain.classList.add("pulled");
+    if (powerScreen) powerScreen.classList.add("active-glow");
 
     setTimeout(() => {
-      powerScreen.classList.add("powered-on");
+      if (powerScreen) powerScreen.classList.add("powered-on");
     }, 800);
   }
 
   function playPowerAudio() {
     try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      const audioCtx = new AudioContextClass();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
 
@@ -57,6 +57,6 @@ document.addEventListener("DOMContentLoaded", () => {
     pullHandle.addEventListener("touchstart", (e) => {
       e.preventDefault();
       triggerPowerOn();
-    });
+    }, { passive: false });
   }
 });
