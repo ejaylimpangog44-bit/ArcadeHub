@@ -416,18 +416,6 @@
     if (extLink) extLink.href = ARCADE_HUB_URL;
   }
 
-  function copyHubLink() {
-    const btn = document.getElementById('copy-link-btn');
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(ARCADE_HUB_URL).catch(() => {});
-    }
-    if (btn) {
-      const prev = btn.textContent;
-      btn.textContent = "✅ Copied!";
-      setTimeout(() => { btn.textContent = prev || "📋 Copy URL"; }, 1500);
-    }
-  }
-
   window.alert = function(msg) {
     if (msg && (msg.toLowerCase().includes('coin') || msg.toLowerCase().includes('balance') || msg.toLowerCase().includes('shop') || msg.toLowerCase().includes('enough'))) {
       if ("vibrate" in navigator) {
@@ -437,49 +425,6 @@
       console.log("Alert:", msg);
     }
   };
-
-  function enterLobbyFallback(nameValue) {
-    const cleanName = (nameValue || '').trim() || 'PLAYER_956';
-    try { localStorage.setItem('arcadehub_player_name', cleanName); } catch (_) {}
-    const headerName = document.getElementById('header-player-name');
-    if (headerName) headerName.textContent = cleanName;
-    const loginScreen = document.getElementById('login-screen');
-    const appShell = document.getElementById('app-shell');
-    if (loginScreen) {
-      loginScreen.classList.add('hidden');
-      loginScreen.style.display = 'none';
-    }
-    if (appShell) {
-      appShell.classList.remove('hidden');
-      appShell.style.display = 'flex';
-    }
-    updateFoxVisibility();
-    dockHamburgerBesideSearchBar();
-    renderHubQrCode();
-  }
-
-  function submitPlayerName() {
-    const input = document.getElementById('player-name-input');
-    const val = input ? input.value.trim() : '';
-    if (typeof window._hubSubmitPlayerName === 'function') {
-      try {
-        window._hubSubmitPlayerName(val);
-      } catch (_) {}
-    }
-    enterLobbyFallback(val);
-  }
-
-  function randomizePlayerName() {
-    const names = ['AJ', 'PixelFox', 'NeonAce', 'CyberAJ', 'Turbo956', 'ArcadeKing'];
-    const pick = names[Math.floor(Math.random() * names.length)].trim();
-    const input = document.getElementById('player-name-input');
-    if (input) input.value = pick;
-    if (typeof window._hubRandomizePlayerName === 'function') {
-      try {
-        window._hubRandomizePlayerName(pick);
-      } catch (_) {}
-    }
-  }
 
   function updatePHTCountdown() {
     const timerEl = document.getElementById('streak-cooldown-timer');
@@ -559,19 +504,14 @@
 
     const modalBgm = document.getElementById('bgm-toggle-btn');
     const modalSfx = document.getElementById('sfx-toggle-btn');
-    const audioEl = document.getElementById('bgm-audio');
 
-    let isBgmOn = true;
-    if (modalBgm) {
-      isBgmOn = modalBgm.textContent.trim().toUpperCase() !== 'OFF';
-    } else if (audioEl) {
-      isBgmOn = !audioEl.muted;
-    }
+    const isBgmOn = modalBgm
+      ? modalBgm.textContent.trim().toUpperCase() !== 'OFF'
+      : Boolean(window.bgmEnabled);
 
-    let isSfxOn = true;
-    if (modalSfx) {
-      isSfxOn = modalSfx.textContent.trim().toUpperCase() !== 'OFF';
-    }
+    const isSfxOn = modalSfx
+      ? modalSfx.textContent.trim().toUpperCase() !== 'OFF'
+      : (typeof AudioFX !== 'undefined' ? AudioFX.enabled : true);
 
     if (bgmBtn && bgmStatus) {
       bgmStatus.textContent = isBgmOn ? 'BGM ON' : 'BGM OFF';
@@ -586,22 +526,14 @@
     }
 
     if (fsText) {
-      fsText.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Toggle Fullscreen';
+      const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      fsText.textContent = isFs ? 'Exit Fullscreen' : 'Toggle Fullscreen';
     }
   }
 
   function handleMenuBgmToggle() {
     if (typeof window.toggleBGM === 'function') {
       window.toggleBGM();
-    } else {
-      const audio = document.getElementById('bgm-audio');
-      if (audio) {
-        if (audio.paused) {
-          audio.play().catch(() => {});
-        } else {
-          audio.pause();
-        }
-      }
     }
     setTimeout(syncHamburgerStates, 60);
   }
@@ -609,9 +541,6 @@
   function handleMenuSfxToggle() {
     if (typeof window.toggleSFX === 'function') {
       window.toggleSFX();
-    } else {
-      const modalSfx = document.getElementById('sfx-toggle-btn');
-      if (modalSfx) modalSfx.click();
     }
     setTimeout(syncHamburgerStates, 60);
   }
@@ -785,7 +714,7 @@
     if (!stage || !menuWrapper) return;
 
     const searchInput = stage.querySelector(
-      'input[type="search"], input[placeholder*="Search" i], #game-search, #search-input'
+      '#discovery-search-input, input[type="search"], input[placeholder*="Search" i]'
     );
 
     if (!searchInput) {
@@ -793,10 +722,7 @@
       return;
     }
 
-    const searchContainer =
-      searchInput.closest('[data-search-bar]') ||
-      searchInput.parentElement;
-
+    const searchContainer = searchInput.parentElement;
     if (!searchContainer) return;
 
     menuWrapper.classList.remove('hidden');
