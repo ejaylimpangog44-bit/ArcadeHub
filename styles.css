@@ -34,6 +34,31 @@ html, body {
   scrollbar-width: none;
 }
 
+/* Search bar & filter row alignment */
+#game-stage input[type="search"],
+#game-stage input[placeholder*="Search"],
+#game-stage [class*="search-input"],
+#game-stage [class*="search-bar"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+#game-stage [class*="search-wrap"],
+#game-stage [class*="search-box"],
+#game-stage [class*="search-container"] {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 100%;
+}
+
 .discovery-chip {
   flex: 0 0 auto;
   padding: 6px 14px;
