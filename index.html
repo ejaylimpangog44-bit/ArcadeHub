@@ -35,10 +35,10 @@
     </div>
     <div class="flex flex-col gap-3">
       <input type="text" id="player-name-input" placeholder="Enter your name (e.g. AJ)" maxlength="16" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/15 text-white placeholder-slate-500 text-center font-bold text-sm focus:outline-none focus:border-pink-500 transition" />
-      <button onclick="submitPlayerName()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-sm text-white shadow-lg shadow-pink-500/25 hover:opacity-95 transition">
+      <button type="button" onclick="submitPlayerName()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-sm text-white shadow-lg shadow-pink-500/25 hover:opacity-95 transition">
         Enter Lobby →
       </button>
-      <button onclick="randomizePlayerName()" class="text-xs font-semibold text-slate-400 hover:text-white transition py-1">
+      <button type="button" onclick="randomizePlayerName()" class="text-xs font-semibold text-slate-400 hover:text-white transition py-1">
         🎲 Pick Random Name for Me
       </button>
     </div>
@@ -65,14 +65,14 @@
       </div>
       <div class="hero-wallet">
         <span class="coin-pill">🪙 <strong id="hero-coin-balance">0</strong></span>
-        <button onclick="closeHeroModal()" class="hero-close-btn" aria-label="Close">✕</button>
+        <button type="button" onclick="closeHeroModal()" class="hero-close-btn" aria-label="Close">✕</button>
       </div>
     </div>
 
     <div class="hero-tabs">
-      <button class="hero-tab active" data-tab="wardrobe" onclick="switchHeroTab('wardrobe')">Wardrobe</button>
-      <button class="hero-tab" data-tab="shop" onclick="switchHeroTab('shop')">Shop</button>
-      <button class="hero-tab" data-tab="rewards" onclick="switchHeroTab('rewards')">Streak & Spin</button>
+      <button type="button" class="hero-tab active" data-tab="wardrobe" onclick="switchHeroTab('wardrobe')">Wardrobe</button>
+      <button type="button" class="hero-tab" data-tab="shop" onclick="switchHeroTab('shop')">Shop</button>
+      <button type="button" class="hero-tab" data-tab="rewards" onclick="switchHeroTab('rewards')">Streak & Spin</button>
     </div>
 
     <div id="tab-wardrobe" class="hero-tab-panel active">
@@ -90,7 +90,7 @@
           <strong>⚡ Instant +250 XP Boost</strong>
           <p>Level up your Hero rank faster</p>
         </div>
-        <button id="buy-xp-btn" class="action-btn">Buy (150 🪙)</button>
+        <button type="button" id="buy-xp-btn" class="action-btn">Buy (150 🪙)</button>
       </div>
       <h3>Cosmetic Store</h3>
       <div id="grid-shop" class="cosmetic-grid"></div>
@@ -101,7 +101,7 @@
         <div class="reward-card">
           <div id="streak-cooldown-timer" class="text-sm font-mono text-amber-400 font-bold my-2 text-center">24:00:00</div>
           <div id="streak-days-row" class="streak-row"></div>
-          <button id="claim-streak-btn" class="action-btn">Claim Daily</button>
+          <button type="button" id="claim-streak-btn" class="action-btn">Claim Daily</button>
         </div>
         <div class="reward-card">
           <h3>🎡 5-Hour Lucky Wheel</h3>
@@ -110,7 +110,7 @@
             <div id="lucky-wheel" class="lucky-wheel"></div>
           </div>
           <p id="wheel-timer-text">Ready to Spin!</p>
-          <button id="spin-wheel-btn" class="action-btn">Spin Free</button>
+          <button type="button" id="spin-wheel-btn" class="action-btn">Spin Free</button>
         </div>
       </div>
     </div>
@@ -122,7 +122,7 @@
 
   <header id="hub-header" class="hud-glass relative z-30 w-full px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0">
     <div class="flex items-center gap-2.5">
-      <button onclick="openHubHome()" class="flex items-center gap-2.5 group text-left focus:outline-none">
+      <button type="button" onclick="openHubHome()" class="flex items-center gap-2.5 group text-left focus:outline-none">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/25 group-hover:scale-105 transition">
           <span class="text-lg">🎮</span>
         </div>
@@ -134,12 +134,12 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <button onclick="surpriseMeGame()" class="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-bold text-white flex items-center gap-1.5 transition active:scale-95" title="Pick a random game">
+      <button type="button" onclick="surpriseMeGame()" class="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-bold text-white flex items-center gap-1.5 transition active:scale-95" title="Pick a random game">
         <span>🎲</span>
         <span class="hidden sm:inline">Surprise</span>
       </button>
 
-      <button onclick="openHeroModal()" class="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition cursor-pointer text-left">
+      <button type="button" onclick="openHeroModal()" class="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition cursor-pointer text-left">
         <span class="text-base">🦊</span>
         <div class="leading-tight">
           <div class="text-[10px] font-bold text-amber-400">LVL <span id="hud-lvl">1</span></div>
@@ -150,20 +150,20 @@
   </header>
 
   <div id="universal-game-bar" class="hidden fixed top-3 left-3 right-3 z-30 flex items-center justify-between pointer-events-none">
-    <button onclick="openHubHome()" class="pointer-events-auto px-3.5 py-2 rounded-xl bg-slate-950/75 hover:bg-slate-900/90 text-white font-bold text-xs backdrop-blur-md border border-white/15 shadow-lg flex items-center gap-1.5 transition active:scale-95">
+    <button type="button" onclick="openHubHome()" class="pointer-events-auto px-3.5 py-2 rounded-xl bg-slate-950/75 hover:bg-slate-900/90 text-white font-bold text-xs backdrop-blur-md border border-white/15 shadow-lg flex items-center gap-1.5 transition active:scale-95">
       <span>←</span>
       <span>Hub</span>
     </button>
 
     <div class="pointer-events-auto flex items-center gap-2">
-      <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-slate-950/75 hover:bg-slate-900/90 text-white text-sm backdrop-blur-md border border-white/15 shadow-lg flex items-center justify-center transition active:scale-95" title="Settings">
+      <button type="button" onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-slate-950/75 hover:bg-slate-900/90 text-white text-sm backdrop-blur-md border border-white/15 shadow-lg flex items-center justify-center transition active:scale-95" title="Settings">
         ⚙️
       </button>
     </div>
   </div>
 
   <!-- Hamburger Menu Template (Auto-placed beside Search Bar in Lobby) -->
-  <div id="search-hamburger-menu" class="hamburger-menu-wrapper">
+  <div id="search-hamburger-menu" class="hamburger-menu-wrapper hidden">
     <button type="button" id="hamburger-trigger-btn" class="hamburger-trigger-btn" aria-label="Open Hub Menu" aria-expanded="false" onclick="toggleHamburgerDropdown(event)">
       <span class="hamburger-line"></span>
       <span class="hamburger-line"></span>
@@ -227,12 +227,12 @@
     <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
       <div class="flex items-center justify-between">
         <h3 id="instructions-title" class="text-lg font-black text-white flex items-center gap-2">📖 How to Play Arcade Hub</h3>
-        <button onclick="closeInstructionsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+        <button type="button" onclick="closeInstructionsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
       </div>
       <div id="instructions-body" class="flex flex-col gap-2.5 text-xs text-slate-300 leading-relaxed max-h-[65vh] overflow-y-auto pr-1">
         <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
           <strong class="text-pink-400 block mb-1">1. Browse &amp; Search Games</strong>
-          Filter by orientation or category chips, type into the search bar, or tap <strong>Surprise</strong> to launch a random game.
+          Use the search bar beside this menu, filter by category chips, or tap <strong>Surprise</strong> to launch a random game.
         </div>
         <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
           <strong class="text-amber-300 block mb-1">2. Earn XP, Coins &amp; Rewards</strong>
@@ -240,10 +240,10 @@
         </div>
         <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
           <strong class="text-cyan-300 block mb-1">3. Audio, Fullscreen &amp; QR</strong>
-          Use the menu beside the search bar for quick BGM/SFX toggles, fullscreen mode, camera QR scanning, or full settings.
+          Use this menu for quick BGM/SFX toggles, fullscreen mode, camera QR scanning, or full settings.
         </div>
       </div>
-      <button onclick="closeInstructionsModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
+      <button type="button" onclick="closeInstructionsModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
         Got It
       </button>
     </div>
@@ -254,7 +254,7 @@
     <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-black text-white flex items-center gap-2">📷 QR Code Scanner</h3>
-        <button onclick="closeQrScannerModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+        <button type="button" onclick="closeQrScannerModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
       </div>
 
       <p class="text-xs text-slate-400">Point your camera at a QR code to scan links or room codes directly.</p>
@@ -268,16 +268,16 @@
 
       <div id="qr-scan-result-box" class="hidden p-3 rounded-2xl bg-emerald-500/10 border border-emerald-400/30 text-xs text-emerald-200 flex items-center justify-between gap-2">
         <span id="qr-scan-result-text" class="truncate font-mono"></span>
-        <button id="qr-open-result-btn" class="px-3 py-1.5 rounded-lg bg-emerald-400 text-slate-950 font-extrabold shrink-0">
+        <button type="button" id="qr-open-result-btn" class="px-3 py-1.5 rounded-lg bg-emerald-400 text-slate-950 font-extrabold shrink-0">
           Open
         </button>
       </div>
 
       <div class="flex gap-2">
-        <button onclick="closeQrScannerModal(); openSettingsModal();" class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition">
+        <button type="button" onclick="closeQrScannerModal(); openSettingsModal();" class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition">
           Show Hub QR Code
         </button>
-        <button onclick="closeQrScannerModal()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white">
+        <button type="button" onclick="closeQrScannerModal()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white">
           Close
         </button>
       </div>
@@ -288,7 +288,7 @@
     <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-black text-white flex items-center gap-2">⚙️ Game Settings &amp; Controls</h3>
-        <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+        <button type="button" onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
       </div>
 
       <div class="flex flex-col gap-3 max-h-[72vh] overflow-y-auto pr-1">
@@ -297,7 +297,7 @@
             <div class="text-sm font-bold text-white">Background Music</div>
             <div class="text-[11px] text-slate-400">Arcade ambient soundtrack</div>
           </div>
-          <button id="bgm-toggle-btn" onclick="toggleBGM()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition">
+          <button type="button" id="bgm-toggle-btn" onclick="toggleBGM()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition">
             ON
           </button>
         </div>
@@ -315,12 +315,12 @@
             <div class="text-sm font-bold text-white">Sound Effects (SFX)</div>
             <div class="text-[11px] text-slate-400">Clicks, wins, cards &amp; actions</div>
           </div>
-          <button id="sfx-toggle-btn" onclick="toggleSFX()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition">
+          <button type="button" id="sfx-toggle-btn" onclick="toggleSFX()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition">
             ON
           </button>
         </div>
 
-        <button onclick="toggleFullScreen()" class="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-extrabold text-white flex items-center justify-center gap-2 transition">
+        <button type="button" onclick="toggleFullScreen()" class="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-extrabold text-white flex items-center justify-center gap-2 transition">
           <span id="fs-icon">⛶</span>
           <span id="fs-label">Toggle Fullscreen Display</span>
         </button>
@@ -331,21 +331,21 @@
           <div class="p-3 rounded-xl bg-white shadow-md">
             <div id="qrcode-container"></div>
           </div>
-          <div class="w-full p-2 rounded-lg bg-black/40 border border-white/10 text-[10px] font-mono text-pink-300 truncate">
+          <div id="hub-url-display" class="w-full p-2 rounded-lg bg-black/40 border border-white/10 text-[10px] font-mono text-pink-300 truncate">
             https://arcadehubgames-july12.vercel.app/
           </div>
           <div class="flex gap-2 w-full">
-            <button onclick="copyHubLink()" id="copy-link-btn" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition">
+            <button type="button" onclick="copyHubLink()" id="copy-link-btn" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition">
               📋 Copy URL
             </button>
-            <a href="https://arcadehubgames-july12.vercel.app/" target="_blank" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 text-xs font-extrabold text-white text-center">
+            <a id="hub-external-link" href="https://arcadehubgames-july12.vercel.app/" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 text-xs font-extrabold text-white text-center">
               Open Link ↗
             </a>
           </div>
         </div>
       </div>
 
-      <button onclick="closeSettingsModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
+      <button type="button" onclick="closeSettingsModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
         Done
       </button>
     </div>
@@ -354,7 +354,7 @@
   <div id="game-preview-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
     <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 overflow-hidden shadow-2xl">
       <div id="preview-banner" class="relative h-36 flex items-center justify-center">
-        <button onclick="closeGamePreviewModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/45 text-white font-bold flex items-center justify-center border border-white/15">✕</button>
+        <button type="button" onclick="closeGamePreviewModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/45 text-white font-bold flex items-center justify-center border border-white/15">✕</button>
         <div id="preview-icon" class="text-6xl drop-shadow-lg">🎮</div>
       </div>
       <div class="p-5 flex flex-col gap-3">
@@ -377,7 +377,7 @@
             <div id="preview-cat" class="text-sm font-extrabold text-amber-300">Action</div>
           </div>
         </div>
-        <button id="preview-launch-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-sm text-white shadow-lg hover:opacity-95 transition">
+        <button type="button" id="preview-launch-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-sm text-white shadow-lg hover:opacity-95 transition">
           ▶ Launch Game
         </button>
       </div>
@@ -394,6 +394,40 @@
 </audio>
 
 <script>
+  const ARCADE_HUB_URL = "https://arcadehubgames-july12.vercel.app/";
+
+  function renderHubQrCode() {
+    const container = document.getElementById('qrcode-container');
+    if (!container) return;
+    container.innerHTML = '';
+    if (typeof QRCode === 'function') {
+      new QRCode(container, {
+        text: ARCADE_HUB_URL,
+        width: 148,
+        height: 148,
+        colorDark: "#090a10",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+    const urlDisplay = document.getElementById('hub-url-display');
+    if (urlDisplay) urlDisplay.textContent = ARCADE_HUB_URL;
+    const extLink = document.getElementById('hub-external-link');
+    if (extLink) extLink.href = ARCADE_HUB_URL;
+  }
+
+  function copyHubLink() {
+    const btn = document.getElementById('copy-link-btn');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(ARCADE_HUB_URL).catch(() => {});
+    }
+    if (btn) {
+      const prev = btn.textContent;
+      btn.textContent = "✅ Copied!";
+      setTimeout(() => { btn.textContent = prev || "📋 Copy URL"; }, 1500);
+    }
+  }
+
   window.alert = function(msg) {
     if (msg && (msg.toLowerCase().includes('coin') || msg.toLowerCase().includes('balance') || msg.toLowerCase().includes('shop') || msg.toLowerCase().includes('enough'))) {
       if ("vibrate" in navigator) {
@@ -403,6 +437,49 @@
       console.log("Alert:", msg);
     }
   };
+
+  function enterLobbyFallback(nameValue) {
+    const cleanName = (nameValue || '').trim() || 'PLAYER_956';
+    try { localStorage.setItem('arcadehub_player_name', cleanName); } catch (_) {}
+    const headerName = document.getElementById('header-player-name');
+    if (headerName) headerName.textContent = cleanName;
+    const loginScreen = document.getElementById('login-screen');
+    const appShell = document.getElementById('app-shell');
+    if (loginScreen) {
+      loginScreen.classList.add('hidden');
+      loginScreen.style.display = 'none';
+    }
+    if (appShell) {
+      appShell.classList.remove('hidden');
+      appShell.style.display = 'flex';
+    }
+    updateFoxVisibility();
+    dockHamburgerBesideSearchBar();
+    renderHubQrCode();
+  }
+
+  function submitPlayerName() {
+    const input = document.getElementById('player-name-input');
+    const val = input ? input.value.trim() : '';
+    if (typeof window._hubSubmitPlayerName === 'function') {
+      try {
+        window._hubSubmitPlayerName(val);
+      } catch (_) {}
+    }
+    enterLobbyFallback(val);
+  }
+
+  function randomizePlayerName() {
+    const names = ['AJ', 'PixelFox', 'NeonAce', 'CyberAJ', 'Turbo956', 'ArcadeKing'];
+    const pick = names[Math.floor(Math.random() * names.length)].trim();
+    const input = document.getElementById('player-name-input');
+    if (input) input.value = pick;
+    if (typeof window._hubRandomizePlayerName === 'function') {
+      try {
+        window._hubRandomizePlayerName(pick);
+      } catch (_) {}
+    }
+  }
 
   function updatePHTCountdown() {
     const timerEl = document.getElementById('streak-cooldown-timer');
@@ -437,7 +514,8 @@
     const fox = document.getElementById('assistive-touch-fox');
     const loginScreen = document.getElementById('login-screen');
     if (fox && loginScreen) {
-      if (loginScreen.classList.contains('hidden')) {
+      const isLoginHidden = loginScreen.classList.contains('hidden') || loginScreen.style.display === 'none';
+      if (isLoginHidden) {
         fox.classList.remove('hidden');
         fox.classList.add('flex');
       } else {
@@ -611,7 +689,7 @@
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       if (placeholder) {
-        placeholder.textContent = 'Camera access is not supported in this browser.';
+        placeholder.textContent = `Camera access is not supported in this browser. Open ${ARCADE_HUB_URL} directly.`;
         placeholder.classList.remove('hidden');
       }
       return;
@@ -667,7 +745,7 @@
 
         qrScanFrameId = requestAnimationFrame(scanTick);
       } else if (placeholder) {
-        placeholder.textContent = 'Live camera active. Automatic QR decoding is unavailable on this browser—use "Show Hub QR Code" to share.';
+        placeholder.textContent = `Live camera active. Use "Show Hub QR Code" for ${ARCADE_HUB_URL}.`;
         placeholder.classList.remove('hidden');
         placeholder.classList.add('bg-black/55', 'text-white');
       }
@@ -737,20 +815,21 @@
     row.appendChild(menuWrapper);
   }
 
-  const observer = new MutationObserver(() => {
+  const uiStateObserver = new MutationObserver(() => {
     updateFoxVisibility();
     dockHamburgerBesideSearchBar();
     syncHamburgerStates();
   });
 
   window.addEventListener('DOMContentLoaded', () => {
+    renderHubQrCode();
     const loginScreen = document.getElementById('login-screen');
     const gameStage = document.getElementById('game-stage');
     if (loginScreen) {
-      observer.observe(loginScreen, { attributes: true, attributeFilter: ['class'] });
+      uiStateObserver.observe(loginScreen, { attributes: true, attributeFilter: ['class', 'style'] });
     }
     if (gameStage) {
-      observer.observe(gameStage, { childList: true, subtree: true });
+      uiStateObserver.observe(gameStage, { childList: true, subtree: true });
     }
     updateFoxVisibility();
     dockHamburgerBesideSearchBar();
