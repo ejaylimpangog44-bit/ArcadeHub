@@ -4,6 +4,10 @@
   user-select: none;
 }
 
+.hidden {
+  display: none !important;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -290,10 +294,6 @@ html, body {
 .hero-backdrop.open {
   opacity: 1;
   pointer-events: auto;
-}
-
-.hero-backdrop.hidden {
-  display: none;
 }
 
 .hero-modal {
@@ -590,14 +590,14 @@ html, body {
   opacity: 1;
   visibility: visible;
   transition: opacity 1.2s ease, visibility 1.2s ease;
-}[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)
+}
 
 .splash-full-bg {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-}[span_5](start_span)[span_5](end_span)[span_6](start_span)[span_6](end_span)
+}
 
 #splash-screen.splash-hide,
 .splash-screen.splash-hide {
@@ -622,7 +622,7 @@ html, body {
   overflow: hidden;
   z-index: 9999;
   transition: opacity 0.6s ease, visibility 0.6s ease;
-}[span_7](start_span)[span_7](end_span)[span_8](start_span)[span_8](end_span)
+}
 
 .power-screen.powered-on,
 #power-screen.powered-on {
@@ -658,7 +658,7 @@ html, body {
   padding: clamp(24px, 5vh, 40px) 16px;
   border-radius: 16px;
   background: #0d0d12;
-}[span_9](start_span)[span_9](end_span)
+}
 
 .power-screen.active-glow .neon-sign {
   color: #fff;
