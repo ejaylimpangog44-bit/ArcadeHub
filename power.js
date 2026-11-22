@@ -2,21 +2,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const powerScreen = document.getElementById("power-screen");
   const pullChain = document.querySelector(".pull-chain-assembly");
   const pullHandle = document.getElementById("pullHandle");
+  const neonSignContainer = document.querySelector(".neon-sign-container");
 
   let isPoweredOn = false;
 
   function triggerPowerOn() {
     if (isPoweredOn) return;
     isPoweredOn = true;
-
-    const docEl = document.documentElement;
-    const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
-    if (requestFs) {
-      requestFs.call(docEl).catch((err) => console.log("Fullscreen request blocked:", err));
-    }
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock("landscape").catch(() => {});
-    }
 
     playPowerAudio();
 
@@ -25,12 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setTimeout(() => {
       if (powerScreen) powerScreen.classList.add("powered-on");
-    }, 800);
+    }, 700);
   }
 
   function playPowerAudio() {
     try {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
       const audioCtx = new AudioContextClass();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -53,10 +46,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (pullHandle) {
-    pullHandle.addEventListener("click", triggerPowerOn);
+    pullHandle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      triggerPowerOn();
+    });
     pullHandle.addEventListener("touchstart", (e) => {
       e.preventDefault();
+      e.stopPropagation();
       triggerPowerOn();
     }, { passive: false });
+  }
+
+  if (neonSignContainer) {
+    neonSignContainer.addEventListener("click", triggerPowerOn);
   }
 });
