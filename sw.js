@@ -1,4 +1,5 @@
-const CACHE_NAME = 'arcadehub-cache-v2';
+const CACHE_NAME = 'arcadehub-cache-v3';
+
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -21,57 +22,65 @@ const ASSETS_TO_CACHE = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      // Fixed: changed PRECACHE_ASSETS to ASSETS_TO_CACHE
-      return cache.addAll(ASSETS_TO_CACHE);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of ASSETS_TO_CACHE) {
+        try {
+          const response = await fetch(asset, { cache: 'no-cache' });
+          if (response.ok) {
+            await cache.put(asset, response);
+          }
+        } catch (_) {
+          // Skip unavailable asset so install still succeeds
+        }
+      }
     }).then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-          });
+          if (networkResponse && networkResponse.ok) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
         })
-        .catch(() => caches.match(event.request))
+        .catch(async () => {
+          const cachedPage = await caches.match(event.request);
+          return cachedPage || caches.match('./index.html');
+        })
     );
     return;
   }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+      if (cachedResponse) return cachedResponse;
+
       return fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
         return networkResponse;
       });
