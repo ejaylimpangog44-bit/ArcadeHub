@@ -575,12 +575,13 @@ html, body {
   transition: transform 3.2s cubic-bezier(0.15, 0.85, 0.2, 1);
 }
 
-.power-screen {
+.power-screen,
+#power-screen {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100dvh;
-  background-color: #08080c;
+  background: #08080c url("./1793408885987.jpg") center / cover no-repeat;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -592,7 +593,8 @@ html, body {
   transition: opacity 0.6s ease, visibility 0.6s ease;
 }
 
-.power-screen.powered-on {
+.power-screen.powered-on,
+#power-screen.powered-on {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
