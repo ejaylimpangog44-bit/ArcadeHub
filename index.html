@@ -146,10 +146,6 @@
           <div class="text-[10px] font-mono text-slate-300"><span id="hud-xp">0</span> XP</div>
         </div>
       </button>
-
-      <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition border border-white/10" title="Settings, QR & Fullscreen">
-        ⚙️
-      </button>
     </div>
   </header>
 
@@ -163,6 +159,128 @@
       <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-slate-950/75 hover:bg-slate-900/90 text-white text-sm backdrop-blur-md border border-white/15 shadow-lg flex items-center justify-center transition active:scale-95" title="Settings">
         ⚙️
       </button>
+    </div>
+  </div>
+
+  <!-- Hamburger Menu Template (Auto-placed beside Search Bar in Lobby) -->
+  <div id="search-hamburger-menu" class="hamburger-menu-wrapper">
+    <button type="button" id="hamburger-trigger-btn" class="hamburger-trigger-btn" aria-label="Open Hub Menu" aria-expanded="false" onclick="toggleHamburgerDropdown(event)">
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+      <span class="hamburger-line"></span>
+    </button>
+
+    <div id="hamburger-dropdown" class="hamburger-dropdown" role="menu">
+      <button type="button" class="hamburger-menu-item" onclick="closeHamburgerDropdown(); openSettingsModal();">
+        <span class="hamburger-item-left">
+          <span>⚙️</span>
+          <span>Settings</span>
+        </span>
+        <span class="text-[10px] text-slate-400">›</span>
+      </button>
+
+      <button type="button" class="hamburger-menu-item" onclick="closeHamburgerDropdown(); openInstructionsModal();">
+        <span class="hamburger-item-left">
+          <span>📖</span>
+          <span>How to Play</span>
+        </span>
+        <span class="text-[10px] text-pink-400">Guide</span>
+      </button>
+
+      <div class="hamburger-divider"></div>
+
+      <div class="hamburger-audio-group">
+        <div class="hamburger-audio-label">BGM &amp; SFX Controls</div>
+        <div class="hamburger-audio-controls">
+          <button type="button" id="menu-bgm-btn" class="hamburger-mini-toggle is-on" onclick="handleMenuBgmToggle()">
+            <span>🎵</span>
+            <span id="menu-bgm-status">BGM ON</span>
+          </button>
+          <button type="button" id="menu-sfx-btn" class="hamburger-mini-toggle is-on" onclick="handleMenuSfxToggle()">
+            <span>🔊</span>
+            <span id="menu-sfx-status">SFX ON</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="hamburger-divider"></div>
+
+      <button type="button" class="hamburger-menu-item" onclick="closeHamburgerDropdown(); toggleFullScreen(); setTimeout(syncHamburgerStates, 120);">
+        <span class="hamburger-item-left">
+          <span id="menu-fs-icon">⛶</span>
+          <span id="menu-fs-text">Toggle Fullscreen</span>
+        </span>
+      </button>
+
+      <button type="button" class="hamburger-menu-item" onclick="closeHamburgerDropdown(); openQrScannerModal();">
+        <span class="hamburger-item-left">
+          <span>📷</span>
+          <span>QR Code Scanner</span>
+        </span>
+        <span class="text-[10px] text-cyan-300">Scan</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- How to Play / Instructions Modal -->
+  <div id="instructions-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
+      <div class="flex items-center justify-between">
+        <h3 id="instructions-title" class="text-lg font-black text-white flex items-center gap-2">📖 How to Play Arcade Hub</h3>
+        <button onclick="closeInstructionsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <div id="instructions-body" class="flex flex-col gap-2.5 text-xs text-slate-300 leading-relaxed max-h-[65vh] overflow-y-auto pr-1">
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+          <strong class="text-pink-400 block mb-1">1. Browse &amp; Search Games</strong>
+          Filter by orientation or category chips, type into the search bar, or tap <strong>Surprise</strong> to launch a random game.
+        </div>
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+          <strong class="text-amber-300 block mb-1">2. Earn XP, Coins &amp; Rewards</strong>
+          Play games to level up your Hero rank, claim daily streak rewards, spin the Lucky Wheel, and customize your avatar in the Fox Companion Hub.
+        </div>
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+          <strong class="text-cyan-300 block mb-1">3. Audio, Fullscreen &amp; QR</strong>
+          Use the menu beside the search bar for quick BGM/SFX toggles, fullscreen mode, camera QR scanning, or full settings.
+        </div>
+      </div>
+      <button onclick="closeInstructionsModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
+        Got It
+      </button>
+    </div>
+  </div>
+
+  <!-- QR Code Scanner Modal -->
+  <div id="qr-scanner-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-black text-white flex items-center gap-2">📷 QR Code Scanner</h3>
+        <button onclick="closeQrScannerModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+
+      <p class="text-xs text-slate-400">Point your camera at a QR code to scan links or room codes directly.</p>
+
+      <div class="relative w-full aspect-square max-h-64 rounded-2xl overflow-hidden bg-black border border-white/15 flex items-center justify-center">
+        <video id="qr-video-preview" class="w-full h-full object-cover hidden" playsinline muted></video>
+        <div id="qr-scanner-placeholder" class="p-4 text-center text-xs text-slate-400">
+          Starting camera...
+        </div>
+      </div>
+
+      <div id="qr-scan-result-box" class="hidden p-3 rounded-2xl bg-emerald-500/10 border border-emerald-400/30 text-xs text-emerald-200 flex items-center justify-between gap-2">
+        <span id="qr-scan-result-text" class="truncate font-mono"></span>
+        <button id="qr-open-result-btn" class="px-3 py-1.5 rounded-lg bg-emerald-400 text-slate-950 font-extrabold shrink-0">
+          Open
+        </button>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="closeQrScannerModal(); openSettingsModal();" class="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition">
+          Show Hub QR Code
+        </button>
+        <button onclick="closeQrScannerModal()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white">
+          Close
+        </button>
+      </div>
     </div>
   </div>
 
@@ -329,16 +447,314 @@
     }
   }
 
+  function toggleHamburgerDropdown(e) {
+    if (e) e.stopPropagation();
+    const wrapper = document.getElementById('search-hamburger-menu');
+    const btn = document.getElementById('hamburger-trigger-btn');
+    if (!wrapper || !btn) return;
+    const willOpen = !wrapper.classList.contains('open');
+    wrapper.classList.toggle('open', willOpen);
+    btn.setAttribute('aria-expanded', String(willOpen));
+    syncHamburgerStates();
+  }
+
+  function closeHamburgerDropdown() {
+    const wrapper = document.getElementById('search-hamburger-menu');
+    const btn = document.getElementById('hamburger-trigger-btn');
+    if (wrapper) wrapper.classList.remove('open');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+
+  document.addEventListener('click', (e) => {
+    const wrapper = document.getElementById('search-hamburger-menu');
+    if (wrapper && !wrapper.contains(e.target)) {
+      closeHamburgerDropdown();
+    }
+  });
+
+  function syncHamburgerStates() {
+    const bgmBtn = document.getElementById('menu-bgm-btn');
+    const bgmStatus = document.getElementById('menu-bgm-status');
+    const sfxBtn = document.getElementById('menu-sfx-btn');
+    const sfxStatus = document.getElementById('menu-sfx-status');
+    const fsText = document.getElementById('menu-fs-text');
+
+    const modalBgm = document.getElementById('bgm-toggle-btn');
+    const modalSfx = document.getElementById('sfx-toggle-btn');
+    const audioEl = document.getElementById('bgm-audio');
+
+    let isBgmOn = true;
+    if (modalBgm) {
+      isBgmOn = modalBgm.textContent.trim().toUpperCase() !== 'OFF';
+    } else if (audioEl) {
+      isBgmOn = !audioEl.muted;
+    }
+
+    let isSfxOn = true;
+    if (modalSfx) {
+      isSfxOn = modalSfx.textContent.trim().toUpperCase() !== 'OFF';
+    }
+
+    if (bgmBtn && bgmStatus) {
+      bgmStatus.textContent = isBgmOn ? 'BGM ON' : 'BGM OFF';
+      bgmBtn.classList.toggle('is-on', isBgmOn);
+      bgmBtn.classList.toggle('is-off', !isBgmOn);
+    }
+
+    if (sfxBtn && sfxStatus) {
+      sfxStatus.textContent = isSfxOn ? 'SFX ON' : 'SFX OFF';
+      sfxBtn.classList.toggle('is-on', isSfxOn);
+      sfxBtn.classList.toggle('is-off', !isSfxOn);
+    }
+
+    if (fsText) {
+      fsText.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Toggle Fullscreen';
+    }
+  }
+
+  function handleMenuBgmToggle() {
+    if (typeof window.toggleBGM === 'function') {
+      window.toggleBGM();
+    } else {
+      const audio = document.getElementById('bgm-audio');
+      if (audio) {
+        if (audio.paused) {
+          audio.play().catch(() => {});
+        } else {
+          audio.pause();
+        }
+      }
+    }
+    setTimeout(syncHamburgerStates, 60);
+  }
+
+  function handleMenuSfxToggle() {
+    if (typeof window.toggleSFX === 'function') {
+      window.toggleSFX();
+    } else {
+      const modalSfx = document.getElementById('sfx-toggle-btn');
+      if (modalSfx) modalSfx.click();
+    }
+    setTimeout(syncHamburgerStates, 60);
+  }
+
+  function openInstructionsModal() {
+    const modal = document.getElementById('instructions-modal');
+    const titleEl = document.getElementById('instructions-title');
+    const bodyEl = document.getElementById('instructions-body');
+    const previewTitle = document.getElementById('preview-title');
+
+    const activeGameName = (window.currentGameTitle || (previewTitle && previewTitle.textContent) || '').trim();
+
+    if (activeGameName && activeGameName !== 'Game Title') {
+      titleEl.textContent = `📖 How to Play — ${activeGameName}`;
+      bodyEl.innerHTML = `
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+          <strong class="text-pink-400 block mb-1">Objective</strong>
+          Score as high as possible, complete rounds/stages, and earn XP toward your Hero rank.
+        </div>
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+          <strong class="text-amber-300 block mb-1">Controls</strong>
+          Tap, drag, click, or use on-screen/keyboard controls depending on the game mode.
+        </div>
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+          <strong class="text-cyan-300 block mb-1">Tip</strong>
+          Use the top-left <strong>Hub</strong> button anytime to return to the game selector.
+        </div>
+      `;
+    } else {
+      titleEl.textContent = '📖 How to Play Arcade Hub';
+      bodyEl.innerHTML = `
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+          <strong class="text-pink-400 block mb-1">1. Browse &amp; Search Games</strong>
+          Use the search bar beside this menu, filter by category chips, or tap <strong>Surprise</strong> to launch a random game.
+        </div>
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+          <strong class="text-amber-300 block mb-1">2. Earn XP, Coins &amp; Rewards</strong>
+          Play games to level up your Hero rank, claim daily streak rewards, spin the Lucky Wheel, and customize your avatar in the Fox Companion Hub.
+        </div>
+        <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+          <strong class="text-cyan-300 block mb-1">3. Audio, Fullscreen &amp; QR</strong>
+          Use this menu for quick BGM/SFX toggles, fullscreen mode, camera QR scanning, or full settings.
+        </div>
+      `;
+    }
+
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  function closeInstructionsModal() {
+    const modal = document.getElementById('instructions-modal');
+    if (modal) {
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+    }
+  }
+
+  let qrStream = null;
+  let qrScanFrameId = null;
+
+  async function openQrScannerModal() {
+    const modal = document.getElementById('qr-scanner-modal');
+    const video = document.getElementById('qr-video-preview');
+    const placeholder = document.getElementById('qr-scanner-placeholder');
+    const resultBox = document.getElementById('qr-scan-result-box');
+
+    if (resultBox) resultBox.classList.add('hidden');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (placeholder) {
+        placeholder.textContent = 'Camera access is not supported in this browser.';
+        placeholder.classList.remove('hidden');
+      }
+      return;
+    }
+
+    try {
+      qrStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false
+      });
+
+      if (video) {
+        video.srcObject = qrStream;
+        video.classList.remove('hidden');
+        await video.play();
+      }
+      if (placeholder) placeholder.classList.add('hidden');
+
+      if ('BarcodeDetector' in window) {
+        const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+
+        const scanTick = async () => {
+          if (!video || video.readyState < 2) {
+            qrScanFrameId = requestAnimationFrame(scanTick);
+            return;
+          }
+          try {
+            const barcodes = await detector.detect(video);
+            if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+              const value = barcodes[0].rawValue;
+              const resultText = document.getElementById('qr-scan-result-text');
+              const openBtn = document.getElementById('qr-open-result-btn');
+              if (resultText) resultText.textContent = value;
+              if (openBtn) {
+                openBtn.onclick = () => {
+                  if (/^https?:\/\//i.test(value)) {
+                    window.open(value, '_blank', 'noopener,noreferrer');
+                  } else {
+                    const searchInput = document.querySelector('#game-stage input[type="search"], #game-stage input[placeholder*="Search" i]');
+                    if (searchInput) {
+                      searchInput.value = value;
+                      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    closeQrScannerModal();
+                  }
+                };
+              }
+              if (resultBox) resultBox.classList.remove('hidden');
+            }
+          } catch (_) {}
+          qrScanFrameId = requestAnimationFrame(scanTick);
+        };
+
+        qrScanFrameId = requestAnimationFrame(scanTick);
+      } else if (placeholder) {
+        placeholder.textContent = 'Live camera active. Automatic QR decoding is unavailable on this browser—use "Show Hub QR Code" to share.';
+        placeholder.classList.remove('hidden');
+        placeholder.classList.add('bg-black/55', 'text-white');
+      }
+    } catch (err) {
+      if (placeholder) {
+        placeholder.textContent = 'Unable to access camera. Please allow camera permission and try again.';
+        placeholder.classList.remove('hidden');
+      }
+    }
+  }
+
+  function closeQrScannerModal() {
+    if (qrScanFrameId) {
+      cancelAnimationFrame(qrScanFrameId);
+      qrScanFrameId = null;
+    }
+    if (qrStream) {
+      qrStream.getTracks().forEach(track => track.stop());
+      qrStream = null;
+    }
+    const video = document.getElementById('qr-video-preview');
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+      video.classList.add('hidden');
+    }
+    const modal = document.getElementById('qr-scanner-modal');
+    if (modal) {
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+    }
+  }
+
+  function dockHamburgerBesideSearchBar() {
+    const stage = document.getElementById('game-stage');
+    const menuWrapper = document.getElementById('search-hamburger-menu');
+    if (!stage || !menuWrapper) return;
+
+    const searchInput = stage.querySelector(
+      'input[type="search"], input[placeholder*="Search" i], #game-search, #search-input'
+    );
+
+    if (!searchInput) {
+      menuWrapper.classList.add('hidden');
+      return;
+    }
+
+    const searchContainer =
+      searchInput.closest('[data-search-bar]') ||
+      searchInput.parentElement;
+
+    if (!searchContainer) return;
+
+    menuWrapper.classList.remove('hidden');
+
+    if (searchContainer.parentElement && searchContainer.parentElement.classList.contains('hub-search-bar-row')) {
+      if (searchContainer.parentElement.lastElementChild !== menuWrapper) {
+        searchContainer.parentElement.appendChild(menuWrapper);
+      }
+      return;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'hub-search-bar-row';
+    searchContainer.parentNode.insertBefore(row, searchContainer);
+    row.appendChild(searchContainer);
+    row.appendChild(menuWrapper);
+  }
+
   const observer = new MutationObserver(() => {
     updateFoxVisibility();
+    dockHamburgerBesideSearchBar();
+    syncHamburgerStates();
   });
 
   window.addEventListener('DOMContentLoaded', () => {
     const loginScreen = document.getElementById('login-screen');
+    const gameStage = document.getElementById('game-stage');
     if (loginScreen) {
       observer.observe(loginScreen, { attributes: true, attributeFilter: ['class'] });
     }
+    if (gameStage) {
+      observer.observe(gameStage, { childList: true, subtree: true });
+    }
     updateFoxVisibility();
+    dockHamburgerBesideSearchBar();
+    syncHamburgerStates();
   });
 
   function openHeroModal() {
