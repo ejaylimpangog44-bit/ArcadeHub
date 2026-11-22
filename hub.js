@@ -1,13 +1,16 @@
 const foxWidget = document.getElementById('assistive-touch-fox');
-const foxModal = document.getElementById('fox-menu-modal');
+const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
 
-if (foxWidget && foxModal) {
-  foxWidget.onclick = () => {
+function openFoxCompanionModal() {
+  if (typeof window.openHeroModal === 'function') {
+    window.openHeroModal();
+    return;
+  }
+  if (foxModal) {
     foxModal.classList.remove('hidden');
     foxModal.classList.add('flex');
-    if (typeof AudioFX !== 'undefined') AudioFX.click();
-  };
+  }
 }
 
 if (closeFoxBtn && foxModal) {
@@ -20,7 +23,7 @@ if (closeFoxBtn && foxModal) {
 
 if (foxWidget) {
   let isDragging = false;
-  let startX, startY, initialX, initialY;
+  let startX = null, startY = null, initialX = 0, initialY = 0;
 
   foxWidget.onpointerdown = (e) => {
     isDragging = false;
@@ -32,7 +35,7 @@ if (foxWidget) {
   };
 
   foxWidget.onpointermove = (e) => {
-    if (!startX || !startY) return;
+    if (startX === null || startY === null) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     if (Math.hypot(dx, dy) > 6) {
@@ -44,12 +47,9 @@ if (foxWidget) {
     }
   };
 
-  foxWidget.onpointerup = (e) => {
+  foxWidget.onpointerup = () => {
     if (!isDragging) {
-      if (foxModal) {
-        foxModal.classList.remove('hidden');
-        foxModal.classList.add('flex');
-      }
+      openFoxCompanionModal();
       if (typeof AudioFX !== 'undefined') AudioFX.click();
     }
     startX = null;
@@ -936,6 +936,14 @@ function launchGame(id) {
 
 window.addEventListener('DOMContentLoaded', () => {
   loadHubMetaState();
+
+  const splashScreen = document.getElementById('splash-screen');
+  if (splashScreen) {
+    setTimeout(() => {
+      splashScreen.classList.add('splash-hide');
+    }, 1500);
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('hub') === 'true') {
     const powerScreen = document.getElementById('power-screen');
@@ -943,6 +951,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const appShell = document.getElementById('app-shell');
     const headerName = document.getElementById('header-player-name');
 
+    if (splashScreen) splashScreen.classList.add('splash-hide');
     if (powerScreen) powerScreen.style.display = 'none';
     if (loginScreen) loginScreen.classList.add('hidden');
 
