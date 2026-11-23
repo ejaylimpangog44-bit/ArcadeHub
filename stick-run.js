@@ -43,6 +43,7 @@ window.initStickRun = function initStickRun(stage) {
   let spawnTimer = 0.9;
   let scoreAccumulator = 0;
   let pointerStart = null;
+  let gestureTriggered = false;
 
   const runner = {
     x: 72,
@@ -122,6 +123,7 @@ window.initStickRun = function initStickRun(stage) {
     spawnTimer = 0.85;
     scoreAccumulator = 0;
     pointerStart = null;
+    gestureTriggered = false;
     obstacles = [];
     particles = [];
     trickBanner = null;
@@ -193,8 +195,10 @@ window.initStickRun = function initStickRun(stage) {
         }
         emitSparks(runner.x, runner.y - 24, 12, '#fde047');
       } else {
+        runner.flipping = false;
+        runner.flipAngle = 0;
         if (typeof AudioFX !== 'undefined') AudioFX.jump();
-        emitSparks(runner.x, runner.y - 12, 6, '#bae6fd');
+        emitSparks(runner.x, runner.y - 12, 7, '#bae6fd');
       }
     }
   }
@@ -215,11 +219,11 @@ window.initStickRun = function initStickRun(stage) {
 
     if (!runner.sliding) {
       runner.sliding = true;
-      runner.slideTimer = 0.52;
+      runner.slideTimer = 0.55;
       if (typeof AudioFX !== 'undefined') AudioFX.click();
-      emitSparks(runner.x - 10, runner.y - 2, 6, '#86efac');
+      emitSparks(runner.x - 12, runner.y - 2, 6, '#86efac');
     } else {
-      runner.slideTimer = Math.max(runner.slideTimer, 0.42);
+      runner.slideTimer = Math.max(runner.slideTimer, 0.45);
     }
   }
 
@@ -340,31 +344,39 @@ window.initStickRun = function initStickRun(stage) {
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
+      // Head positioned at the back (-x), body resting low along the ground/box top
       ctx.beginPath();
-      ctx.arc(18, -10, 7.5, 0, Math.PI * 2);
+      ctx.arc(-16, -9, 7.5, 0, Math.PI * 2);
       ctx.fillStyle = '#f8fafc';
       ctx.fill();
       ctx.stroke();
 
+      // Torso along the ground from back shoulder (-9, -7) to front hip (8, -6)
       ctx.beginPath();
-      ctx.moveTo(11, -11);
-      ctx.lineTo(-10, -14);
+      ctx.moveTo(-9, -7);
+      ctx.lineTo(8, -6);
       ctx.stroke();
 
+      // Bent arm reaching/bracing near the ground
       ctx.beginPath();
-      ctx.moveTo(4, -12);
-      ctx.lineTo(14, -4);
-      ctx.moveTo(-2, -13);
-      ctx.lineTo(-16, -9);
+      ctx.moveTo(-4, -7);
+      ctx.lineTo(3, -11);
+      ctx.lineTo(9, -3);
       ctx.stroke();
 
+      // Straightforward leg extended out in front
       ctx.beginPath();
-      ctx.moveTo(-10, -14);
-      ctx.lineTo(-24, -4);
-      ctx.moveTo(-10, -14);
-      ctx.lineTo(-18, -17);
-      ctx.lineTo(-27, -14);
+      ctx.moveTo(8, -6);
+      ctx.lineTo(23, -3);
       ctx.stroke();
+
+      // Bent knee tucked underneath
+      ctx.beginPath();
+      ctx.moveTo(8, -6);
+      ctx.lineTo(13, -12);
+      ctx.lineTo(10, -3);
+      ctx.stroke();
+
       ctx.restore();
       return;
     }
@@ -702,9 +714,9 @@ window.initStickRun = function initStickRun(stage) {
 
       const isLowSlide = runner.sliding && runner.grounded;
       const hitLeft = isLowSlide ? runner.x - 20 : runner.x - 10;
-      const hitRight = isLowSlide ? runner.x + 20 : runner.x + 10;
-      const hitTop = isLowSlide ? runner.y - 18 : runner.y - 52;
-      const hitBottom = runner.y - 4;
+      const hitRight = isLowSlide ? runner.x + 22 : runner.x + 10;
+      const hitTop = isLowSlide ? runner.y - 16 : runner.y - 52;
+      const hitBottom = runner.y - 3;
       const runnerCenterX = (hitLeft + hitRight) * 0.5;
       const runnerCenterY = (hitTop + hitBottom) * 0.5;
       const runnerHalfW = (hitRight - hitLeft) * 0.5;
@@ -776,13 +788,15 @@ window.initStickRun = function initStickRun(stage) {
     if (!active) return;
     if (e.target.closest('button')) return;
     pointerStart = { x: e.clientX, y: e.clientY };
+    gestureTriggered = false;
   }
 
   function onPointerMove(e) {
-    if (!active || !pointerStart) return;
+    if (!active || !pointerStart || gestureTriggered) return;
     const dy = e.clientY - pointerStart.y;
     const dx = e.clientX - pointerStart.x;
-    if (Math.abs(dy) > 22 && Math.abs(dy) > Math.abs(dx) * 0.85) {
+    if (Math.abs(dy) > 20 && Math.abs(dy) > Math.abs(dx) * 0.8) {
+      gestureTriggered = true;
       if (dy < 0) {
         triggerSwipeUp();
       } else {
@@ -794,10 +808,11 @@ window.initStickRun = function initStickRun(stage) {
 
   function onPointerUp() {
     pointerStart = null;
+    gestureTriggered = false;
   }
 
   function onKeyDown(e) {
-    if (!active) return;
+    if (!active || e.repeat) return;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
       e.preventDefault();
       triggerSwipeUp();
