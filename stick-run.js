@@ -70,6 +70,12 @@ window.initStickRun = function initStickRun(stage) {
     return [];
   }
 
+  function getObstacleSaws(ob) {
+    if (Array.isArray(ob.saws)) return ob.saws;
+    if (ob.saw) return [ob.saw];
+    return [];
+  }
+
   function syncHud() {
     const scoreEl = document.getElementById('sr-score-pill');
     const finalEl = document.getElementById('sr-final-score');
@@ -112,11 +118,15 @@ window.initStickRun = function initStickRun(stage) {
 
     obstacles.forEach((ob) => {
       getObstacleBoxes(ob).forEach((box) => {
-        box.y = groundY - box.h;
+        if (typeof box.offsetFromGround === 'number') {
+          box.y = groundY - box.offsetFromGround - box.h;
+        } else {
+          box.y = groundY - box.h;
+        }
       });
-      if (ob.saw) {
-        ob.saw.cy = groundY - ob.saw.elev;
-      }
+      getObstacleSaws(ob).forEach((saw) => {
+        saw.cy = groundY - saw.elev;
+      });
     });
   }
 
@@ -235,26 +245,56 @@ window.initStickRun = function initStickRun(stage) {
     }
   }
 
+  function createVerticalTripleBoxes(startX) {
+    const specs = [
+      { w: 46, h: 36, offsetFromGround: 0 },
+      { w: 50, h: 38, offsetFromGround: 36 },
+      { w: 54, h: 42, offsetFromGround: 74 }
+    ];
+    return specs.map((spec) => ({
+      x: startX + (54 - spec.w) * 0.5,
+      y: groundY - spec.offsetFromGround - spec.h,
+      w: spec.w,
+      h: spec.h,
+      offsetFromGround: spec.offsetFromGround,
+      landedAwarded: false
+    }));
+  }
+
   function spawnObstacle() {
     const roll = Math.random();
     const startX = viewW + 28;
 
-    if (roll < 0.25) {
-      const boxW = 46;
-      const heights = [46, 56, 48];
-      const boxes = heights.map((h, idx) => ({
-        x: startX + idx * boxW,
-        y: groundY - h,
-        w: boxW,
-        h,
-        landedAwarded: false
-      }));
+    if (roll < 0.22) {
+      const boxes = createVerticalTripleBoxes(startX);
+      const stackTopElev = 116;
       obstacles.push({
-        kind: 'triple-box',
+        kind: 'triple-saw-combo',
         boxes,
-        saw: null
+        saws: [
+          {
+            x: startX + 27,
+            cy: groundY - (stackTopElev + 74),
+            elev: stackTopElev + 74,
+            r: 20,
+            angle: 0
+          },
+          {
+            x: startX + 94,
+            cy: groundY - 22,
+            elev: 22,
+            r: 19,
+            angle: 0
+          }
+        ]
       });
-    } else if (roll < 0.5) {
+    } else if (roll < 0.46) {
+      obstacles.push({
+        kind: 'triple-stack',
+        boxes: createVerticalTripleBoxes(startX),
+        saws: []
+      });
+    } else if (roll < 0.72) {
       const w = 52;
       const h = 42;
       obstacles.push({
@@ -264,6 +304,7 @@ window.initStickRun = function initStickRun(stage) {
           y: groundY - h,
           w,
           h,
+          offsetFromGround: 0,
           landedAwarded: false
         },
         saw: {
@@ -274,7 +315,7 @@ window.initStickRun = function initStickRun(stage) {
           angle: 0
         }
       });
-    } else if (roll < 0.76) {
+    } else if (roll < 0.88) {
       const tall = Math.random() < 0.45;
       const w = tall ? 46 : 54;
       const h = tall ? 52 : 36;
@@ -285,6 +326,7 @@ window.initStickRun = function initStickRun(stage) {
           y: groundY - h,
           w,
           h,
+          offsetFromGround: 0,
           landedAwarded: false
         },
         saw: null
@@ -592,9 +634,7 @@ window.initStickRun = function initStickRun(stage) {
   function drawObstacles() {
     obstacles.forEach((ob) => {
       getObstacleBoxes(ob).forEach((box) => drawBox(box));
-      if (ob.saw) {
-        drawSawblade(ob.saw);
-      }
+      getObstacleSaws(ob).forEach((saw) => drawSawblade(saw));
     });
 
     particles.forEach((p) => {
@@ -627,7 +667,9 @@ window.initStickRun = function initStickRun(stage) {
     getObstacleBoxes(ob).forEach((box) => {
       right = Math.max(right, box.x + box.w);
     });
-    if (ob.saw) right = Math.max(right, ob.saw.x + ob.saw.r + 6);
+    getObstacleSaws(ob).forEach((saw) => {
+      right = Math.max(right, saw.x + saw.r + 6);
+    });
     return right;
   }
 
@@ -757,7 +799,7 @@ window.initStickRun = function initStickRun(stage) {
       spawnTimer -= dt;
       if (spawnTimer <= 0) {
         spawnObstacle();
-        spawnTimer = Math.max(0.86, 1.58 - (speed - 340) / 520) + Math.random() * 0.35;
+        spawnTimer = Math.max(0.9, 1.62 - (speed - 340) / 520) + Math.random() * 0.35;
       }
 
       const isLowSlide = runner.sliding && runner.grounded;
@@ -777,9 +819,10 @@ window.initStickRun = function initStickRun(stage) {
             box.x -= speed * dt;
           }
         }
-        if (ob.saw) {
-          ob.saw.x -= speed * dt;
-          ob.saw.angle += dt * 11;
+        const obSaws = getObstacleSaws(ob);
+        for (const saw of obSaws) {
+          saw.x -= speed * dt;
+          saw.angle += dt * 11;
         }
 
         for (const box of obBoxes) {
@@ -796,20 +839,21 @@ window.initStickRun = function initStickRun(stage) {
         }
         if (gameOver) break;
 
-        if (ob.saw) {
-          const dx = Math.abs(ob.saw.x - runnerCenterX);
-          const dy = Math.abs(ob.saw.cy - runnerCenterY);
-          const hitR = ob.saw.r - 3;
+        for (const saw of obSaws) {
+          const dx = Math.abs(saw.x - runnerCenterX);
+          const dy = Math.abs(saw.cy - runnerCenterY);
+          const hitR = saw.r - 3;
           if (dx <= runnerHalfW + hitR && dy <= runnerHalfH + hitR) {
-            const closestX = Math.max(runnerCenterX - runnerHalfW, Math.min(ob.saw.x, runnerCenterX + runnerHalfW));
-            const closestY = Math.max(runnerCenterY - runnerHalfH, Math.min(ob.saw.cy, runnerCenterY + runnerHalfH));
-            const distSq = (ob.saw.x - closestX) ** 2 + (ob.saw.cy - closestY) ** 2;
+            const closestX = Math.max(runnerCenterX - runnerHalfW, Math.min(saw.x, runnerCenterX + runnerHalfW));
+            const closestY = Math.max(runnerCenterY - runnerHalfH, Math.min(saw.cy, runnerCenterY + runnerHalfH));
+            const distSq = (saw.x - closestX) ** 2 + (saw.cy - closestY) ** 2;
             if (distSq <= hitR ** 2) {
               endRun();
               break;
             }
           }
         }
+        if (gameOver) break;
       }
 
       obstacles = obstacles.filter((ob) => obstacleRightEdge(ob) > -60);
