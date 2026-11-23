@@ -2,10 +2,6 @@ const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
 
-let activeGameId = null;
-let activeCleanup = null;
-let activeFullscreenHandler = null;
-
 function openFoxCompanionModal() {
   if (typeof window.openHeroModal === 'function') {
     window.openHeroModal();
@@ -236,22 +232,14 @@ function copyHubLink() {
   AudioFX.coin();
 }
 
-function isFullscreenActive() {
-  return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
-}
-
 function toggleFullScreen() {
   AudioFX.click();
-  const targetEl = document.getElementById('app-shell') || document.documentElement;
-  if (!isFullscreenActive()) {
-    if (targetEl.requestFullscreen) {
-      targetEl.requestFullscreen().catch(() => {
-        document.documentElement.requestFullscreen?.().catch(() => {});
-      });
-    } else if (targetEl.webkitRequestFullscreen) {
-      targetEl.webkitRequestFullscreen();
-    } else if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {});
+  const docEl = document.documentElement;
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    if (docEl.requestFullscreen) {
+      docEl.requestFullscreen().catch(() => {});
+    } else if (docEl.webkitRequestFullscreen) {
+      docEl.webkitRequestFullscreen();
     }
   } else {
     if (document.exitFullscreen) {
@@ -262,26 +250,12 @@ function toggleFullScreen() {
   }
 }
 
-function notifyActiveGameFullscreenChange(isFs) {
-  const stage = document.getElementById('game-stage');
-  if (stage) {
-    stage.classList.toggle('is-fullscreen', isFs);
-  }
-  if (typeof activeFullscreenHandler === 'function') {
-    try { activeFullscreenHandler(isFs, stage); } catch (e) {}
-  }
-  window.dispatchEvent(new CustomEvent('arcade:fullscreenchange', {
-    detail: { isFullscreen: isFs, gameId: activeGameId, stage }
-  }));
-}
-
 function syncFullscreenLabel() {
-  const isFs = isFullscreenActive();
+  const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
   const label = document.getElementById('fs-label');
   const icon = document.getElementById('fs-icon');
   if (label) label.textContent = isFs ? 'Exit Fullscreen Display' : 'Toggle Fullscreen Display';
   if (icon) icon.textContent = isFs ? '🗗' : '⛶';
-  notifyActiveGameFullscreenChange(isFs);
 }
 document.addEventListener('fullscreenchange', syncFullscreenLabel);
 document.addEventListener('webkitfullscreenchange', syncFullscreenLabel);
@@ -456,6 +430,9 @@ function recordGamePlay(gameId) {
   hubMetaState.playCounts[gameId] = (hubMetaState.playCounts[gameId] || 0) + 1;
   saveHubMetaState();
 }
+
+let activeGameId = null;
+let activeCleanup = null;
 
 const BgEngine = (() => {
   const canvas = document.getElementById('bg-canvas');
@@ -797,7 +774,6 @@ function renderDiscoveryShelves() {
 }
 
 function openHubHome() {
-  activeFullscreenHandler = null;
   if (activeCleanup) {
     try { activeCleanup(); } catch (e) {}
     activeCleanup = null;
@@ -900,20 +876,6 @@ function resetDiscoveryFilters() {
   openHubHome();
 }
 
-window.ArcadeHubFullscreen = {
-  isFullscreen: isFullscreenActive,
-  toggle: toggleFullScreen,
-  registerGameHandler(fn) {
-    activeFullscreenHandler = typeof fn === 'function' ? fn : null;
-    if (activeFullscreenHandler) {
-      activeFullscreenHandler(isFullscreenActive(), document.getElementById('game-stage'));
-    }
-  },
-  clearGameHandler() {
-    activeFullscreenHandler = null;
-  }
-};
-
 function launchGame(id) {
   const meta = GAMES.find(g => g.id === id);
   if (!meta) return;
@@ -929,7 +891,6 @@ function launchGame(id) {
     return;
   }
 
-  activeFullscreenHandler = null;
   if (activeCleanup) {
     try { activeCleanup(); } catch (e) {}
     activeCleanup = null;
@@ -945,7 +906,6 @@ function launchGame(id) {
 
   const stage = document.getElementById('game-stage');
   stage.classList.add('in-game');
-  stage.classList.toggle('is-fullscreen', isFullscreenActive());
   stage.innerHTML = '';
 
   const runners = {
@@ -971,9 +931,6 @@ function launchGame(id) {
 
   if (runners[id]) {
     activeCleanup = runners[id](stage, meta) || null;
-    if (activeFullscreenHandler) {
-      activeFullscreenHandler(isFullscreenActive(), stage);
-    }
   }
 }
 
