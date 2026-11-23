@@ -120,41 +120,237 @@ const AudioFX = (() => {
     }
   };
 })();
+window.AudioFX = AudioFX;
+
+const GAME_ID_ALIASES = {
+  'solitaire': 'solitaire',
+  'speed-solitaire': 'solitaire',
+  'coinscatter': 'coinscatter',
+  'coin-scatter': 'coinscatter',
+  'blackjack': 'blackjack',
+  'highlow': 'highlow',
+  'high-low': 'highlow',
+  'chess': 'chess',
+  'dama': 'dama',
+  'tictactoe': 'tictactoe',
+  'tic-tac-toe': 'tictactoe',
+  'numberguess': 'numberguess',
+  'number-guess': 'numberguess',
+  'wordscape': 'wordscape',
+  'basketball': 'basketball',
+  'basketball-hoops': 'basketball',
+  'fruitmaster': 'fruitmaster',
+  'fruit-master': 'fruitmaster',
+  'whackamole': 'whackamole',
+  'whack-a-mole': 'whackamole',
+  'cybersnake': 'cybersnake',
+  'snake': 'cybersnake',
+  'towerstack': 'towerstack',
+  'tower-stack': 'towerstack',
+  'carracing': 'carracing',
+  'car-racing': 'carracing',
+  'brickbreaker': 'brickbreaker',
+  'brick-breaker': 'brickbreaker',
+  'stickrun': 'stickrun',
+  'stick-run': 'stickrun',
+  'tiny-cafe': 'tiny-cafe',
+  'tinycafe': 'tiny-cafe',
+  'flickpoint': 'flickpoint',
+  'mythic': 'mythic'
+};
+
+function normalizeGameId(rawId) {
+  const key = String(rawId || '').trim().toLowerCase();
+  return GAME_ID_ALIASES[key] || key;
+}
 
 const SupabaseDB = (() => {
   const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
+  const LOCAL_SCORES_KEY = 'arcade_hub_local_scores_v1';
   let client = null;
+  let lastSubmitKey = '';
+  let lastSubmitAt = 0;
+
+  function resolveCreateClient() {
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      return window.supabase.createClient;
+    }
+    if (typeof window.createClient === 'function') {
+      return window.createClient;
+    }
+    return null;
+  }
 
   function init() {
-    if (window.supabase && !client) {
-      try {
-        client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      } catch (e) {}
+    if (client) return client;
+    const createFn = resolveCreateClient();
+    if (!createFn) return null;
+    try {
+      client = createFn(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false }
+      });
+      return client;
+    } catch (err) {
+      console.error('Supabase init failed:', err);
+      return null;
     }
   }
 
-  async function submitScore(gameId, score, playerName = window.playerName || 'AJ') {
-    init();
-    if (!client) return;
+  function readLocalScores() {
     try {
-      await client.from('high_scores').insert([{ game_id: gameId, score, player_name: playerName, created_at: new Date() }]);
-    } catch (e) {}
+      const parsed = JSON.parse(localStorage.getItem(LOCAL_SCORES_KEY) || '{}');
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (e) {
+      return {};
+    }
   }
 
-  async function fetchHighScores(gameId) {
-    init();
-    if (!client) return [];
+  function writeLocalScore(gameId, score, playerName) {
     try {
-      const { data } = await client.from('high_scores').select('*').eq('game_id', gameId).order('score', { ascending: false }).limit(5);
-      return data || [];
+      const store = readLocalScores();
+      const list = Array.isArray(store[gameId]) ? store[gameId] : [];
+      list.push({
+        game_id: gameId,
+        player_name: playerName,
+        score: Number(score) || 0,
+        created_at: new Date().toISOString()
+      });
+      list.sort((a, b) => Number(b.score) - Number(a.score));
+      store[gameId] = list.slice(0, 25);
+      localStorage.setItem(LOCAL_SCORES_KEY, JSON.stringify(store));
+      return store[gameId];
     } catch (e) {
       return [];
     }
   }
 
-  return { submitScore, fetchHighScores };
+  function getBestLocalScore(gameId) {
+    const canon = normalizeGameId(gameId);
+    const store = readLocalScores();
+    const list = Array.isArray(store[canon]) ? store[canon] : [];
+    if (!list.length) return 0;
+    return Math.max(...list.map(row => Number(row.score) || 0));
+  }
+
+  async function submitScore(rawGameId, rawScore, playerName = window.playerName || 'AJ') {
+    const gameId = normalizeGameId(rawGameId);
+    const numericScore = Number(rawScore);
+    if (!gameId || !Number.isFinite(numericScore) || numericScore <= 0) {
+      return { ok: false, reason: 'invalid_score' };
+    }
+
+    const cleanScore = Math.floor(numericScore);
+    const cleanPlayer = String(playerName || window.playerName || 'AJ').trim() || 'AJ';
+    const dedupeKey = `${gameId}:${cleanPlayer}:${cleanScore}`;
+    const now = Date.now();
+    if (dedupeKey === lastSubmitKey && now - lastSubmitAt < 1500) {
+      return { ok: true, deduped: true };
+    }
+    lastSubmitKey = dedupeKey;
+    lastSubmitAt = now;
+
+    writeLocalScore(gameId, cleanScore, cleanPlayer);
+
+    const sb = init();
+    if (!sb) {
+      return { ok: false, offline: true, reason: 'client_unavailable' };
+    }
+
+    const payload = {
+      game_id: gameId,
+      player_name: cleanPlayer,
+      score: cleanScore,
+      created_at: new Date().toISOString()
+    };
+
+    try {
+      const { data, error } = await sb
+        .from('high_scores')
+        .insert([payload])
+        .select();
+
+      if (error) {
+        console.error('Supabase high_scores insert error:', error.message || error);
+        return { ok: false, error };
+      }
+      return { ok: true, data: data || [] };
+    } catch (err) {
+      console.error('Supabase submitScore exception:', err);
+      return { ok: false, error: err };
+    }
+  }
+
+  async function fetchHighScores(rawGameId, limit = 5) {
+    const gameId = normalizeGameId(rawGameId);
+    const safeLimit = Math.max(1, Math.min(50, Number(limit) || 5));
+    const sb = init();
+
+    if (!sb) {
+      const localList = readLocalScores()[gameId] || [];
+      return localList.slice(0, safeLimit);
+    }
+
+    try {
+      const { data, error } = await sb
+        .from('high_scores')
+        .select('*')
+        .eq('game_id', gameId)
+        .order('score', { ascending: false })
+        .limit(safeLimit);
+
+      if (error) {
+        console.error('Supabase high_scores fetch error:', error.message || error);
+        return (readLocalScores()[gameId] || []).slice(0, safeLimit);
+      }
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      console.error('Supabase fetchHighScores exception:', err);
+      return (readLocalScores()[gameId] || []).slice(0, safeLimit);
+    }
+  }
+
+  return {
+    init,
+    submitScore,
+    fetchHighScores,
+    getBestLocalScore,
+    isConnected() {
+      return Boolean(init());
+    }
+  };
 })();
+window.SupabaseDB = SupabaseDB;
+
+window.ArcadeHero = window.ArcadeHero || {};
+window.ArcadeHero.awardGameScore = async function awardGameScore(rawGameId, rawScore, playerName) {
+  const gameId = normalizeGameId(rawGameId);
+  const numericScore = Math.floor(Number(rawScore) || 0);
+  const activePlayer = playerName || window.playerName || 'AJ';
+
+  if (!gameId || numericScore <= 0) {
+    return { submitted: false, score: numericScore };
+  }
+
+  const prevBest = SupabaseDB.getBestLocalScore(gameId);
+  const bonusXp = Math.min(100, Math.max(10, Math.floor(numericScore / 10)));
+  if (typeof addXP === 'function') {
+    addXP(bonusXp, window.innerWidth * 0.5, window.innerHeight * 0.25, `+${bonusXp} XP`);
+  }
+
+  const result = await SupabaseDB.submitScore(gameId, numericScore, activePlayer);
+  if (numericScore > prevBest && typeof spawnPopup === 'function') {
+    spawnPopup(`NEW BEST: ${numericScore}!`, window.innerWidth * 0.5, window.innerHeight * 0.34, '#34d399');
+  }
+
+  return {
+    submitted: Boolean(result && result.ok),
+    gameId,
+    score: numericScore,
+    bestScore: Math.max(prevBest, numericScore),
+    result
+  };
+};
 
 let bgmEnabled = true;
 
@@ -467,6 +663,7 @@ function addXP(amount, x = window.innerWidth / 2, y = window.innerHeight / 2, la
   if (lvlEl) lvlEl.textContent = lvl;
   spawnPopup(label || `+${amount} XP`, x, y, '#fbbf24');
 }
+window.addXP = addXP;
 
 function spawnPopup(text, x, y, color = '#38bdf8') {
   const el = document.createElement('div');
@@ -478,6 +675,7 @@ function spawnPopup(text, x, y, color = '#38bdf8') {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1100);
 }
+window.spawnPopup = spawnPopup;
 
 const GAMES = [
   { id: 'solitaire', num: 1, name: 'Speed Solitaire', cat: 'Card', mode: 'PORTRAIT', featured: false, icon: '🃏', envName: 'Emerald Velvet Casino Table', bg: 'radial-gradient(circle at 50% 35%, #0f5132 0%, #062c1b 65%, #02140c 100%)', theme: 'casino_green' },
@@ -534,6 +732,7 @@ const GAMES = [
     theme: 'emerald'
   }
 ];
+window.GAMES = GAMES;
 
 const HUB_STORAGE_KEY = 'arcade_hub_discovery_v1';
 let hubMetaState = {
@@ -574,13 +773,14 @@ let activeCleanup = null;
 
 const BgEngine = (() => {
   const canvas = document.getElementById('bg-canvas');
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas ? canvas.getContext('2d') : null;
   let w = 0, h = 0;
   let theme = 'hub';
   let particles = [];
   let tick = 0;
 
   function resize() {
+    if (!canvas) return;
     w = canvas.width = window.innerWidth;
     h = canvas.height = window.innerHeight;
   }
@@ -606,6 +806,10 @@ const BgEngine = (() => {
 
   function loop() {
     tick += 0.016;
+    if (!ctx) {
+      requestAnimationFrame(loop);
+      return;
+    }
     ctx.clearRect(0, 0, w, h);
 
     if (theme === 'casino_green' || theme === 'vip_table') {
@@ -713,25 +917,39 @@ function openGamePreviewModal(gameId) {
   const banner = document.getElementById('preview-banner');
   const badge = document.getElementById('preview-badge');
 
-  banner.style.background = getGameBgStyle(game);
-  document.getElementById('preview-icon').textContent = game.icon;
-  badge.textContent = game.locked ? 'ORIGINAL' : 'FULL V2';
-  badge.className = `px-2 py-0.5 rounded-full ${game.locked ? 'bg-amber-500/25 text-amber-300' : 'bg-emerald-500/25 text-emerald-300'}`;
-  document.getElementById('preview-mode').textContent = game.mode || 'PORTRAIT';
-  document.getElementById('preview-num').textContent = formatGameNum(game.num);
-  document.getElementById('preview-title').textContent = game.name;
-  document.getElementById('preview-sub').textContent = game.envName;
-  document.getElementById('preview-plays').textContent = `${hubMetaState.playCounts[game.id] || 0}x`;
-  document.getElementById('preview-cat').textContent = game.cat;
+  if (banner) banner.style.background = getGameBgStyle(game);
+  const iconEl = document.getElementById('preview-icon');
+  if (iconEl) iconEl.textContent = game.icon;
+  if (badge) {
+    badge.textContent = game.locked ? 'ORIGINAL' : 'FULL V2';
+    badge.className = `px-2 py-0.5 rounded-full ${game.locked ? 'bg-amber-500/25 text-amber-300' : 'bg-emerald-500/25 text-emerald-300'}`;
+  }
+  const modeEl = document.getElementById('preview-mode');
+  if (modeEl) modeEl.textContent = game.mode || 'PORTRAIT';
+  const numEl = document.getElementById('preview-num');
+  if (numEl) numEl.textContent = formatGameNum(game.num);
+  const titleEl = document.getElementById('preview-title');
+  if (titleEl) titleEl.textContent = game.name;
+  const subEl = document.getElementById('preview-sub');
+  if (subEl) subEl.textContent = game.envName;
+  const playsEl = document.getElementById('preview-plays');
+  if (playsEl) playsEl.textContent = `${hubMetaState.playCounts[game.id] || 0}x`;
+  const catEl = document.getElementById('preview-cat');
+  if (catEl) catEl.textContent = game.cat;
 
-  document.getElementById('preview-launch-btn').onclick = () => {
-    const idToLaunch = previewGameMeta?.id;
-    closeGamePreviewModal();
-    if (idToLaunch) launchGame(idToLaunch);
-  };
+  const launchBtn = document.getElementById('preview-launch-btn');
+  if (launchBtn) {
+    launchBtn.onclick = () => {
+      const idToLaunch = previewGameMeta?.id;
+      closeGamePreviewModal();
+      if (idToLaunch) launchGame(idToLaunch);
+    };
+  }
 
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
 }
 
 function closeGamePreviewModal() {
@@ -920,13 +1138,15 @@ function openHubHome() {
   loadHubMetaState();
   syncFoxCompanionVisibility();
 
-  document.getElementById('hub-header').classList.remove('hidden');
-  document.getElementById('universal-game-bar').classList.add('hidden');
+  document.getElementById('hub-header')?.classList.remove('hidden');
+  document.getElementById('universal-game-bar')?.classList.add('hidden');
 
   const stage = document.getElementById('game-stage');
+  if (!stage) return;
   stage.classList.remove('in-game');
 
-  document.getElementById('app-shell').style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
+  const appShell = document.getElementById('app-shell');
+  if (appShell) appShell.style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
   BgEngine.setTheme('hub');
 
   stage.innerHTML = `
@@ -1048,17 +1268,41 @@ function resetDiscoveryFilters() {
   openHubHome();
 }
 
+function getGameRunners() {
+  return {
+    solitaire: window.initSpeedSolitaire,
+    coinscatter: window.initCoinScatter,
+    blackjack: window.initBlackjack,
+    highlow: window.initHighLow,
+    chess: window.initChess,
+    dama: window.initDama,
+    tictactoe: window.initTicTacToe,
+    numberguess: window.initNumberGuess,
+    wordscape: window.initWordscape,
+    basketball: window.initBasketballHoops,
+    fruitmaster: window.initFruitMaster,
+    whackamole: window.initWhackAMole,
+    cybersnake: window.initCyberSnakePreserved,
+    towerstack: window.initTowerStack,
+    carracing: window.initCarRacing,
+    brickbreaker: window.initBrickBreaker,
+    stickrun: window.initStickRun,
+    'tiny-cafe': window.initTinyCafe
+  };
+}
+
 function launchGame(id) {
-  const meta = GAMES.find(g => g.id === id);
+  const canonId = normalizeGameId(id);
+  const meta = GAMES.find(g => g.id === canonId);
   if (!meta) return;
   AudioFX.click();
-  recordGamePlay(id);
+  recordGamePlay(canonId);
 
-  if (id === 'flickpoint') {
+  if (canonId === 'flickpoint') {
     window.location.href = 'flickpoint.html';
     return;
   }
-  if (id === 'mythic') {
+  if (canonId === 'mythic') {
     window.location.href = 'mythic.html';
     return;
   }
@@ -1068,45 +1312,39 @@ function launchGame(id) {
     activeCleanup = null;
   }
 
-  activeGameId = id;
+  activeGameId = canonId;
 
-  document.getElementById('hub-header').classList.add('hidden');
-  document.getElementById('universal-game-bar').classList.remove('hidden');
+  document.getElementById('hub-header')?.classList.add('hidden');
+  document.getElementById('universal-game-bar')?.classList.remove('hidden');
 
-  document.getElementById('app-shell').style.background = getGameBgStyle(meta);
+  const appShell = document.getElementById('app-shell');
+  if (appShell) appShell.style.background = getGameBgStyle(meta);
   BgEngine.setTheme(meta.theme);
 
   const stage = document.getElementById('game-stage');
+  if (!stage) return;
   stage.classList.add('in-game');
   stage.innerHTML = '';
 
-  const runners = {
-    solitaire: initSpeedSolitaire,
-    coinscatter: initCoinScatter,
-    blackjack: initBlackjack,
-    highlow: initHighLow,
-    chess: initChess,
-    dama: initDama,
-    tictactoe: initTicTacToe,
-    numberguess: initNumberGuess,
-    wordscape: initWordscape,
-    basketball: initBasketballHoops,
-    fruitmaster: initFruitMaster,
-    whackamole: initWhackAMole,
-    cybersnake: initCyberSnakePreserved,
-    towerstack: initTowerStack,
-    carracing: initCarRacing,
-    brickbreaker: initBrickBreaker,
-    stickrun: initStickRun,
-    'tiny-cafe': initTinyCafe
-  };
-
-  if (runners[id]) {
-    activeCleanup = runners[id](stage, meta) || null;
+  const runners = getGameRunners();
+  const runner = runners[canonId];
+  if (typeof runner === 'function') {
+    activeCleanup = runner(stage, meta) || null;
+  } else {
+    stage.innerHTML = `
+      <div class="w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center">
+        <div class="text-4xl">${meta.icon}</div>
+        <div class="text-lg font-black text-white">${meta.name} script not loaded yet</div>
+        <p class="text-xs text-slate-400">Make sure its script tag is included in index.html before hub.js.</p>
+        <button onclick="openHubHome()" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs">Back to Hub</button>
+      </div>
+    `;
   }
 }
+window.launchGame = launchGame;
 
 window.addEventListener('DOMContentLoaded', () => {
+  SupabaseDB.init();
   loadHubMetaState();
   syncFoxCompanionVisibility();
 
