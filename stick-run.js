@@ -80,7 +80,7 @@ window.initStickRun = function initStickRun(stage) {
     const scoreEl = document.getElementById('sr-score-pill');
     const finalEl = document.getElementById('sr-final-score');
     const bestEl = document.getElementById('sr-best-score');
-    if (scoreEl) scoreEl.textContent = `🏃 RUN: 0`.replace('0', score);
+    if (scoreEl) scoreEl.textContent = `🏃 RUN: ${score}`;
     if (finalEl) finalEl.textContent = `Run Score: ${score}`;
     if (bestEl) bestEl.textContent = `Best: ${Math.max(bestScore, score)}`;
     overlay.classList.toggle('hidden', !gameOver);
@@ -246,9 +246,9 @@ window.initStickRun = function initStickRun(stage) {
   }
 
   function createFloatingHorizontalChainBoxes(startX) {
-    const boxW = 44;
-    const boxH = 30;
-    const gapX = 10;
+    const boxW = 64;
+    const boxH = 32;
+    const gapX = 14;
     const floatOffset = 34;
     return [0, 1, 2].map((idx) => ({
       x: startX + idx * (boxW + gapX),
@@ -261,8 +261,9 @@ window.initStickRun = function initStickRun(stage) {
   }
 
   function createFloatingLObstacleBoxes(startX) {
-    const unit = 28;
-    const floatOffset = 30;
+    const boxW = 64;
+    const boxH = 32;
+    const baseOffset = 34;
     const specs = [
       { col: 0, row: 0 },
       { col: 1, row: 0 },
@@ -270,17 +271,14 @@ window.initStickRun = function initStickRun(stage) {
       { col: 0, row: 1 },
       { col: 0, row: 2 }
     ];
-    return specs.map(({ col, row }) => {
-      const offsetFromGround = floatOffset + row * unit;
-      return {
-        x: startX + col * unit,
-        y: groundY - offsetFromGround - unit,
-        w: unit,
-        h: unit,
-        offsetFromGround,
-        landedAwarded: false
-      };
-    });
+    return specs.map(({ col, row }) => ({
+      x: startX + col * boxW,
+      y: groundY - (baseOffset + (row + 1) * boxH),
+      w: boxW,
+      h: boxH,
+      offsetFromGround: baseOffset + row * boxH,
+      landedAwarded: false
+    }));
   }
 
   function spawnObstacle() {
@@ -297,13 +295,13 @@ window.initStickRun = function initStickRun(stage) {
       });
     } else if (roll < 0.5) {
       const boxes = createFloatingLObstacleBoxes(startX);
-      const lWidth = 28 * 3;
+      const lWidth = 64 * 3;
       obstacles.push({
         kind: 'l-saw-obstacle',
         boxes,
         saws: [
           {
-            x: startX + lWidth + 116,
+            x: startX + lWidth + 124,
             cy: groundY - 18,
             elev: 18,
             r: 18,
@@ -312,7 +310,7 @@ window.initStickRun = function initStickRun(stage) {
         ]
       });
     } else if (roll < 0.72) {
-      const w = 50;
+      const w = 74;
       const h = 38;
       obstacles.push({
         kind: 'combo',
@@ -325,7 +323,7 @@ window.initStickRun = function initStickRun(stage) {
           landedAwarded: false
         },
         saw: {
-          x: startX + w + 88,
+          x: startX + w + 96,
           cy: groundY - 20,
           elev: 20,
           r: 19,
@@ -333,7 +331,7 @@ window.initStickRun = function initStickRun(stage) {
         }
       });
     } else if (roll < 0.88) {
-      const w = 48;
+      const w = 72;
       const h = 40;
       obstacles.push({
         kind: 'box',
@@ -647,28 +645,36 @@ window.initStickRun = function initStickRun(stage) {
     ctx.restore();
   }
 
-  function drawPullChainToLastBox(boxes) {
+  function drawChainToLastBox(boxes) {
     if (!Array.isArray(boxes) || boxes.length < 2) return;
-    const first = boxes[0];
-    const last = boxes[boxes.length - 1];
-    const startX = first.x + first.w * 0.5;
-    const startY = first.y + first.h * 0.45;
-    const endX = last.x + last.w * 0.5;
-    const endY = last.y + last.h * 0.45;
+    const lastBox = boxes[boxes.length - 1];
+    const targetX = lastBox.x + lastBox.w * 0.5;
+    const targetY = lastBox.y + lastBox.h * 0.45;
 
     ctx.save();
     ctx.strokeStyle = '#fde047';
     ctx.lineWidth = 3;
     ctx.setLineDash([6, 4]);
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
-    ctx.stroke();
+
+    for (let i = 0; i < boxes.length - 1; i++) {
+      const src = boxes[i];
+      const srcX = src.x + src.w * 0.5;
+      const srcY = src.y + src.h * 0.45;
+      ctx.beginPath();
+      ctx.moveTo(srcX, srcY);
+      ctx.lineTo(targetX, targetY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(srcX, srcY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#fef08a';
+      ctx.fill();
+    }
 
     ctx.setLineDash([]);
     ctx.beginPath();
-    ctx.arc(endX, endY, 4.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#fef08a';
+    ctx.arc(targetX, targetY, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#fde047';
     ctx.fill();
     ctx.restore();
   }
@@ -677,7 +683,7 @@ window.initStickRun = function initStickRun(stage) {
     obstacles.forEach((ob) => {
       const boxes = getObstacleBoxes(ob);
       if (ob.kind === 'horizontal-chain') {
-        drawPullChainToLastBox(boxes);
+        drawChainToLastBox(boxes);
       }
       boxes.forEach((box) => drawBox(box));
       getObstacleSaws(ob).forEach((saw) => drawSawblade(saw));
@@ -845,7 +851,7 @@ window.initStickRun = function initStickRun(stage) {
       spawnTimer -= dt;
       if (spawnTimer <= 0) {
         spawnObstacle();
-        spawnTimer = Math.max(1.05, 1.75 - (speed - 340) / 520) + Math.random() * 0.35;
+        spawnTimer = Math.max(1.1, 1.85 - (speed - 340) / 520) + Math.random() * 0.35;
       }
 
       const isLowSlide = runner.sliding && runner.grounded;
