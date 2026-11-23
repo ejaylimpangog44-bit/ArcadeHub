@@ -154,12 +154,7 @@
     </div>
   </header>
 
-  <div id="universal-game-bar" class="hidden fixed top-3 left-3 right-3 z-30 flex items-center justify-between pointer-events-none">
-    <button onclick="openHubHome()" class="pointer-events-auto px-3.5 py-2 rounded-xl bg-slate-950/75 hover:bg-slate-900/90 text-white font-bold text-xs backdrop-blur-md border border-white/15 shadow-lg flex items-center gap-1.5 transition active:scale-95">
-      <span>←</span>
-      <span>Hub</span>
-    </button>
-
+  <div id="universal-game-bar" class="hidden fixed top-3 right-3 z-30 flex items-center justify-end pointer-events-none">
     <div class="pointer-events-auto relative" id="game-hamburger-wrapper">
       <button id="game-hamburger-btn" type="button" onclick="toggleGameMenu(event)" aria-label="Open Game Menu" aria-expanded="false" class="w-9 h-9 rounded-xl bg-slate-950/75 hover:bg-slate-900/90 text-white backdrop-blur-md border border-white/15 shadow-lg flex flex-col items-center justify-center gap-1 transition active:scale-95" title="Game Menu">
         <span class="w-4 h-0.5 bg-slate-100 rounded-full"></span>
@@ -167,12 +162,7 @@
         <span class="w-4 h-0.5 bg-slate-100 rounded-full"></span>
       </button>
 
-      <div id="game-hamburger-dropdown" class="hidden absolute right-0 top-full mt-2 w-52 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/15 p-1.5 shadow-2xl z-50">
-        <button type="button" onclick="openGameAdjustmentsFromMenu()" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-100 hover:bg-white/10 transition">
-          <span>🎮</span>
-          <span>Game Mode &amp; Pace</span>
-        </button>
-
+      <div id="game-hamburger-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/15 p-1.5 shadow-2xl z-50">
         <button type="button" onclick="closeGameMenu(); openSettingsModal();" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-100 hover:bg-white/10 transition">
           <span>🎵</span>
           <span>Audio &amp; Fullscreen</span>
@@ -366,15 +356,6 @@
     const btn = document.getElementById('game-hamburger-btn');
     if (dropdown) dropdown.classList.add('hidden');
     if (btn) btn.setAttribute('aria-expanded', 'false');
-  }
-
-  function openGameAdjustmentsFromMenu() {
-    closeGameMenu();
-    if (window.GameSettingsDrawer && typeof window.GameSettingsDrawer.toggle === 'function') {
-      window.GameSettingsDrawer.toggle();
-    } else if (typeof openSettingsModal === 'function') {
-      openSettingsModal();
-    }
   }
 
   document.addEventListener('click', function(e) {
