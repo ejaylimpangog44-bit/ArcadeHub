@@ -245,25 +245,22 @@ window.initStickRun = function initStickRun(stage) {
     }
   }
 
-  function createFloatingHorizontalChainBoxes(startX) {
-    const boxW = 64;
-    const boxH = 32;
-    const gapX = 14;
-    const floatOffset = 34;
+  function createHorizontalChainBoxes(startX) {
+    const boxW = 44;
+    const boxH = 34;
+    const gapX = 10;
     return [0, 1, 2].map((idx) => ({
       x: startX + idx * (boxW + gapX),
-      y: groundY - floatOffset - boxH,
+      y: groundY - boxH,
       w: boxW,
       h: boxH,
-      offsetFromGround: floatOffset,
+      offsetFromGround: 0,
       landedAwarded: false
     }));
   }
 
-  function createFloatingLObstacleBoxes(startX) {
-    const boxW = 64;
-    const boxH = 32;
-    const baseOffset = 34;
+  function createLObstacleBoxes(startX) {
+    const unit = 32;
     const specs = [
       { col: 0, row: 0 },
       { col: 1, row: 0 },
@@ -272,11 +269,11 @@ window.initStickRun = function initStickRun(stage) {
       { col: 0, row: 2 }
     ];
     return specs.map(({ col, row }) => ({
-      x: startX + col * boxW,
-      y: groundY - (baseOffset + (row + 1) * boxH),
-      w: boxW,
-      h: boxH,
-      offsetFromGround: baseOffset + row * boxH,
+      x: startX + col * unit,
+      y: groundY - (row + 1) * unit,
+      w: unit,
+      h: unit,
+      offsetFromGround: row * unit,
       landedAwarded: false
     }));
   }
@@ -286,7 +283,7 @@ window.initStickRun = function initStickRun(stage) {
     const startX = viewW + 28;
 
     if (roll < 0.25) {
-      const boxes = createFloatingHorizontalChainBoxes(startX);
+      const boxes = createHorizontalChainBoxes(startX);
       obstacles.push({
         kind: 'horizontal-chain',
         boxes,
@@ -294,14 +291,14 @@ window.initStickRun = function initStickRun(stage) {
         saws: []
       });
     } else if (roll < 0.5) {
-      const boxes = createFloatingLObstacleBoxes(startX);
-      const lWidth = 64 * 3;
+      const boxes = createLObstacleBoxes(startX);
+      const lWidth = 32 * 3;
       obstacles.push({
         kind: 'l-saw-obstacle',
         boxes,
         saws: [
           {
-            x: startX + lWidth + 124,
+            x: startX + lWidth + 112,
             cy: groundY - 18,
             elev: 18,
             r: 18,
@@ -310,7 +307,7 @@ window.initStickRun = function initStickRun(stage) {
         ]
       });
     } else if (roll < 0.72) {
-      const w = 74;
+      const w = 50;
       const h = 38;
       obstacles.push({
         kind: 'combo',
@@ -323,7 +320,7 @@ window.initStickRun = function initStickRun(stage) {
           landedAwarded: false
         },
         saw: {
-          x: startX + w + 96,
+          x: startX + w + 88,
           cy: groundY - 20,
           elev: 20,
           r: 19,
@@ -331,7 +328,7 @@ window.initStickRun = function initStickRun(stage) {
         }
       });
     } else if (roll < 0.88) {
-      const w = 72;
+      const w = 48;
       const h = 40;
       obstacles.push({
         kind: 'box',
@@ -645,37 +642,31 @@ window.initStickRun = function initStickRun(stage) {
     ctx.restore();
   }
 
-  function drawChainToLastBox(boxes) {
+  function drawPullChain(boxes) {
     if (!Array.isArray(boxes) || boxes.length < 2) return;
-    const lastBox = boxes[boxes.length - 1];
-    const targetX = lastBox.x + lastBox.w * 0.5;
-    const targetY = lastBox.y + lastBox.h * 0.45;
-
     ctx.save();
     ctx.strokeStyle = '#fde047';
     ctx.lineWidth = 3;
     ctx.setLineDash([6, 4]);
 
     for (let i = 0; i < boxes.length - 1; i++) {
-      const src = boxes[i];
-      const srcX = src.x + src.w * 0.5;
-      const srcY = src.y + src.h * 0.45;
+      const a = boxes[i];
+      const b = boxes[i + 1];
+      const ay = a.y + a.h * 0.45;
+      const by = b.y + b.h * 0.45;
       ctx.beginPath();
-      ctx.moveTo(srcX, srcY);
-      ctx.lineTo(targetX, targetY);
+      ctx.moveTo(a.x + a.w, ay);
+      ctx.lineTo(b.x, by);
       ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(srcX, srcY, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#fef08a';
-      ctx.fill();
     }
 
     ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.arc(targetX, targetY, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#fde047';
-    ctx.fill();
+    boxes.forEach((box) => {
+      ctx.beginPath();
+      ctx.arc(box.x + box.w * 0.5, box.y + box.h * 0.45, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#fef08a';
+      ctx.fill();
+    });
     ctx.restore();
   }
 
@@ -683,7 +674,7 @@ window.initStickRun = function initStickRun(stage) {
     obstacles.forEach((ob) => {
       const boxes = getObstacleBoxes(ob);
       if (ob.kind === 'horizontal-chain') {
-        drawChainToLastBox(boxes);
+        drawPullChain(boxes);
       }
       boxes.forEach((box) => drawBox(box));
       getObstacleSaws(ob).forEach((saw) => drawSawblade(saw));
@@ -851,7 +842,7 @@ window.initStickRun = function initStickRun(stage) {
       spawnTimer -= dt;
       if (spawnTimer <= 0) {
         spawnObstacle();
-        spawnTimer = Math.max(1.1, 1.85 - (speed - 340) / 520) + Math.random() * 0.35;
+        spawnTimer = Math.max(1.05, 1.75 - (speed - 340) / 520) + Math.random() * 0.35;
       }
 
       const isLowSlide = runner.sliding && runner.grounded;
