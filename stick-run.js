@@ -21,7 +21,7 @@ window.initStickRun = function initStickRun(stage) {
     <div class="px-6 py-5 rounded-3xl bg-slate-950/85 border border-amber-400/40 shadow-2xl flex flex-col items-center gap-2">
       <div id="sr-final-score" class="text-2xl sm:text-3xl font-black text-white tracking-tight">Run Score: 0</div>
       <div id="sr-best-score" class="text-xs font-extrabold text-amber-300 uppercase tracking-wider">Best: 0</div>
-      <div class="text-xs font-bold text-slate-300 mt-1">Tap or Press Space to Run Again</div>
+      <div class="text-xs font-bold text-slate-300 mt-1">Swipe Up or Press Space to Run Again</div>
     </div>
   `;
 
@@ -43,12 +43,18 @@ window.initStickRun = function initStickRun(stage) {
   let spawnTimer = 0.9;
   let scoreAccumulator = 0;
 
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+  let swipeTriggered = false;
+
   const runner = {
     x: 72,
     y: 0,
     vy: 0,
     grounded: true,
     onBoxTop: false,
+    sliding: false,
+    slideTimer: 0,
     airJumpsLeft: 1,
     flipAngle: 0,
     flipping: false,
@@ -100,7 +106,17 @@ window.initStickRun = function initStickRun(stage) {
     }
 
     obstacles.forEach((ob) => {
-      ob.y = groundY - ob.h;
+      if (ob.type === 'box') {
+        ob.y = groundY - ob.h;
+      } else if (ob.type === 'saw') {
+        ob.cy = groundY - ob.elev;
+      } else if (ob.type === 'combo-overhead') {
+        ob.box.y = groundY - ob.box.h;
+        ob.saw.cy = groundY - ob.saw.elev;
+      } else if (ob.type === 'combo-pair') {
+        ob.box.y = groundY - ob.box.h;
+        ob.saw.cy = groundY - ob.saw.elev;
+      }
     });
   }
 
@@ -120,6 +136,8 @@ window.initStickRun = function initStickRun(stage) {
     runner.y = groundY;
     runner.grounded = true;
     runner.onBoxTop = false;
+    runner.sliding = false;
+    runner.slideTimer = 0;
     runner.airJumpsLeft = 1;
     runner.flipAngle = 0;
     runner.flipping = false;
@@ -140,12 +158,15 @@ window.initStickRun = function initStickRun(stage) {
     }
   }
 
-  function triggerJumpOrRestart() {
+  function triggerJumpSwipe() {
     if (!active) return;
     if (gameOver) {
       resetRun();
       return;
     }
+
+    runner.sliding = false;
+    runner.slideTimer = 0;
 
     if (runner.grounded) {
       const launchedFromBox = runner.onBoxTop;
@@ -185,22 +206,106 @@ window.initStickRun = function initStickRun(stage) {
     }
   }
 
+  function triggerSlideSwipe() {
+    if (!active || gameOver) return;
+    runner.flipping = false;
+    runner.flipAngle = 0;
+    runner.sliding = true;
+    runner.slideTimer = 0.55;
+
+    if (!runner.grounded) {
+      runner.vy = Math.max(runner.vy + 340, 460);
+    }
+    if (typeof AudioFX !== 'undefined') {
+      if (typeof AudioFX.card === 'function') AudioFX.card();
+      else if (typeof AudioFX.click === 'function') AudioFX.click();
+    }
+    emitSparks(runner.x - 6, runner.y - 2, 5, '#e2e8f0');
+  }
+
   function spawnObstacle() {
-    const tall = Math.random() < 0.42;
-    const w = tall ? 46 : 54;
-    const h = tall ? 52 : 36;
-    obstacles.push({
-      x: viewW + 24,
-      y: groundY - h,
-      w,
-      h,
-      landedAwarded: false
-    });
+    const roll = Math.random();
+    const startX = viewW + 28;
+
+    if (roll < 0.28) {
+      const tall = Math.random() < 0.45;
+      const w = tall ? 46 : 54;
+      const h = tall ? 52 : 36;
+      obstacles.push({
+        type: 'box',
+        x: startX,
+        y: groundY - h,
+        w,
+        h,
+        landedAwarded: false
+      });
+    } else if (roll < 0.52) {
+      const lowSaw = Math.random() < 0.55;
+      const r = 18;
+      const elev = lowSaw ? 22 : 52;
+      obstacles.push({
+        type: 'saw',
+        x: startX,
+        cx: startX + r,
+        cy: groundY - elev,
+        r,
+        elev,
+        angle: 0
+      });
+    } else if (roll < 0.78) {
+      const boxW = 54;
+      const boxH = 34;
+      const sawR = 17;
+      const sawElev = 58;
+      obstacles.push({
+        type: 'combo-overhead',
+        x: startX,
+        box: {
+          x: startX,
+          y: groundY - boxH,
+          w: boxW,
+          h: boxH,
+          landedAwarded: false
+        },
+        saw: {
+          cx: startX + boxW + 34 + sawR,
+          cy: groundY - sawElev,
+          r: sawR,
+          elev: sawElev,
+          angle: 0
+        }
+      });
+    } else {
+      const boxW = 50;
+      const boxH = 40;
+      const sawR = 16;
+      const sawElev = 20;
+      obstacles.push({
+        type: 'combo-pair',
+        x: startX,
+        box: {
+          x: startX,
+          y: groundY - boxH,
+          w: boxW,
+          h: boxH,
+          landedAwarded: false
+        },
+        saw: {
+          cx: startX + boxW + 78 + sawR,
+          cy: groundY - sawElev,
+          r: sawR,
+          elev: sawElev,
+          angle: 0
+        }
+      });
+    }
   }
 
   function endRun() {
     if (gameOver) return;
     gameOver = true;
+    runner.sliding = false;
+    runner.slideTimer = 0;
     runner.flipping = false;
     runner.flipAngle = 0;
     syncHud();
@@ -249,6 +354,40 @@ window.initStickRun = function initStickRun(stage) {
   }
 
   function drawStickRunner() {
+    ctx.save();
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (runner.sliding && runner.grounded) {
+      const headX = runner.x + 15;
+      const headY = runner.y - 12;
+      const hipX = runner.x - 4;
+      const hipY = runner.y - 8;
+      const footX = runner.x - 22;
+      const footY = runner.y - 4;
+
+      ctx.beginPath();
+      ctx.arc(headX, headY, 7.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(headX - 6, headY + 2);
+      ctx.lineTo(hipX, hipY);
+      ctx.lineTo(footX, footY);
+      ctx.moveTo(hipX, hipY);
+      ctx.lineTo(footX + 5, footY - 3);
+      ctx.moveTo(headX - 10, headY + 3);
+      ctx.lineTo(headX - 20, headY + 6);
+      ctx.stroke();
+
+      ctx.restore();
+      return;
+    }
+
     const hipY = -24;
     const shoulderY = -44;
     const headY = -55;
@@ -280,7 +419,6 @@ window.initStickRun = function initStickRun(stage) {
       backArmX = 8;
       backArmY = -36;
     } else if (runner.vy < -140) {
-      // Rising jump tuck
       frontLegX = 11;
       frontLegY = -15;
       backLegX = -10;
@@ -291,7 +429,6 @@ window.initStickRun = function initStickRun(stage) {
       backArmY = -34;
       torsoLean = 0.14;
     } else if (runner.vy <= 160) {
-      // Near apex
       frontLegX = 8;
       frontLegY = -11;
       backLegX = -11;
@@ -302,7 +439,6 @@ window.initStickRun = function initStickRun(stage) {
       backArmY = -40;
       torsoLean = 0.05;
     } else {
-      // Falling / preparing to land
       frontLegX = 13;
       frontLegY = -5;
       backLegX = -7;
@@ -314,18 +450,12 @@ window.initStickRun = function initStickRun(stage) {
       torsoLean = -0.06;
     }
 
-    ctx.save();
     ctx.translate(runner.x, runner.y - 26);
     if (runner.flipping || runner.flipAngle !== 0) {
       ctx.rotate(runner.flipAngle);
     }
     ctx.rotate(torsoLean);
     ctx.translate(0, 26);
-
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
 
     ctx.beginPath();
     ctx.arc(0, headY, 8.5, 0, Math.PI * 2);
@@ -354,20 +484,70 @@ window.initStickRun = function initStickRun(stage) {
     ctx.restore();
   }
 
+  function drawBoxEntity(box) {
+    ctx.save();
+    ctx.fillStyle = '#991b1b';
+    ctx.strokeStyle = '#fca5a5';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(box.x, box.y, box.w, box.h, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(253, 224, 71, 0.35)';
+    ctx.fillRect(box.x + 3, box.y, Math.max(0, box.w - 6), 4);
+    ctx.restore();
+  }
+
+  function drawSawEntity(saw) {
+    const teeth = 10;
+    const outerR = saw.r + 5;
+    const innerR = saw.r - 3;
+
+    ctx.save();
+    ctx.translate(saw.cx, saw.cy);
+    ctx.rotate(saw.angle);
+
+    ctx.beginPath();
+    for (let i = 0; i < teeth * 2; i++) {
+      const rad = i % 2 === 0 ? outerR : innerR;
+      const ang = (i * Math.PI) / teeth;
+      const px = Math.cos(ang) * rad;
+      const py = Math.sin(ang) * rad;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#334155';
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, saw.r * 0.42, 0, Math.PI * 2);
+    ctx.fillStyle = '#dc2626';
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#f8fafc';
+    ctx.fill();
+
+    ctx.restore();
+  }
+
   function drawObstacles() {
     obstacles.forEach((ob) => {
-      ctx.save();
-      ctx.fillStyle = '#991b1b';
-      ctx.strokeStyle = '#fca5a5';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(ob.x, ob.y, ob.w, ob.h, 6);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = 'rgba(253, 224, 71, 0.35)';
-      ctx.fillRect(ob.x + 3, ob.y, Math.max(0, ob.w - 6), 4);
-      ctx.restore();
+      if (ob.type === 'box') {
+        drawBoxEntity(ob);
+      } else if (ob.type === 'saw') {
+        drawSawEntity(ob);
+      } else if (ob.type === 'combo-overhead' || ob.type === 'combo-pair') {
+        drawBoxEntity(ob.box);
+        drawSawEntity(ob.saw);
+      }
     });
 
     particles.forEach((p) => {
@@ -395,6 +575,24 @@ window.initStickRun = function initStickRun(stage) {
     }
   }
 
+  function hitsBox(box, hitLeft, hitRight, hitTop, hitBottom) {
+    return (
+      hitRight > box.x + 4 &&
+      hitLeft < box.x + box.w - 4 &&
+      hitBottom > box.y + 8 &&
+      hitTop < box.y + box.h
+    );
+  }
+
+  function hitsSaw(saw, hitLeft, hitRight, hitTop, hitBottom) {
+    const closestX = Math.max(hitLeft, Math.min(saw.cx, hitRight));
+    const closestY = Math.max(hitTop, Math.min(saw.cy, hitBottom));
+    const dx = saw.cx - closestX;
+    const dy = saw.cy - closestY;
+    const effectiveR = saw.r * 0.86;
+    return dx * dx + dy * dy < effectiveR * effectiveR;
+  }
+
   const getDeltaSec = window.GameLoopGuard
     ? window.GameLoopGuard.createDeltaStep(0.05)
     : (() => {
@@ -414,6 +612,13 @@ window.initStickRun = function initStickRun(stage) {
       speed = Math.min(680, speed + dt * 9);
       runPhase += dt * (speed * 0.045);
 
+      if (runner.sliding) {
+        runner.slideTimer -= dt;
+        if (runner.slideTimer <= 0 && runner.grounded) {
+          runner.sliding = false;
+        }
+      }
+
       scoreAccumulator += dt * 10;
       if (scoreAccumulator >= 1) {
         const gained = Math.floor(scoreAccumulator);
@@ -426,12 +631,19 @@ window.initStickRun = function initStickRun(stage) {
       let activeBox = null;
 
       if (runner.grounded && runner.onBoxTop) {
-        activeBox = obstacles.find(
-          (ob) =>
-            runner.x + 10 >= ob.x &&
-            runner.x - 10 <= ob.x + ob.w &&
-            Math.abs(runner.y - ob.y) <= 8
+        const allBoxes = [];
+        obstacles.forEach((ob) => {
+          if (ob.type === 'box') allBoxes.push(ob);
+          else if (ob.type === 'combo-overhead' || ob.type === 'combo-pair') allBoxes.push(ob.box);
+        });
+
+        activeBox = allBoxes.find(
+          (box) =>
+            runner.x + 10 >= box.x &&
+            runner.x - 10 <= box.x + box.w &&
+            Math.abs(runner.y - box.y) <= 8
         );
+
         if (activeBox) {
           activeBox.x -= speed * dt;
           runner.y = activeBox.y;
@@ -466,9 +678,15 @@ window.initStickRun = function initStickRun(stage) {
         if (runner.vy >= 0) {
           const hitLeft = runner.x - 10;
           const hitRight = runner.x + 10;
-          const landedBox = obstacles.find((ob) => {
-            const withinX = hitRight > ob.x + 3 && hitLeft < ob.x + ob.w - 3;
-            const crossedTop = prevY <= ob.y + 10 && runner.y >= ob.y;
+          const candidateBoxes = [];
+          obstacles.forEach((ob) => {
+            if (ob.type === 'box') candidateBoxes.push(ob);
+            else if (ob.type === 'combo-overhead' || ob.type === 'combo-pair') candidateBoxes.push(ob.box);
+          });
+
+          const landedBox = candidateBoxes.find((box) => {
+            const withinX = hitRight > box.x + 3 && hitLeft < box.x + box.w - 3;
+            const crossedTop = prevY <= box.y + 10 && runner.y >= box.y;
             return withinX && crossedTop;
           });
 
@@ -485,7 +703,7 @@ window.initStickRun = function initStickRun(stage) {
               landedBox.landedAwarded = true;
               score += 5;
               syncHud();
-              showTrickLabel('BOX TOP! DOUBLE TAP TO FLIP');
+              showTrickLabel('BOX TOP! SWIPE UP TO FLIP');
             }
             emitSparks(runner.x, runner.y, 5, '#67e8f9');
           }
@@ -500,6 +718,9 @@ window.initStickRun = function initStickRun(stage) {
           runner.flipping = false;
           runner.flipAngle = 0;
           runner.flipDir = 0;
+          if (runner.slideTimer <= 0) {
+            runner.sliding = false;
+          }
         }
       } else if (!runner.onBoxTop) {
         runner.y = groundY;
@@ -508,32 +729,54 @@ window.initStickRun = function initStickRun(stage) {
       spawnTimer -= dt;
       if (spawnTimer <= 0) {
         spawnObstacle();
-        spawnTimer = Math.max(0.76, 1.48 - (speed - 340) / 520) + Math.random() * 0.35;
+        spawnTimer = Math.max(0.84, 1.56 - (speed - 340) / 500) + Math.random() * 0.35;
       }
 
-      const hitLeft = runner.x - 10;
-      const hitRight = runner.x + 10;
-      const hitTop = runner.y - 52;
+      const isLowSlide = runner.sliding && runner.grounded;
+      const hitLeft = isLowSlide ? runner.x - 18 : runner.x - 10;
+      const hitRight = isLowSlide ? runner.x + 16 : runner.x + 10;
+      const hitTop = isLowSlide ? runner.y - 18 : runner.y - 52;
       const hitBottom = runner.y - 4;
 
       for (const ob of obstacles) {
-        if (ob !== activeBox) {
+        if (ob.type === 'box') {
+          if (ob !== activeBox) ob.x -= speed * dt;
+          if (!(runner.grounded && runner.onBoxTop && ob === activeBox)) {
+            if (hitsBox(ob, hitLeft, hitRight, hitTop, hitBottom)) {
+              endRun();
+              break;
+            }
+          }
+        } else if (ob.type === 'saw') {
           ob.x -= speed * dt;
-        }
-        if (runner.grounded && runner.onBoxTop && ob === activeBox) continue;
+          ob.cx -= speed * dt;
+          ob.angle += dt * 11;
+          if (hitsSaw(ob, hitLeft, hitRight, hitTop, hitBottom)) {
+            endRun();
+            break;
+          }
+        } else if (ob.type === 'combo-overhead' || ob.type === 'combo-pair') {
+          if (ob.box !== activeBox) {
+            ob.box.x -= speed * dt;
+          }
+          ob.saw.cx -= speed * dt;
+          ob.saw.angle += dt * 11;
+          ob.x = Math.min(ob.box.x, ob.saw.cx - ob.saw.r);
 
-        const overlaps =
-          hitRight > ob.x + 4 &&
-          hitLeft < ob.x + ob.w - 4 &&
-          hitBottom > ob.y + 8 &&
-          hitTop < ob.y + ob.h;
-        if (overlaps) {
-          endRun();
-          break;
+          const skipBox = runner.grounded && runner.onBoxTop && ob.box === activeBox;
+          if ((!skipBox && hitsBox(ob.box, hitLeft, hitRight, hitTop, hitBottom)) ||
+              hitsSaw(ob.saw, hitLeft, hitRight, hitTop, hitBottom)) {
+            endRun();
+            break;
+          }
         }
       }
 
-      obstacles = obstacles.filter((ob) => ob.x + ob.w > -50);
+      obstacles = obstacles.filter((ob) => {
+        if (ob.type === 'box') return ob.x + ob.w > -60;
+        if (ob.type === 'saw') return ob.cx + ob.r > -60;
+        return Math.max(ob.box.x + ob.box.w, ob.saw.cx + ob.saw.r) > -60;
+      });
     }
 
     if (trickBanner) {
@@ -561,20 +804,55 @@ window.initStickRun = function initStickRun(stage) {
   function onPointerDown(e) {
     if (!active) return;
     if (e.target.closest('button')) return;
-    triggerJumpOrRestart();
+    pointerStartX = e.clientX;
+    pointerStartY = e.clientY;
+    swipeTriggered = false;
+  }
+
+  function onPointerMove(e) {
+    if (!active || swipeTriggered) return;
+    if (e.buttons === 0 && e.pointerType === 'mouse') return;
+    const dx = e.clientX - pointerStartX;
+    const dy = e.clientY - pointerStartY;
+    const threshold = 24;
+
+    if (Math.abs(dy) > threshold && Math.abs(dy) >= Math.abs(dx) * 0.85) {
+      swipeTriggered = true;
+      if (dy < 0) {
+        triggerJumpSwipe();
+      } else {
+        triggerSlideSwipe();
+      }
+    }
+  }
+
+  function onPointerUp(e) {
+    if (!active) return;
+    if (swipeTriggered) {
+      swipeTriggered = false;
+      return;
+    }
+    if (gameOver && !e.target.closest('button')) {
+      resetRun();
+    }
   }
 
   function onKeyDown(e) {
     if (!active) return;
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
       e.preventDefault();
-      triggerJumpOrRestart();
+      triggerJumpSwipe();
+    } else if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+      e.preventDefault();
+      triggerSlideSwipe();
     }
   }
 
   window.addEventListener('resize', resize);
   window.addEventListener('keydown', onKeyDown);
   stage.addEventListener('pointerdown', onPointerDown);
+  stage.addEventListener('pointermove', onPointerMove);
+  stage.addEventListener('pointerup', onPointerUp);
 
   resize();
   syncHud();
@@ -587,5 +865,7 @@ window.initStickRun = function initStickRun(stage) {
     window.removeEventListener('resize', resize);
     window.removeEventListener('keydown', onKeyDown);
     stage.removeEventListener('pointerdown', onPointerDown);
+    stage.removeEventListener('pointermove', onPointerMove);
+    stage.removeEventListener('pointerup', onPointerUp);
   };
 };
