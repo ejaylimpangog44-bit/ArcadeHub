@@ -1,591 +1,319 @@
-window.initStickRun = function initStickRun(stage) {
+window.initTicTacToe = function initTicTacToe(stage) {
   let active = true;
-  let rafId = null;
+  let aiTimeout = null;
 
-  const canvas = document.createElement('canvas');
-  canvas.className = 'w-full h-full block touch-none';
-  stage.innerHTML = '';
+  const WINS = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
+  ];
 
-  const hud = document.createElement('div');
-  hud.className = 'pointer-events-none absolute top-3 left-3 right-14 z-10 flex items-center justify-between gap-2';
-  hud.innerHTML = `
-    <div id="sr-score-pill" class="px-3.5 py-1.5 rounded-full bg-slate-950/75 border border-sky-400/35 text-sky-200 font-extrabold text-xs tracking-wide shadow">
-      🏃 RUN: 0
-    </div>
-  `;
-
-  const overlay = document.createElement('div');
-  overlay.id = 'sr-gameover-overlay';
-  overlay.className = 'hidden pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center bg-slate-950/35';
-  overlay.innerHTML = `
-    <div class="px-6 py-5 rounded-3xl bg-slate-950/85 border border-amber-400/40 shadow-2xl flex flex-col items-center gap-2">
-      <div id="sr-final-score" class="text-2xl sm:text-3xl font-black text-white tracking-tight">Run Score: 0</div>
-      <div id="sr-best-score" class="text-xs font-extrabold text-amber-300 uppercase tracking-wider">Best: 0</div>
-      <div class="text-xs font-bold text-slate-300 mt-1">Tap or Press Space to Run Again</div>
-    </div>
-  `;
-
-  stage.appendChild(canvas);
-  stage.appendChild(hud);
-  stage.appendChild(overlay);
-
-  const ctx = canvas.getContext('2d');
-  let viewW = 0;
-  let viewH = 0;
-  let groundY = 0;
-
-  let score = 0;
-  let bestScore = window.SupabaseDB?.getBestLocalScore ? window.SupabaseDB.getBestLocalScore('stickrun') : 0;
-  let speed = 340;
+  let board = Array(9).fill(null);
+  let turn = 'X';
+  let gameMode = 'pve';
+  let aiDifficulty = 'normal';
+  let status = 'Your Turn (X)';
   let gameOver = false;
-  let scoreSubmitted = false;
-  let runPhase = 0;
-  let spawnTimer = 0.9;
-  let scoreAccumulator = 0;
+  let winLine = [];
+  let settingsModalOpen = false;
 
-  const runner = {
-    x: 72,
-    y: 0,
-    vy: 0,
-    grounded: true,
-    onBoxTop: false,
-    airJumpsLeft: 1,
-    flipAngle: 0,
-    flipping: false,
-    flipDir: 1
-  };
-
-  let obstacles = [];
-  let particles = [];
-  let trickBanner = null;
-
-  function syncHud() {
-    const scoreEl = document.getElementById('sr-score-pill');
-    const finalEl = document.getElementById('sr-final-score');
-    const bestEl = document.getElementById('sr-best-score');
-    if (scoreEl) scoreEl.textContent = `🏃 RUN: ${score}`;
-    if (finalEl) finalEl.textContent = `Run Score: ${score}`;
-    if (bestEl) bestEl.textContent = `Best: ${Math.max(bestScore, score)}`;
-    overlay.classList.toggle('hidden', !gameOver);
+  function checkWinner(b) {
+    for (const line of WINS) {
+      const [a, c, d] = line;
+      if (b[a] && b[a] === b[c] && b[a] === b[d]) {
+        return { winner: b[a], line };
+      }
+    }
+    if (b.every(cell => cell !== null)) {
+      return { winner: 'DRAW', line: [] };
+    }
+    return null;
   }
 
-  function showTrickLabel(text) {
-    trickBanner = {
-      text,
-      life: 0.85,
-      yOffset: 0
-    };
-  }
-
-  function resize() {
+  function reset() {
     if (!active) return;
-    const rect = stage.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    viewW = Math.max(280, Math.floor(rect.width || window.innerWidth));
-    viewH = Math.max(360, Math.floor(rect.height || window.innerHeight));
+    if (aiTimeout) {
+      clearTimeout(aiTimeout);
+      aiTimeout = null;
+    }
+    board = Array(9).fill(null);
+    turn = 'X';
+    gameOver = false;
+    winLine = [];
+    settingsModalOpen = false;
+    status = gameMode === 'pve' ? 'Your Turn (X)' : 'Player X Turn';
+    render();
+  }
 
-    canvas.width = Math.floor(viewW * dpr);
-    canvas.height = Math.floor(viewH * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  function pickAiMove() {
+    const empty = board.map((v, idx) => (v === null ? idx : -1)).filter(idx => idx !== -1);
+    if (!empty.length) return -1;
 
-    const prevGround = groundY || viewH * 0.72;
-    const deltaGround = Math.round(viewH * 0.72) - prevGround;
-    groundY = Math.round(viewH * 0.72);
-    runner.x = Math.max(52, Math.min(110, Math.round(viewW * 0.18)));
-
-    if (runner.grounded) {
-      runner.y = runner.onBoxTop ? runner.y + deltaGround : groundY;
-    } else {
-      runner.y = Math.min(groundY, runner.y + deltaGround);
+    if (aiDifficulty === 'easy') {
+      return empty[Math.floor(Math.random() * empty.length)];
     }
 
-    obstacles.forEach((ob) => {
-      ob.y = groundY - ob.h;
-    });
+    for (const idx of empty) {
+      const copy = [...board];
+      copy[idx] = 'O';
+      if (checkWinner(copy)?.winner === 'O') return idx;
+    }
+
+    for (const idx of empty) {
+      const copy = [...board];
+      copy[idx] = 'X';
+      if (checkWinner(copy)?.winner === 'X') {
+        if (aiDifficulty === 'normal' && Math.random() < 0.35) continue;
+        return idx;
+      }
+    }
+
+    if (aiDifficulty === 'hard') {
+      if (board[4] === null) return 4;
+      const corners = [0, 2, 6, 8].filter(i => board[i] === null);
+      if (corners.length) return corners[Math.floor(Math.random() * corners.length)];
+    }
+
+    return empty[Math.floor(Math.random() * empty.length)];
   }
 
-  function resetRun() {
+  function finishRound(result) {
+    gameOver = true;
+    winLine = result.line || [];
+
+    if (result.winner === 'DRAW') {
+      status = 'Draw Game!';
+      if (typeof AudioFX !== 'undefined') AudioFX.click();
+      if (typeof addXP === 'function') addXP(15, window.innerWidth / 2, window.innerHeight / 2, 'DRAW +15 XP');
+    } else if (gameMode === 'pve') {
+      if (result.winner === 'X') {
+        status = '🎉 You Win!';
+        if (typeof AudioFX !== 'undefined') AudioFX.win();
+        if (typeof addXP === 'function') addXP(45, window.innerWidth / 2, window.innerHeight / 2, 'VICTORY +45 XP!');
+        window.ArcadeHero?.awardGameScore('tictactoe', 120);
+      } else {
+        status = '🤖 AI Wins!';
+        if (typeof AudioFX !== 'undefined') AudioFX.lose();
+      }
+    } else {
+      status = `🎉 Player ${result.winner} Wins!`;
+      if (typeof AudioFX !== 'undefined') AudioFX.win();
+      if (typeof addXP === 'function') addXP(35, window.innerWidth / 2, window.innerHeight / 2, `PLAYER ${result.winner} WINS!`);
+      window.ArcadeHero?.awardGameScore('tictactoe', 100);
+    }
+    render();
+  }
+
+  function runAiTurn() {
+    if (!active || gameOver || gameMode !== 'pve' || turn !== 'O') return;
+    const idx = pickAiMove();
+    if (idx === -1) return;
+
+    board[idx] = 'O';
+    if (typeof AudioFX !== 'undefined') AudioFX.card();
+
+    const res = checkWinner(board);
+    if (res) {
+      finishRound(res);
+      return;
+    }
+
+    turn = 'X';
+    status = 'Your Turn (X)';
+    render();
+  }
+
+  function render() {
     if (!active) return;
-    score = 0;
-    speed = 340;
-    gameOver = false;
-    scoreSubmitted = false;
-    runPhase = 0;
-    spawnTimer = 0.85;
-    scoreAccumulator = 0;
-    obstacles = [];
-    particles = [];
-    trickBanner = null;
-    runner.vy = 0;
-    runner.y = groundY;
-    runner.grounded = true;
-    runner.onBoxTop = false;
-    runner.airJumpsLeft = 1;
-    runner.flipAngle = 0;
-    runner.flipping = false;
-    syncHud();
-    if (typeof AudioFX !== 'undefined') AudioFX.click();
-  }
 
-  function emitSparks(x, y, count = 6, color = '#fef08a') {
-    for (let i = 0; i < count; i++) {
-      particles.push({
-        x,
-        y,
-        vx: -70 - Math.random() * 110,
-        vy: -35 - Math.random() * 95,
-        life: 0.35 + Math.random() * 0.15,
-        color
+    const modeBadge = gameMode === 'pve'
+      ? `🤖 AI (${aiDifficulty.toUpperCase()})`
+      : '👥 2P PVP';
+
+    stage.innerHTML = `
+      <div class="relative w-full h-full flex flex-col items-center justify-between px-4 py-4 pb-16 sm:pb-6 select-none overflow-y-auto">
+        <div class="flex items-center justify-between w-full max-w-[min(92vw,420px)] z-10">
+          <button id="ttt-menu" type="button" class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 text-lg font-black shadow hover:bg-amber-900 transition cursor-pointer" aria-label="Open Tic-Tac-Toe settings">
+            ☰
+          </button>
+
+          <div class="px-3.5 py-1.5 rounded-full bg-black/60 border border-amber-400/30 text-amber-200 font-extrabold text-xs tracking-wide shadow">
+            ${modeBadge}
+          </div>
+
+          <button id="ttt-reset-btn" type="button" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow cursor-pointer">
+            Reset
+          </button>
+        </div>
+
+        <div class="text-center z-10 mt-2">
+          <div class="text-base sm:text-lg font-black text-white drop-shadow">${status}</div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 aspect-square w-[min(84vw,360px)] p-3.5 rounded-3xl bg-[#7b6752] border-4 border-[#5a4a3a] shadow-[0_20px_60px_rgba(0,0,0,0.65)] my-auto z-10">
+          ${board.map((cell, idx) => {
+            const isWinCell = winLine.includes(idx);
+            const markHtml = cell === 'X'
+              ? '<span class="text-4xl sm:text-5xl font-black text-blue-700">X</span>'
+              : (cell === 'O'
+                ? '<span class="text-4xl sm:text-5xl font-black text-red-700">O</span>'
+                : '');
+
+            return `
+              <button data-idx="${idx}" type="button" class="ttt-cell rounded-2xl bg-[#fbf8f3] hover:bg-white flex items-center justify-center shadow-inner transition active:scale-95 cursor-pointer ${isWinCell ? 'ring-4 ring-emerald-400 bg-emerald-50' : ''}">
+                ${markHtml}
+              </button>
+            `;
+          }).join('')}
+        </div>
+
+        <div class="h-4 z-10"></div>
+
+        <div id="ttt-settings-backdrop" class="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-md ${settingsModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
+          <div id="ttt-settings-modal" class="max-w-sm w-full bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-6 shadow-2xl flex flex-col gap-5 max-h-[88vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <h2 class="text-lg font-black text-amber-400">⚙️ Tic-Tac-Toe Settings</h2>
+              <button id="ttt-close-settings" type="button" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/15 text-white font-bold flex items-center justify-center transition cursor-pointer" aria-label="Close settings">✕</button>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Game Mode</label>
+              <div class="grid grid-cols-2 gap-2.5">
+                <button id="ttt-mode-pve" type="button" class="py-2.5 px-3 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${gameMode === 'pve' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">🤖 vs AI</button>
+                <button id="ttt-mode-pvp" type="button" class="py-2.5 px-3 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${gameMode === 'pvp' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">👥 2P PvP</button>
+              </div>
+            </div>
+
+            <div id="ttt-ai-diff" class="flex flex-col gap-2 ${gameMode === 'pvp' ? 'hidden' : ''}">
+              <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">AI Difficulty</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button id="ttt-diff-easy" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'easy' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Easy</button>
+                <button id="ttt-diff-normal" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'normal' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Normal</button>
+                <button id="ttt-diff-hard" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'hard' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Hard</button>
+              </div>
+            </div>
+
+            <button id="ttt-apply-settings" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg hover:brightness-105 active:scale-[0.99] transition cursor-pointer">
+              Apply &amp; Restart Match ⚔️
+            </button>
+
+            <div id="ttt-settings-extra"></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const tttSettingsExtra = document.getElementById('ttt-settings-extra');
+    if (typeof window.attachGameSettingsFooterActions === 'function' && tttSettingsExtra) {
+      window.attachGameSettingsFooterActions(tttSettingsExtra, {
+        onCloseDrawer: () => {
+          if (!active) return;
+          settingsModalOpen = false;
+          render();
+        }
       });
     }
-  }
 
-  function triggerJumpOrRestart() {
-    if (!active) return;
-    if (gameOver) {
-      resetRun();
-      return;
-    }
+    document.getElementById('ttt-menu').onclick = () => {
+      if (!active) return;
+      if (typeof AudioFX !== 'undefined') AudioFX.click();
+      settingsModalOpen = true;
+      render();
+    };
 
-    if (runner.grounded) {
-      const launchedFromBox = runner.onBoxTop;
-      runner.vy = -660;
-      runner.grounded = false;
-      runner.onBoxTop = false;
-      runner.airJumpsLeft = 1;
-      runner.flipping = false;
-      runner.flipAngle = 0;
-      runner.flipDir = launchedFromBox ? 1 : 0;
-      if (typeof AudioFX !== 'undefined') AudioFX.jump();
-      emitSparks(runner.x, runner.y - 2, 6, launchedFromBox ? '#67e8f9' : '#fef08a');
-      return;
-    }
+    document.getElementById('ttt-reset-btn').onclick = () => {
+      if (!active) return;
+      if (typeof AudioFX !== 'undefined') AudioFX.click();
+      reset();
+    };
 
-    if (runner.airJumpsLeft > 0) {
-      runner.airJumpsLeft--;
-      runner.vy = -610;
-      if (runner.flipDir === 1) {
-        runner.flipping = true;
-        runner.flipAngle = 0;
-        score += 15;
-        syncHud();
-        showTrickLabel('FRONT FLIP! +15');
-        if (typeof AudioFX !== 'undefined') {
-          if (typeof AudioFX.coin === 'function') AudioFX.coin();
-          else if (typeof AudioFX.jump === 'function') AudioFX.jump();
+    document.getElementById('ttt-close-settings').onclick = () => {
+      if (!active) return;
+      if (typeof AudioFX !== 'undefined') AudioFX.click();
+      settingsModalOpen = false;
+      render();
+    };
+
+    document.getElementById('ttt-settings-backdrop').onclick = (e) => {
+      if (!active || e.target.id !== 'ttt-settings-backdrop') return;
+      settingsModalOpen = false;
+      render();
+    };
+
+    document.getElementById('ttt-mode-pve').onclick = () => {
+      if (!active) return;
+      gameMode = 'pve';
+      render();
+    };
+
+    document.getElementById('ttt-mode-pvp').onclick = () => {
+      if (!active) return;
+      gameMode = 'pvp';
+      render();
+    };
+
+    document.getElementById('ttt-diff-easy').onclick = () => {
+      if (!active) return;
+      aiDifficulty = 'easy';
+      render();
+    };
+
+    document.getElementById('ttt-diff-normal').onclick = () => {
+      if (!active) return;
+      aiDifficulty = 'normal';
+      render();
+    };
+
+    document.getElementById('ttt-diff-hard').onclick = () => {
+      if (!active) return;
+      aiDifficulty = 'hard';
+      render();
+    };
+
+    document.getElementById('ttt-apply-settings').onclick = () => {
+      if (!active) return;
+      reset();
+    };
+
+    document.querySelectorAll('.ttt-cell').forEach(btn => {
+      btn.onclick = () => {
+        if (!active || gameOver || settingsModalOpen) return;
+        if (gameMode === 'pve' && turn !== 'X') return;
+
+        const idx = Number(btn.dataset.idx);
+        if (board[idx] !== null) return;
+
+        board[idx] = turn;
+        if (typeof AudioFX !== 'undefined') AudioFX.card();
+
+        const res = checkWinner(board);
+        if (res) {
+          finishRound(res);
+          return;
         }
-        if (typeof addXP === 'function') {
-          addXP(15, runner.x + 20, runner.y - 65, 'FRONT FLIP +15 XP');
-        }
-        emitSparks(runner.x, runner.y - 24, 12, '#fde047');
-      } else {
-        if (typeof AudioFX !== 'undefined') AudioFX.jump();
-        emitSparks(runner.x, runner.y - 12, 6, '#bae6fd');
-      }
-    }
-  }
 
-  function spawnObstacle() {
-    const tall = Math.random() < 0.42;
-    const w = tall ? 46 : 54;
-    const h = tall ? 52 : 36;
-    obstacles.push({
-      x: viewW + 24,
-      y: groundY - h,
-      w,
-      h,
-      landedAwarded: false
-    });
-  }
-
-  function endRun() {
-    if (gameOver) return;
-    gameOver = true;
-    runner.flipping = false;
-    runner.flipAngle = 0;
-    syncHud();
-    if (typeof AudioFX !== 'undefined') AudioFX.lose();
-
-    if (!scoreSubmitted && score > 0) {
-      scoreSubmitted = true;
-      if (score > bestScore) bestScore = score;
-      if (typeof addXP === 'function') {
-        addXP(Math.min(60, Math.max(10, score)), viewW * 0.5, viewH * 0.32, `+${Math.min(60, Math.max(10, score))} XP`);
-      }
-      window.ArcadeHero?.awardGameScore('stickrun', score);
-      syncHud();
-    }
-  }
-
-  function drawBackground() {
-    const sky = ctx.createLinearGradient(0, 0, 0, groundY);
-    sky.addColorStop(0, '#0ea5e9');
-    sky.addColorStop(0.62, '#38bdf8');
-    sky.addColorStop(1, '#bae6fd');
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, viewW, groundY);
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.32)';
-    const cloudShift = (performance.now() * 0.025) % (viewW + 180);
-    [0, 220, 440].forEach((offset, idx) => {
-      const cx = viewW - ((cloudShift + offset) % (viewW + 180)) + 90;
-      const cy = Math.max(64, groundY * (0.2 + idx * 0.12));
-      ctx.beginPath();
-      ctx.arc(cx, cy, 24, 0, Math.PI * 2);
-      ctx.arc(cx + 20, cy - 6, 28, 0, Math.PI * 2);
-      ctx.arc(cx + 44, cy, 22, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    const turf = ctx.createLinearGradient(0, groundY, 0, viewH);
-    turf.addColorStop(0, '#15803d');
-    turf.addColorStop(0.18, '#166534');
-    turf.addColorStop(1, '#052e16');
-    ctx.fillStyle = turf;
-    ctx.fillRect(0, groundY, viewW, viewH - groundY);
-
-    ctx.fillStyle = '#4ade80';
-    ctx.fillRect(0, groundY, viewW, 5);
-  }
-
-  function drawStickRunner() {
-    const hipY = -24;
-    const shoulderY = -44;
-    const headY = -55;
-
-    let frontLegX = 0;
-    let frontLegY = -2;
-    let backLegX = 0;
-    let backLegY = -2;
-    let frontArmX = 0;
-    let frontArmY = -30;
-    let backArmX = 0;
-    let backArmY = -30;
-    let torsoLean = 0;
-
-    if (runner.grounded) {
-      const swing = Math.sin(runPhase) * 12;
-      frontLegX = swing;
-      backLegX = -swing;
-      frontArmX = -swing * 0.8;
-      backArmX = swing * 0.8;
-      torsoLean = 0.08;
-    } else if (runner.flipping) {
-      frontLegX = 9;
-      frontLegY = -12;
-      backLegX = -9;
-      backLegY = -12;
-      frontArmX = -8;
-      frontArmY = -36;
-      backArmX = 8;
-      backArmY = -36;
-    } else if (runner.vy < -140) {
-      // Rising jump tuck
-      frontLegX = 11;
-      frontLegY = -15;
-      backLegX = -10;
-      backLegY = -9;
-      frontArmX = 11;
-      frontArmY = -50;
-      backArmX = -12;
-      backArmY = -34;
-      torsoLean = 0.14;
-    } else if (runner.vy <= 160) {
-      // Near apex
-      frontLegX = 8;
-      frontLegY = -11;
-      backLegX = -11;
-      backLegY = -13;
-      frontArmX = 13;
-      frontArmY = -42;
-      backArmX = -13;
-      backArmY = -40;
-      torsoLean = 0.05;
-    } else {
-      // Falling / preparing to land
-      frontLegX = 13;
-      frontLegY = -5;
-      backLegX = -7;
-      backLegY = -14;
-      frontArmX = -10;
-      frontArmY = -46;
-      backArmX = 11;
-      backArmY = -33;
-      torsoLean = -0.06;
-    }
-
-    ctx.save();
-    ctx.translate(runner.x, runner.y - 26);
-    if (runner.flipping || runner.flipAngle !== 0) {
-      ctx.rotate(runner.flipAngle);
-    }
-    ctx.rotate(torsoLean);
-    ctx.translate(0, 26);
-
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    ctx.beginPath();
-    ctx.arc(0, headY, 8.5, 0, Math.PI * 2);
-    ctx.fillStyle = runner.flipping ? '#fde047' : '#f8fafc';
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0, headY + 8.5);
-    ctx.lineTo(0, hipY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0, shoulderY);
-    ctx.lineTo(frontArmX, frontArmY);
-    ctx.moveTo(0, shoulderY);
-    ctx.lineTo(backArmX, backArmY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0, hipY);
-    ctx.lineTo(frontLegX, frontLegY);
-    ctx.moveTo(0, hipY);
-    ctx.lineTo(backLegX, backLegY);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawObstacles() {
-    obstacles.forEach((ob) => {
-      ctx.save();
-      ctx.fillStyle = '#991b1b';
-      ctx.strokeStyle = '#fca5a5';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(ob.x, ob.y, ob.w, ob.h, 6);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = 'rgba(253, 224, 71, 0.35)';
-      ctx.fillRect(ob.x + 3, ob.y, Math.max(0, ob.w - 6), 4);
-      ctx.restore();
-    });
-
-    particles.forEach((p) => {
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, p.life * 2);
-      ctx.fillStyle = p.color || '#fef08a';
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    });
-
-    if (trickBanner && trickBanner.life > 0) {
-      ctx.save();
-      ctx.globalAlpha = Math.min(1, trickBanner.life * 1.4);
-      ctx.font = '900 15px Inter, system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#fef08a';
-      ctx.strokeStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.lineWidth = 4;
-      const by = runner.y - 78 - trickBanner.yOffset;
-      ctx.strokeText(trickBanner.text, runner.x + 12, by);
-      ctx.fillText(trickBanner.text, runner.x + 12, by);
-      ctx.restore();
-    }
-  }
-
-  const getDeltaSec = window.GameLoopGuard
-    ? window.GameLoopGuard.createDeltaStep(0.05)
-    : (() => {
-        let prev = performance.now();
-        return (now = performance.now()) => {
-          const dt = Math.min((now - prev) / 1000, 0.05);
-          prev = now;
-          return dt > 0 ? dt : 0;
-        };
-      })();
-
-  function step(now) {
-    if (!active) return;
-    const dt = getDeltaSec(now);
-
-    if (!gameOver) {
-      speed = Math.min(680, speed + dt * 9);
-      runPhase += dt * (speed * 0.045);
-
-      scoreAccumulator += dt * 10;
-      if (scoreAccumulator >= 1) {
-        const gained = Math.floor(scoreAccumulator);
-        score += gained;
-        scoreAccumulator -= gained;
-        syncHud();
-      }
-
-      const prevY = runner.y;
-      let activeBox = null;
-
-      if (runner.grounded && runner.onBoxTop) {
-        activeBox = obstacles.find(
-          (ob) =>
-            runner.x + 10 >= ob.x &&
-            runner.x - 10 <= ob.x + ob.w &&
-            Math.abs(runner.y - ob.y) <= 8
-        );
-        if (activeBox) {
-          activeBox.x -= speed * dt;
-          runner.y = activeBox.y;
-          if (runner.x - 10 > activeBox.x + activeBox.w) {
-            runner.grounded = false;
-            runner.onBoxTop = false;
-            runner.vy = 40;
-            runner.airJumpsLeft = 1;
-            runner.flipDir = 0;
-          }
+        if (gameMode === 'pve') {
+          turn = 'O';
+          status = 'AI thinking...';
+          render();
+          if (aiTimeout) clearTimeout(aiTimeout);
+          aiTimeout = setTimeout(() => {
+            aiTimeout = null;
+            runAiTurn();
+          }, 260);
         } else {
-          runner.grounded = false;
-          runner.onBoxTop = false;
-          runner.vy = 40;
-          runner.airJumpsLeft = 1;
-          runner.flipDir = 0;
+          turn = turn === 'X' ? 'O' : 'X';
+          status = `Player ${turn} Turn`;
+          render();
         }
-      }
-
-      if (!runner.grounded) {
-        runner.vy += 1750 * dt;
-        runner.y += runner.vy * dt;
-
-        if (runner.flipping) {
-          runner.flipAngle += dt * 13.5;
-          if (runner.flipAngle >= Math.PI * 2) {
-            runner.flipAngle = 0;
-            runner.flipping = false;
-          }
-        }
-
-        if (runner.vy >= 0) {
-          const hitLeft = runner.x - 10;
-          const hitRight = runner.x + 10;
-          const landedBox = obstacles.find((ob) => {
-            const withinX = hitRight > ob.x + 3 && hitLeft < ob.x + ob.w - 3;
-            const crossedTop = prevY <= ob.y + 10 && runner.y >= ob.y;
-            return withinX && crossedTop;
-          });
-
-          if (landedBox) {
-            runner.y = landedBox.y;
-            runner.vy = 0;
-            runner.grounded = true;
-            runner.onBoxTop = true;
-            runner.airJumpsLeft = 1;
-            runner.flipping = false;
-            runner.flipAngle = 0;
-            runner.flipDir = 1;
-            if (!landedBox.landedAwarded) {
-              landedBox.landedAwarded = true;
-              score += 5;
-              syncHud();
-              showTrickLabel('BOX TOP! DOUBLE TAP TO FLIP');
-            }
-            emitSparks(runner.x, runner.y, 5, '#67e8f9');
-          }
-        }
-
-        if (!runner.grounded && runner.y >= groundY) {
-          runner.y = groundY;
-          runner.vy = 0;
-          runner.grounded = true;
-          runner.onBoxTop = false;
-          runner.airJumpsLeft = 1;
-          runner.flipping = false;
-          runner.flipAngle = 0;
-          runner.flipDir = 0;
-        }
-      } else if (!runner.onBoxTop) {
-        runner.y = groundY;
-      }
-
-      spawnTimer -= dt;
-      if (spawnTimer <= 0) {
-        spawnObstacle();
-        spawnTimer = Math.max(0.76, 1.48 - (speed - 340) / 520) + Math.random() * 0.35;
-      }
-
-      const hitLeft = runner.x - 10;
-      const hitRight = runner.x + 10;
-      const hitTop = runner.y - 52;
-      const hitBottom = runner.y - 4;
-
-      for (const ob of obstacles) {
-        if (ob !== activeBox) {
-          ob.x -= speed * dt;
-        }
-        if (runner.grounded && runner.onBoxTop && ob === activeBox) continue;
-
-        const overlaps =
-          hitRight > ob.x + 4 &&
-          hitLeft < ob.x + ob.w - 4 &&
-          hitBottom > ob.y + 8 &&
-          hitTop < ob.y + ob.h;
-        if (overlaps) {
-          endRun();
-          break;
-        }
-      }
-
-      obstacles = obstacles.filter((ob) => ob.x + ob.w > -50);
-    }
-
-    if (trickBanner) {
-      trickBanner.life -= dt;
-      trickBanner.yOffset += dt * 24;
-      if (trickBanner.life <= 0) trickBanner = null;
-    }
-
-    particles.forEach((p) => {
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.vy += 420 * dt;
-      p.life -= dt;
+      };
     });
-    particles = particles.filter((p) => p.life > 0);
-
-    drawBackground();
-    drawObstacles();
-    drawStickRunner();
-
-    const nextRaf = requestAnimationFrame(step);
-    rafId = window.GameLoopGuard ? window.GameLoopGuard.trackRaf(nextRaf) : nextRaf;
   }
 
-  function onPointerDown(e) {
-    if (!active) return;
-    if (e.target.closest('button')) return;
-    triggerJumpOrRestart();
-  }
-
-  function onKeyDown(e) {
-    if (!active) return;
-    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
-      e.preventDefault();
-      triggerJumpOrRestart();
-    }
-  }
-
-  window.addEventListener('resize', resize);
-  window.addEventListener('keydown', onKeyDown);
-  stage.addEventListener('pointerdown', onPointerDown);
-
-  resize();
-  syncHud();
-  const initialRaf = requestAnimationFrame(step);
-  rafId = window.GameLoopGuard ? window.GameLoopGuard.trackRaf(initialRaf) : initialRaf;
+  reset();
 
   return () => {
     active = false;
-    if (rafId !== null) cancelAnimationFrame(rafId);
-    window.removeEventListener('resize', resize);
-    window.removeEventListener('keydown', onKeyDown);
-    stage.removeEventListener('pointerdown', onPointerDown);
+    if (aiTimeout) clearTimeout(aiTimeout);
   };
 };
