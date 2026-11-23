@@ -191,7 +191,7 @@ function normalizeGameId(rawId) {
   return GAME_ID_ALIASES[key] || key;
 }
 
-const SELF_MENU_GAMES = new Set(['chess', 'dama']);[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)
+const SELF_MENU_GAMES = new Set(['chess', 'dama']);
 
 function syncUniversalGameBar(gameId = activeGameId) {
   const bar = document.getElementById('universal-game-bar');
