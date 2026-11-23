@@ -248,13 +248,14 @@ window.initStickRun = function initStickRun(stage) {
   function createHorizontalChainBoxes(startX) {
     const boxW = 44;
     const boxH = 34;
-    const gapX = 10;
+    const gapX = 12;
+    const floatOffset = 42;
     return [0, 1, 2].map((idx) => ({
       x: startX + idx * (boxW + gapX),
-      y: groundY - boxH,
+      y: groundY - floatOffset - boxH,
       w: boxW,
       h: boxH,
-      offsetFromGround: 0,
+      offsetFromGround: floatOffset,
       landedAwarded: false
     }));
   }
@@ -287,7 +288,7 @@ window.initStickRun = function initStickRun(stage) {
       obstacles.push({
         kind: 'horizontal-chain',
         boxes,
-        chainBoxes: boxes,
+        chainedBoxIndex: 0,
         saws: []
       });
     } else if (roll < 0.5) {
@@ -642,31 +643,34 @@ window.initStickRun = function initStickRun(stage) {
     ctx.restore();
   }
 
-  function drawPullChain(boxes) {
-    if (!Array.isArray(boxes) || boxes.length < 2) return;
+  function drawPullChain(boxes, linkedIndex = 0) {
+    const targetBox = Array.isArray(boxes) ? boxes[linkedIndex] : null;
+    if (!targetBox) return;
+
     ctx.save();
+    const anchorX = targetBox.x + targetBox.w * 0.5;
+    const anchorY = targetBox.y;
+    const chainTopY = Math.max(24, targetBox.y - 46);
+
     ctx.strokeStyle = '#fde047';
     ctx.lineWidth = 3;
     ctx.setLineDash([6, 4]);
-
-    for (let i = 0; i < boxes.length - 1; i++) {
-      const a = boxes[i];
-      const b = boxes[i + 1];
-      const ay = a.y + a.h * 0.45;
-      const by = b.y + b.h * 0.45;
-      ctx.beginPath();
-      ctx.moveTo(a.x + a.w, ay);
-      ctx.lineTo(b.x, by);
-      ctx.stroke();
-    }
+    ctx.beginPath();
+    ctx.moveTo(anchorX, anchorY);
+    ctx.lineTo(anchorX, chainTopY);
+    ctx.stroke();
 
     ctx.setLineDash([]);
-    boxes.forEach((box) => {
-      ctx.beginPath();
-      ctx.arc(box.x + box.w * 0.5, box.y + box.h * 0.45, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#fef08a';
-      ctx.fill();
-    });
+    ctx.beginPath();
+    ctx.arc(anchorX, anchorY, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#fef08a';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(anchorX, chainTopY, 5, 0, Math.PI * 2);
+    ctx.strokeStyle = '#fde047';
+    ctx.lineWidth = 2;
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -674,7 +678,7 @@ window.initStickRun = function initStickRun(stage) {
     obstacles.forEach((ob) => {
       const boxes = getObstacleBoxes(ob);
       if (ob.kind === 'horizontal-chain') {
-        drawPullChain(boxes);
+        drawPullChain(boxes, ob.chainedBoxIndex ?? 0);
       }
       boxes.forEach((box) => drawBox(box));
       getObstacleSaws(ob).forEach((saw) => drawSawblade(saw));
