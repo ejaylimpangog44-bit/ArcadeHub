@@ -2,6 +2,15 @@ const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
 
+function syncFoxCompanionVisibility() {
+  if (!foxWidget) return;
+  const appShell = document.getElementById('app-shell');
+  const loginScreen = document.getElementById('login-screen');
+  const isLoggedIn = appShell && !appShell.classList.contains('hidden') && (!loginScreen || loginScreen.classList.contains('hidden'));
+  foxWidget.classList.toggle('hidden', !isLoggedIn);
+  foxWidget.classList.toggle('flex', Boolean(isLoggedIn));
+}
+
 function openFoxCompanionModal() {
   if (typeof window.openHeroModal === 'function') {
     window.openHeroModal();
@@ -216,23 +225,24 @@ let activeShareUrl = HUB_URLS.vercel;
 function renderHubQrCode(targetUrl = activeShareUrl) {
   activeShareUrl = targetUrl;
   const container = document.getElementById('qrcode-container');
-  const modal = document.getElementById('qr-share-modal');
-  if (modal) {
-    const urlTextEl = modal.querySelector('.font-mono');
-    if (urlTextEl) urlTextEl.textContent = targetUrl;
-    const openLinkEl = modal.querySelector('a[href]');
-    if (openLinkEl) openLinkEl.href = targetUrl;
-  }
-  if (container && window.QRCode) {
+  const urlTextEl = document.getElementById('qr-url-display');
+  const openLinkEl = document.getElementById('qr-open-link');
+  if (urlTextEl) urlTextEl.textContent = targetUrl;
+  if (openLinkEl) openLinkEl.href = targetUrl;
+  if (container) {
     container.innerHTML = '';
-    new QRCode(container, {
-      text: targetUrl,
-      width: 170,
-      height: 170,
-      colorDark: '#0f172a',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
-    });
+    if (window.QRCode) {
+      new QRCode(container, {
+        text: targetUrl,
+        width: 170,
+        height: 170,
+        colorDark: '#0f172a',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    } else {
+      container.innerHTML = `<div class="p-3 text-xs font-mono text-slate-900">${targetUrl}</div>`;
+    }
   }
 }
 
@@ -275,7 +285,7 @@ const GAME_GUIDES = {
   brickbreaker: 'Deflect the ball off your paddle to smash all bricks while keeping the ball from falling below.',
   stickrun: 'Time jumps and runs cleanly across platforms and rooftops without falling into gaps.',
   'tiny-cafe': 'Prepare and serve café orders promptly to keep customers happy and maximize earnings.',
-  flickpoint: 'Aim and flick quickly onto targets before time runs out to maximize accuracy and score.',
+  flickpoint: 'Aim and flick quickly onto targets before time out to maximize accuracy and score.',
   mythic: 'Survive incoming enemy waves, gather XP gems, and pick upgrades to stay alive as long as possible.'
 };
 
@@ -346,14 +356,6 @@ function closeAboutModal() {
 
 function filterGames(query) {
   discoverySearch = String(query || '');
-  const discInput = document.getElementById('discovery-search-input');
-  const clearBtn = document.getElementById('discovery-clear-btn');
-  if (discInput && discInput.value !== discoverySearch) {
-    discInput.value = discoverySearch;
-  }
-  if (clearBtn) {
-    clearBtn.classList.toggle('hidden', discoverySearch.length === 0);
-  }
   renderDiscoveryShelves();
 }
 
@@ -445,6 +447,7 @@ function submitPlayerName() {
   document.getElementById('header-player-name').textContent = window.playerName;
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app-shell').classList.remove('hidden');
+  syncFoxCompanionVisibility();
   AudioFX.click();
   const bgm = document.getElementById('bgm-audio');
   if (bgm && bgmEnabled) {
@@ -915,9 +918,9 @@ function openHubHome() {
   }
   activeGameId = null;
   loadHubMetaState();
+  syncFoxCompanionVisibility();
 
   document.getElementById('hub-header').classList.remove('hidden');
-  document.getElementById('hub-search-bar-slot')?.classList.remove('hidden');
   document.getElementById('universal-game-bar').classList.add('hidden');
 
   const stage = document.getElementById('game-stage');
@@ -927,14 +930,47 @@ function openHubHome() {
   BgEngine.setTheme('hub');
 
   stage.innerHTML = `
-    <div class="w-full h-full overflow-y-auto px-4 sm:px-8 py-5 pb-16">
+    <div class="w-full h-full overflow-y-auto px-4 sm:px-8 py-4 pb-20">
       <div class="max-w-6xl mx-auto flex flex-col gap-5">
-        <div class="flex flex-wrap items-center gap-2.5">
-          <div class="relative flex-1 min-w-[210px] max-w-xs">
-            <input id="discovery-search-input" type="text" value="${discoverySearch}" placeholder="Search 20 games..." autocomplete="off"
-              class="w-full pl-3.5 pr-8 py-2 rounded-full bg-white/5 border border-white/10 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-pink-400 transition" />
-            <button id="discovery-clear-btn" class="${discoverySearch ? '' : 'hidden'} absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-sm font-bold">✕</button>
+        <div class="flex flex-col gap-2.5">
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <input id="hub-search-input" type="text" value="${discoverySearch}" placeholder="Search 20 games..." autocomplete="off"
+                class="w-full h-10 pl-3.5 pr-8 rounded-full bg-white/5 border border-white/10 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-pink-400 transition" />
+              <button id="discovery-clear-btn" class="${discoverySearch ? '' : 'hidden'} absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-sm font-bold">✕</button>
+            </div>
+
+            <div class="relative group" id="hub-hamburger-wrapper">
+              <button id="hub-hamburger-btn" type="button" onclick="toggleHubMenu(event)" aria-label="Open Menu" aria-expanded="false" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 flex flex-col items-center justify-center gap-1 transition active:scale-95">
+                <span class="w-4 h-0.5 bg-slate-200 rounded-full"></span>
+                <span class="w-4 h-0.5 bg-slate-200 rounded-full"></span>
+                <span class="w-4 h-0.5 bg-slate-200 rounded-full"></span>
+              </button>
+
+              <div id="hub-hamburger-dropdown" class="hidden group-hover:block hover:block absolute right-0 top-full mt-2 w-60 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/15 p-1.5 shadow-2xl z-50">
+                <button type="button" onclick="openSettingsModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-100 hover:bg-white/10 transition">
+                  <span>🎵</span>
+                  <span>BGM &amp; SFX Controls</span>
+                </button>
+
+                <button type="button" onclick="openQrShareModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-100 hover:bg-white/10 transition">
+                  <span>📱</span>
+                  <span>QR Code &amp; URL</span>
+                </button>
+
+                <button type="button" onclick="openInstructionsModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-100 hover:bg-white/10 transition">
+                  <span>📖</span>
+                  <span>Game Instructions</span>
+                </button>
+
+                <button type="button" onclick="openAboutModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-100 hover:bg-white/10 transition">
+                  <span>ℹ️</span>
+                  <span>About Arcade Hub</span>
+                </button>
+              </div>
+            </div>
           </div>
+
           <div id="discovery-chips" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
             <button class="discovery-chip ${discoveryFilter === 'all' ? 'active' : ''}" data-filter="all">All (20)</button>
             <button class="discovery-chip ${discoveryFilter === 'portrait' ? 'active' : ''}" data-filter="portrait">Portrait</button>
@@ -979,14 +1015,12 @@ function openHubHome() {
   updateSpotlightBanner();
   renderDiscoveryShelves();
 
-  const searchInput = document.getElementById('discovery-search-input');
+  const searchInput = document.getElementById('hub-search-input');
   const clearBtn = document.getElementById('discovery-clear-btn');
   const chipsWrap = document.getElementById('discovery-chips');
 
   searchInput?.addEventListener('input', (e) => {
     discoverySearch = e.target.value;
-    const topSearch = document.getElementById('hub-search-input');
-    if (topSearch && topSearch.value !== discoverySearch) topSearch.value = discoverySearch;
     clearBtn?.classList.toggle('hidden', discoverySearch.length === 0);
     renderDiscoveryShelves();
   });
@@ -994,8 +1028,6 @@ function openHubHome() {
   clearBtn?.addEventListener('click', () => {
     discoverySearch = '';
     if (searchInput) searchInput.value = '';
-    const topSearch = document.getElementById('hub-search-input');
-    if (topSearch) topSearch.value = '';
     clearBtn.classList.add('hidden');
     renderDiscoveryShelves();
   });
@@ -1013,8 +1045,6 @@ function openHubHome() {
 function resetDiscoveryFilters() {
   discoveryFilter = 'all';
   discoverySearch = '';
-  const topSearch = document.getElementById('hub-search-input');
-  if (topSearch) topSearch.value = '';
   openHubHome();
 }
 
@@ -1041,7 +1071,6 @@ function launchGame(id) {
   activeGameId = id;
 
   document.getElementById('hub-header').classList.add('hidden');
-  document.getElementById('hub-search-bar-slot')?.classList.add('hidden');
   document.getElementById('universal-game-bar').classList.remove('hidden');
 
   document.getElementById('app-shell').style.background = getGameBgStyle(meta);
@@ -1079,6 +1108,7 @@ function launchGame(id) {
 
 window.addEventListener('DOMContentLoaded', () => {
   loadHubMetaState();
+  syncFoxCompanionVisibility();
 
   const splashScreen = document.getElementById('splash-screen');
   if (splashScreen) {
