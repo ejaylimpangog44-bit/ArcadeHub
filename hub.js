@@ -188,25 +188,10 @@ function toggleSFX() {
   if (on) AudioFX.click();
 }
 
-let qrGenerated = false;
 function openSettingsModal() {
+  if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
   AudioFX.click();
   const modal = document.getElementById('settings-modal');
-  if (!qrGenerated && window.QRCode) {
-    const container = document.getElementById('qrcode-container');
-    if (container) {
-      container.innerHTML = '';
-      new QRCode(container, {
-        text: 'https://arcadehubgames-july12.vercel.app/',
-        width: 170,
-        height: 170,
-        colorDark: '#0f172a',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-      });
-      qrGenerated = true;
-    }
-  }
   if (modal) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -222,8 +207,158 @@ function closeSettingsModal() {
   }
 }
 
+const HUB_URLS = {
+  vercel: 'https://arcadehubgames-july12.vercel.app/',
+  github: 'https://ejaylimpangog44-bit.github.io/ArcadeHub/'
+};
+let activeShareUrl = HUB_URLS.vercel;
+
+function renderHubQrCode(targetUrl = activeShareUrl) {
+  activeShareUrl = targetUrl;
+  const container = document.getElementById('qrcode-container');
+  const modal = document.getElementById('qr-share-modal');
+  if (modal) {
+    const urlTextEl = modal.querySelector('.font-mono');
+    if (urlTextEl) urlTextEl.textContent = targetUrl;
+    const openLinkEl = modal.querySelector('a[href]');
+    if (openLinkEl) openLinkEl.href = targetUrl;
+  }
+  if (container && window.QRCode) {
+    container.innerHTML = '';
+    new QRCode(container, {
+      text: targetUrl,
+      width: 170,
+      height: 170,
+      colorDark: '#0f172a',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+}
+
+function openQrShareModal(url = activeShareUrl) {
+  if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
+  AudioFX.click();
+  renderHubQrCode(url);
+  const modal = document.getElementById('qr-share-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+}
+
+function closeQrShareModal() {
+  AudioFX.click();
+  const modal = document.getElementById('qr-share-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
+const GAME_GUIDES = {
+  solitaire: 'Build all four foundation piles up from Ace to King by suit while arranging tableau cards in descending rank with alternating colors.',
+  coinscatter: 'Spin the reels to land matching symbols and scatter icons for bonus coin payouts and multiplier streaks.',
+  blackjack: 'Draw or stand to get as close to 21 as possible without going over while beating the dealer’s total.',
+  highlow: 'Predict whether the next revealed card will be higher or lower than the current card to chain streaks.',
+  chess: 'Move pieces across the board following standard chess movement and capture rules to checkmate the opposing king.',
+  dama: 'Slide pieces diagonally across dark squares to jump and capture opponent pieces; reach the far edge to promote to Dama.',
+  tictactoe: 'Alternate placing X and O marks on the grid and align three in a row horizontally, vertically, or diagonally.',
+  numberguess: 'Guess the secret target number using higher and lower hints to solve it in as few tries as possible.',
+  wordscape: 'Swipe or tap letters to connect valid words and fill every crossword slot on the board.',
+  basketball: 'Swipe upward toward the hoop with controlled angle and power; chain swishes for higher combo points.',
+  fruitmaster: 'Swipe across flying fruit to slice them for points while avoiding bombs that break your combo.',
+  whackamole: 'Tap targets quickly as they pop up to rack up points before they disappear.',
+  cybersnake: 'Guide your snake to collect energy nodes while avoiding arena walls and colliding with your own tail.',
+  towerstack: 'Tap at the exact moment each sliding block aligns above the tower to stack higher and earn combos.',
+  carracing: 'Steer across highway lanes at high speed to overtake traffic and dodge road obstacles.',
+  brickbreaker: 'Deflect the ball off your paddle to smash all bricks while keeping the ball from falling below.',
+  stickrun: 'Time jumps and runs cleanly across platforms and rooftops without falling into gaps.',
+  'tiny-cafe': 'Prepare and serve café orders promptly to keep customers happy and maximize earnings.',
+  flickpoint: 'Aim and flick quickly onto targets before time runs out to maximize accuracy and score.',
+  mythic: 'Survive incoming enemy waves, gather XP gems, and pick upgrades to stay alive as long as possible.'
+};
+
+function populateInstructionsDropdown() {
+  const select = document.getElementById('instruction-game-select');
+  if (!select) return;
+  select.innerHTML = '';
+  GAMES.forEach((game) => {
+    const opt = document.createElement('option');
+    opt.value = game.id;
+    opt.textContent = `${formatGameNum(game.num)} — ${game.name}`;
+    select.appendChild(opt);
+  });
+  renderSelectedGameInstruction();
+}
+
+function renderSelectedGameInstruction() {
+  const select = document.getElementById('instruction-game-select');
+  const body = document.getElementById('instruction-game-body');
+  if (!select || !body) return;
+  const game = GAMES.find((g) => g.id === select.value) || GAMES[0];
+  const guideText = GAME_GUIDES[game.id] || `Play ${game.name} in ${game.envName} and aim for a high score.`;
+  body.innerHTML = `
+    <div class="font-extrabold text-white text-sm mb-1">${game.icon} ${game.name} <span class="text-[11px] font-mono text-pink-400">(${game.mode || 'PORTRAIT'})</span></div>
+    <div class="text-[11px] text-slate-400 mb-2">${game.envName} • ${game.cat}</div>
+    <p class="text-xs text-slate-200 leading-relaxed">${guideText}</p>
+  `;
+}
+
+function openInstructionsModal() {
+  if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
+  AudioFX.click();
+  populateInstructionsDropdown();
+  const modal = document.getElementById('instructions-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+}
+
+function closeInstructionsModal() {
+  AudioFX.click();
+  const modal = document.getElementById('instructions-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
+function openAboutModal() {
+  if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
+  AudioFX.click();
+  const modal = document.getElementById('about-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+}
+
+function closeAboutModal() {
+  AudioFX.click();
+  const modal = document.getElementById('about-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
+function filterGames(query) {
+  discoverySearch = String(query || '');
+  const discInput = document.getElementById('discovery-search-input');
+  const clearBtn = document.getElementById('discovery-clear-btn');
+  if (discInput && discInput.value !== discoverySearch) {
+    discInput.value = discoverySearch;
+  }
+  if (clearBtn) {
+    clearBtn.classList.toggle('hidden', discoverySearch.length === 0);
+  }
+  renderDiscoveryShelves();
+}
+
 function copyHubLink() {
-  navigator.clipboard?.writeText('https://arcadehubgames-july12.vercel.app/');
+  navigator.clipboard?.writeText(activeShareUrl);
   const btn = document.getElementById('copy-link-btn');
   if (btn) {
     btn.textContent = '✓ Copied!';
@@ -782,6 +917,7 @@ function openHubHome() {
   loadHubMetaState();
 
   document.getElementById('hub-header').classList.remove('hidden');
+  document.getElementById('hub-search-bar-slot')?.classList.remove('hidden');
   document.getElementById('universal-game-bar').classList.add('hidden');
 
   const stage = document.getElementById('game-stage');
@@ -849,6 +985,8 @@ function openHubHome() {
 
   searchInput?.addEventListener('input', (e) => {
     discoverySearch = e.target.value;
+    const topSearch = document.getElementById('hub-search-input');
+    if (topSearch && topSearch.value !== discoverySearch) topSearch.value = discoverySearch;
     clearBtn?.classList.toggle('hidden', discoverySearch.length === 0);
     renderDiscoveryShelves();
   });
@@ -856,6 +994,8 @@ function openHubHome() {
   clearBtn?.addEventListener('click', () => {
     discoverySearch = '';
     if (searchInput) searchInput.value = '';
+    const topSearch = document.getElementById('hub-search-input');
+    if (topSearch) topSearch.value = '';
     clearBtn.classList.add('hidden');
     renderDiscoveryShelves();
   });
@@ -873,6 +1013,8 @@ function openHubHome() {
 function resetDiscoveryFilters() {
   discoveryFilter = 'all';
   discoverySearch = '';
+  const topSearch = document.getElementById('hub-search-input');
+  if (topSearch) topSearch.value = '';
   openHubHome();
 }
 
@@ -899,6 +1041,7 @@ function launchGame(id) {
   activeGameId = id;
 
   document.getElementById('hub-header').classList.add('hidden');
+  document.getElementById('hub-search-bar-slot')?.classList.add('hidden');
   document.getElementById('universal-game-bar').classList.remove('hidden');
 
   document.getElementById('app-shell').style.background = getGameBgStyle(meta);
