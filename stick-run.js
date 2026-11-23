@@ -649,31 +649,31 @@ window.initStickRun = function initStickRun(stage) {
   function drawLastBoxPullChain(boxes) {
     if (!Array.isArray(boxes) || boxes.length === 0) return;
     const lastBox = boxes[boxes.length - 1];
-    const anchorX = lastBox.x + lastBox.w * 0.5;
-    const anchorY = lastBox.y + lastBox.h * 0.5;
-    const endX = lastBox.x + lastBox.w + 46;
-    const endY = anchorY + 14;
+    const startX = lastBox.x + lastBox.w * 0.5;
+    const startY = lastBox.y;
+    const chainLen = 112;
+    const links = 9;
+    const stepY = chainLen / links;
 
     ctx.save();
-    ctx.strokeStyle = '#fde047';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([6, 4]);
-    ctx.beginPath();
-    ctx.moveTo(anchorX, anchorY);
-    ctx.lineTo(endX, endY);
-    ctx.stroke();
+    ctx.strokeStyle = '#fca5a5';
+    ctx.lineWidth = 2.4;
 
-    ctx.setLineDash([]);
+    for (let i = 0; i < links; i++) {
+      const y1 = startY - i * stepY;
+      const y2 = startY - (i + 1) * stepY;
+      const sway1 = Math.sin(i * 0.45) * 2;
+      const sway2 = Math.sin((i + 1) * 0.45) * 2;
+      ctx.beginPath();
+      ctx.moveTo(startX + sway1, y1);
+      ctx.lineTo(startX + sway2, y2);
+      ctx.stroke();
+    }
+
     ctx.beginPath();
-    ctx.arc(anchorX, anchorY, 4, 0, Math.PI * 2);
+    ctx.arc(startX, startY, 3.5, 0, Math.PI * 2);
     ctx.fillStyle = '#fef08a';
     ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(endX, endY, 5, 0, Math.PI * 2);
-    ctx.strokeStyle = '#fde047';
-    ctx.lineWidth = 2;
-    ctx.stroke();
     ctx.restore();
   }
 
@@ -717,9 +717,6 @@ window.initStickRun = function initStickRun(stage) {
     getObstacleBoxes(ob).forEach((box) => {
       right = Math.max(right, box.x + box.w);
     });
-    if (ob.kind === 'horizontal-chain') {
-      right = Math.max(right, right + 54);
-    }
     getObstacleSaws(ob).forEach((saw) => {
       right = Math.max(right, saw.x + saw.r + 6);
     });
