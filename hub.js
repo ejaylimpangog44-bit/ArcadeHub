@@ -191,6 +191,56 @@ function normalizeGameId(rawId) {
   return GAME_ID_ALIASES[key] || key;
 }
 
+const SELF_MENU_GAMES = new Set(['chess', 'dama']);[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)
+
+function syncUniversalGameBar(gameId = activeGameId) {
+  const bar = document.getElementById('universal-game-bar');
+  if (!bar) return;
+  const shouldHide = !gameId || SELF_MENU_GAMES.has(normalizeGameId(gameId));
+  bar.classList.toggle('hidden', shouldHide);
+}
+
+function attachGameSettingsFooterActions(containerEl, options = {}) {
+  if (!containerEl) return;
+  if (containerEl.querySelector('[data-game-settings-hub-actions]')) return;
+
+  const actionsWrap = document.createElement('div');
+  actionsWrap.setAttribute('data-game-settings-hub-actions', 'true');
+  actionsWrap.className = 'mt-4 pt-3 border-t border-white/10 flex flex-col gap-2';
+
+  actionsWrap.innerHTML = `
+    <button type="button" data-action="audio-fullscreen" class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-extrabold text-white flex items-center justify-between transition active:scale-95">
+      <span class="flex items-center gap-2">
+        <span>🎵</span>
+        <span>Audio &amp; Fullscreen</span>
+      </span>
+      <span class="text-slate-300">›</span>
+    </button>
+    <button type="button" data-action="back-to-hub" class="w-full py-2.5 px-4 rounded-xl bg-pink-500/15 hover:bg-pink-500/25 border border-pink-400/25 text-xs font-extrabold text-pink-300 flex items-center justify-between transition active:scale-95">
+      <span class="flex items-center gap-2">
+        <span>←</span>
+        <span>Back To Hub</span>
+      </span>
+      <span>›</span>
+    </button>
+  `;
+
+  actionsWrap.querySelector('[data-action="audio-fullscreen"]')?.addEventListener('click', () => {
+    if (typeof options.onCloseDrawer === 'function') options.onCloseDrawer();
+    if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
+    if (typeof window.openSettingsModal === 'function') window.openSettingsModal();
+  });
+
+  actionsWrap.querySelector('[data-action="back-to-hub"]')?.addEventListener('click', () => {
+    if (typeof options.onCloseDrawer === 'function') options.onCloseDrawer();
+    if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
+    if (typeof window.openHubHome === 'function') window.openHubHome();
+  });
+
+  containerEl.appendChild(actionsWrap);
+}
+window.attachGameSettingsFooterActions = attachGameSettingsFooterActions;
+
 const SupabaseDB = (() => {
   const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
@@ -1465,7 +1515,7 @@ function openHubHome() {
   syncFoxCompanionVisibility();
 
   document.getElementById('hub-header')?.classList.remove('hidden');
-  document.getElementById('universal-game-bar')?.classList.add('hidden');
+  syncUniversalGameBar(null);
 
   const stage = document.getElementById('game-stage');
   if (!stage) return;
@@ -1643,7 +1693,7 @@ function launchGame(id) {
   activeGameId = canonId;
 
   document.getElementById('hub-header')?.classList.add('hidden');
-  document.getElementById('universal-game-bar')?.classList.remove('hidden');
+  syncUniversalGameBar(canonId);
 
   const appShell = document.getElementById('app-shell');
   if (appShell) appShell.style.background = getGameBgStyle(meta);
