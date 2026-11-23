@@ -53,6 +53,7 @@ window.initStickRun = function initStickRun(stage) {
     onBoxTop: false,
     sliding: false,
     slideTimer: 0,
+    slideBlend: 0,
     airJumpsLeft: 1,
     flipAngle: 0,
     flipping: false,
@@ -133,6 +134,7 @@ window.initStickRun = function initStickRun(stage) {
     runner.onBoxTop = false;
     runner.sliding = false;
     runner.slideTimer = 0;
+    runner.slideBlend = 0;
     runner.airJumpsLeft = 1;
     runner.flipAngle = 0;
     runner.flipping = false;
@@ -288,6 +290,7 @@ window.initStickRun = function initStickRun(stage) {
     gameOver = true;
     runner.sliding = false;
     runner.slideTimer = 0;
+    runner.slideBlend = 0;
     runner.flipping = false;
     runner.flipAngle = 0;
     syncHud();
@@ -335,49 +338,80 @@ window.initStickRun = function initStickRun(stage) {
     ctx.fillRect(0, groundY, viewW, 5);
   }
 
+  function drawSlidePose() {
+    const t = runner.slideBlend;
+    const bounce = Math.sin(runPhase * 1.4) * 1.1;
+
+    ctx.save();
+    ctx.translate(runner.x, runner.y);
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Head at the back (-x), lifted slightly so the runner looks forward
+    const headX = -15 * t;
+    const headY = -14 * t + bounce * 0.5;
+    const shoulderX = -9 * t;
+    const shoulderY = -11 * t + bounce * 0.4;
+    const hipX = 7 * t;
+    const hipY = -7 * t + bounce * 0.3;
+
+    // Straightforward front leg extended out
+    const straightFootX = 24 * t;
+    const straightFootY = -2;
+
+    // Bent knee tucked cleanly under the front hip
+    const bentKneeX = 12 * t;
+    const bentKneeY = -15 * t;
+    const bentFootX = 5 * t;
+    const bentFootY = -2;
+
+    // Bent arm reaching/bracing forward-downward
+    const elbowX = 4 * t;
+    const elbowY = -16 * t;
+    const handX = 11 * t;
+    const handY = -6 * t;
+
+    // Head
+    ctx.beginPath();
+    ctx.arc(headX, headY, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#f8fafc';
+    ctx.fill();
+    ctx.stroke();
+
+    // Torso from back shoulder to hip
+    ctx.beginPath();
+    ctx.moveTo(shoulderX, shoulderY);
+    ctx.lineTo(hipX, hipY);
+    ctx.stroke();
+
+    // Bent arm
+    ctx.beginPath();
+    ctx.moveTo(-3 * t, -10 * t);
+    ctx.lineTo(elbowX, elbowY);
+    ctx.lineTo(handX, handY);
+    ctx.stroke();
+
+    // Straightforward leg
+    ctx.beginPath();
+    ctx.moveTo(hipX, hipY);
+    ctx.lineTo(straightFootX, straightFootY);
+    ctx.stroke();
+
+    // Bent knee leg
+    ctx.beginPath();
+    ctx.moveTo(hipX, hipY);
+    ctx.lineTo(bentKneeX, bentKneeY);
+    ctx.lineTo(bentFootX, bentFootY);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
   function drawStickRunner() {
-    if (runner.sliding && runner.grounded) {
-      ctx.save();
-      ctx.translate(runner.x, runner.y);
-      ctx.strokeStyle = '#0f172a';
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      // Head positioned at the back (-x), body resting low along the ground/box top
-      ctx.beginPath();
-      ctx.arc(-16, -9, 7.5, 0, Math.PI * 2);
-      ctx.fillStyle = '#f8fafc';
-      ctx.fill();
-      ctx.stroke();
-
-      // Torso along the ground from back shoulder (-9, -7) to front hip (8, -6)
-      ctx.beginPath();
-      ctx.moveTo(-9, -7);
-      ctx.lineTo(8, -6);
-      ctx.stroke();
-
-      // Bent arm reaching/bracing near the ground
-      ctx.beginPath();
-      ctx.moveTo(-4, -7);
-      ctx.lineTo(3, -11);
-      ctx.lineTo(9, -3);
-      ctx.stroke();
-
-      // Straightforward leg extended out in front
-      ctx.beginPath();
-      ctx.moveTo(8, -6);
-      ctx.lineTo(23, -3);
-      ctx.stroke();
-
-      // Bent knee tucked underneath
-      ctx.beginPath();
-      ctx.moveTo(8, -6);
-      ctx.lineTo(13, -12);
-      ctx.lineTo(10, -3);
-      ctx.stroke();
-
-      ctx.restore();
+    if (runner.slideBlend > 0.05 && runner.grounded) {
+      drawSlidePose();
       return;
     }
 
@@ -615,6 +649,9 @@ window.initStickRun = function initStickRun(stage) {
         }
       }
 
+      const targetBlend = runner.sliding && runner.grounded ? 1 : 0;
+      runner.slideBlend += (targetBlend - runner.slideBlend) * Math.min(1, dt * 18);
+
       const prevY = runner.y;
       let activeBox = null;
 
@@ -715,7 +752,7 @@ window.initStickRun = function initStickRun(stage) {
       const isLowSlide = runner.sliding && runner.grounded;
       const hitLeft = isLowSlide ? runner.x - 20 : runner.x - 10;
       const hitRight = isLowSlide ? runner.x + 22 : runner.x + 10;
-      const hitTop = isLowSlide ? runner.y - 16 : runner.y - 52;
+      const hitTop = isLowSlide ? runner.y - 18 : runner.y - 52;
       const hitBottom = runner.y - 3;
       const runnerCenterX = (hitLeft + hitRight) * 0.5;
       const runnerCenterY = (hitTop + hitBottom) * 0.5;
