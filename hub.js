@@ -122,6 +122,33 @@ const AudioFX = (() => {
 })();
 window.AudioFX = AudioFX;
 
+const GameLoopGuard = (() => {
+  const activeRafIds = new Set();
+
+  function trackRaf(id) {
+    if (typeof id === 'number') activeRafIds.add(id);
+    return id;
+  }
+
+  function clearAllRaf() {
+    activeRafIds.forEach((id) => cancelAnimationFrame(id));
+    activeRafIds.clear();
+  }
+
+  function createDeltaStep(maxDtSec = 0.05) {
+    let lastTs = performance.now();
+    return function getDeltaSec(now = performance.now()) {
+      const rawDt = (now - lastTs) / 1000;
+      lastTs = now;
+      if (!Number.isFinite(rawDt) || rawDt < 0) return 0;
+      return Math.min(rawDt, maxDtSec);
+    };
+  }
+
+  return { trackRaf, clearAllRaf, createDeltaStep };
+})();
+window.GameLoopGuard = GameLoopGuard;
+
 const GAME_ID_ALIASES = {
   'solitaire': 'solitaire',
   'speed-solitaire': 'solitaire',
@@ -774,6 +801,300 @@ function recordGamePlay(gameId) {
 let activeGameId = null;
 let activeCleanup = null;
 
+const GameSettingsDrawer = (() => {
+  const MODE_KEY = 'arcade_hub_game_settings_v1';
+  let drawerEl = null;
+  let backdropEl = null;
+  let isOpen = false;
+  let isClosing = false;
+  let closeTimer = null;
+
+  const PVP_AI_GAMES = new Set(['chess', 'dama', 'tictactoe']);
+
+  const GAME_ADJUSTMENTS = {
+    chess: [
+      { key: 'mode', label: 'Match Mode', type: 'toggle', options: ['Vs AI', 'PVP'], default: 'Vs AI' },
+      { key: 'difficulty', label: 'AI Level', type: 'select', options: ['Casual', 'Standard', 'Master'], default: 'Standard' }
+    ],
+    dama: [
+      { key: 'mode', label: 'Match Mode', type: 'toggle', options: ['Vs AI', 'PVP'], default: 'Vs AI' },
+      { key: 'difficulty', label: 'AI Level', type: 'select', options: ['Casual', 'Standard', 'Hard'], default: 'Standard' }
+    ],
+    tictactoe: [
+      { key: 'mode', label: 'Match Mode', type: 'toggle', options: ['Vs AI', 'PVP'], default: 'Vs AI' },
+      { key: 'difficulty', label: 'AI Level', type: 'select', options: ['Easy', 'Smart'], default: 'Smart' }
+    ],
+    carracing: [
+      { key: 'speedScale', label: 'Pace / Speed', type: 'select', options: ['Relaxed', 'Normal', 'Turbo'], default: 'Normal' }
+    ],
+    brickbreaker: [
+      { key: 'speedScale', label: 'Ball Pace', type: 'select', options: ['Relaxed', 'Normal', 'Turbo'], default: 'Normal' }
+    ],
+    stickrun: [
+      { key: 'speedScale', label: 'Run Pace', type: 'select', options: ['Relaxed', 'Normal', 'Turbo'], default: 'Normal' }
+    ],
+    towerstack: [
+      { key: 'speedScale', label: 'Block Pace', type: 'select', options: ['Relaxed', 'Normal', 'Turbo'], default: 'Normal' }
+    ],
+    cybersnake: [
+      { key: 'speedScale', label: 'Snake Pace', type: 'select', options: ['Relaxed', 'Normal', 'Turbo'], default: 'Normal' }
+    ],
+    fruitmaster: [
+      { key: 'speedScale', label: 'Spawn Pace', type: 'select', options: ['Relaxed', 'Normal', 'Turbo'], default: 'Normal' }
+    ],
+    whackamole: [
+      { key: 'speedScale', label: 'Pop Pace', type: 'select', options: ['Relaxed', 'Normal', 'Turbo'], default: 'Normal' }
+    ]
+  };
+
+  function readAllSettings() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(MODE_KEY) || '{}');
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function writeAllSettings(store) {
+    try {
+      localStorage.setItem(MODE_KEY, JSON.stringify(store));
+    } catch (_) {}
+  }
+
+  function getGameSettings(gameId) {
+    const canon = normalizeGameId(gameId);
+    const store = readAllSettings();
+    const defs = GAME_ADJUSTMENTS[canon] || [];
+    const saved = store[canon] || {};
+    const merged = {};
+    defs.forEach((d) => {
+      merged[d.key] = saved[d.key] !== undefined ? saved[d.key] : d.default;
+    });
+    return merged;
+  }
+
+  function setGameSetting(gameId, key, value) {
+    const canon = normalizeGameId(gameId);
+    const store = readAllSettings();
+    store[canon] = {
+      ...(store[canon] || {}),
+      [key]: value
+    };
+    writeAllSettings(store);
+    window.dispatchEvent(new CustomEvent('arcadehub:game-settings-change', {
+      detail: { gameId: canon, key, value, settings: getGameSettings(canon) }
+    }));
+    return getGameSettings(canon);
+  }
+
+  function ensureDom() {
+    if (drawerEl && backdropEl) return;
+
+    backdropEl = document.createElement('div');
+    backdropEl.id = 'game-drawer-backdrop';
+    backdropEl.className = 'game-drawer-backdrop hidden';
+    backdropEl.addEventListener('click', () => close());
+
+    drawerEl = document.createElement('aside');
+    drawerEl.id = 'game-settings-drawer';
+    drawerEl.className = 'game-drawer hidden';
+    drawerEl.setAttribute('aria-label', 'Game Settings');
+
+    document.body.appendChild(backdropEl);
+    document.body.appendChild(drawerEl);
+  }
+
+  function renderContent(gameId) {
+    ensureDom();
+    const canon = normalizeGameId(gameId);
+    const meta = (window.GAMES || []).find((g) => g.id === canon) || {
+      id: canon,
+      name: 'Game',
+      icon: '🎮',
+      cat: 'Arcade'
+    };
+    const defs = GAME_ADJUSTMENTS[canon] || [];
+    const current = getGameSettings(canon);
+
+    const controlsHtml = defs.length
+      ? defs.map((ctrl) => {
+          if (ctrl.type === 'toggle') {
+            const isSecond = current[ctrl.key] === ctrl.options[1];
+            return `
+              <div class="game-drawer-row">
+                <div>
+                  <div class="game-drawer-label">${ctrl.label}</div>
+                  <div class="game-drawer-sub">${PVP_AI_GAMES.has(canon) ? 'Switch between 2-player & bot' : 'Adjust match option'}</div>
+                </div>
+                <div class="game-mode-pill-group" role="group" aria-label="${ctrl.label}">
+                  ${ctrl.options.map((opt, idx) => {
+                    const active = current[ctrl.key] === opt || (idx === 1 && isSecond);
+                    return `<button type="button" data-ctrl-key="${ctrl.key}" data-ctrl-val="${opt}" class="game-mode-pill ${active ? 'is-active' : ''}">${opt}</button>`;
+                  }).join('')}
+                </div>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="game-drawer-row">
+              <div>
+                <div class="game-drawer-label">${ctrl.label}</div>
+                <div class="game-drawer-sub">Applies to current &amp; next rounds</div>
+              </div>
+              <select data-ctrl-select="${ctrl.key}" class="game-drawer-select">
+                ${ctrl.options.map((opt) => `<option value="${opt}" ${current[ctrl.key] === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+              </select>
+            </div>
+          `;
+        }).join('')
+      : `
+        <div class="game-drawer-row">
+          <div>
+            <div class="game-drawer-label">Game Adjustments</div>
+            <div class="game-drawer-sub">Standard preset active for ${meta.name}</div>
+          </div>
+          <span class="game-drawer-badge">STANDARD</span>
+        </div>
+      `;
+
+    drawerEl.innerHTML = `
+      <div class="game-drawer-head">
+        <div class="game-drawer-title-wrap">
+          <span class="game-drawer-icon">${meta.icon}</span>
+          <div>
+            <div class="game-drawer-title">${meta.name}</div>
+            <div class="game-drawer-cat">${meta.cat} Settings</div>
+          </div>
+        </div>
+        <button type="button" id="game-drawer-close-btn" class="game-drawer-close" aria-label="Close settings">✕</button>
+      </div>
+
+      <div class="game-drawer-body">
+        ${controlsHtml}
+
+        <div class="game-drawer-audio-card">
+          <button type="button" id="drawer-sfx-btn" class="game-drawer-mini-btn">
+            🔊 SFX: ${window.AudioFX && window.AudioFX.enabled ? 'ON' : 'OFF'}
+          </button>
+          <button type="button" id="drawer-bgm-btn" class="game-drawer-mini-btn">
+            🎵 BGM: ${typeof bgmEnabled !== 'undefined' && bgmEnabled ? 'ON' : 'OFF'}
+          </button>
+        </div>
+      </div>
+
+      <div class="game-drawer-foot">
+        <button type="button" id="drawer-hub-btn" class="game-drawer-hub-btn">
+          <span>←</span>
+          <span>Back to Hub</span>
+        </button>
+      </div>
+    `;
+
+    drawerEl.querySelector('#game-drawer-close-btn')?.addEventListener('click', () => {
+      if (window.AudioFX) window.AudioFX.click();
+      close();
+    });
+
+    drawerEl.querySelectorAll('[data-ctrl-key]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (window.AudioFX) window.AudioFX.click();
+        const k = btn.getAttribute('data-ctrl-key');
+        const v = btn.getAttribute('data-ctrl-val');
+        setGameSetting(canon, k, v);
+        renderContent(canon);
+      });
+    });
+
+    drawerEl.querySelectorAll('[data-ctrl-select]').forEach((sel) => {
+      sel.addEventListener('change', (e) => {
+        if (window.AudioFX) window.AudioFX.click();
+        const k = sel.getAttribute('data-ctrl-select');
+        setGameSetting(canon, k, e.target.value);
+      });
+    });
+
+    drawerEl.querySelector('#drawer-sfx-btn')?.addEventListener('click', () => {
+      if (typeof toggleSFX === 'function') toggleSFX();
+      renderContent(canon);
+    });
+
+    drawerEl.querySelector('#drawer-bgm-btn')?.addEventListener('click', () => {
+      if (typeof toggleBGM === 'function') toggleBGM();
+      renderContent(canon);
+    });
+
+    drawerEl.querySelector('#drawer-hub-btn')?.addEventListener('click', () => {
+      if (window.AudioFX) window.AudioFX.click();
+      close(() => {
+        if (typeof openHubHome === 'function') openHubHome();
+      });
+    });
+  }
+
+  function open(gameId = activeGameId) {
+    if (!gameId) return;
+    ensureDom();
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+    renderContent(gameId);
+    isClosing = false;
+    isOpen = true;
+
+    backdropEl.classList.remove('hidden', 'is-closing');
+    drawerEl.classList.remove('hidden', 'is-closing');
+
+    requestAnimationFrame(() => {
+      backdropEl.classList.add('is-open');
+      drawerEl.classList.add('is-open');
+    });
+  }
+
+  function close(afterClose) {
+    if (!drawerEl || !backdropEl || (!isOpen && !isClosing)) {
+      if (typeof afterClose === 'function') afterClose();
+      return;
+    }
+    isOpen = false;
+    isClosing = true;
+
+    backdropEl.classList.remove('is-open');
+    backdropEl.classList.add('is-closing');
+    drawerEl.classList.remove('is-open');
+    drawerEl.classList.add('is-closing');
+
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => {
+      isClosing = false;
+      drawerEl.classList.add('hidden');
+      drawerEl.classList.remove('is-closing');
+      backdropEl.classList.add('hidden');
+      backdropEl.classList.remove('is-closing');
+      if (typeof afterClose === 'function') afterClose();
+    }, 340);
+  }
+
+  function toggle(gameId = activeGameId) {
+    if (isOpen) {
+      close();
+    } else {
+      open(gameId);
+    }
+  }
+
+  return {
+    open,
+    close,
+    toggle,
+    getSettings: getGameSettings,
+    setSetting: setGameSetting
+  };
+})();
+window.GameSettingsDrawer = GameSettingsDrawer;
+
 const BgEngine = (() => {
   const canvas = document.getElementById('bg-canvas');
   const ctx = canvas ? canvas.getContext('2d') : null;
@@ -1133,6 +1454,8 @@ function renderDiscoveryShelves() {
 }
 
 function openHubHome() {
+  GameSettingsDrawer.close();
+  GameLoopGuard.clearAllRaf();
   if (activeCleanup) {
     try { activeCleanup(); } catch (e) {}
     activeCleanup = null;
@@ -1310,6 +1633,8 @@ function launchGame(id) {
     return;
   }
 
+  GameSettingsDrawer.close();
+  GameLoopGuard.clearAllRaf();
   if (activeCleanup) {
     try { activeCleanup(); } catch (e) {}
     activeCleanup = null;
