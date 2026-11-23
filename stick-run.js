@@ -12,9 +12,6 @@ window.initStickRun = function initStickRun(stage) {
     <div id="sr-score-pill" class="px-3.5 py-1.5 rounded-full bg-slate-950/75 border border-sky-400/35 text-sky-200 font-extrabold text-xs tracking-wide shadow">
       🏃 RUN: 0
     </div>
-    <div id="sr-hint-pill" class="px-3.5 py-1.5 rounded-full bg-slate-950/70 border border-white/15 text-slate-200 font-bold text-[11px] tracking-wide shadow">
-      TAP OR SPACE TO JUMP • DOUBLE TAP ON BOX = FLIP
-    </div>
   `;
 
   const overlay = document.createElement('div');
@@ -255,13 +252,74 @@ window.initStickRun = function initStickRun(stage) {
     const hipY = -24;
     const shoulderY = -44;
     const headY = -55;
-    const swing = runner.grounded ? Math.sin(runPhase) * 12 : 8;
+
+    let frontLegX = 0;
+    let frontLegY = -2;
+    let backLegX = 0;
+    let backLegY = -2;
+    let frontArmX = 0;
+    let frontArmY = -30;
+    let backArmX = 0;
+    let backArmY = -30;
+    let torsoLean = 0;
+
+    if (runner.grounded) {
+      const swing = Math.sin(runPhase) * 12;
+      frontLegX = swing;
+      backLegX = -swing;
+      frontArmX = -swing * 0.8;
+      backArmX = swing * 0.8;
+      torsoLean = 0.08;
+    } else if (runner.flipping) {
+      frontLegX = 9;
+      frontLegY = -12;
+      backLegX = -9;
+      backLegY = -12;
+      frontArmX = -8;
+      frontArmY = -36;
+      backArmX = 8;
+      backArmY = -36;
+    } else if (runner.vy < -140) {
+      // Rising jump tuck
+      frontLegX = 11;
+      frontLegY = -15;
+      backLegX = -10;
+      backLegY = -9;
+      frontArmX = 11;
+      frontArmY = -50;
+      backArmX = -12;
+      backArmY = -34;
+      torsoLean = 0.14;
+    } else if (runner.vy <= 160) {
+      // Near apex
+      frontLegX = 8;
+      frontLegY = -11;
+      backLegX = -11;
+      backLegY = -13;
+      frontArmX = 13;
+      frontArmY = -42;
+      backArmX = -13;
+      backArmY = -40;
+      torsoLean = 0.05;
+    } else {
+      // Falling / preparing to land
+      frontLegX = 13;
+      frontLegY = -5;
+      backLegX = -7;
+      backLegY = -14;
+      frontArmX = -10;
+      frontArmY = -46;
+      backArmX = 11;
+      backArmY = -33;
+      torsoLean = -0.06;
+    }
 
     ctx.save();
     ctx.translate(runner.x, runner.y - 26);
     if (runner.flipping || runner.flipAngle !== 0) {
       ctx.rotate(runner.flipAngle);
     }
+    ctx.rotate(torsoLean);
     ctx.translate(0, 26);
 
     ctx.strokeStyle = '#0f172a';
@@ -282,16 +340,16 @@ window.initStickRun = function initStickRun(stage) {
 
     ctx.beginPath();
     ctx.moveTo(0, shoulderY);
-    ctx.lineTo(-swing * 0.8, hipY + 2);
+    ctx.lineTo(frontArmX, frontArmY);
     ctx.moveTo(0, shoulderY);
-    ctx.lineTo(swing * 0.8, hipY + 2);
+    ctx.lineTo(backArmX, backArmY);
     ctx.stroke();
 
     ctx.beginPath();
     ctx.moveTo(0, hipY);
-    ctx.lineTo(-swing, -2);
+    ctx.lineTo(frontLegX, frontLegY);
     ctx.moveTo(0, hipY);
-    ctx.lineTo(swing, -2);
+    ctx.lineTo(backLegX, backLegY);
     ctx.stroke();
     ctx.restore();
   }
