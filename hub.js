@@ -211,7 +211,7 @@ const SupabaseDB = (() => {
       const store = readLocalScores();
       const list = Array.isArray(store[gameId]) ? store[gameId] : [];
       list.push({
-        game_id: gameId,
+        game_name: gameId,
         player_name: playerName,
         score: Number(score) || 0,
         created_at: new Date().toISOString()
@@ -258,7 +258,7 @@ const SupabaseDB = (() => {
     }
 
     const payload = {
-      game_id: gameId,
+      game_name: gameId,
       player_name: cleanPlayer,
       score: cleanScore,
       created_at: new Date().toISOString()
@@ -272,6 +272,9 @@ const SupabaseDB = (() => {
 
       if (error) {
         console.error('Supabase high_scores insert error:', error.message || error);
+        if (typeof spawnPopup === 'function') {
+          spawnPopup(`DB Error: ${error.message || 'Check schema/key'}`, window.innerWidth * 0.5, 90, '#fb7185');
+        }
         return { ok: false, error };
       }
       return { ok: true, data: data || [] };
@@ -295,7 +298,7 @@ const SupabaseDB = (() => {
       const { data, error } = await sb
         .from('high_scores')
         .select('*')
-        .eq('game_id', gameId)
+        .eq('game_name', gameId)
         .order('score', { ascending: false })
         .limit(safeLimit);
 
@@ -1335,7 +1338,7 @@ function launchGame(id) {
       <div class="w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center">
         <div class="text-4xl">${meta.icon}</div>
         <div class="text-lg font-black text-white">${meta.name} script not loaded yet</div>
-        <p class="text-xs text-slate-400">Make sure its script tag is included in index.html before hub.js.</p>
+        <p class="text-xs text-slate-400">Make sure its games/*.js script tag is included in index.html before hub.js.</p>
         <button onclick="openHubHome()" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs">Back to Hub</button>
       </div>
     `;
