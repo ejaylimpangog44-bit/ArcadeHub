@@ -64,6 +64,12 @@ window.initStickRun = function initStickRun(stage) {
   let particles = [];
   let trickBanner = null;
 
+  function getObstacleBoxes(ob) {
+    if (Array.isArray(ob.boxes)) return ob.boxes;
+    if (ob.box) return [ob.box];
+    return [];
+  }
+
   function syncHud() {
     const scoreEl = document.getElementById('sr-score-pill');
     const finalEl = document.getElementById('sr-final-score');
@@ -105,9 +111,9 @@ window.initStickRun = function initStickRun(stage) {
     }
 
     obstacles.forEach((ob) => {
-      if (ob.box) {
-        ob.box.y = groundY - ob.box.h;
-      }
+      getObstacleBoxes(ob).forEach((box) => {
+        box.y = groundY - box.h;
+      });
       if (ob.saw) {
         ob.saw.cy = groundY - ob.saw.elev;
       }
@@ -233,7 +239,22 @@ window.initStickRun = function initStickRun(stage) {
     const roll = Math.random();
     const startX = viewW + 28;
 
-    if (roll < 0.34) {
+    if (roll < 0.25) {
+      const boxW = 46;
+      const heights = [46, 56, 48];
+      const boxes = heights.map((h, idx) => ({
+        x: startX + idx * boxW,
+        y: groundY - h,
+        w: boxW,
+        h,
+        landedAwarded: false
+      }));
+      obstacles.push({
+        kind: 'triple-box',
+        boxes,
+        saw: null
+      });
+    } else if (roll < 0.5) {
       const w = 52;
       const h = 42;
       obstacles.push({
@@ -253,7 +274,7 @@ window.initStickRun = function initStickRun(stage) {
           angle: 0
         }
       });
-    } else if (roll < 0.68) {
+    } else if (roll < 0.76) {
       const tall = Math.random() < 0.45;
       const w = tall ? 46 : 54;
       const h = tall ? 52 : 36;
@@ -349,7 +370,6 @@ window.initStickRun = function initStickRun(stage) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Head at the back (-x), lifted slightly so the runner looks forward
     const headX = -15 * t;
     const headY = -14 * t + bounce * 0.5;
     const shoulderX = -9 * t;
@@ -357,49 +377,41 @@ window.initStickRun = function initStickRun(stage) {
     const hipX = 7 * t;
     const hipY = -7 * t + bounce * 0.3;
 
-    // Straightforward front leg extended out
     const straightFootX = 24 * t;
     const straightFootY = -2;
 
-    // Bent knee tucked cleanly under the front hip
     const bentKneeX = 12 * t;
     const bentKneeY = -15 * t;
     const bentFootX = 5 * t;
     const bentFootY = -2;
 
-    // Bent arm reaching/bracing forward-downward
     const elbowX = 4 * t;
     const elbowY = -16 * t;
     const handX = 11 * t;
     const handY = -6 * t;
 
-    // Head
     ctx.beginPath();
     ctx.arc(headX, headY, 8, 0, Math.PI * 2);
     ctx.fillStyle = '#f8fafc';
     ctx.fill();
     ctx.stroke();
 
-    // Torso from back shoulder to hip
     ctx.beginPath();
     ctx.moveTo(shoulderX, shoulderY);
     ctx.lineTo(hipX, hipY);
     ctx.stroke();
 
-    // Bent arm
     ctx.beginPath();
     ctx.moveTo(-3 * t, -10 * t);
     ctx.lineTo(elbowX, elbowY);
     ctx.lineTo(handX, handY);
     ctx.stroke();
 
-    // Straightforward leg
     ctx.beginPath();
     ctx.moveTo(hipX, hipY);
     ctx.lineTo(straightFootX, straightFootY);
     ctx.stroke();
 
-    // Bent knee leg
     ctx.beginPath();
     ctx.moveTo(hipX, hipY);
     ctx.lineTo(bentKneeX, bentKneeY);
@@ -562,22 +574,24 @@ window.initStickRun = function initStickRun(stage) {
     ctx.restore();
   }
 
+  function drawBox(box) {
+    ctx.save();
+    ctx.fillStyle = '#991b1b';
+    ctx.strokeStyle = '#fca5a5';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(box.x, box.y, box.w, box.h, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(253, 224, 71, 0.35)';
+    ctx.fillRect(box.x + 3, box.y, Math.max(0, box.w - 6), 4);
+    ctx.restore();
+  }
+
   function drawObstacles() {
     obstacles.forEach((ob) => {
-      if (ob.box) {
-        ctx.save();
-        ctx.fillStyle = '#991b1b';
-        ctx.strokeStyle = '#fca5a5';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.roundRect(ob.box.x, ob.box.y, ob.box.w, ob.box.h, 6);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = 'rgba(253, 224, 71, 0.35)';
-        ctx.fillRect(ob.box.x + 3, ob.box.y, Math.max(0, ob.box.w - 6), 4);
-        ctx.restore();
-      }
+      getObstacleBoxes(ob).forEach((box) => drawBox(box));
       if (ob.saw) {
         drawSawblade(ob.saw);
       }
@@ -610,7 +624,9 @@ window.initStickRun = function initStickRun(stage) {
 
   function obstacleRightEdge(ob) {
     let right = -Infinity;
-    if (ob.box) right = Math.max(right, ob.box.x + ob.box.w);
+    getObstacleBoxes(ob).forEach((box) => {
+      right = Math.max(right, box.x + box.w);
+    });
     if (ob.saw) right = Math.max(right, ob.saw.x + ob.saw.r + 6);
     return right;
   }
@@ -654,17 +670,15 @@ window.initStickRun = function initStickRun(stage) {
 
       const prevY = runner.y;
       let activeBox = null;
+      const allBoxes = obstacles.flatMap((ob) => getObstacleBoxes(ob));
 
       if (runner.grounded && runner.onBoxTop) {
-        activeBox = obstacles
-          .map((ob) => ob.box)
-          .filter(Boolean)
-          .find(
-            (box) =>
-              runner.x + 10 >= box.x &&
-              runner.x - 10 <= box.x + box.w &&
-              Math.abs(runner.y - box.y) <= 8
-          );
+        activeBox = allBoxes.find(
+          (box) =>
+            runner.x + 10 >= box.x &&
+            runner.x - 10 <= box.x + box.w &&
+            Math.abs(runner.y - box.y) <= 8
+        );
         if (activeBox) {
           activeBox.x -= speed * dt;
           runner.y = activeBox.y;
@@ -699,14 +713,11 @@ window.initStickRun = function initStickRun(stage) {
         if (runner.vy >= 0) {
           const hitLeft = runner.x - 10;
           const hitRight = runner.x + 10;
-          const landedBox = obstacles
-            .map((ob) => ob.box)
-            .filter(Boolean)
-            .find((box) => {
-              const withinX = hitRight > box.x + 3 && hitLeft < box.x + box.w - 3;
-              const crossedTop = prevY <= box.y + 10 && runner.y >= box.y;
-              return withinX && crossedTop;
-            });
+          const landedBox = allBoxes.find((box) => {
+            const withinX = hitRight > box.x + 3 && hitLeft < box.x + box.w - 3;
+            const crossedTop = prevY <= box.y + 10 && runner.y >= box.y;
+            return withinX && crossedTop;
+          });
 
           if (landedBox) {
             runner.y = landedBox.y;
@@ -746,7 +757,7 @@ window.initStickRun = function initStickRun(stage) {
       spawnTimer -= dt;
       if (spawnTimer <= 0) {
         spawnObstacle();
-        spawnTimer = Math.max(0.84, 1.55 - (speed - 340) / 520) + Math.random() * 0.35;
+        spawnTimer = Math.max(0.86, 1.58 - (speed - 340) / 520) + Math.random() * 0.35;
       }
 
       const isLowSlide = runner.sliding && runner.grounded;
@@ -760,25 +771,30 @@ window.initStickRun = function initStickRun(stage) {
       const runnerHalfH = (hitBottom - hitTop) * 0.5;
 
       for (const ob of obstacles) {
-        if (ob.box && ob.box !== activeBox) {
-          ob.box.x -= speed * dt;
+        const obBoxes = getObstacleBoxes(ob);
+        for (const box of obBoxes) {
+          if (box !== activeBox) {
+            box.x -= speed * dt;
+          }
         }
         if (ob.saw) {
           ob.saw.x -= speed * dt;
           ob.saw.angle += dt * 11;
         }
 
-        if (ob.box && !(runner.grounded && runner.onBoxTop && ob.box === activeBox)) {
+        for (const box of obBoxes) {
+          if (runner.grounded && runner.onBoxTop && box === activeBox) continue;
           const boxOverlap =
-            hitRight > ob.box.x + 4 &&
-            hitLeft < ob.box.x + ob.box.w - 4 &&
-            hitBottom > ob.box.y + 8 &&
-            hitTop < ob.box.y + ob.box.h;
+            hitRight > box.x + 4 &&
+            hitLeft < box.x + box.w - 4 &&
+            hitBottom > box.y + 8 &&
+            hitTop < box.y + box.h;
           if (boxOverlap) {
             endRun();
             break;
           }
         }
+        if (gameOver) break;
 
         if (ob.saw) {
           const dx = Math.abs(ob.saw.x - runnerCenterX);
