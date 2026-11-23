@@ -245,16 +245,35 @@ window.initStickRun = function initStickRun(stage) {
     }
   }
 
-  function createVerticalTripleBoxes(startX) {
-    const boxW = 48;
-    const boxH = 36;
-    const offsets = [0, boxH, boxH * 2];
-    return offsets.map((offsetFromGround) => ({
-      x: startX,
-      y: groundY - offsetFromGround - boxH,
+  function createHorizontalChainBoxes(startX) {
+    const boxW = 44;
+    const boxH = 34;
+    const gapX = 10;
+    return [0, 1, 2].map((idx) => ({
+      x: startX + idx * (boxW + gapX),
+      y: groundY - boxH,
       w: boxW,
       h: boxH,
-      offsetFromGround,
+      offsetFromGround: 0,
+      landedAwarded: false
+    }));
+  }
+
+  function createLObstacleBoxes(startX) {
+    const unit = 32;
+    const specs = [
+      { col: 0, row: 0 },
+      { col: 1, row: 0 },
+      { col: 2, row: 0 },
+      { col: 0, row: 1 },
+      { col: 0, row: 2 }
+    ];
+    return specs.map(({ col, row }) => ({
+      x: startX + col * unit,
+      y: groundY - (row + 1) * unit,
+      w: unit,
+      h: unit,
+      offsetFromGround: row * unit,
       landedAwarded: false
     }));
   }
@@ -263,41 +282,33 @@ window.initStickRun = function initStickRun(stage) {
     const roll = Math.random();
     const startX = viewW + 28;
 
-    if (roll < 0.24) {
-      const boxW = 48;
-      const boxH = 36;
-      const boxes = createVerticalTripleBoxes(startX);
-      const stackTopElev = boxH * 3;
-      const secondBoxCenterElev = boxH + boxH * 0.5;
+    if (roll < 0.25) {
+      const boxes = createHorizontalChainBoxes(startX);
       obstacles.push({
-        kind: 'triple-saw-combo',
+        kind: 'horizontal-chain',
+        boxes,
+        chainBoxes: boxes,
+        saws: []
+      });
+    } else if (roll < 0.5) {
+      const boxes = createLObstacleBoxes(startX);
+      const lWidth = 32 * 3;
+      obstacles.push({
+        kind: 'l-saw-obstacle',
         boxes,
         saws: [
           {
-            x: startX + boxW * 0.5,
-            cy: groundY - (stackTopElev + 114),
-            elev: stackTopElev + 114,
-            r: 18,
-            angle: 0
-          },
-          {
-            x: startX + boxW + 78,
-            cy: groundY - secondBoxCenterElev,
-            elev: secondBoxCenterElev,
+            x: startX + lWidth + 112,
+            cy: groundY - 18,
+            elev: 18,
             r: 18,
             angle: 0
           }
         ]
       });
-    } else if (roll < 0.48) {
-      obstacles.push({
-        kind: 'triple-stack',
-        boxes: createVerticalTripleBoxes(startX),
-        saws: []
-      });
     } else if (roll < 0.72) {
-      const w = 52;
-      const h = 42;
+      const w = 50;
+      const h = 38;
       obstacles.push({
         kind: 'combo',
         box: {
@@ -309,17 +320,16 @@ window.initStickRun = function initStickRun(stage) {
           landedAwarded: false
         },
         saw: {
-          x: startX + w + 38,
-          cy: groundY - 22,
-          elev: 22,
-          r: 20,
+          x: startX + w + 88,
+          cy: groundY - 20,
+          elev: 20,
+          r: 19,
           angle: 0
         }
       });
     } else if (roll < 0.88) {
-      const tall = Math.random() < 0.45;
-      const w = tall ? 46 : 54;
-      const h = tall ? 52 : 36;
+      const w = 48;
+      const h = 40;
       obstacles.push({
         kind: 'box',
         box: {
@@ -333,8 +343,8 @@ window.initStickRun = function initStickRun(stage) {
         saw: null
       });
     } else {
-      const highSaw = Math.random() < 0.45;
-      const elev = highSaw ? 46 : 20;
+      const highSaw = Math.random() < 0.4;
+      const elev = highSaw ? 42 : 18;
       obstacles.push({
         kind: 'saw',
         box: null,
@@ -342,7 +352,7 @@ window.initStickRun = function initStickRun(stage) {
           x: startX,
           cy: groundY - elev,
           elev,
-          r: 21,
+          r: 19,
           angle: 0
         }
       });
@@ -632,9 +642,41 @@ window.initStickRun = function initStickRun(stage) {
     ctx.restore();
   }
 
+  function drawPullChain(boxes) {
+    if (!Array.isArray(boxes) || boxes.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = '#fde047';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([6, 4]);
+
+    for (let i = 0; i < boxes.length - 1; i++) {
+      const a = boxes[i];
+      const b = boxes[i + 1];
+      const ay = a.y + a.h * 0.45;
+      const by = b.y + b.h * 0.45;
+      ctx.beginPath();
+      ctx.moveTo(a.x + a.w, ay);
+      ctx.lineTo(b.x, by);
+      ctx.stroke();
+    }
+
+    ctx.setLineDash([]);
+    boxes.forEach((box) => {
+      ctx.beginPath();
+      ctx.arc(box.x + box.w * 0.5, box.y + box.h * 0.45, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#fef08a';
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
   function drawObstacles() {
     obstacles.forEach((ob) => {
-      getObstacleBoxes(ob).forEach((box) => drawBox(box));
+      const boxes = getObstacleBoxes(ob);
+      if (ob.kind === 'horizontal-chain') {
+        drawPullChain(boxes);
+      }
+      boxes.forEach((box) => drawBox(box));
       getObstacleSaws(ob).forEach((saw) => drawSawblade(saw));
     });
 
@@ -776,7 +818,7 @@ window.initStickRun = function initStickRun(stage) {
               landedBox.landedAwarded = true;
               score += 5;
               syncHud();
-              showTrickLabel('BOX TOP! DOUBLE SWIPE TO FLIP');
+              showTrickLabel('TOP RUN! +5');
             }
             emitSparks(runner.x, runner.y, 5, '#67e8f9');
           }
@@ -800,7 +842,7 @@ window.initStickRun = function initStickRun(stage) {
       spawnTimer -= dt;
       if (spawnTimer <= 0) {
         spawnObstacle();
-        spawnTimer = Math.max(0.9, 1.62 - (speed - 340) / 520) + Math.random() * 0.35;
+        spawnTimer = Math.max(1.05, 1.75 - (speed - 340) / 520) + Math.random() * 0.35;
       }
 
       const isLowSlide = runner.sliding && runner.grounded;
