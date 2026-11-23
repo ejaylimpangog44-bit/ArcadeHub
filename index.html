@@ -148,21 +148,8 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <button onclick="surpriseMeGame()" class="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-bold text-white flex items-center gap-1.5 transition active:scale-95" title="Pick a random game">
-        <span>🎲</span>
-        <span class="hidden sm:inline">Surprise</span>
-      </button>
-
-      <button onclick="openHeroModal()" class="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition cursor-pointer text-left">
-        <span class="text-base">🦊</span>
-        <div class="leading-tight">
-          <div class="text-[10px] font-bold text-amber-400">LVL <span id="hud-lvl">1</span></div>
-          <div class="text-[10px] font-mono text-slate-300"><span id="hud-xp">0</span> XP</div>
-        </div>
-      </button>
-
-      <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition border border-white/10" title="Settings, QR & Fullscreen">
-        ⚙️
+      <button onclick="surpriseMeGame()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition border border-white/10 active:scale-95" title="Surprise Me (Random Game)" aria-label="Random Game">
+        🎲
       </button>
     </div>
   </header>
@@ -180,10 +167,48 @@
     </div>
   </div>
 
+  <div id="hub-search-bar-slot" class="relative z-30 w-full px-3 sm:px-5 pt-2.5 pb-1 shrink-0">
+    <div class="flex items-center gap-2">
+      <div class="relative flex-1">
+        <input type="text" id="hub-search-input" oninput="handleHubSearch(this.value)" placeholder="Search 20 games..." autocomplete="off" class="w-full h-10 px-4 rounded-full bg-white/5 border border-white/10 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-pink-500/60 transition" />
+      </div>
+
+      <div class="relative group" id="hub-hamburger-wrapper">
+        <button id="hub-hamburger-btn" type="button" onclick="toggleHubMenu(event)" aria-label="Open Menu" aria-expanded="false" class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 flex flex-col items-center justify-center gap-1 transition active:scale-95">
+          <span class="w-4 h-0.5 bg-slate-200 rounded-full"></span>
+          <span class="w-4 h-0.5 bg-slate-200 rounded-full"></span>
+          <span class="w-4 h-0.5 bg-slate-200 rounded-full"></span>
+        </button>
+
+        <div id="hub-hamburger-dropdown" class="hidden group-hover:block hover:block absolute right-0 top-full mt-2 w-60 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/15 p-1.5 shadow-2xl z-50">
+          <button type="button" onclick="openSettingsModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-100 hover:bg-white/10 transition">
+            <span>🎵</span>
+            <span>BGM &amp; SFX Controls</span>
+          </button>
+
+          <button type="button" onclick="openQrShareModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-100 hover:bg-white/10 transition">
+            <span>📱</span>
+            <span>QR Code &amp; URL</span>
+          </button>
+
+          <button type="button" onclick="openInstructionsModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-100 hover:bg-white/10 transition">
+            <span>📖</span>
+            <span>Game Instructions</span>
+          </button>
+
+          <button type="button" onclick="openAboutModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-slate-100 hover:bg-white/10 transition">
+            <span>ℹ️</span>
+            <span>About Arcade Hub</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
     <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-black text-white flex items-center gap-2">⚙️ Game Settings &amp; Controls</h3>
+        <h3 class="text-lg font-black text-white flex items-center gap-2">🎵 BGM &amp; SFX Controls</h3>
         <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
       </div>
 
@@ -220,29 +245,63 @@
           <span id="fs-icon">⛶</span>
           <span id="fs-label">Toggle Fullscreen Display</span>
         </button>
-
-        <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center gap-3 text-center">
-          <div class="text-sm font-bold text-white flex items-center gap-1.5">📱 Mobile QR Share</div>
-          <p class="text-xs text-slate-400">Scan this QR code with your phone camera to open Arcade Hub instantly:</p>
-          <div class="p-3 rounded-xl bg-white shadow-md">
-            <div id="qrcode-container"></div>
-          </div>
-          <div class="w-full p-2 rounded-lg bg-black/40 border border-white/10 text-[10px] font-mono text-pink-300 truncate">
-            https://arcadehubgames-july12.vercel.app/
-          </div>
-          <div class="flex gap-2 w-full">
-            <button onclick="copyHubLink()" id="copy-link-btn" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition">
-              📋 Copy URL
-            </button>
-            <a href="https://arcadehubgames-july12.vercel.app/" target="_blank" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 text-xs font-extrabold text-white text-center">
-              Open Link ↗
-            </a>
-          </div>
-        </div>
       </div>
 
       <button onclick="closeSettingsModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
         Done
+      </button>
+    </div>
+  </div>
+
+  <div id="qr-share-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto text-center">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-black text-white flex items-center gap-2">📱 QR Code &amp; URL</h3>
+        <button onclick="closeQrShareModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-400">Scan this QR code with your phone camera to open Arcade Hub instantly:</p>
+      <div class="p-3 rounded-xl bg-white shadow-md mx-auto">
+        <div id="qrcode-container"></div>
+      </div>
+      <div class="w-full p-2 rounded-lg bg-black/40 border border-white/10 text-[10px] font-mono text-pink-300 truncate">
+        https://arcadehubgames-july12.vercel.app/
+      </div>
+      <div class="flex gap-2 w-full">
+        <button onclick="copyHubLink()" id="copy-link-btn" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition">
+          📋 Copy URL
+        </button>
+        <a href="https://arcadehubgames-july12.vercel.app/" target="_blank" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 text-xs font-extrabold text-white text-center">
+          Open Link ↗
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="instructions-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-black text-white flex items-center gap-2">📖 Game Instructions</h3>
+        <button onclick="closeInstructionsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <select id="instruction-game-select" onchange="renderSelectedGameInstruction()" class="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/15 text-xs font-bold text-white focus:outline-none focus:border-pink-500"></select>
+      <div id="instruction-game-body" class="p-4 rounded-2xl bg-white/5 border border-white/10 text-xs text-slate-300 leading-relaxed min-h-[110px]"></div>
+      <button onclick="closeInstructionsModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <div id="about-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-black text-white flex items-center gap-2">ℹ️ About Arcade Hub</h3>
+        <button onclick="closeAboutModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Arcade Hub is a multi-game browser arcade platform featuring portrait and landscape games, hero progression, daily rewards, and instant play across desktop and mobile viewports.
+      </p>
+      <button onclick="closeAboutModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
+        Got It
       </button>
     </div>
   </div>
@@ -299,6 +358,146 @@
       console.log("Alert:", msg);
     }
   };
+
+  function toggleHubMenu(e) {
+    if (e) e.stopPropagation();
+    const dropdown = document.getElementById('hub-hamburger-dropdown');
+    const btn = document.getElementById('hub-hamburger-btn');
+    if (!dropdown || !btn) return;
+    const willOpen = dropdown.classList.contains('hidden');
+    dropdown.classList.toggle('hidden', !willOpen);
+    btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    if (willOpen && 'vibrate' in navigator) navigator.vibrate(10);
+  }
+
+  function closeHubMenu() {
+    const dropdown = document.getElementById('hub-hamburger-dropdown');
+    const btn = document.getElementById('hub-hamburger-btn');
+    if (dropdown) dropdown.classList.add('hidden');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+
+  document.addEventListener('click', function(e) {
+    const wrapper = document.getElementById('hub-hamburger-wrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+      closeHubMenu();
+    }
+  });
+
+  function openQrShareModal() {
+    closeHubMenu();
+    const modal = document.getElementById('qr-share-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+    const container = document.getElementById('qrcode-container');
+    if (container && typeof QRCode !== 'undefined' && container.childElementCount === 0) {
+      new QRCode(container, {
+        text: "https://arcadehubgames-july12.vercel.app/",
+        width: 148,
+        height: 148
+      });
+    }
+  }
+
+  function closeQrShareModal() {
+    const modal = document.getElementById('qr-share-modal');
+    if (modal) {
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+    }
+  }
+
+  const ARCADE_GAME_GUIDES = {
+    "Wordscape Pro": "Swipe or tap letters on the wheel to spell valid words and complete every slot in the crossword grid.",
+    "Tic-Tac-Toe": "Take turns placing X or O and align three in a row horizontally, vertically, or diagonally to win.",
+    "Pinoy Dama": "Move diagonally across dark squares to capture opponent pieces; reach the back row to crown a Dama.",
+    "Basketball Hoops": "Flick upward toward the hoop with accurate angle and power; chain clean shots for higher combos.",
+    "Fruit Master": "Swipe across flying fruits to rack up points while avoiding bombs that break your streak.",
+    "Speed Solitaire": "Arrange cards in descending order with alternating colors and build all four foundation suits.",
+    "Blackjack 21": "Draw or stand to get as close to 21 as possible without busting, beating the dealer's hand.",
+    "Chess": "Maneuver your pieces strategically across the board to trap and checkmate the opponent's king.",
+    "Cyber Snake": "Guide your snake to collect energy nodes and grow your score without hitting walls or your own tail.",
+    "Tower Stack": "Tap at the right moment to drop sliding blocks cleanly onto the stack and build as high as you can."
+  };
+
+  function populateInstructionsDropdown() {
+    const select = document.getElementById('instruction-game-select');
+    if (!select) return;
+    const sourceGames = (Array.isArray(window.GAMES) && window.GAMES.length)
+      ? window.GAMES.map(g => g.title || g.name).filter(Boolean)
+      : Object.keys(ARCADE_GAME_GUIDES);
+
+    select.innerHTML = '';
+    sourceGames.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+    renderSelectedGameInstruction();
+  }
+
+  function renderSelectedGameInstruction() {
+    const select = document.getElementById('instruction-game-select');
+    const body = document.getElementById('instruction-game-body');
+    if (!select || !body) return;
+    const gameName = select.value;
+    if (ARCADE_GAME_GUIDES[gameName]) {
+      body.textContent = ARCADE_GAME_GUIDES[gameName];
+    } else if (Array.isArray(window.GAMES)) {
+      const found = window.GAMES.find(g => (g.title || g.name) === gameName);
+      body.textContent = (found && (found.instructions || found.desc || found.subtitle))
+        ? (found.instructions || found.desc || found.subtitle)
+        : `Play ${gameName} and aim for a high score or win round to earn XP and coins.`;
+    } else {
+      body.textContent = `Play ${gameName} and aim for a high score to earn XP and coins.`;
+    }
+  }
+
+  function openInstructionsModal() {
+    closeHubMenu();
+    populateInstructionsDropdown();
+    const modal = document.getElementById('instructions-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  function closeInstructionsModal() {
+    const modal = document.getElementById('instructions-modal');
+    if (modal) {
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+    }
+  }
+
+  function openAboutModal() {
+    closeHubMenu();
+    const modal = document.getElementById('about-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  function closeAboutModal() {
+    const modal = document.getElementById('about-modal');
+    if (modal) {
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+    }
+  }
+
+  function handleHubSearch(val) {
+    if (typeof window.filterGames === 'function') {
+      window.filterGames(val);
+    } else if (typeof window.searchGames === 'function') {
+      window.searchGames(val);
+    }
+  }
 
   function updatePHTCountdown() {
     const timerEl = document.getElementById('streak-cooldown-timer');
