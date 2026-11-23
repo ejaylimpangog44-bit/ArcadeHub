@@ -11,7 +11,7 @@ window.initChess = function initChess(stage) {
   let board = [], turn = 'w', sel = null, legal = [], capturedW = [], capturedB = [], status = 'Your Move (White)';
   let gameMode = 'pve';
   let aiDifficulty = 'normal';
-  let drawerOpen = false;
+  let settingsModalOpen = false;
   let configModalOpen = true;
 
   function reset() {
@@ -29,8 +29,9 @@ window.initChess = function initChess(stage) {
       return null;
     }));
     turn = 'w'; sel = null; legal = []; capturedW = []; capturedB = [];
-    status = 'Your Move (White)';
+    status = gameMode === 'pve' ? 'Your Move (White)' : 'White Player Turn';
     configModalOpen = false;
+    settingsModalOpen = false;
     render();
   }
 
@@ -125,7 +126,8 @@ window.initChess = function initChess(stage) {
         if (board[r][c]?.[0] === 'b') {
           getLegalMoves(r, c).forEach(([dr, dc]) => {
             const cap = board[dr][dc];
-            const score = (cap ? VALS[cap[1]] * 10 : 0) + (dr * 0.5) + (aiDifficulty === 'hard' ? Math.random() : Math.random() * 4);
+            const jitter = aiDifficulty === 'easy' ? Math.random() * 25 : (aiDifficulty === 'hard' ? Math.random() * 0.5 : Math.random() * 4);
+            const score = (cap ? VALS[cap[1]] * 10 : 0) + (dr * 0.5) + jitter;
             all.push({ sr: r, sc: c, dr, dc, score });
           });
         }
@@ -185,34 +187,36 @@ window.initChess = function initChess(stage) {
           Lost: ${capturedW.map(p => GLYPHS[p]).join(' ')}
         </div>
 
-        <div id="chess-drawer-bg" class="fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}"></div>
-
-        <div id="chess-settings-drawer" class="fixed top-16 bottom-0 left-0 z-40 w-[82%] max-w-xs bg-slate-900 border-r-4 border-t-2 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto rounded-tr-3xl">
-          <div class="flex items-center justify-between border-b border-white/10 pb-3">
-            <h2 class="text-lg font-black text-amber-400">⚙️ Chess Settings</h2>
-            <button id="chess-close-drawer" class="w-8 h-8 rounded-full bg-white/10 text-white font-bold flex items-center justify-center cursor-pointer">✕</button>
-          </div>
-
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Game Mode</label>
-            <div class="grid grid-cols-2 gap-2">
-              <button id="chess-mode-pve" type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${gameMode === 'pve' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10'}">🤖 vs AI</button>
-              <button id="chess-mode-pvp" type="button" class="py-2.5 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${gameMode === 'pvp' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10'}">👥 2P PvP</button>
+        <div id="chess-settings-backdrop" class="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-md ${settingsModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
+          <div id="chess-settings-modal" class="max-w-sm w-full bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-6 shadow-2xl flex flex-col gap-5 max-h-[88vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <h2 class="text-lg font-black text-amber-400">⚙️ Chess Settings</h2>
+              <button id="chess-close-settings" type="button" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/15 text-white font-bold flex items-center justify-center transition cursor-pointer" aria-label="Close settings">✕</button>
             </div>
-          </div>
 
-          <div id="chess-ai-diff" class="flex flex-col gap-1.5 ${gameMode === 'pvp' ? 'hidden' : ''}">
-            <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">AI Difficulty</label>
-            <div class="grid grid-cols-3 gap-1.5">
-              <button id="chess-diff-easy" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'easy' ? 'bg-amber-600 text-white border-amber-400' : 'bg-black/40 text-slate-300 border-white/10'}">Easy</button>
-              <button id="chess-diff-normal" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'normal' ? 'bg-amber-600 text-white border-amber-400' : 'bg-black/40 text-slate-300 border-white/10'}">Normal</button>
-              <button id="chess-diff-hard" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'hard' ? 'bg-amber-600 text-white border-amber-400' : 'bg-black/40 text-slate-300 border-white/10'}">Hard</button>
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Game Mode</label>
+              <div class="grid grid-cols-2 gap-2.5">
+                <button id="chess-mode-pve" type="button" class="py-2.5 px-3 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${gameMode === 'pve' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">🤖 vs AI</button>
+                <button id="chess-mode-pvp" type="button" class="py-2.5 px-3 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${gameMode === 'pvp' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">👥 2P PvP</button>
+              </div>
             </div>
-          </div>
 
-          <button id="chess-apply-drawer" type="button" class="w-full py-3.5 mt-auto rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg cursor-pointer">
-            Apply &amp; Restart Match ⚔️
-          </button>
+            <div id="chess-ai-diff" class="flex flex-col gap-2 ${gameMode === 'pvp' ? 'hidden' : ''}">
+              <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">AI Difficulty</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button id="chess-diff-easy" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'easy' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Easy</button>
+                <button id="chess-diff-normal" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'normal' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Normal</button>
+                <button id="chess-diff-hard" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'hard' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Hard</button>
+              </div>
+            </div>
+
+            <button id="chess-apply-settings" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg hover:brightness-105 active:scale-[0.99] transition cursor-pointer">
+              Apply &amp; Restart Match ⚔️
+            </button>
+
+            <div id="chess-settings-extra"></div>
+          </div>
         </div>
 
         <div class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md ${configModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
@@ -229,6 +233,15 @@ window.initChess = function initChess(stage) {
               </div>
             </div>
 
+            <div class="flex flex-col gap-2 text-left ${gameMode === 'pvp' ? 'hidden' : ''}">
+              <label class="text-xs font-bold text-slate-400">AI Difficulty:</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button id="chess-cfg-easy" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'easy' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}">Easy</button>
+                <button id="chess-cfg-normal" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'normal' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}">Normal</button>
+                <button id="chess-cfg-hard" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'hard' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-black/40 text-white border-white/10'}">Hard</button>
+              </div>
+            </div>
+
             <button id="chess-start-btn" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-lg cursor-pointer">
               START MATCH 🚀
             </button>
@@ -237,21 +250,25 @@ window.initChess = function initChess(stage) {
       </div>
     `;
 
-    const chessDrawerEl = document.getElementById('chess-settings-drawer');
-    if (typeof window.attachGameSettingsFooterActions === 'function' && chessDrawerEl) {
-      window.attachGameSettingsFooterActions(chessDrawerEl, {
+    const chessSettingsExtra = document.getElementById('chess-settings-extra');
+    if (typeof window.attachGameSettingsFooterActions === 'function' && chessSettingsExtra) {
+      window.attachGameSettingsFooterActions(chessSettingsExtra, {
         onCloseDrawer: () => {
           if (!active) return;
-          drawerOpen = false;
+          settingsModalOpen = false;
           render();
         }
       });
     }
 
-    document.getElementById('chess-menu').onclick = () => { if (!active) return; drawerOpen = true; render(); };
+    document.getElementById('chess-menu').onclick = () => { if (!active) return; settingsModalOpen = true; render(); };
     document.getElementById('chess-reset-btn').onclick = () => { if (!active) return; configModalOpen = true; render(); };
-    document.getElementById('chess-close-drawer').onclick = () => { if (!active) return; drawerOpen = false; render(); };
-    document.getElementById('chess-drawer-bg').onclick = () => { if (!active) return; drawerOpen = false; render(); };
+    document.getElementById('chess-close-settings').onclick = () => { if (!active) return; settingsModalOpen = false; render(); };
+    document.getElementById('chess-settings-backdrop').onclick = (e) => {
+      if (!active || e.target.id !== 'chess-settings-backdrop') return;
+      settingsModalOpen = false;
+      render();
+    };
 
     document.getElementById('chess-mode-pve').onclick = () => { if (!active) return; gameMode = 'pve'; render(); };
     document.getElementById('chess-mode-pvp').onclick = () => { if (!active) return; gameMode = 'pvp'; render(); };
@@ -262,7 +279,11 @@ window.initChess = function initChess(stage) {
     document.getElementById('chess-diff-normal').onclick = () => { if (!active) return; aiDifficulty = 'normal'; render(); };
     document.getElementById('chess-diff-hard').onclick = () => { if (!active) return; aiDifficulty = 'hard'; render(); };
 
-    document.getElementById('chess-apply-drawer').onclick = () => { if (!active) return; drawerOpen = false; reset(); };
+    document.getElementById('chess-cfg-easy').onclick = () => { if (!active) return; aiDifficulty = 'easy'; render(); };
+    document.getElementById('chess-cfg-normal').onclick = () => { if (!active) return; aiDifficulty = 'normal'; render(); };
+    document.getElementById('chess-cfg-hard').onclick = () => { if (!active) return; aiDifficulty = 'hard'; render(); };
+
+    document.getElementById('chess-apply-settings').onclick = () => { if (!active) return; reset(); };
     document.getElementById('chess-start-btn').onclick = () => { if (!active) return; reset(); };
 
     document.querySelectorAll('.ch-sq').forEach(btn => {
