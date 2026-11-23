@@ -204,7 +204,7 @@ window.initDama = function initDama(stage) {
 
         <div id="dama-drawer-bg" class="fixed inset-0 z-30 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}"></div>
 
-        <div class="fixed top-16 bottom-0 left-0 z-40 w-[82%] max-w-xs bg-slate-900 border-r-4 border-t-2 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto rounded-tr-3xl">
+        <div id="dama-settings-drawer" class="fixed top-16 bottom-0 left-0 z-40 w-[82%] max-w-xs bg-slate-900 border-r-4 border-t-2 border-amber-600/50 p-6 shadow-2xl flex flex-col gap-5 transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto rounded-tr-3xl">
           <div class="flex items-center justify-between border-b border-white/10 pb-3">
             <h2 class="text-lg font-black text-amber-400">⚙️ Dama Settings</h2>
             <button id="dama-close-drawer" class="w-8 h-8 rounded-full bg-white/10 text-white font-bold flex items-center justify-center cursor-pointer">✕</button>
@@ -257,6 +257,17 @@ window.initDama = function initDama(stage) {
         </div>
       </div>
     `;
+
+    const damaDrawerEl = document.getElementById('dama-settings-drawer');
+    if (typeof window.attachGameSettingsFooterActions === 'function' && damaDrawerEl) {
+      window.attachGameSettingsFooterActions(damaDrawerEl, {
+        onCloseDrawer: () => {
+          if (!active) return;
+          drawerOpen = false;
+          render();
+        }
+      });
+    }
 
     document.getElementById('dama-menu').onclick = () => { if (!active) return; drawerOpen = true; render(); };
     document.getElementById('dama-reset-btn').onclick = () => { if (!active) return; configModalOpen = true; render(); };
