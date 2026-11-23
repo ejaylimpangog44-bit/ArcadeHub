@@ -245,22 +245,24 @@ window.initStickRun = function initStickRun(stage) {
     }
   }
 
-  function createHorizontalChainBoxes(startX) {
-    const boxW = 44;
-    const boxH = 34;
+  function createFloatingHorizontalChainBoxes(startX) {
+    const boxW = 42;
+    const boxH = 30;
     const gapX = 10;
+    const floatOffset = 34;
     return [0, 1, 2].map((idx) => ({
       x: startX + idx * (boxW + gapX),
-      y: groundY - boxH,
+      y: groundY - floatOffset - boxH,
       w: boxW,
       h: boxH,
-      offsetFromGround: 0,
+      offsetFromGround: floatOffset,
       landedAwarded: false
     }));
   }
 
-  function createLObstacleBoxes(startX) {
-    const unit = 32;
+  function createFloatingLObstacleBoxes(startX) {
+    const unit = 28;
+    const baseOffset = 32;
     const specs = [
       { col: 0, row: 0 },
       { col: 1, row: 0 },
@@ -268,14 +270,17 @@ window.initStickRun = function initStickRun(stage) {
       { col: 0, row: 1 },
       { col: 0, row: 2 }
     ];
-    return specs.map(({ col, row }) => ({
-      x: startX + col * unit,
-      y: groundY - (row + 1) * unit,
-      w: unit,
-      h: unit,
-      offsetFromGround: row * unit,
-      landedAwarded: false
-    }));
+    return specs.map(({ col, row }) => {
+      const offsetFromGround = baseOffset + row * unit;
+      return {
+        x: startX + col * unit,
+        y: groundY - offsetFromGround - unit,
+        w: unit,
+        h: unit,
+        offsetFromGround,
+        landedAwarded: false
+      };
+    });
   }
 
   function spawnObstacle() {
@@ -283,22 +288,21 @@ window.initStickRun = function initStickRun(stage) {
     const startX = viewW + 28;
 
     if (roll < 0.25) {
-      const boxes = createHorizontalChainBoxes(startX);
+      const boxes = createFloatingHorizontalChainBoxes(startX);
       obstacles.push({
         kind: 'horizontal-chain',
         boxes,
-        chainBoxes: boxes,
         saws: []
       });
     } else if (roll < 0.5) {
-      const boxes = createLObstacleBoxes(startX);
-      const lWidth = 32 * 3;
+      const boxes = createFloatingLObstacleBoxes(startX);
+      const lWidth = 28 * 3;
       obstacles.push({
         kind: 'l-saw-obstacle',
         boxes,
         saws: [
           {
-            x: startX + lWidth + 112,
+            x: startX + lWidth + 115,
             cy: groundY - 18,
             elev: 18,
             r: 18,
@@ -642,31 +646,34 @@ window.initStickRun = function initStickRun(stage) {
     ctx.restore();
   }
 
-  function drawPullChain(boxes) {
-    if (!Array.isArray(boxes) || boxes.length < 2) return;
+  function drawLastBoxPullChain(boxes) {
+    if (!Array.isArray(boxes) || boxes.length === 0) return;
+    const lastBox = boxes[boxes.length - 1];
+    const anchorX = lastBox.x + lastBox.w * 0.5;
+    const anchorY = lastBox.y + lastBox.h * 0.5;
+    const endX = lastBox.x + lastBox.w + 46;
+    const endY = anchorY + 14;
+
     ctx.save();
     ctx.strokeStyle = '#fde047';
     ctx.lineWidth = 3;
     ctx.setLineDash([6, 4]);
-
-    for (let i = 0; i < boxes.length - 1; i++) {
-      const a = boxes[i];
-      const b = boxes[i + 1];
-      const ay = a.y + a.h * 0.45;
-      const by = b.y + b.h * 0.45;
-      ctx.beginPath();
-      ctx.moveTo(a.x + a.w, ay);
-      ctx.lineTo(b.x, by);
-      ctx.stroke();
-    }
+    ctx.beginPath();
+    ctx.moveTo(anchorX, anchorY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
 
     ctx.setLineDash([]);
-    boxes.forEach((box) => {
-      ctx.beginPath();
-      ctx.arc(box.x + box.w * 0.5, box.y + box.h * 0.45, 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#fef08a';
-      ctx.fill();
-    });
+    ctx.beginPath();
+    ctx.arc(anchorX, anchorY, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#fef08a';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(endX, endY, 5, 0, Math.PI * 2);
+    ctx.strokeStyle = '#fde047';
+    ctx.lineWidth = 2;
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -674,7 +681,7 @@ window.initStickRun = function initStickRun(stage) {
     obstacles.forEach((ob) => {
       const boxes = getObstacleBoxes(ob);
       if (ob.kind === 'horizontal-chain') {
-        drawPullChain(boxes);
+        drawLastBoxPullChain(boxes);
       }
       boxes.forEach((box) => drawBox(box));
       getObstacleSaws(ob).forEach((saw) => drawSawblade(saw));
@@ -710,6 +717,9 @@ window.initStickRun = function initStickRun(stage) {
     getObstacleBoxes(ob).forEach((box) => {
       right = Math.max(right, box.x + box.w);
     });
+    if (ob.kind === 'horizontal-chain') {
+      right = Math.max(right, right + 54);
+    }
     getObstacleSaws(ob).forEach((saw) => {
       right = Math.max(right, saw.x + saw.r + 6);
     });
