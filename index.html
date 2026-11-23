@@ -267,6 +267,14 @@
         https://arcadehubgames-july12.vercel.app/
       </div>
       <div class="flex gap-2 w-full">
+        <button type="button" onclick="openQrShareModal(HUB_URLS.vercel)" class="flex-1 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold text-pink-300 transition">
+          Vercel
+        </button>
+        <button type="button" onclick="openQrShareModal(HUB_URLS.github)" class="flex-1 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[11px] font-bold text-violet-300 transition">
+          GitHub Pages
+        </button>
+      </div>
+      <div class="flex gap-2 w-full">
         <button onclick="copyHubLink()" id="copy-link-btn" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition">
           📋 Copy URL
         </button>
@@ -384,23 +392,6 @@
     }
   });
 
-  function openQrShareModal() {
-    closeHubMenu();
-    const modal = document.getElementById('qr-share-modal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-    const container = document.getElementById('qrcode-container');
-    if (container && typeof QRCode !== 'undefined' && container.childElementCount === 0) {
-      new QRCode(container, {
-        text: "https://arcadehubgames-july12.vercel.app/",
-        width: 148,
-        height: 148
-      });
-    }
-  }
-
   function closeQrShareModal() {
     const modal = document.getElementById('qr-share-modal');
     if (modal) {
@@ -409,25 +400,12 @@
     }
   }
 
-  const ARCADE_GAME_GUIDES = {
-    "Wordscape Pro": "Swipe or tap letters on the wheel to spell valid words and complete every slot in the crossword grid.",
-    "Tic-Tac-Toe": "Take turns placing X or O and align three in a row horizontally, vertically, or diagonally to win.",
-    "Pinoy Dama": "Move diagonally across dark squares to capture opponent pieces; reach the back row to crown a Dama.",
-    "Basketball Hoops": "Flick upward toward the hoop with accurate angle and power; chain clean shots for higher combos.",
-    "Fruit Master": "Swipe across flying fruits to rack up points while avoiding bombs that break your streak.",
-    "Speed Solitaire": "Arrange cards in descending order with alternating colors and build all four foundation suits.",
-    "Blackjack 21": "Draw or stand to get as close to 21 as possible without busting, beating the dealer's hand.",
-    "Chess": "Maneuver your pieces strategically across the board to trap and checkmate the opponent's king.",
-    "Cyber Snake": "Guide your snake to collect energy nodes and grow your score without hitting walls or your own tail.",
-    "Tower Stack": "Tap at the right moment to drop sliding blocks cleanly onto the stack and build as high as you can."
-  };
-
   function populateInstructionsDropdown() {
     const select = document.getElementById('instruction-game-select');
     if (!select) return;
     const sourceGames = (Array.isArray(window.GAMES) && window.GAMES.length)
       ? window.GAMES.map(g => g.title || g.name).filter(Boolean)
-      : Object.keys(ARCADE_GAME_GUIDES);
+      : [];
 
     select.innerHTML = '';
     sourceGames.forEach(name => {
@@ -444,25 +422,13 @@
     const body = document.getElementById('instruction-game-body');
     if (!select || !body) return;
     const gameName = select.value;
-    if (ARCADE_GAME_GUIDES[gameName]) {
-      body.textContent = ARCADE_GAME_GUIDES[gameName];
-    } else if (Array.isArray(window.GAMES)) {
+    if (Array.isArray(window.GAMES)) {
       const found = window.GAMES.find(g => (g.title || g.name) === gameName);
       body.textContent = (found && (found.instructions || found.desc || found.subtitle))
         ? (found.instructions || found.desc || found.subtitle)
         : `Play ${gameName} and aim for a high score or win round to earn XP and coins.`;
     } else {
       body.textContent = `Play ${gameName} and aim for a high score to earn XP and coins.`;
-    }
-  }
-
-  function openInstructionsModal() {
-    closeHubMenu();
-    populateInstructionsDropdown();
-    const modal = document.getElementById('instructions-modal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
     }
   }
 
