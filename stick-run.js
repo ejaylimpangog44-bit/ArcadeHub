@@ -80,7 +80,7 @@ window.initStickRun = function initStickRun(stage) {
     const scoreEl = document.getElementById('sr-score-pill');
     const finalEl = document.getElementById('sr-final-score');
     const bestEl = document.getElementById('sr-best-score');
-    if (scoreEl) scoreEl.textContent = `🏃 RUN: ${score}`;
+    if (scoreEl) scoreEl.textContent = `🏃 RUN: 0`.replace('0', score);
     if (finalEl) finalEl.textContent = `Run Score: ${score}`;
     if (bestEl) bestEl.textContent = `Best: ${Math.max(bestScore, score)}`;
     overlay.classList.toggle('hidden', !gameOver);
@@ -245,11 +245,11 @@ window.initStickRun = function initStickRun(stage) {
     }
   }
 
-  function createHorizontalChainBoxes(startX) {
+  function createFloatingHorizontalChainBoxes(startX) {
     const boxW = 44;
-    const boxH = 34;
-    const gapX = 12;
-    const floatOffset = 42;
+    const boxH = 30;
+    const gapX = 10;
+    const floatOffset = 34;
     return [0, 1, 2].map((idx) => ({
       x: startX + idx * (boxW + gapX),
       y: groundY - floatOffset - boxH,
@@ -260,8 +260,9 @@ window.initStickRun = function initStickRun(stage) {
     }));
   }
 
-  function createLObstacleBoxes(startX) {
-    const unit = 32;
+  function createFloatingLObstacleBoxes(startX) {
+    const unit = 28;
+    const floatOffset = 30;
     const specs = [
       { col: 0, row: 0 },
       { col: 1, row: 0 },
@@ -269,14 +270,17 @@ window.initStickRun = function initStickRun(stage) {
       { col: 0, row: 1 },
       { col: 0, row: 2 }
     ];
-    return specs.map(({ col, row }) => ({
-      x: startX + col * unit,
-      y: groundY - (row + 1) * unit,
-      w: unit,
-      h: unit,
-      offsetFromGround: row * unit,
-      landedAwarded: false
-    }));
+    return specs.map(({ col, row }) => {
+      const offsetFromGround = floatOffset + row * unit;
+      return {
+        x: startX + col * unit,
+        y: groundY - offsetFromGround - unit,
+        w: unit,
+        h: unit,
+        offsetFromGround,
+        landedAwarded: false
+      };
+    });
   }
 
   function spawnObstacle() {
@@ -284,22 +288,22 @@ window.initStickRun = function initStickRun(stage) {
     const startX = viewW + 28;
 
     if (roll < 0.25) {
-      const boxes = createHorizontalChainBoxes(startX);
+      const boxes = createFloatingHorizontalChainBoxes(startX);
       obstacles.push({
         kind: 'horizontal-chain',
         boxes,
-        chainedBoxIndex: 0,
+        chainBoxes: boxes,
         saws: []
       });
     } else if (roll < 0.5) {
-      const boxes = createLObstacleBoxes(startX);
-      const lWidth = 32 * 3;
+      const boxes = createFloatingLObstacleBoxes(startX);
+      const lWidth = 28 * 3;
       obstacles.push({
         kind: 'l-saw-obstacle',
         boxes,
         saws: [
           {
-            x: startX + lWidth + 112,
+            x: startX + lWidth + 116,
             cy: groundY - 18,
             elev: 18,
             r: 18,
@@ -643,34 +647,29 @@ window.initStickRun = function initStickRun(stage) {
     ctx.restore();
   }
 
-  function drawPullChain(boxes, linkedIndex = 0) {
-    const targetBox = Array.isArray(boxes) ? boxes[linkedIndex] : null;
-    if (!targetBox) return;
+  function drawPullChainToLastBox(boxes) {
+    if (!Array.isArray(boxes) || boxes.length < 2) return;
+    const first = boxes[0];
+    const last = boxes[boxes.length - 1];
+    const startX = first.x + first.w * 0.5;
+    const startY = first.y + first.h * 0.45;
+    const endX = last.x + last.w * 0.5;
+    const endY = last.y + last.h * 0.45;
 
     ctx.save();
-    const anchorX = targetBox.x + targetBox.w * 0.5;
-    const anchorY = targetBox.y;
-    const chainTopY = Math.max(24, targetBox.y - 46);
-
     ctx.strokeStyle = '#fde047';
     ctx.lineWidth = 3;
     ctx.setLineDash([6, 4]);
     ctx.beginPath();
-    ctx.moveTo(anchorX, anchorY);
-    ctx.lineTo(anchorX, chainTopY);
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
     ctx.stroke();
 
     ctx.setLineDash([]);
     ctx.beginPath();
-    ctx.arc(anchorX, anchorY, 4.5, 0, Math.PI * 2);
+    ctx.arc(endX, endY, 4.5, 0, Math.PI * 2);
     ctx.fillStyle = '#fef08a';
     ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(anchorX, chainTopY, 5, 0, Math.PI * 2);
-    ctx.strokeStyle = '#fde047';
-    ctx.lineWidth = 2;
-    ctx.stroke();
     ctx.restore();
   }
 
@@ -678,7 +677,7 @@ window.initStickRun = function initStickRun(stage) {
     obstacles.forEach((ob) => {
       const boxes = getObstacleBoxes(ob);
       if (ob.kind === 'horizontal-chain') {
-        drawPullChain(boxes, ob.chainedBoxIndex ?? 0);
+        drawPullChainToLastBox(boxes);
       }
       boxes.forEach((box) => drawBox(box));
       getObstacleSaws(ob).forEach((saw) => drawSawblade(saw));
