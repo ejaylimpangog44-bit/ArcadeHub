@@ -140,6 +140,36 @@ html, body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
 
+#hub-search-bar-slot {
+  position: relative;
+  z-index: 45;
+}
+
+#hub-hamburger-wrapper {
+  position: relative;
+}
+
+#hub-hamburger-btn span {
+  display: block;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+#hub-hamburger-dropdown:not(.hidden) {
+  display: block;
+  animation: hubMenuReveal 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes hubMenuReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 #game-stage.in-game {
   padding-top: 46px;
 }
