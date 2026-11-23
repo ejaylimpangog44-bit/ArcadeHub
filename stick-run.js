@@ -246,17 +246,15 @@ window.initStickRun = function initStickRun(stage) {
   }
 
   function createVerticalTripleBoxes(startX) {
-    const specs = [
-      { w: 46, h: 36, offsetFromGround: 0 },
-      { w: 50, h: 38, offsetFromGround: 36 },
-      { w: 54, h: 42, offsetFromGround: 74 }
-    ];
-    return specs.map((spec) => ({
-      x: startX + (54 - spec.w) * 0.5,
-      y: groundY - spec.offsetFromGround - spec.h,
-      w: spec.w,
-      h: spec.h,
-      offsetFromGround: spec.offsetFromGround,
+    const boxW = 48;
+    const boxH = 36;
+    const offsets = [0, boxH, boxH * 2];
+    return offsets.map((offsetFromGround) => ({
+      x: startX,
+      y: groundY - offsetFromGround - boxH,
+      w: boxW,
+      h: boxH,
+      offsetFromGround,
       landedAwarded: false
     }));
   }
@@ -265,30 +263,33 @@ window.initStickRun = function initStickRun(stage) {
     const roll = Math.random();
     const startX = viewW + 28;
 
-    if (roll < 0.22) {
+    if (roll < 0.24) {
+      const boxW = 48;
+      const boxH = 36;
       const boxes = createVerticalTripleBoxes(startX);
-      const stackTopElev = 116;
+      const stackTopElev = boxH * 3;
+      const secondBoxCenterElev = boxH + boxH * 0.5;
       obstacles.push({
         kind: 'triple-saw-combo',
         boxes,
         saws: [
           {
-            x: startX + 27,
-            cy: groundY - (stackTopElev + 74),
-            elev: stackTopElev + 74,
-            r: 20,
+            x: startX + boxW * 0.5,
+            cy: groundY - (stackTopElev + 114),
+            elev: stackTopElev + 114,
+            r: 18,
             angle: 0
           },
           {
-            x: startX + 94,
-            cy: groundY - 22,
-            elev: 22,
-            r: 19,
+            x: startX + boxW + 78,
+            cy: groundY - secondBoxCenterElev,
+            elev: secondBoxCenterElev,
+            r: 18,
             angle: 0
           }
         ]
       });
-    } else if (roll < 0.46) {
+    } else if (roll < 0.48) {
       obstacles.push({
         kind: 'triple-stack',
         boxes: createVerticalTripleBoxes(startX),
@@ -308,7 +309,7 @@ window.initStickRun = function initStickRun(stage) {
           landedAwarded: false
         },
         saw: {
-          x: startX + w + 34,
+          x: startX + w + 38,
           cy: groundY - 22,
           elev: 22,
           r: 20,
