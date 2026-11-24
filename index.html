@@ -6,7 +6,6 @@
   <title>Arcade Hub — Full-Viewport Edition</title>
   <meta name="theme-color" content="#1f2530" />
   <link rel="manifest" href="./manifest.json" />
-  <link rel="preload" as="image" href="./1000034484.gif" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -17,20 +16,20 @@
 
 <body>
 
-<!-- Cozy Chill GIF Splash Screen (Revealed after Power Screen) -->
+<!-- Minimal Splash Screen -->
 <div id="splash-screen" class="splash-screen splash-hide" role="status" aria-live="polite" aria-label="Loading Arcade Hub" aria-hidden="true">
-  <div class="cozy-splash-card">
-    <div class="cozy-splash-badge">ARCADE HUB &bull; CHILL LOUNGE</div>
+  <div class="splash-clean-card">
+    <h1 class="splash-title">Arcade Hub</h1>
+    <p class="splash-tagline">Play &bull; Think &bull; Win</p>
 
-    <div class="cozy-gif-frame">
-      <img
-        id="splash-gif-img"
-        src="./1000034484.gif"
-        alt="Arcade Hub animated splash"
-        class="cozy-splash-gif"
-        loading="eager"
-        decoding="sync"
-      />
+    <div class="splash-loader-wrap">
+      <div class="cozy-progress-track">
+        <div id="splash-progress-fill" class="cozy-progress-fill"></div>
+      </div>
+      <div class="splash-loader-meta">
+        <span id="splash-status" class="cozy-splash-sub">Loading...</span>
+        <span id="splash-pct" class="cozy-splash-pct">0%</span>
+      </div>
     </div>
   </div>
 </div>
@@ -38,7 +37,9 @@
 <script>
   (function () {
     var splashEl = document.getElementById("splash-screen");
-    var gifEl = document.getElementById("splash-gif-img");
+    var fillEl = document.getElementById("splash-progress-fill");
+    var pctEl = document.getElementById("splash-pct");
+    var statusEl = document.getElementById("splash-status");
     if (!splashEl) return;
 
     splashEl.classList.add("splash-hide");
@@ -47,27 +48,37 @@
 
     var started = false;
     var finished = false;
-    var dismissTimer = null;
-    var maxTimer = null;
+    var progress = 0;
+    var intervalId = null;
+    var hideTimer = null;
+
+    function setProgress(val) {
+      progress = Math.max(0, Math.min(100, Math.round(val)));
+      if (fillEl) fillEl.style.width = progress + "%";
+      if (pctEl) pctEl.textContent = progress + "%";
+      if (statusEl) {
+        statusEl.textContent = progress < 100 ? "Loading..." : "Ready";
+      }
+    }
 
     function finishSplash() {
       if (finished) return;
       finished = true;
-      if (dismissTimer) clearTimeout(dismissTimer);
-      if (maxTimer) clearTimeout(maxTimer);
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      setProgress(100);
 
-      splashEl.classList.add("splash-hide");
-      splashEl.setAttribute("aria-hidden", "true");
-      setTimeout(function () {
-        if (splashEl && splashEl.classList.contains("splash-hide")) {
-          splashEl.style.pointerEvents = "none";
-        }
-      }, 650);
-    }
-
-    function scheduleDismiss() {
-      if (dismissTimer || finished) return;
-      dismissTimer = setTimeout(finishSplash, 2400);
+      hideTimer = setTimeout(function () {
+        splashEl.classList.add("splash-hide");
+        splashEl.setAttribute("aria-hidden", "true");
+        setTimeout(function () {
+          if (splashEl && splashEl.classList.contains("splash-hide")) {
+            splashEl.style.pointerEvents = "none";
+          }
+        }, 650);
+      }, 300);
     }
 
     window.startSplashScreen = function () {
@@ -77,22 +88,15 @@
       splashEl.style.pointerEvents = "auto";
       splashEl.removeAttribute("aria-hidden");
       splashEl.classList.remove("splash-hide");
+      setProgress(0);
 
-      if (gifEl) {
-        if (!gifEl.src || gifEl.src.indexOf("1000034484.gif") === -1) {
-          gifEl.src = "./1000034484.gif";
-        }
-        if (gifEl.complete && gifEl.naturalWidth > 0) {
-          scheduleDismiss();
+      intervalId = setInterval(function () {
+        if (progress < 96) {
+          setProgress(progress + 6);
         } else {
-          gifEl.addEventListener("load", scheduleDismiss, { once: true });
-          gifEl.addEventListener("error", scheduleDismiss, { once: true });
+          finishSplash();
         }
-      } else {
-        scheduleDismiss();
-      }
-
-      maxTimer = setTimeout(finishSplash, 6500);
+      }, 90);
     };
   })();
 </script>
