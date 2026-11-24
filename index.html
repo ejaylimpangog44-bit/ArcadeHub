@@ -17,13 +17,20 @@
 
 <body>
 
-<!-- Cozy Chill GIF Splash Screen -->
-<div id="splash-screen" class="splash-screen" role="status" aria-live="polite" aria-label="Loading Arcade Hub">
+<!-- Cozy Chill GIF Splash Screen (Revealed after Power Screen) -->
+<div id="splash-screen" class="splash-screen splash-hide" role="status" aria-live="polite" aria-label="Loading Arcade Hub" aria-hidden="true">
   <div class="cozy-splash-card">
     <div class="cozy-splash-badge">ARCADE HUB &bull; CHILL LOUNGE</div>
 
     <div class="cozy-gif-frame">
-      <img src="./1000034484.gif" alt="Arcade Hub animated splash" class="cozy-splash-gif" />
+      <img
+        id="splash-gif-img"
+        src="./1000034484.gif"
+        alt="Arcade Hub animated splash"
+        class="cozy-splash-gif"
+        loading="eager"
+        decoding="sync"
+      />
     </div>
   </div>
 </div>
@@ -31,16 +38,23 @@
 <script>
   (function () {
     var splashEl = document.getElementById("splash-screen");
+    var gifEl = document.getElementById("splash-gif-img");
     if (!splashEl) return;
 
-    var loaded = document.readyState === "complete";
+    splashEl.classList.add("splash-hide");
+    splashEl.setAttribute("aria-hidden", "true");
+    splashEl.style.pointerEvents = "none";
+
+    var started = false;
     var finished = false;
-    var fallbackTimer = null;
+    var dismissTimer = null;
+    var maxTimer = null;
 
     function finishSplash() {
       if (finished) return;
       finished = true;
-      if (fallbackTimer) clearTimeout(fallbackTimer);
+      if (dismissTimer) clearTimeout(dismissTimer);
+      if (maxTimer) clearTimeout(maxTimer);
 
       splashEl.classList.add("splash-hide");
       splashEl.setAttribute("aria-hidden", "true");
@@ -51,15 +65,35 @@
       }, 650);
     }
 
-    if (loaded) {
-      setTimeout(finishSplash, 900);
-    } else {
-      window.addEventListener("load", function () {
-        setTimeout(finishSplash, 900);
-      }, { once: true });
+    function scheduleDismiss() {
+      if (dismissTimer || finished) return;
+      dismissTimer = setTimeout(finishSplash, 2400);
     }
 
-    fallbackTimer = setTimeout(finishSplash, 6000);
+    window.startSplashScreen = function () {
+      if (started || finished) return;
+      started = true;
+
+      splashEl.style.pointerEvents = "auto";
+      splashEl.removeAttribute("aria-hidden");
+      splashEl.classList.remove("splash-hide");
+
+      if (gifEl) {
+        if (!gifEl.src || gifEl.src.indexOf("1000034484.gif") === -1) {
+          gifEl.src = "./1000034484.gif";
+        }
+        if (gifEl.complete && gifEl.naturalWidth > 0) {
+          scheduleDismiss();
+        } else {
+          gifEl.addEventListener("load", scheduleDismiss, { once: true });
+          gifEl.addEventListener("error", scheduleDismiss, { once: true });
+        }
+      } else {
+        scheduleDismiss();
+      }
+
+      maxTimer = setTimeout(finishSplash, 6500);
+    };
   })();
 </script>
 
