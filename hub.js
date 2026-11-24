@@ -1414,26 +1414,75 @@ function buildDiscoveryShelf(title, list) {
       <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">${title}</h2>
       <span class="text-xs font-semibold text-slate-400">${list.length}</span>
     </div>
-    <div class="hidden sm:flex items-center gap-1.5">
-      <button class="shelf-left w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-xs font-bold flex items-center justify-center" aria-label="Scroll left">‹</button>
-      <button class="shelf-right w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-xs font-bold flex items-center justify-center" aria-label="Scroll right">›</button>
+    <div class="flex items-center gap-1.5">
+      <button type="button" class="shelf-nav-btn shelf-left w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold flex items-center justify-center transition active:scale-95" aria-label="Scroll ${title} left">‹</button>
+      <button type="button" class="shelf-nav-btn shelf-right w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold flex items-center justify-center transition active:scale-95" aria-label="Scroll ${title} right">›</button>
     </div>
   `;
+
+  const trackWrap = document.createElement('div');
+  trackWrap.className = 'shelf-track-wrap';
 
   const track = document.createElement('div');
   track.className = 'flex gap-3.5 overflow-x-auto no-scrollbar pb-2 scroll-smooth';
   track.style.scrollSnapType = 'x mandatory';
   list.forEach(g => track.appendChild(buildDiscoveryCard(g)));
 
-  header.querySelector('.shelf-left')?.addEventListener('click', () => {
-    track.scrollBy({ left: -440, behavior: 'smooth' });
-  });
-  header.querySelector('.shelf-right')?.addEventListener('click', () => {
-    track.scrollBy({ left: 440, behavior: 'smooth' });
+  const fadeRight = document.createElement('div');
+  fadeRight.className = 'shelf-fade-right';
+
+  const leftBtn = header.querySelector('.shelf-left');
+  const rightBtn = header.querySelector('.shelf-right');
+
+  const syncShelfControls = () => {
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    const hasOverflow = maxScroll > 2;
+    const atStart = !hasOverflow || track.scrollLeft <= 2;
+    const atEnd = !hasOverflow || track.scrollLeft >= maxScroll - 2;
+
+    if (leftBtn) leftBtn.disabled = atStart;
+    if (rightBtn) rightBtn.disabled = atEnd;
+    fadeRight.classList.toggle('is-visible', hasOverflow && !atEnd);
+  };
+
+  const getStep = () => Math.max(240, Math.round(track.clientWidth * 0.8));
+
+  leftBtn?.addEventListener('click', () => {
+    AudioFX.click();
+    track.scrollBy({ left: -getStep(), behavior: 'smooth' });
   });
 
+  rightBtn?.addEventListener('click', () => {
+    AudioFX.click();
+    track.scrollBy({ left: getStep(), behavior: 'smooth' });
+  });
+
+  track.addEventListener('scroll', syncShelfControls, { passive: true });
+  track.addEventListener(
+    'wheel',
+    (e) => {
+      if (track.scrollWidth <= track.clientWidth) return;
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        track.scrollLeft += e.deltaY;
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(syncShelfControls);
+    ro.observe(track);
+  } else {
+    window.addEventListener('resize', syncShelfControls);
+  }
+
+  requestAnimationFrame(syncShelfControls);
+
+  trackWrap.appendChild(track);
+  trackWrap.appendChild(fadeRight);
   section.appendChild(header);
-  section.appendChild(track);
+  section.appendChild(trackWrap);
   return section;
 }
 
