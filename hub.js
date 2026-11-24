@@ -1,3 +1,4 @@
+
 const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
@@ -1577,7 +1578,7 @@ function openHubHome() {
   stage.innerHTML = `
     <div class="w-full h-full overflow-y-auto px-4 sm:px-8 py-4 pb-20">
       <div class="max-w-6xl mx-auto flex flex-col gap-5">
-        <div class="hub-sticky-controls flex flex-col gap-2.5">
+        <div class="flex flex-col gap-2.5">
           <div class="flex items-center gap-2">
             <div class="relative flex-1">
               <input id="hub-search-input" type="text" value="${discoverySearch}" placeholder="Search 20 games..." autocomplete="off"
