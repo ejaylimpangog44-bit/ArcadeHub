@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setTimeout(() => {
       if (powerScreen) powerScreen.classList.add("powered-on");
+      if (typeof window.startSplashScreen === "function") {
+        window.startSplashScreen();
+      }
     }, 700);
   }
 
@@ -55,6 +58,12 @@ document.addEventListener("DOMContentLoaded", () => {
       e.stopPropagation();
       triggerPowerOn();
     }, { passive: false });
+    pullHandle.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        triggerPowerOn();
+      }
+    });
   }
 
   if (neonSignContainer) {
