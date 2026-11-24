@@ -29,6 +29,18 @@ window.initChess = function initChess(stage) {
   let gameOver = false;
   let winnerText = '';
 
+  function playSound(name) {
+    try {
+      window.AudioFX?.[name]?.();
+    } catch (_) {}
+  }
+
+  function awardXp(pts, label) {
+    try {
+      window.addXP?.(pts, window.innerWidth / 2, window.innerHeight / 2, label);
+    } catch (_) {}
+  }
+
   function vibrate(ms = 12) {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       try { navigator.vibrate(ms); } catch (_) {}
@@ -283,7 +295,7 @@ window.initChess = function initChess(stage) {
     if (moving === 'bP' && move.r === 7) board[move.r][move.c] = 'b' + promoType;
 
     lastMove = { sr, sc, dr: move.r, dc: move.c };
-    AudioFX.card();
+    playSound('card');
     vibrate(14);
   }
 
@@ -298,13 +310,13 @@ window.initChess = function initChess(stage) {
         if (gameMode === 'pve') {
           winnerText = winnerSide === 'w' ? '🎉 Checkmate! You Win!' : '🤖 Checkmate! AI Wins!';
           if (winnerSide === 'w') {
-            AudioFX.win();
-            addXP(60, window.innerWidth / 2, window.innerHeight / 2, 'CHECKMATE +60 XP!');
-            window.ArcadeHero?.awardGameScore('chess', 150);
+            playSound('win');
+            awardXp(60, 'CHECKMATE +60 XP!');
+            window.ArcadeHero?.awardGameScore?.('chess', 150);
           }
         } else {
           winnerText = winnerSide === 'w' ? '🏆 White Wins by Checkmate!' : '🏆 Black Wins by Checkmate!';
-          AudioFX.win();
+          playSound('win');
         }
       } else {
         winnerText = '🤝 Draw by Stalemate!';
@@ -414,17 +426,28 @@ window.initChess = function initChess(stage) {
     legal = [];
     gameOver = false;
     winnerText = '';
-    AudioFX.click();
+    playSound('click');
     render();
   }
 
   function render() {
-    if (!active) return;
+    if (!active || !stage) return;
+    if (!Array.isArray(board) || board.length !== 8) {
+      const back = ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'];
+      board = Array.from({ length: 8 }, (_, r) => Array.from({ length: 8 }, (_, c) => {
+        if (r === 0) return 'b' + back[c];
+        if (r === 1) return 'bP';
+        if (r === 6) return 'wP';
+        if (r === 7) return 'w' + back[c];
+        return null;
+      }));
+    }
+
     const whiteCheck = isKingInCheck(board, 'w');
     const blackCheck = isKingInCheck(board, 'b');
 
     stage.innerHTML = `
-      <div class="relative w-full h-full flex flex-col items-center justify-between px-3 py-2.5 pb-16 sm:pb-6 select-none overflow-hidden">
+      <div class="relative w-full h-full min-h-[420px] flex flex-col items-center justify-between px-3 py-2.5 pb-16 sm:pb-6 select-none overflow-hidden">
         <div class="flex items-center justify-between w-full max-w-[min(92vw,440px)] shrink-0 z-10 gap-2">
           <button id="chess-menu" type="button" class="w-10 h-10 shrink-0 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 text-lg font-black shadow hover:bg-amber-900 transition cursor-pointer" aria-label="Settings">
             ☰
@@ -432,23 +455,20 @@ window.initChess = function initChess(stage) {
           <div class="flex-1 px-3 py-2 rounded-xl bg-black/65 border border-amber-400/30 text-amber-200 font-bold text-xs shadow text-center truncate">
             ${status}
           </div>
-          <button id="chess-undo-btn" type="button" ${history.length === 0 ? 'disabled' : ''} class="px-3 h-10 shrink-0 rounded-xl bg-slate-800/90 border border-white/15 hover:bg-slate-700 disabled:opacity-40 text-amber-200 font-bold text-xs shadow transition cursor-pointer">
+          <button id="chess-undo-btn" type="button" ${history.length === 0 ? 'disabled' : ''} class="px-3.5 h-10 shrink-0 rounded-xl bg-slate-800/90 border border-white/15 hover:bg-slate-700 disabled:opacity-40 text-amber-200 font-bold text-xs shadow transition cursor-pointer">
             ↩ Undo
-          </button>
-          <button id="chess-reset-btn" type="button" class="px-3 h-10 shrink-0 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow transition cursor-pointer">
-            New
           </button>
         </div>
 
         <div class="w-full max-w-[min(92vw,440px)] h-7 shrink-0 flex items-center justify-between px-2 rounded-lg bg-black/35 border border-white/5 text-xs text-amber-100/90 font-bold z-10">
           <span class="text-[10px] uppercase tracking-wider text-slate-400">Black</span>
           <div class="flex items-center gap-0.5 text-base leading-none overflow-hidden">
-            ${capturedByB.length ? capturedByB.map(p => `<span>${GLYPHS[p]}</span>`).join('') : '<span class="text-[10px] text-slate-500 font-normal">No captures</span>'}
+            ${capturedByB.length ? capturedByB.map(p => `<span>${GLYPHS[p] || ''}</span>`).join('') : '<span class="text-[10px] text-slate-500 font-normal">No captures</span>'}
           </div>
         </div>
 
-        <div class="relative w-[min(88vw,420px)] aspect-square shrink-0 my-auto z-10">
-          <div class="grid grid-cols-8 grid-rows-8 w-full h-full rounded-2xl overflow-hidden border-4 border-amber-900 shadow-[0_20px_60px_rgba(0,0,0,0.85)]">
+        <div style="width: min(88vw, 420px); height: min(88vw, 420px);" class="relative shrink-0 my-auto z-10">
+          <div style="grid-template-columns: repeat(8, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr));" class="grid w-full h-full rounded-2xl overflow-hidden border-4 border-amber-900 shadow-[0_20px_60px_rgba(0,0,0,0.85)]">
             ${board.map((row, r) => row.map((cell, c) => {
               const dark = (r + c) % 2 === 1;
               const isSel = sel && sel[0] === r && sel[1] === c;
@@ -469,8 +489,8 @@ window.initChess = function initChess(stage) {
                   ${c === 0 ? `<span class="pointer-events-none absolute top-0.5 left-1 text-[9px] font-extrabold leading-none ${dark ? 'text-amber-200/60' : 'text-amber-950/60'}">${8 - r}</span>` : ''}
                   ${r === 7 ? `<span class="pointer-events-none absolute bottom-0.5 right-1 text-[9px] font-extrabold leading-none ${dark ? 'text-amber-200/60' : 'text-amber-950/60'}">${FILES[c]}</span>` : ''}
                   ${cell ? `
-                    <span class="pointer-events-none block leading-none text-[clamp(1.45rem,6.5vw,2.35rem)] transition-transform duration-150 ${isSel ? 'scale-110' : ''} ${cell[0] === 'w' ? 'text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.95)]' : 'text-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.65)]'}">
-                      ${GLYPHS[cell]}
+                    <span class="pointer-events-none block leading-none text-[clamp(1.35rem,6vw,2.25rem)] transition-transform duration-150 ${isSel ? 'scale-110' : ''} ${cell[0] === 'w' ? 'text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.95)]' : 'text-slate-950 drop-shadow-[0_1px_1px_rgba(255,255,255,0.65)]'}">
+                      ${GLYPHS[cell] || ''}
                     </span>
                   ` : ''}
                   ${moveObj ? (
@@ -487,7 +507,7 @@ window.initChess = function initChess(stage) {
         <div class="w-full max-w-[min(92vw,440px)] h-7 shrink-0 flex items-center justify-between px-2 rounded-lg bg-black/35 border border-white/5 text-xs text-amber-100/90 font-bold z-10">
           <span class="text-[10px] uppercase tracking-wider text-slate-400">White</span>
           <div class="flex items-center gap-0.5 text-base leading-none overflow-hidden">
-            ${capturedByW.length ? capturedByW.map(p => `<span>${GLYPHS[p]}</span>`).join('') : '<span class="text-[10px] text-slate-500 font-normal">No captures</span>'}
+            ${capturedByW.length ? capturedByW.map(p => `<span>${GLYPHS[p] || ''}</span>`).join('') : '<span class="text-[10px] text-slate-500 font-normal">No captures</span>'}
           </div>
         </div>
 
@@ -593,7 +613,6 @@ window.initChess = function initChess(stage) {
 
     document.getElementById('chess-menu').onclick = () => { if (!active) return; settingsModalOpen = true; render(); };
     document.getElementById('chess-undo-btn').onclick = () => undoMove();
-    document.getElementById('chess-reset-btn').onclick = () => { if (!active) return; configModalOpen = true; render(); };
     document.getElementById('chess-play-again-btn').onclick = () => { if (!active) return; reset(); };
     document.getElementById('chess-close-settings').onclick = () => { if (!active) return; settingsModalOpen = false; render(); };
     document.getElementById('chess-settings-backdrop').onclick = (e) => {
@@ -677,7 +696,7 @@ window.initChess = function initChess(stage) {
         if (board[r][c]?.[0] === currentSide) {
           sel = [r, c];
           legal = getLegalMoves(r, c);
-          AudioFX.click();
+          playSound('click');
           vibrate(8);
         } else {
           sel = null;
