@@ -30,6 +30,31 @@ html, body {
   overflow: hidden;
 }
 
+.hub-sticky-controls {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+  background: rgba(9, 10, 16, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding-top: 4px;
+  padding-bottom: 8px;
+  margin-left: -16px;
+  margin-right: -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (min-width: 640px) {
+  .hub-sticky-controls {
+    margin-left: -32px;
+    margin-right: -32px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
