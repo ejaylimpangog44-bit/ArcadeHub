@@ -17,7 +17,7 @@
 
 <body>
 
-<!-- Cozy Chill GIF Splash Screen (No Checkmark on Completion) -->
+<!-- Cozy Chill GIF Splash Screen -->
 <div id="splash-screen" class="splash-screen" role="status" aria-live="polite" aria-label="Loading Arcade Hub">
   <div class="cozy-splash-card">
     <div class="cozy-splash-badge">ARCADE HUB &bull; CHILL LOUNGE</div>
@@ -25,114 +25,41 @@
     <div class="cozy-gif-frame">
       <img src="./1000034484.gif" alt="Arcade Hub animated splash" class="cozy-splash-gif" />
     </div>
-
-    <div class="cozy-status-row">
-      <p id="splash-status-text" class="cozy-splash-sub">Warming up the lounge...</p>
-      <span id="splash-progress-pct" class="cozy-splash-pct">0%</span>
-    </div>
-
-    <!-- Game cards preview while chunks load -->
-    <div id="splash-game-cards" class="cozy-game-cards" aria-hidden="true">
-      <div class="cozy-mini-card" data-splash-card="tiny-cafe">
-        <span class="cozy-card-emoji">&#9749;</span>
-        <span class="cozy-card-name">Tiny Caf&eacute;</span>
-        <span class="cozy-card-tag">Strategy</span>
-      </div>
-      <div class="cozy-mini-card" data-splash-card="solitaire">
-        <span class="cozy-card-emoji">&#127183;</span>
-        <span class="cozy-card-name">Speed Solitaire</span>
-        <span class="cozy-card-tag">Card</span>
-      </div>
-      <div class="cozy-mini-card" data-splash-card="wordscape">
-        <span class="cozy-card-emoji">&#128221;</span>
-        <span class="cozy-card-name">Wordscape Pro</span>
-        <span class="cozy-card-tag">Puzzle</span>
-      </div>
-    </div>
-
-    <!-- Clean progress bar only — no checkmark -->
-    <div class="cozy-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-      <div id="splash-progress-fill" class="cozy-progress-fill"></div>
-    </div>
   </div>
 </div>
 
 <script>
   (function () {
     var splashEl = document.getElementById("splash-screen");
-    var fillEl = document.getElementById("splash-progress-fill");
-    var pctEl = document.getElementById("splash-progress-pct");
-    var statusEl = document.getElementById("splash-status-text");
-    var trackEl = splashEl ? splashEl.querySelector(".cozy-progress-track") : null;
     if (!splashEl) return;
 
-    var progress = 8;
     var loaded = document.readyState === "complete";
     var finished = false;
     var fallbackTimer = null;
 
-    function updateUI(val) {
-      progress = Math.max(progress, Math.min(100, val));
-      var rounded = Math.round(progress);
-      if (fillEl) fillEl.style.width = progress + "%";
-      if (pctEl) pctEl.textContent = rounded + "%";
-      if (trackEl) trackEl.setAttribute("aria-valuenow", String(rounded));
-
-      var cards = splashEl.querySelectorAll(".cozy-mini-card");
-      for (var i = 0; i < cards.length; i++) {
-        var threshold = 25 + i * 25;
-        if (progress >= threshold) {
-          cards[i].classList.add("is-ready");
-        }
-      }
-    }
-
-    updateUI(progress);
-
     function finishSplash() {
       if (finished) return;
       finished = true;
-      clearInterval(timer);
       if (fallbackTimer) clearTimeout(fallbackTimer);
-      updateUI(100);
-      if (statusEl) statusEl.textContent = "Entering power screen...";
 
+      splashEl.classList.add("splash-hide");
+      splashEl.setAttribute("aria-hidden", "true");
       setTimeout(function () {
-        if (!splashEl) return;
-        splashEl.classList.add("splash-hide");
-        splashEl.setAttribute("aria-hidden", "true");
-        setTimeout(function () {
-          if (splashEl && splashEl.classList.contains("splash-hide")) {
-            splashEl.style.pointerEvents = "none";
-          }
-        }, 350);
-      }, 300);
+        if (splashEl && splashEl.classList.contains("splash-hide")) {
+          splashEl.style.pointerEvents = "none";
+        }
+      }, 650);
     }
 
-    if (!loaded) {
+    if (loaded) {
+      setTimeout(finishSplash, 900);
+    } else {
       window.addEventListener("load", function () {
-        loaded = true;
-        if (statusEl && !finished) statusEl.textContent = "Preparing power screen...";
+        setTimeout(finishSplash, 900);
       }, { once: true });
     }
 
-    var timer = setInterval(function () {
-      if (!loaded) {
-        updateUI(progress + (88 - progress) * 0.14);
-      } else {
-        var next = progress + (100 - progress) * 0.36 + 4.5;
-        if (next >= 99.5) {
-          finishSplash();
-        } else {
-          updateUI(next);
-        }
-      }
-    }, 110);
-
-    fallbackTimer = setTimeout(function () {
-      loaded = true;
-      finishSplash();
-    }, 6000);
+    fallbackTimer = setTimeout(finishSplash, 6000);
   })();
 </script>
 
