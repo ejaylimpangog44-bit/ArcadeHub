@@ -15,10 +15,10 @@
 
   --z-hud: 45;
   --z-hero-pill: 9990;
-  --z-power: 9998;
+  --z-splash: 9998;
   --z-popup: 9999;
-  --z-modal: 10000;
-  --z-splash: 10001;
+  --z-power: 10000;
+  --z-modal: 10001;
 }
 
 *,
@@ -785,7 +785,7 @@ button,
 
 .cozy-splash-card {
   width: 100%;
-  max-width: 390px;
+  max-width: 410px;
   padding: 22px 20px 20px;
   border-radius: 24px;
   background: rgba(27, 32, 42, 0.9);
@@ -814,7 +814,7 @@ button,
 
 .cozy-gif-frame {
   width: 100%;
-  max-height: 220px;
+  max-height: 340px;
   border-radius: 18px;
   overflow: hidden;
   background: #11151d;
@@ -828,8 +828,8 @@ button,
 .cozy-splash-gif {
   width: 100%;
   height: auto;
-  max-height: 220px;
-  object-fit: cover;
+  max-height: 340px;
+  object-fit: contain;
   display: block;
 }
 
