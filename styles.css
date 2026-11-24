@@ -38,6 +38,32 @@ html, body {
   scrollbar-width: none;
 }
 
+.shelf-track-wrap {
+  position: relative;
+}
+
+.shelf-fade-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 8px;
+  width: 64px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(9, 10, 16, 0) 0%, rgba(9, 10, 16, 0.9) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.shelf-fade-right.is-visible {
+  opacity: 1;
+}
+
+.shelf-nav-btn:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .discovery-chip {
   flex: 0 0 auto;
   padding: 6px 14px;
