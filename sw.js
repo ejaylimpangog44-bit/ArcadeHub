@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcadehub-cache-v28';
+const CACHE_NAME = 'arcadehub-cache-v29';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -28,7 +28,7 @@ const ASSETS_TO_CACHE = [
   './power.js',
   './bgm.mp3',
   './manifest.json',
-  './1793408885987.jpg',
+  './image-512.jpg',
   './1000034484.gif',
   './flickpoint.html',
   './flickpoint.css',
