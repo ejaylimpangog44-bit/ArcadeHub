@@ -1,4 +1,3 @@
-
 const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
@@ -1777,11 +1776,76 @@ window.addEventListener('DOMContentLoaded', () => {
   syncFoxCompanionVisibility();
 
   const splashScreen = document.getElementById('splash-screen');
-  if (splashScreen) {
+  const splashFill = document.getElementById('splash-progress-fill');
+  const splashPct = document.getElementById('splash-progress-pct');
+  const splashStatus = document.getElementById('splash-status-text');
+  const splashTrack = splashScreen ? splashScreen.querySelector('.cozy-progress-track') : null;
+
+  let splashProgress = 12;
+  let splashDone = false;
+  let pageLoaded = document.readyState === 'complete';
+
+  function updateCozySplash(val) {
+    splashProgress = Math.max(splashProgress, Math.min(100, val));
+    const rounded = Math.round(splashProgress);
+    if (splashFill) splashFill.style.width = `${splashProgress}%`;
+    if (splashPct) splashPct.textContent = `${rounded}%`;
+    if (splashTrack) splashTrack.setAttribute('aria-valuenow', String(rounded));
+
+    if (splashScreen) {
+      const cards = splashScreen.querySelectorAll('.cozy-mini-card');
+      cards.forEach((card, idx) => {
+        const threshold = 25 + idx * 25;
+        if (splashProgress >= threshold) {
+          card.classList.add('is-ready');
+        }
+      });
+    }
+  }
+
+  function completeCozySplash() {
+    if (splashDone || !splashScreen) return;
+    splashDone = true;
+    if (splashTimer) clearInterval(splashTimer);
+    updateCozySplash(100);
+    if (splashStatus) splashStatus.textContent = 'Entering power screen...';
     setTimeout(() => {
       splashScreen.classList.add('splash-hide');
-    }, 1500);
+    }, 300);
   }
+
+  updateCozySplash(splashProgress);
+
+  if (!pageLoaded) {
+    window.addEventListener('load', () => {
+      pageLoaded = true;
+      if (splashStatus && !splashDone) {
+        splashStatus.textContent = 'Preparing power screen...';
+      }
+    }, { once: true });
+  }
+
+  const splashTimer = setInterval(() => {
+    if (splashDone) {
+      clearInterval(splashTimer);
+      return;
+    }
+    if (!pageLoaded) {
+      updateCozySplash(splashProgress + (88 - splashProgress) * 0.16);
+    } else {
+      const next = splashProgress + (100 - splashProgress) * 0.38 + 5;
+      if (next >= 99.5) {
+        completeCozySplash();
+      } else {
+        updateCozySplash(next);
+      }
+    }
+  }, 110);
+
+  setTimeout(() => {
+    pageLoaded = true;
+    completeCozySplash();
+  }, 5000);
 
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('hub') === 'true') {
@@ -1790,7 +1854,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const appShell = document.getElementById('app-shell');
     const headerName = document.getElementById('header-player-name');
 
-    if (splashScreen) splashScreen.classList.add('splash-hide');
+    completeCozySplash();
     if (powerScreen) powerScreen.style.display = 'none';
     if (loginScreen) loginScreen.classList.add('hidden');
 
