@@ -6,9 +6,13 @@ function syncFoxCompanionVisibility() {
   if (!foxWidget) return;
   const appShell = document.getElementById('app-shell');
   const loginScreen = document.getElementById('login-screen');
-  const isLoggedIn = appShell && !appShell.classList.contains('hidden') && (!loginScreen || loginScreen.classList.contains('hidden'));
+  const isLoggedIn = Boolean(
+    appShell &&
+    !appShell.classList.contains('hidden') &&
+    (!loginScreen || loginScreen.classList.contains('hidden'))
+  );
   foxWidget.classList.toggle('hidden', !isLoggedIn);
-  foxWidget.classList.toggle('flex', Boolean(isLoggedIn));
+  foxWidget.classList.toggle('flex', isLoggedIn);
 }
 
 function openFoxCompanionModal() {
@@ -26,44 +30,65 @@ if (closeFoxBtn && foxModal) {
   closeFoxBtn.onclick = () => {
     foxModal.classList.remove('flex');
     foxModal.classList.add('hidden');
-    if (typeof AudioFX !== 'undefined') AudioFX.click();
+    if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
   };
 }
 
 if (foxWidget) {
   let isDragging = false;
-  let startX = null, startY = null, initialX = 0, initialY = 0;
+  let startX = null;
+  let startY = null;
+  let initialX = 0;
+  let initialY = 0;
 
-  foxWidget.onpointerdown = (e) => {
+  foxWidget.addEventListener('pointerdown', (e) => {
     isDragging = false;
     startX = e.clientX;
     startY = e.clientY;
     initialX = foxWidget.offsetLeft;
     initialY = foxWidget.offsetTop;
-    foxWidget.setPointerCapture(e.pointerId);
-  };
+    try {
+      foxWidget.setPointerCapture(e.pointerId);
+    } catch (_) {}
+  });
 
-  foxWidget.onpointermove = (e) => {
+  foxWidget.addEventListener('pointermove', (e) => {
     if (startX === null || startY === null) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
     if (Math.hypot(dx, dy) > 6) {
       isDragging = true;
-      foxWidget.style.left = `${initialX + dx}px`;
-      foxWidget.style.top = `${initialY + dy}px`;
+      const maxX = Math.max(8, window.innerWidth - foxWidget.offsetWidth - 8);
+      const maxY = Math.max(8, window.innerHeight - foxWidget.offsetHeight - 8);
+      const clampedX = Math.min(maxX, Math.max(8, initialX + dx));
+      const clampedY = Math.min(maxY, Math.max(8, initialY + dy));
+      foxWidget.style.left = `${clampedX}px`;
+      foxWidget.style.top = `${clampedY}px`;
       foxWidget.style.right = 'auto';
       foxWidget.style.bottom = 'auto';
     }
-  };
+  });
 
-  foxWidget.onpointerup = () => {
+  foxWidget.addEventListener('pointerup', (e) => {
     if (!isDragging) {
       openFoxCompanionModal();
-      if (typeof AudioFX !== 'undefined') AudioFX.click();
+      if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
     }
+    try {
+      foxWidget.releasePointerCapture(e.pointerId);
+    } catch (_) {}
     startX = null;
     startY = null;
-  };
+    isDragging = false;
+  });
+
+  foxWidget.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openFoxCompanionModal();
+      if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
+    }
+  });
 }
 
 const AudioFX = (() => {
@@ -75,7 +100,9 @@ const AudioFX = (() => {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) ctx = new AudioCtx();
     }
-    if (ctx && ctx.state === 'suspended') ctx.resume();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
   }
 
   function playTone(freq = 440, type = 'sine', duration = 0.12, gainVal = 0.12, slideTo = null) {
@@ -104,7 +131,10 @@ const AudioFX = (() => {
     toggle() { sfxEnabled = !sfxEnabled; return sfxEnabled; },
     click() { playTone(620, 'triangle', 0.06, 0.08); },
     card() { playTone(380, 'sine', 0.07, 0.09, 520); },
-    coin() { playTone(987.77, 'sine', 0.08, 0.1); setTimeout(() => playTone(1318.5, 'sine', 0.16, 0.1), 65); },
+    coin() {
+      playTone(987.77, 'sine', 0.08, 0.1);
+      setTimeout(() => playTone(1318.5, 'sine', 0.16, 0.1), 65);
+    },
     win() {
       [523.25, 659.25, 783.99, 1046.5].forEach((n, i) => setTimeout(() => playTone(n, 'triangle', 0.18, 0.12), i * 80));
     },
@@ -190,6 +220,9 @@ function normalizeGameId(rawId) {
   const key = String(rawId || '').trim().toLowerCase();
   return GAME_ID_ALIASES[key] || key;
 }
+
+let activeGameId = null;
+let activeCleanup = null;
 
 const SELF_MENU_GAMES = new Set(['chess', 'dama']);
 
@@ -457,8 +490,9 @@ function toggleBGM() {
 function updateBGMVolume(val) {
   const bgm = document.getElementById('bgm-audio');
   const label = document.getElementById('bgm-vol-label');
-  if (bgm) bgm.volume = Number(val) / 100;
-  if (label) label.textContent = `${val}%`;
+  const clamped = Math.max(0, Math.min(100, Number(val) || 0));
+  if (bgm) bgm.volume = clamped / 100;
+  if (label) label.textContent = `${clamped}%`;
 }
 
 function toggleSFX() {
@@ -636,7 +670,9 @@ function filterGames(query) {
 }
 
 function copyHubLink() {
-  navigator.clipboard?.writeText(activeShareUrl);
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    navigator.clipboard.writeText(activeShareUrl).catch(() => {});
+  }
   const btn = document.getElementById('copy-link-btn');
   if (btn) {
     btn.textContent = '✓ Copied!';
@@ -657,8 +693,8 @@ function toggleFullScreen() {
   } else {
     if (document.exitFullscreen) {
       document.exitFullscreen().catch(() => {});
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
+    } else if (docEl.webkitExitFullscreen) {
+      docEl.webkitExitFullscreen();
     }
   }
 }
@@ -710,21 +746,26 @@ const RANDOM_NAMES = ['CyberGamer', 'PixelNinja', 'ArcadeLegend', 'NeonFox', 'Re
 
 function randomizePlayerName() {
   const randomName = RANDOM_NAMES[Math.floor(Math.random() * RANDOM_NAMES.length)] + Math.floor(10 + Math.random() * 89);
-  document.getElementById('player-name-input').value = randomName;
+  const input = document.getElementById('player-name-input');
+  if (input) input.value = randomName;
 }
 
 function submitPlayerName() {
-  const input = document.getElementById('player-name-input').value.trim();
-  if (input) {
-    window.playerName = input;
-  } else {
-    window.playerName = 'Player_' + Math.floor(100 + Math.random() * 899);
-  }
-  document.getElementById('header-player-name').textContent = window.playerName;
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('app-shell').classList.remove('hidden');
+  const inputEl = document.getElementById('player-name-input');
+  const typed = inputEl ? inputEl.value.trim() : '';
+  window.playerName = typed || ('Player_' + Math.floor(100 + Math.random() * 899));
+
+  const headerName = document.getElementById('header-player-name');
+  const loginScreen = document.getElementById('login-screen');
+  const appShell = document.getElementById('app-shell');
+
+  if (headerName) headerName.textContent = window.playerName;
+  if (loginScreen) loginScreen.classList.add('hidden');
+  if (appShell) appShell.classList.remove('hidden');
+
   syncFoxCompanionVisibility();
   AudioFX.click();
+
   const bgm = document.getElementById('bgm-audio');
   if (bgm && bgmEnabled) {
     bgm.volume = 0.5;
@@ -847,9 +888,6 @@ function recordGamePlay(gameId) {
   hubMetaState.playCounts[gameId] = (hubMetaState.playCounts[gameId] || 0) + 1;
   saveHubMetaState();
 }
-
-let activeGameId = null;
-let activeCleanup = null;
 
 const GameSettingsDrawer = (() => {
   const MODE_KEY = 'arcade_hub_game_settings_v1';
@@ -1148,7 +1186,8 @@ window.GameSettingsDrawer = GameSettingsDrawer;
 const BgEngine = (() => {
   const canvas = document.getElementById('bg-canvas');
   const ctx = canvas ? canvas.getContext('2d') : null;
-  let w = 0, h = 0;
+  let w = 0;
+  let h = 0;
   let theme = 'hub';
   let particles = [];
   let tick = 0;
@@ -1173,7 +1212,7 @@ const BgEngine = (() => {
         vx: (Math.random() - 0.5) * 0.6,
         vy: -0.2 - Math.random() * 0.7,
         phase: Math.random() * Math.PI * 2,
-        char: ['♠','♥','♦','♣'][i % 4]
+        char: ['♠', '♥', '♦', '♣'][i % 4]
       });
     }
   }
@@ -1198,7 +1237,9 @@ const BgEngine = (() => {
           ctx.fillText(p.char, p.x, p.y);
         } else {
           ctx.fillStyle = 'rgba(253, 224, 71, 0.14)';
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 0.6, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r * 0.6, 0, Math.PI * 2);
+          ctx.fill();
         }
       });
       ctx.restore();
@@ -1208,7 +1249,9 @@ const BgEngine = (() => {
         p.x += Math.sin(tick + p.phase) * 0.4;
         if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
         ctx.fillStyle = 'rgba(251, 191, 36, 0.35)';
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
       });
     } else if (theme === 'matrix_vault') {
       ctx.font = '13px "JetBrains Mono", monospace';
@@ -1222,12 +1265,14 @@ const BgEngine = (() => {
       particles.forEach(p => {
         p.y += 0.8;
         p.x += Math.sin(tick * 1.2 + p.phase) * 0.9;
-        if (p.y > h + 15) p.y = -15; p.x = Math.random() * w;
+        if (p.y > h + 15) { p.y = -15; p.x = Math.random() * w; }
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(tick + p.phase);
         ctx.fillStyle = 'rgba(244, 114, 182, 0.32)';
-        ctx.beginPath(); ctx.ellipse(0, 0, 6, 3, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 6, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
       });
     } else if (theme === 'sunny_meadow' || theme === 'stick_world') {
@@ -1249,9 +1294,12 @@ const BgEngine = (() => {
         grad.addColorStop(1, 'rgba(249, 115, 22, 0)');
         ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.moveTo(bx - 30, 0); ctx.lineTo(bx + 30, 0);
-        ctx.lineTo(bx + 130, h); ctx.lineTo(bx - 130, h);
-        ctx.closePath(); ctx.fill();
+        ctx.moveTo(bx - 30, 0);
+        ctx.lineTo(bx + 30, 0);
+        ctx.lineTo(bx + 130, h);
+        ctx.lineTo(bx - 130, h);
+        ctx.closePath();
+        ctx.fill();
       }
     } else {
       particles.forEach(p => {
@@ -1259,7 +1307,9 @@ const BgEngine = (() => {
         if (p.y < -10) p.y = h + 10;
         const alpha = 0.15 + 0.2 * Math.sin(tick * 2 + p.phase);
         ctx.fillStyle = `rgba(167, 139, 250, ${alpha})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 0.65, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 0.65, 0, Math.PI * 2);
+        ctx.fill();
       });
     }
 
@@ -1374,6 +1424,7 @@ function updateSpotlightBanner() {
 function buildDiscoveryCard(game) {
   const plays = hubMetaState.playCounts[game.id] || 0;
   const btn = document.createElement('button');
+  btn.type = 'button';
   btn.className = 'discovery-card';
   btn.onclick = () => openGamePreviewModal(game.id);
   btn.innerHTML = `
@@ -1582,7 +1633,7 @@ function openHubHome() {
             <div class="relative flex-1">
               <input id="hub-search-input" type="text" value="${discoverySearch}" placeholder="Search 20 games..." autocomplete="off"
                 class="w-full h-10 pl-3.5 pr-8 rounded-full bg-white/5 border border-white/10 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-pink-400 transition" />
-              <button id="discovery-clear-btn" class="${discoverySearch ? '' : 'hidden'} absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-sm font-bold">✕</button>
+              <button type="button" id="discovery-clear-btn" class="${discoverySearch ? '' : 'hidden'} absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-sm font-bold">✕</button>
             </div>
 
             <div class="relative group" id="hub-hamburger-wrapper">
@@ -1617,12 +1668,12 @@ function openHubHome() {
           </div>
 
           <div id="discovery-chips" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-            <button class="discovery-chip ${discoveryFilter === 'all' ? 'active' : ''}" data-filter="all">All (20)</button>
-            <button class="discovery-chip ${discoveryFilter === 'portrait' ? 'active' : ''}" data-filter="portrait">Portrait</button>
-            <button class="discovery-chip ${discoveryFilter === 'landscape' ? 'active' : ''}" data-filter="landscape">Landscape</button>
-            <button class="discovery-chip ${discoveryFilter === 'action' ? 'active' : ''}" data-filter="action">Action</button>
-            <button class="discovery-chip ${discoveryFilter === 'card' ? 'active' : ''}" data-filter="card">Card</button>
-            <button class="discovery-chip ${discoveryFilter === 'puzzle' ? 'active' : ''}" data-filter="puzzle">Puzzle &amp; Board</button>
+            <button type="button" class="discovery-chip ${discoveryFilter === 'all' ? 'active' : ''}" data-filter="all">All (20)</button>
+            <button type="button" class="discovery-chip ${discoveryFilter === 'portrait' ? 'active' : ''}" data-filter="portrait">Portrait</button>
+            <button type="button" class="discovery-chip ${discoveryFilter === 'landscape' ? 'active' : ''}" data-filter="landscape">Landscape</button>
+            <button type="button" class="discovery-chip ${discoveryFilter === 'action' ? 'active' : ''}" data-filter="action">Action</button>
+            <button type="button" class="discovery-chip ${discoveryFilter === 'card' ? 'active' : ''}" data-filter="card">Card</button>
+            <button type="button" class="discovery-chip ${discoveryFilter === 'puzzle' ? 'active' : ''}" data-filter="puzzle">Puzzle &amp; Board</button>
           </div>
         </div>
 
@@ -1638,8 +1689,8 @@ function openHubHome() {
             <h2 id="discovery-hero-title" class="text-2xl sm:text-3xl font-black text-white tracking-tight">Wordscape Pro</h2>
             <p id="discovery-hero-sub" class="text-xs sm:text-sm text-slate-300 mt-1 mb-4">Sunset Mountain Valley Sky • Puzzle</p>
             <div class="flex flex-wrap items-center gap-2.5">
-              <button id="discovery-hero-play" class="px-5 py-2.5 rounded-xl bg-white text-slate-950 font-extrabold text-xs sm:text-sm hover:opacity-95 transition">▶ Play Now</button>
-              <button onclick="cycleSpotlight()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold text-xs sm:text-sm transition">Next Pick</button>
+              <button type="button" id="discovery-hero-play" class="px-5 py-2.5 rounded-xl bg-white text-slate-950 font-extrabold text-xs sm:text-sm hover:opacity-95 transition">▶ Play Now</button>
+              <button type="button" onclick="cycleSpotlight()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold text-xs sm:text-sm transition">Next Pick</button>
             </div>
           </div>
           <div class="relative z-10 w-20 h-20 sm:w-28 sm:h-28 rounded-3xl bg-white/10 border border-white/15 backdrop-blur-md flex items-center justify-center shrink-0">
@@ -1651,7 +1702,7 @@ function openHubHome() {
 
         <div id="discovery-empty" class="hidden text-center py-12 flex flex-col items-center gap-3 text-slate-400">
           <p class="text-sm font-semibold">No games matched your search or filter.</p>
-          <button onclick="resetDiscoveryFilters()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white">Reset Filters</button>
+          <button type="button" onclick="resetDiscoveryFilters()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white">Reset Filters</button>
         </div>
       </div>
     </div>
@@ -1762,8 +1813,8 @@ function launchGame(id) {
       <div class="w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center">
         <div class="text-4xl">${meta.icon}</div>
         <div class="text-lg font-black text-white">${meta.name} script not loaded yet</div>
-        <p class="text-xs text-slate-400">Make sure its games/*.js script tag is included in index.html before hub.js.</p>
-        <button onclick="openHubHome()" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs">Back to Hub</button>
+        <p class="text-xs text-slate-400">Make sure its script tag is included in index.html before hub.js.</p>
+        <button type="button" onclick="openHubHome()" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs">Back to Hub</button>
       </div>
     `;
   }
@@ -1806,11 +1857,19 @@ window.addEventListener('DOMContentLoaded', () => {
   function completeCozySplash() {
     if (splashDone || !splashScreen) return;
     splashDone = true;
-    if (splashTimer) clearInterval(splashTimer);
+    clearInterval(splashTimer);
+    if (splashFallbackTimer) clearTimeout(splashFallbackTimer);
     updateCozySplash(100);
     if (splashStatus) splashStatus.textContent = 'Entering power screen...';
     setTimeout(() => {
+      if (!splashScreen) return;
       splashScreen.classList.add('splash-hide');
+      splashScreen.setAttribute('aria-hidden', 'true');
+      setTimeout(() => {
+        if (splashScreen && splashScreen.classList.contains('splash-hide')) {
+          splashScreen.style.pointerEvents = 'none';
+        }
+      }, 350);
     }, 300);
   }
 
@@ -1842,7 +1901,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }, 110);
 
-  setTimeout(() => {
+  const splashFallbackTimer = setTimeout(() => {
     pageLoaded = true;
     completeCozySplash();
   }, 5000);
@@ -1862,6 +1921,7 @@ window.addEventListener('DOMContentLoaded', () => {
     window.playerName = 'AJ';
     if (headerName) headerName.textContent = window.playerName;
 
+    syncFoxCompanionVisibility();
     openHubHome();
   }
 });
