@@ -1,3 +1,4 @@
+
 const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
@@ -536,9 +537,7 @@ function renderHubQrCode(targetUrl = activeShareUrl) {
   activeShareUrl = targetUrl;
   const container = document.getElementById('qrcode-container');
   const urlTextEl = document.getElementById('qr-url-display');
-  const openLinkEl = document.getElementById('qr-open-link');
   if (urlTextEl) urlTextEl.textContent = targetUrl;
-  if (openLinkEl) openLinkEl.href = targetUrl;
   if (container) {
     container.innerHTML = '';
     if (window.QRCode) {
@@ -1631,7 +1630,7 @@ function openHubHome() {
         <div class="flex flex-col gap-2.5">
           <div class="flex items-center gap-2">
             <div class="relative flex-1">
-              <input id="hub-search-input" type="text" value="${discoverySearch}" placeholder="Search 20 games..." autocomplete="off"
+              <input id="hub-search-input" type="text" value="${discoverySearch}" placeholder="Search ${GAMES.length} games..." autocomplete="off"
                 class="w-full h-10 pl-3.5 pr-8 rounded-full bg-white/5 border border-white/10 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-pink-400 transition" />
               <button type="button" id="discovery-clear-btn" class="${discoverySearch ? '' : 'hidden'} absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-sm font-bold">✕</button>
             </div>
@@ -1668,7 +1667,7 @@ function openHubHome() {
           </div>
 
           <div id="discovery-chips" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-            <button type="button" class="discovery-chip ${discoveryFilter === 'all' ? 'active' : ''}" data-filter="all">All (20)</button>
+            <button type="button" class="discovery-chip ${discoveryFilter === 'all' ? 'active' : ''}" data-filter="all">All (${GAMES.length})</button>
             <button type="button" class="discovery-chip ${discoveryFilter === 'portrait' ? 'active' : ''}" data-filter="portrait">Portrait</button>
             <button type="button" class="discovery-chip ${discoveryFilter === 'landscape' ? 'active' : ''}" data-filter="landscape">Landscape</button>
             <button type="button" class="discovery-chip ${discoveryFilter === 'action' ? 'active' : ''}" data-filter="action">Action</button>
@@ -1826,94 +1825,19 @@ window.addEventListener('DOMContentLoaded', () => {
   loadHubMetaState();
   syncFoxCompanionVisibility();
 
-  const splashScreen = document.getElementById('splash-screen');
-  const splashFill = document.getElementById('splash-progress-fill');
-  const splashPct = document.getElementById('splash-progress-pct');
-  const splashStatus = document.getElementById('splash-status-text');
-  const splashTrack = splashScreen ? splashScreen.querySelector('.cozy-progress-track') : null;
-
-  let splashProgress = 12;
-  let splashDone = false;
-  let pageLoaded = document.readyState === 'complete';
-
-  function updateCozySplash(val) {
-    splashProgress = Math.max(splashProgress, Math.min(100, val));
-    const rounded = Math.round(splashProgress);
-    if (splashFill) splashFill.style.width = `${splashProgress}%`;
-    if (splashPct) splashPct.textContent = `${rounded}%`;
-    if (splashTrack) splashTrack.setAttribute('aria-valuenow', String(rounded));
-
-    if (splashScreen) {
-      const cards = splashScreen.querySelectorAll('.cozy-mini-card');
-      cards.forEach((card, idx) => {
-        const threshold = 25 + idx * 25;
-        if (splashProgress >= threshold) {
-          card.classList.add('is-ready');
-        }
-      });
-    }
-  }
-
-  function completeCozySplash() {
-    if (splashDone || !splashScreen) return;
-    splashDone = true;
-    clearInterval(splashTimer);
-    if (splashFallbackTimer) clearTimeout(splashFallbackTimer);
-    updateCozySplash(100);
-    if (splashStatus) splashStatus.textContent = 'Entering power screen...';
-    setTimeout(() => {
-      if (!splashScreen) return;
-      splashScreen.classList.add('splash-hide');
-      splashScreen.setAttribute('aria-hidden', 'true');
-      setTimeout(() => {
-        if (splashScreen && splashScreen.classList.contains('splash-hide')) {
-          splashScreen.style.pointerEvents = 'none';
-        }
-      }, 350);
-    }, 300);
-  }
-
-  updateCozySplash(splashProgress);
-
-  if (!pageLoaded) {
-    window.addEventListener('load', () => {
-      pageLoaded = true;
-      if (splashStatus && !splashDone) {
-        splashStatus.textContent = 'Preparing power screen...';
-      }
-    }, { once: true });
-  }
-
-  const splashTimer = setInterval(() => {
-    if (splashDone) {
-      clearInterval(splashTimer);
-      return;
-    }
-    if (!pageLoaded) {
-      updateCozySplash(splashProgress + (88 - splashProgress) * 0.16);
-    } else {
-      const next = splashProgress + (100 - splashProgress) * 0.38 + 5;
-      if (next >= 99.5) {
-        completeCozySplash();
-      } else {
-        updateCozySplash(next);
-      }
-    }
-  }, 110);
-
-  const splashFallbackTimer = setTimeout(() => {
-    pageLoaded = true;
-    completeCozySplash();
-  }, 5000);
-
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('hub') === 'true') {
+    const splashScreen = document.getElementById('splash-screen');
     const powerScreen = document.getElementById('power-screen');
     const loginScreen = document.getElementById('login-screen');
     const appShell = document.getElementById('app-shell');
     const headerName = document.getElementById('header-player-name');
 
-    completeCozySplash();
+    if (splashScreen) {
+      splashScreen.classList.add('splash-hide');
+      splashScreen.setAttribute('aria-hidden', 'true');
+      splashScreen.style.pointerEvents = 'none';
+    }
     if (powerScreen) powerScreen.style.display = 'none';
     if (loginScreen) loginScreen.classList.add('hidden');
 
