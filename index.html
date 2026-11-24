@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Arcade Hub — Full-Viewport Edition</title>
-  <meta name="theme-color" content="#8b5cf6" />
+  <meta name="theme-color" content="#1f2530" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="apple-touch-icon" href="./1793408885987.jpg" />
+  <link rel="preload" as="image" href="./1000034484.gif" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -17,15 +18,114 @@
 
 <body>
 
-<div id="splash-screen" class="splash-screen" aria-hidden="true">
-  <img src="./1793408885987.jpg" alt="Arcade Hub Splash" class="splash-full-bg" />
+<!-- Cozy Chill GIF Splash Screen (No Checkmark on Completion) -->
+<div id="splash-screen" class="splash-screen" aria-label="Loading Arcade Hub">
+  <div class="cozy-splash-card">
+    <div class="cozy-splash-badge">ARCADE HUB &bull; CHILL LOUNGE</div>
+
+    <div class="cozy-gif-frame">
+      <img src="./1000034484.gif" alt="Arcade Hub animated splash" class="cozy-splash-gif" />
+    </div>
+
+    <div class="cozy-status-row">
+      <p id="splash-status-text" class="cozy-splash-sub">Warming up the lounge...</p>
+      <span id="splash-progress-pct" class="cozy-splash-pct">0%</span>
+    </div>
+
+    <!-- Game cards preview while chunks load -->
+    <div id="splash-game-cards" class="cozy-game-cards" aria-hidden="true">
+      <div class="cozy-mini-card" data-splash-card="tiny-cafe">
+        <span class="cozy-card-emoji">&#9749;</span>
+        <span class="cozy-card-name">Tiny Caf&eacute;</span>
+        <span class="cozy-card-tag">Strategy</span>
+      </div>
+      <div class="cozy-mini-card" data-splash-card="solitaire">
+        <span class="cozy-card-emoji">&#127183;</span>
+        <span class="cozy-card-name">Speed Solitaire</span>
+        <span class="cozy-card-tag">Card</span>
+      </div>
+      <div class="cozy-mini-card" data-splash-card="wordscape">
+        <span class="cozy-card-emoji">&#128221;</span>
+        <span class="cozy-card-name">Wordscape Pro</span>
+        <span class="cozy-card-tag">Puzzle</span>
+      </div>
+    </div>
+
+    <!-- Clean progress bar only — no checkmark -->
+    <div class="cozy-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div id="splash-progress-fill" class="cozy-progress-fill"></div>
+    </div>
+  </div>
 </div>
 
 <script>
-  setTimeout(function () {
-    var el = document.getElementById("splash-screen");
-    if (el) el.classList.add("splash-hide");
-  }, 1500);
+  (function () {
+    var splashEl = document.getElementById("splash-screen");
+    var fillEl = document.getElementById("splash-progress-fill");
+    var pctEl = document.getElementById("splash-progress-pct");
+    var statusEl = document.getElementById("splash-status-text");
+    var trackEl = splashEl ? splashEl.querySelector(".cozy-progress-track") : null;
+    if (!splashEl) return;
+
+    var progress = 8;
+    var loaded = document.readyState === "complete";
+    var finished = false;
+
+    function updateUI(val) {
+      progress = Math.max(progress, Math.min(100, val));
+      var rounded = Math.round(progress);
+      if (fillEl) fillEl.style.width = progress + "%";
+      if (pctEl) pctEl.textContent = rounded + "%";
+      if (trackEl) trackEl.setAttribute("aria-valuenow", String(rounded));
+
+      var cards = splashEl.querySelectorAll(".cozy-mini-card");
+      for (var i = 0; i < cards.length; i++) {
+        var threshold = 25 + i * 25;
+        if (progress >= threshold) {
+          cards[i].classList.add("is-ready");
+        }
+      }
+    }
+
+    updateUI(progress);
+
+    function finishSplash() {
+      if (finished) return;
+      finished = true;
+      clearInterval(timer);
+      updateUI(100);
+      if (statusEl) statusEl.textContent = "Entering power screen...";
+
+      setTimeout(function () {
+        if (splashEl) splashEl.classList.add("splash-hide");
+      }, 300);
+    }
+
+    if (!loaded) {
+      window.addEventListener("load", function () {
+        loaded = true;
+        if (statusEl && !finished) statusEl.textContent = "Preparing power screen...";
+      }, { once: true });
+    }
+
+    var timer = setInterval(function () {
+      if (!loaded) {
+        updateUI(progress + (88 - progress) * 0.14);
+      } else {
+        var next = progress + (100 - progress) * 0.36 + 4.5;
+        if (next >= 99.5) {
+          finishSplash();
+        } else {
+          updateUI(next);
+        }
+      }
+    }, 110);
+
+    setTimeout(function () {
+      loaded = true;
+      finishSplash();
+    }, 6000);
+  })();
 </script>
 
 <div id="power-screen" class="power-screen">
@@ -40,7 +140,7 @@
 
 <div id="login-screen" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4">
   <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-8 shadow-2xl text-center flex flex-col gap-6">
-    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-indigo-600 flex items-center justify-center mx-auto shadow-lg shadow-pink-500/30 text-2xl">
+    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-teal-600 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20 text-2xl">
       🎮
     </div>
     <div>
@@ -48,8 +148,8 @@
       <p class="text-xs text-slate-400 mt-1">Enter your player name to start playing across all full-viewport worlds.</p>
     </div>
     <div class="flex flex-col gap-3">
-      <input type="text" id="player-name-input" placeholder="Enter your name (e.g. AJ)" maxlength="16" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/15 text-white placeholder-slate-500 text-center font-bold text-sm focus:outline-none focus:border-pink-500 transition" />
-      <button onclick="submitPlayerName()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-sm text-white shadow-lg shadow-pink-500/25 hover:opacity-95 transition">
+      <input type="text" id="player-name-input" placeholder="Enter your name (e.g. AJ)" maxlength="16" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/15 text-white placeholder-slate-500 text-center font-bold text-sm focus:outline-none focus:border-amber-400 transition" />
+      <button onclick="submitPlayerName()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-sm text-slate-950 shadow-lg shadow-amber-500/20 hover:opacity-95 transition">
         Enter Lobby →
       </button>
       <button onclick="randomizePlayerName()" class="text-xs font-semibold text-slate-400 hover:text-white transition py-1">
@@ -59,7 +159,7 @@
   </div>
 </div>
 
-<div id="assistive-touch-fox" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-indigo-700 border-2 border-amber-300 shadow-2xl flex items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
+<div id="assistive-touch-fox" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-teal-700 border-2 border-amber-300 shadow-2xl flex items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
   <span class="transform group-hover:scale-110 transition">🦊</span>
 </div>
 
@@ -137,12 +237,12 @@
   <header id="hub-header" class="hud-glass relative z-30 w-full px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0">
     <div class="flex items-center gap-2.5">
       <button onclick="openHubHome()" class="flex items-center gap-2.5 group text-left focus:outline-none">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/25 group-hover:scale-105 transition">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-teal-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
           <span class="text-lg">🎮</span>
         </div>
         <div>
-          <span class="font-extrabold text-sm sm:text-base tracking-tight bg-gradient-to-r from-pink-400 to-violet-300 bg-clip-text text-transparent block leading-tight">Arcade Hub</span>
-          <p class="text-[10px] text-slate-400 tracking-widest uppercase font-semibold">Player: <span id="header-player-name" class="text-pink-400 font-bold">AJ</span></p>
+          <span class="font-extrabold text-sm sm:text-base tracking-tight bg-gradient-to-r from-amber-300 to-teal-300 bg-clip-text text-transparent block leading-tight">Arcade Hub</span>
+          <p class="text-[10px] text-slate-400 tracking-widest uppercase font-semibold">Player: <span id="header-player-name" class="text-amber-300 font-bold">AJ</span></p>
         </div>
       </button>
     </div>
@@ -168,7 +268,7 @@
           <span>Audio &amp; Fullscreen</span>
         </button>
 
-        <button type="button" onclick="closeGameMenu(); openHubHome();" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-pink-300 hover:bg-white/10 transition">
+        <button type="button" onclick="closeGameMenu(); openHubHome();" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-xs font-bold text-amber-300 hover:bg-white/10 transition">
           <span>←</span>
           <span>Back to Hub</span>
         </button>
@@ -199,7 +299,7 @@
             <span>Music Volume</span>
             <span id="bgm-vol-label">50%</span>
           </div>
-          <input id="bgm-vol-slider" type="range" min="0" max="100" value="50" oninput="updateBGMVolume(this.value)" class="w-full accent-pink-500 cursor-pointer" />
+          <input id="bgm-vol-slider" type="range" min="0" max="100" value="50" oninput="updateBGMVolume(this.value)" class="w-full accent-amber-400 cursor-pointer" />
         </div>
 
         <div class="flex items-center justify-between p-3.5 rounded-2xl bg-white/5 border border-white/10">
@@ -218,7 +318,7 @@
         </button>
       </div>
 
-      <button onclick="closeSettingsModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
+      <button onclick="closeSettingsModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-xs text-slate-950 shadow-lg">
         Done
       </button>
     </div>
@@ -234,7 +334,7 @@
       <div class="p-3 rounded-xl bg-white shadow-md mx-auto">
         <div id="qrcode-container"></div>
       </div>
-      <div id="qr-url-display" class="w-full p-2.5 rounded-lg bg-black/40 border border-white/10 text-[10px] font-mono text-pink-300 break-all">
+      <div id="qr-url-display" class="w-full p-2.5 rounded-lg bg-black/40 border border-white/10 text-[10px] font-mono text-amber-300 break-all">
         https://arcadehubgames-july12.vercel.app/
       </div>
     </div>
@@ -246,9 +346,9 @@
         <h3 class="text-base font-black text-white flex items-center gap-2">📖 Game Instructions</h3>
         <button onclick="closeInstructionsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
       </div>
-      <select id="instruction-game-select" onchange="renderSelectedGameInstruction()" class="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/15 text-xs font-bold text-white focus:outline-none focus:border-pink-500"></select>
+      <select id="instruction-game-select" onchange="renderSelectedGameInstruction()" class="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/15 text-xs font-bold text-white focus:outline-none focus:border-amber-400"></select>
       <div id="instruction-game-body" class="p-4 rounded-2xl bg-white/5 border border-white/10 text-xs text-slate-300 leading-relaxed min-h-[110px]"></div>
-      <button onclick="closeInstructionsModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
+      <button onclick="closeInstructionsModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-xs text-slate-950 shadow-lg">
         Close
       </button>
     </div>
@@ -263,7 +363,7 @@
       <p class="text-xs text-slate-300 leading-relaxed">
         Arcade Hub is a multi-game browser arcade platform featuring portrait and landscape games, hero progression, daily rewards, and instant play across desktop and mobile viewports.
       </p>
-      <button onclick="closeAboutModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-xs text-white shadow-lg">
+      <button onclick="closeAboutModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-xs text-slate-950 shadow-lg">
         Got It
       </button>
     </div>
@@ -295,7 +395,7 @@
             <div id="preview-cat" class="text-sm font-extrabold text-amber-300">Action</div>
           </div>
         </div>
-        <button id="preview-launch-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-pink-600 font-extrabold text-sm text-white shadow-lg hover:opacity-95 transition">
+        <button id="preview-launch-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-sm text-slate-950 shadow-lg hover:opacity-95 transition">
           ▶ Launch Game
         </button>
       </div>
