@@ -18,7 +18,7 @@
 <body>
 
 <!-- Cozy Chill GIF Splash Screen (No Checkmark on Completion) -->
-<div id="splash-screen" class="splash-screen" aria-label="Loading Arcade Hub">
+<div id="splash-screen" class="splash-screen" role="status" aria-live="polite" aria-label="Loading Arcade Hub">
   <div class="cozy-splash-card">
     <div class="cozy-splash-badge">ARCADE HUB &bull; CHILL LOUNGE</div>
 
@@ -69,6 +69,7 @@
     var progress = 8;
     var loaded = document.readyState === "complete";
     var finished = false;
+    var fallbackTimer = null;
 
     function updateUI(val) {
       progress = Math.max(progress, Math.min(100, val));
@@ -92,11 +93,19 @@
       if (finished) return;
       finished = true;
       clearInterval(timer);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       updateUI(100);
       if (statusEl) statusEl.textContent = "Entering power screen...";
 
       setTimeout(function () {
-        if (splashEl) splashEl.classList.add("splash-hide");
+        if (!splashEl) return;
+        splashEl.classList.add("splash-hide");
+        splashEl.setAttribute("aria-hidden", "true");
+        setTimeout(function () {
+          if (splashEl && splashEl.classList.contains("splash-hide")) {
+            splashEl.style.pointerEvents = "none";
+          }
+        }, 350);
       }, 300);
     }
 
@@ -120,7 +129,7 @@
       }
     }, 110);
 
-    setTimeout(function () {
+    fallbackTimer = setTimeout(function () {
       loaded = true;
       finishSplash();
     }, 6000);
@@ -132,7 +141,7 @@
     <div class="neon-sign" id="neonSign">ARCADE HUB</div>
     <div class="pull-chain-assembly">
       <div class="chain-wire"></div>
-      <div class="pull-handle" id="pullHandle" title="Pull to turn on"></div>
+      <div class="pull-handle" id="pullHandle" role="button" tabindex="0" aria-label="Pull to turn on" title="Pull to turn on"></div>
     </div>
   </div>
 </div>
@@ -147,22 +156,22 @@
       <p class="text-xs text-slate-400 mt-1">Enter your player name to start playing across all full-viewport worlds.</p>
     </div>
     <div class="flex flex-col gap-3">
-      <input type="text" id="player-name-input" placeholder="Enter your name (e.g. AJ)" maxlength="16" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/15 text-white placeholder-slate-500 text-center font-bold text-sm focus:outline-none focus:border-amber-400 transition" />
-      <button onclick="submitPlayerName()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-sm text-slate-950 shadow-lg shadow-amber-500/20 hover:opacity-95 transition">
+      <input type="text" id="player-name-input" placeholder="Enter your name (e.g. AJ)" maxlength="16" autocomplete="nickname" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/15 text-white placeholder-slate-500 text-center font-bold text-sm focus:outline-none focus:border-amber-400 transition" />
+      <button type="button" onclick="submitPlayerName()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-sm text-slate-950 shadow-lg shadow-amber-500/20 hover:opacity-95 transition">
         Enter Lobby →
       </button>
-      <button onclick="randomizePlayerName()" class="text-xs font-semibold text-slate-400 hover:text-white transition py-1">
+      <button type="button" onclick="randomizePlayerName()" class="text-xs font-semibold text-slate-400 hover:text-white transition py-1">
         🎲 Pick Random Name for Me
       </button>
     </div>
   </div>
 </div>
 
-<div id="assistive-touch-fox" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-teal-700 border-2 border-amber-300 shadow-2xl flex items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
+<div id="assistive-touch-fox" role="button" tabindex="0" aria-label="Fox Companion Hub — Open Wardrobe, Shop & Spin" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-teal-700 border-2 border-amber-300 shadow-2xl flex items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
   <span class="transform group-hover:scale-110 transition">🦊</span>
 </div>
 
-<div id="hero-modal-backdrop" class="hero-backdrop hidden">
+<div id="hero-modal-backdrop" class="hero-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-lvl-title">
   <div id="hero-modal" class="hero-modal">
     <div class="hero-modal-header">
       <div class="hero-profile-summary">
@@ -178,14 +187,14 @@
       </div>
       <div class="hero-wallet">
         <span class="coin-pill">🪙 <strong id="hero-coin-balance">0</strong></span>
-        <button onclick="closeHeroModal()" class="hero-close-btn" aria-label="Close">✕</button>
+        <button type="button" onclick="closeHeroModal()" class="hero-close-btn" aria-label="Close">✕</button>
       </div>
     </div>
 
-    <div class="hero-tabs">
-      <button class="hero-tab active" data-tab="wardrobe" onclick="switchHeroTab('wardrobe')">Wardrobe</button>
-      <button class="hero-tab" data-tab="shop" onclick="switchHeroTab('shop')">Shop</button>
-      <button class="hero-tab" data-tab="rewards" onclick="switchHeroTab('rewards')">Streak & Spin</button>
+    <div class="hero-tabs" role="tablist">
+      <button type="button" class="hero-tab active" data-tab="wardrobe" onclick="switchHeroTab('wardrobe')">Wardrobe</button>
+      <button type="button" class="hero-tab" data-tab="shop" onclick="switchHeroTab('shop')">Shop</button>
+      <button type="button" class="hero-tab" data-tab="rewards" onclick="switchHeroTab('rewards')">Streak & Spin</button>
     </div>
 
     <div id="tab-wardrobe" class="hero-tab-panel active">
@@ -203,7 +212,7 @@
           <strong>⚡ Instant +250 XP Boost</strong>
           <p>Level up your Hero rank faster</p>
         </div>
-        <button id="buy-xp-btn" class="action-btn">Buy (150 🪙)</button>
+        <button id="buy-xp-btn" type="button" class="action-btn">Buy (150 🪙)</button>
       </div>
       <h3>Cosmetic Store</h3>
       <div id="grid-shop" class="cosmetic-grid"></div>
@@ -214,7 +223,7 @@
         <div class="reward-card">
           <div id="streak-cooldown-timer" class="text-sm font-mono text-amber-400 font-bold my-2 text-center">24:00:00</div>
           <div id="streak-days-row" class="streak-row"></div>
-          <button id="claim-streak-btn" class="action-btn">Claim Daily</button>
+          <button id="claim-streak-btn" type="button" class="action-btn">Claim Daily</button>
         </div>
         <div class="reward-card">
           <h3>🎡 5-Hour Lucky Wheel</h3>
@@ -223,7 +232,7 @@
             <div id="lucky-wheel" class="lucky-wheel"></div>
           </div>
           <p id="wheel-timer-text">Ready to Spin!</p>
-          <button id="spin-wheel-btn" class="action-btn">Spin Free</button>
+          <button id="spin-wheel-btn" type="button" class="action-btn">Spin Free</button>
         </div>
       </div>
     </div>
@@ -235,7 +244,7 @@
 
   <header id="hub-header" class="hud-glass relative z-30 w-full px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0">
     <div class="flex items-center gap-2.5">
-      <button onclick="openHubHome()" class="flex items-center gap-2.5 group text-left focus:outline-none">
+      <button type="button" onclick="openHubHome()" class="flex items-center gap-2.5 group text-left focus:outline-none">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-teal-600 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
           <span class="text-lg">🎮</span>
         </div>
@@ -247,7 +256,7 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <button onclick="surpriseMeGame()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition border border-white/10 active:scale-95" title="Surprise Me (Random Game)" aria-label="Random Game">
+      <button type="button" onclick="surpriseMeGame()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition border border-white/10 active:scale-95" title="Surprise Me (Random Game)" aria-label="Random Game">
         🎲
       </button>
     </div>
@@ -275,11 +284,11 @@
     </div>
   </div>
 
-  <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+  <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-label="Audio and Display Controls">
     <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-black text-white flex items-center gap-2">🎵 BGM &amp; SFX Controls</h3>
-        <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+        <button type="button" onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold" aria-label="Close Settings">✕</button>
       </div>
 
       <div class="flex flex-col gap-3 max-h-[72vh] overflow-y-auto pr-1">
@@ -288,7 +297,7 @@
             <div class="text-sm font-bold text-white">Background Music</div>
             <div class="text-[11px] text-slate-400">Arcade ambient soundtrack</div>
           </div>
-          <button id="bgm-toggle-btn" onclick="toggleBGM()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition">
+          <button id="bgm-toggle-btn" type="button" onclick="toggleBGM()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition">
             ON
           </button>
         </div>
@@ -306,28 +315,28 @@
             <div class="text-sm font-bold text-white">Sound Effects (SFX)</div>
             <div class="text-[11px] text-slate-400">Clicks, wins, cards &amp; actions</div>
           </div>
-          <button id="sfx-toggle-btn" onclick="toggleSFX()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition">
+          <button id="sfx-toggle-btn" type="button" onclick="toggleSFX()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition">
             ON
           </button>
         </div>
 
-        <button onclick="toggleFullScreen()" class="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-extrabold text-white flex items-center justify-center gap-2 transition">
+        <button type="button" onclick="toggleFullScreen()" class="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-extrabold text-white flex items-center justify-center gap-2 transition">
           <span id="fs-icon">⛶</span>
           <span id="fs-label">Toggle Fullscreen Display</span>
         </button>
       </div>
 
-      <button onclick="closeSettingsModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-xs text-slate-950 shadow-lg">
+      <button type="button" onclick="closeSettingsModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-xs text-slate-950 shadow-lg">
         Done
       </button>
     </div>
   </div>
 
-  <div id="qr-share-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+  <div id="qr-share-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-label="QR Code and URL">
     <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto text-center">
       <div class="flex items-center justify-between">
         <h3 class="text-base font-black text-white flex items-center gap-2">📱 QR Code &amp; URL</h3>
-        <button onclick="closeQrShareModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+        <button type="button" onclick="closeQrShareModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold" aria-label="Close QR Modal">✕</button>
       </div>
       <p class="text-xs text-slate-400">Scan this QR code with your phone camera to open Arcade Hub instantly:</p>
       <div class="p-3 rounded-xl bg-white shadow-md mx-auto">
@@ -339,39 +348,39 @@
     </div>
   </div>
 
-  <div id="instructions-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+  <div id="instructions-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-label="Game Instructions">
     <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
       <div class="flex items-center justify-between">
         <h3 class="text-base font-black text-white flex items-center gap-2">📖 Game Instructions</h3>
-        <button onclick="closeInstructionsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+        <button type="button" onclick="closeInstructionsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold" aria-label="Close Instructions">✕</button>
       </div>
       <select id="instruction-game-select" onchange="renderSelectedGameInstruction()" class="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/15 text-xs font-bold text-white focus:outline-none focus:border-amber-400"></select>
       <div id="instruction-game-body" class="p-4 rounded-2xl bg-white/5 border border-white/10 text-xs text-slate-300 leading-relaxed min-h-[110px]"></div>
-      <button onclick="closeInstructionsModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-xs text-slate-950 shadow-lg">
+      <button type="button" onclick="closeInstructionsModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-xs text-slate-950 shadow-lg">
         Close
       </button>
     </div>
   </div>
 
-  <div id="about-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+  <div id="about-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-label="About Arcade Hub">
     <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
       <div class="flex items-center justify-between">
         <h3 class="text-base font-black text-white flex items-center gap-2">ℹ️ About us</h3>
-        <button onclick="closeAboutModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold">✕</button>
+        <button type="button" onclick="closeAboutModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold" aria-label="Close About">✕</button>
       </div>
       <p class="text-xs text-slate-300 leading-relaxed">
         Arcade Hub is a multi-game browser arcade platform featuring portrait and landscape games, hero progression, daily rewards, and instant play across desktop and mobile viewports.
       </p>
-      <button onclick="closeAboutModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-xs text-slate-950 shadow-lg">
+      <button type="button" onclick="closeAboutModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-xs text-slate-950 shadow-lg">
         Got It
       </button>
     </div>
   </div>
 
-  <div id="game-preview-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+  <div id="game-preview-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="preview-title">
     <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 overflow-hidden shadow-2xl">
       <div id="preview-banner" class="relative h-36 flex items-center justify-center">
-        <button onclick="closeGamePreviewModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/45 text-white font-bold flex items-center justify-center border border-white/15">✕</button>
+        <button type="button" onclick="closeGamePreviewModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/45 text-white font-bold flex items-center justify-center border border-white/15" aria-label="Close Preview">✕</button>
         <div id="preview-icon" class="text-6xl drop-shadow-lg">🎮</div>
       </div>
       <div class="p-5 flex flex-col gap-3">
@@ -394,7 +403,7 @@
             <div id="preview-cat" class="text-sm font-extrabold text-amber-300">Action</div>
           </div>
         </div>
-        <button id="preview-launch-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-sm text-slate-950 shadow-lg hover:opacity-95 transition">
+        <button id="preview-launch-btn" type="button" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-sm text-slate-950 shadow-lg hover:opacity-95 transition">
           ▶ Launch Game
         </button>
       </div>
@@ -412,12 +421,11 @@
 
 <script>
   window.alert = function(msg) {
-    if (msg && (msg.toLowerCase().includes('coin') || msg.toLowerCase().includes('balance') || msg.toLowerCase().includes('shop') || msg.toLowerCase().includes('enough'))) {
-      if ("vibrate" in navigator) {
-        navigator.vibrate([200, 100, 200]);
-      }
-    } else {
-      console.log("Alert:", msg);
+    var text = String(msg || "");
+    if (/coin|balance|shop|enough/i.test(text) && navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]);
+    } else if (text) {
+      console.log("Alert:", text);
     }
   };
 
@@ -465,6 +473,19 @@
     const gameWrapper = document.getElementById('game-hamburger-wrapper');
     if (gameWrapper && !gameWrapper.contains(e.target)) {
       closeGameMenu();
+    }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeHubMenu();
+      closeGameMenu();
+      closeHeroModal();
+      if (typeof window.closeSettingsModal === 'function') window.closeSettingsModal();
+      if (typeof window.closeQrShareModal === 'function') window.closeQrShareModal();
+      if (typeof window.closeInstructionsModal === 'function') window.closeInstructionsModal();
+      if (typeof window.closeAboutModal === 'function') window.closeAboutModal();
+      if (typeof window.closeGamePreviewModal === 'function') window.closeGamePreviewModal();
     }
   });
 
