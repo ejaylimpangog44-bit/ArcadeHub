@@ -1,4 +1,3 @@
-
 const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
@@ -179,6 +178,104 @@ const GameLoopGuard = (() => {
   return { trackRaf, clearAllRaf, createDeltaStep };
 })();
 window.GameLoopGuard = GameLoopGuard;
+
+const SplashController = (() => {
+  let progress = 0;
+  let timerId = null;
+  let done = false;
+
+  const STATUS_STEPS = [
+    { at: 0, text: 'Warming up the lounge...' },
+    { at: 25, text: 'Polishing arcade cabinets...' },
+    { at: 50, text: 'Mounting game decks...' },
+    { at: 78, text: 'Syncing leaderboards & audio...' },
+    { at: 96, text: 'Ready to play!' }
+  ];
+
+  function getStatusForProgress(pct) {
+    let current = STATUS_STEPS[0].text;
+    for (const step of STATUS_STEPS) {
+      if (pct >= step.at) current = step.text;
+    }
+    return current;
+  }
+
+  function updateUI(pct) {
+    const clamped = Math.max(0, Math.min(100, Math.round(pct)));
+    const pctEl = document.querySelector('.cozy-splash-pct') || document.getElementById('splash-pct');
+    const fillEl = document.querySelector('.cozy-progress-fill') || document.getElementById('splash-progress-fill');
+    const subEl = document.querySelector('.cozy-splash-sub') || document.getElementById('splash-status');
+
+    if (pctEl) pctEl.textContent = `${clamped}%`;
+    if (fillEl) fillEl.style.width = `${clamped}%`;
+    if (subEl) subEl.textContent = getStatusForProgress(clamped);
+
+    const cards = document.querySelectorAll('.cozy-mini-card');
+    cards.forEach((card, idx) => {
+      const threshold = Math.round(((idx + 1) / Math.max(1, cards.length)) * 85);
+      card.classList.toggle('is-ready', clamped >= threshold);
+    });
+  }
+
+  function hideSplashImmediate() {
+    done = true;
+    progress = 100;
+    if (timerId) {
+      clearInterval(timerId);
+      timerId = null;
+    }
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+      splash.classList.add('splash-hide');
+      splash.setAttribute('aria-hidden', 'true');
+      splash.style.pointerEvents = 'none';
+    }
+  }
+
+  function completeToFull() {
+    if (done) return;
+    if (timerId) {
+      clearInterval(timerId);
+      timerId = null;
+    }
+    progress = 100;
+    updateUI(100);
+    done = true;
+
+    setTimeout(() => {
+      const splash = document.getElementById('splash-screen');
+      if (splash) {
+        splash.classList.add('splash-hide');
+        splash.setAttribute('aria-hidden', 'true');
+        splash.style.pointerEvents = 'none';
+      }
+    }, 320);
+  }
+
+  function start() {
+    const splash = document.getElementById('splash-screen');
+    if (!splash || splash.classList.contains('splash-hide')) return;
+    if (timerId || done) return;
+
+    updateUI(progress);
+    timerId = setInterval(() => {
+      if (progress < 92) {
+        progress += progress < 50 ? 6 : 4;
+        if (progress > 92) progress = 92;
+        updateUI(progress);
+      } else if (document.readyState === 'complete') {
+        progress += 4;
+        updateUI(Math.min(100, progress));
+        if (progress >= 100) {
+          completeToFull();
+        }
+      }
+    }, 75);
+  }
+
+  return { start, completeToFull, hideSplashImmediate };
+})();
+window.SplashController = SplashController;
 
 const GAME_ID_ALIASES = {
   'solitaire': 'solitaire',
@@ -1827,17 +1924,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('hub') === 'true') {
-    const splashScreen = document.getElementById('splash-screen');
     const powerScreen = document.getElementById('power-screen');
     const loginScreen = document.getElementById('login-screen');
     const appShell = document.getElementById('app-shell');
     const headerName = document.getElementById('header-player-name');
 
-    if (splashScreen) {
-      splashScreen.classList.add('splash-hide');
-      splashScreen.setAttribute('aria-hidden', 'true');
-      splashScreen.style.pointerEvents = 'none';
-    }
+    SplashController.hideSplashImmediate();
     if (powerScreen) powerScreen.style.display = 'none';
     if (loginScreen) loginScreen.classList.add('hidden');
 
@@ -1847,6 +1939,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
     syncFoxCompanionVisibility();
     openHubHome();
+  } else {
+    SplashController.start();
+  }
+});
+
+window.addEventListener('load', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('hub') !== 'true') {
+    SplashController.completeToFull();
   }
 });
 
