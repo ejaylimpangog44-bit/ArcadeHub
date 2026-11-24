@@ -582,8 +582,17 @@ window.initTicTacToe = function initTicTacToe(stage) {
         <!-- END-OF-GAME / WIN / LOSE / DRAW MODAL OVERLAY -->
         <div id="ttt-result-backdrop" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md ${resultModalOpen && lastResultData ? 'flex' : 'hidden'} items-center justify-center p-4">
           ${lastResultData ? `
-            <div class="ttt-modal-anim max-w-sm w-full bg-slate-900/95 border-2 ${lastResultData.borderClass} ${lastResultData.glowClass} rounded-3xl p-6 flex flex-col items-center text-center gap-4">
+            <div class="relative ttt-modal-anim max-w-sm w-full bg-slate-900/95 border-2 ${lastResultData.borderClass} ${lastResultData.glowClass} rounded-3xl p-6 flex flex-col items-center text-center gap-4">
               
+              <!-- Small Eye Button in Top-Right of Card -->
+              <button
+                id="ttt-view-board-btn"
+                type="button"
+                title="View Board"
+                aria-label="View Board"
+                class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 flex items-center justify-center text-xs leading-none transition active:scale-95 cursor-pointer"
+              >👁️</button>
+
               <div class="px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-black tracking-widest uppercase text-amber-300">
                 ${lastResultData.badge}
               </div>
@@ -617,18 +626,10 @@ window.initTicTacToe = function initTicTacToe(stage) {
                 </div>
               </div>
 
-              <div class="flex flex-col gap-2.5 w-full pt-2">
+              <div class="w-full pt-2">
                 <button id="ttt-play-again-btn" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r ${lastResultData.accentClass} text-slate-950 font-black text-sm tracking-wide shadow-lg hover:brightness-110 active:scale-[0.98] transition cursor-pointer">
                   Play Next Round ⚔️
                 </button>
-                <div class="grid grid-cols-2 gap-2">
-                  <button id="ttt-modal-menu-btn" type="button" class="py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-bold text-xs transition cursor-pointer">
-                    ☰ Match Menu
-                  </button>
-                  <button id="ttt-view-board-btn" type="button" class="py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-bold text-xs transition cursor-pointer">
-                    👁️ View Board
-                  </button>
-                </div>
               </div>
             </div>
           ` : ''}
@@ -720,13 +721,6 @@ window.initTicTacToe = function initTicTacToe(stage) {
         if (!active) return;
         if (typeof AudioFX !== 'undefined') AudioFX.click();
         startNewRound(true);
-      };
-    }
-
-    const modalMenuBtn = document.getElementById('ttt-modal-menu-btn');
-    if (modalMenuBtn) {
-      modalMenuBtn.onclick = () => {
-        openGameMenuModal();
       };
     }
 
