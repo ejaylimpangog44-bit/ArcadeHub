@@ -26,10 +26,10 @@ window.initTicTacToe = function initTicTacToe(stage) {
       name: 'Neon Cyber',
       boardBg: 'bg-slate-900/90 border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.22)]',
       cellBg: 'bg-slate-800/90 hover:bg-slate-700/90 border border-white/10 shadow-[inset_0_2px_10px_rgba(0,0,0,0.45)]',
-      winCell: 'ring-2 ring-emerald-400 bg-emerald-950/60 shadow-[0_0_24px_rgba(52,211,153,0.45)]',
-      xColor: '#38bdf8', // Sky/Cyan
+      winCell: 'ring-2 ring-inset ring-emerald-400 bg-emerald-950/60 shadow-[0_0_24px_rgba(52,211,153,0.45)]',
+      xColor: '#38bdf8',
       xGlow: 'drop-shadow-[0_0_12px_rgba(56,189,248,0.85)]',
-      oColor: '#fb7185', // Rose/Neon Pink
+      oColor: '#fb7185',
       oGlow: 'drop-shadow-[0_0_12px_rgba(251,113,133,0.85)]',
       strikeColor: '#34d399'
     },
@@ -37,10 +37,10 @@ window.initTicTacToe = function initTicTacToe(stage) {
       name: 'Royal Gold',
       boardBg: 'bg-[#171324] border-amber-500/45 shadow-[0_20px_60px_rgba(0,0,0,0.75)]',
       cellBg: 'bg-[#221c35] hover:bg-[#2c2444] border border-amber-400/15 shadow-inner',
-      winCell: 'ring-2 ring-amber-400 bg-amber-950/50 shadow-[0_0_24px_rgba(251,191,36,0.45)]',
-      xColor: '#fbbf24', // Gold
+      winCell: 'ring-2 ring-inset ring-amber-400 bg-amber-950/50 shadow-[0_0_24px_rgba(251,191,36,0.45)]',
+      xColor: '#fbbf24',
       xGlow: 'drop-shadow-[0_0_10px_rgba(251,191,36,0.75)]',
-      oColor: '#c084fc', // Amethyst
+      oColor: '#c084fc',
       oGlow: 'drop-shadow-[0_0_10px_rgba(192,132,252,0.75)]',
       strikeColor: '#fde047'
     },
@@ -48,10 +48,10 @@ window.initTicTacToe = function initTicTacToe(stage) {
       name: 'Artisan Wood',
       boardBg: 'bg-[#6e5842] border-[#4b3b2b] shadow-[0_20px_60px_rgba(0,0,0,0.65)]',
       cellBg: 'bg-[#fbf7f0] hover:bg-white border border-[#d6c7b2] shadow-inner',
-      winCell: 'ring-4 ring-emerald-500 bg-emerald-50',
-      xColor: '#1d4ed8', // Cobalt
+      winCell: 'ring-4 ring-inset ring-emerald-500 bg-emerald-50',
+      xColor: '#1d4ed8',
       xGlow: 'drop-shadow-sm',
-      oColor: '#dc2626', // Crimson
+      oColor: '#dc2626',
       oGlow: 'drop-shadow-sm',
       strikeColor: '#10b981'
     }
@@ -63,7 +63,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
   let startingTurn = 'X';
   let alternateStarter = false;
   let gameMode = 'pve'; // 'pve' | 'pvp'
-  let aiDifficulty = 'normal'; // 'easy' | 'normal' | 'hard' | 'unbeatable'
+  let aiDifficulty = 'normal'; // 'easy' | 'normal' | 'hard'
   let themeKey = 'neon';
   let humanMark = 'X'; // Used in PvE ('X' or 'O')
   let lastMoveIdx = -1;
@@ -83,18 +83,68 @@ window.initTicTacToe = function initTicTacToe(stage) {
     streak: 0
   };
 
+  function openGameMenuModal() {
+    if (!active) return;
+    if (typeof AudioFX !== 'undefined') AudioFX.click();
+    resultModalOpen = false;
+    settingsModalOpen = true;
+    render();
+  }
+
+  function closeGameMenuModal() {
+    if (!active) return;
+    if (typeof AudioFX !== 'undefined') AudioFX.click();
+    settingsModalOpen = false;
+    render();
+  }
+
+  // Listen for custom host/shell menu triggers if dispatched
+  const onHostMenuEvent = () => openGameMenuModal();
+  window.addEventListener('arcadehub:toggle-menu', onHostMenuEvent);
+  window.addEventListener('arcadehub:open-settings', onHostMenuEvent);
+  window.addEventListener('ttt:open-menu', onHostMenuEvent);
+
+  // Bind top-right hamburger button outside `stage` if present
+  function bindTopRightHamburger() {
+    const candidates = Array.from(document.querySelectorAll('button, [role="button"]')).filter(el => {
+      if (stage && stage.contains(el)) return false;
+      const label = `${el.getAttribute('aria-label') || ''} ${el.title || ''} ${el.id || ''} ${el.className || ''}`.toLowerCase();
+      const text = (el.textContent || '').trim();
+      const isHamburgerIcon = text === '☰' || text === '≡' || label.includes('menu') || label.includes('hamburger') || label.includes('drawer');
+      if (!isHamburgerIcon) return false;
+      const rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.top < window.innerHeight * 0.25 && rect.left > window.innerWidth * 0.5;
+    });
+
+    candidates.forEach(btn => {
+      if (btn.dataset.tttMenuBound === '1') return;
+      btn.dataset.tttMenuBound = '1';
+      btn.addEventListener('click', (e) => {
+        if (!active) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        if (settingsModalOpen) {
+          closeGameMenuModal();
+        } else {
+          openGameMenuModal();
+        }
+      }, true);
+    });
+  }
+
   function injectStyles() {
     if (document.getElementById('ttt-enhanced-styles')) return;
     const style = document.createElement('style');
     style.id = 'ttt-enhanced-styles';
     style.textContent = `
       @keyframes tttPopIn {
-        0% { transform: scale(0.35) rotate(-8deg); opacity: 0; }
-        70% { transform: scale(1.08) rotate(2deg); opacity: 1; }
-        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        0% { transform: scale(0.45); opacity: 0; }
+        70% { transform: scale(1.06); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
       }
       @keyframes tttModalEnter {
-        0% { transform: scale(0.88) translateY(16px); opacity: 0; }
+        0% { transform: scale(0.92) translateY(12px); opacity: 0; }
         100% { transform: scale(1) translateY(0); opacity: 1; }
       }
       @keyframes tttDrawStroke {
@@ -102,15 +152,35 @@ window.initTicTacToe = function initTicTacToe(stage) {
         to { stroke-dashoffset: 0; }
       }
       .ttt-piece-anim {
-        animation: tttPopIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        transform-origin: center;
+        animation: tttPopIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       }
       .ttt-modal-anim {
-        animation: tttModalEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: tttModalEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
       .ttt-strike-line {
         stroke-dasharray: 140;
         stroke-dashoffset: 0;
         animation: tttDrawStroke 0.42s ease-out forwards;
+      }
+      .ttt-board-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        width: 100%;
+        height: 100%;
+      }
+      .ttt-cell {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        min-height: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
       }
     `;
     document.head.appendChild(style);
@@ -129,7 +199,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
     return null;
   }
 
-  // Minimax with Alpha-Beta Pruning for Hard / Unbeatable AI
+  // Minimax with Alpha-Beta Pruning for Hard AI
   function minimax(b, depth, isMaximizing, aiMark, playerMark, alpha, beta) {
     const res = checkWinner(b);
     if (res) {
@@ -172,19 +242,16 @@ window.initTicTacToe = function initTicTacToe(stage) {
     const empty = board.map((v, idx) => (v === null ? idx : -1)).filter(idx => idx !== -1);
     if (!empty.length) return -1;
 
-    // Easy: mostly random, occasionally blocks obvious wins
     if (aiDifficulty === 'easy') {
       return empty[Math.floor(Math.random() * empty.length)];
     }
 
-    // Check immediate winning move
     for (const idx of empty) {
       const copy = [...board];
       copy[idx] = aiMark;
       if (checkWinner(copy)?.winner === aiMark) return idx;
     }
 
-    // Check immediate block
     for (const idx of empty) {
       const copy = [...board];
       copy[idx] = humanMark;
@@ -194,18 +261,12 @@ window.initTicTacToe = function initTicTacToe(stage) {
       }
     }
 
-    // Normal: tactical center/corner preference with slight human error
     if (aiDifficulty === 'normal') {
       if (board[4] === null && Math.random() < 0.65) return 4;
       return empty[Math.floor(Math.random() * empty.length)];
     }
 
-    // Hard (85% optimal minimax) & Unbeatable (100% optimal minimax)
-    if (aiDifficulty === 'hard' && Math.random() < 0.15) {
-      return empty[Math.floor(Math.random() * empty.length)];
-    }
-
-    // Fast opening optimization for empty board
+    // Hard: optimal minimax
     if (empty.length === 9) {
       const openers = [0, 2, 4, 6, 8];
       return openers[Math.floor(Math.random() * openers.length)];
@@ -264,7 +325,6 @@ window.initTicTacToe = function initTicTacToe(stage) {
     updateTurnStatus();
     render();
 
-    // Trigger AI opening move if AI starts first
     if (gameMode === 'pve' && turn !== humanMark) {
       aiTimeout = setTimeout(() => {
         aiTimeout = null;
@@ -277,7 +337,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
     gameOver = true;
     winLine = result.line || [];
 
-    const diffMultiplier = { easy: 1, normal: 1.25, hard: 1.6, unbeatable: 2.2 }[aiDifficulty] || 1;
+    const diffMultiplier = { easy: 1, normal: 1.35, hard: 1.8 }[aiDifficulty] || 1;
     let modalPayload = {
       outcome: 'draw',
       badge: 'STALEMATE',
@@ -363,7 +423,6 @@ window.initTicTacToe = function initTicTacToe(stage) {
     lastResultData = modalPayload;
     render();
 
-    // Delay modal slightly so player enjoys seeing the winning line animation
     modalTimeout = setTimeout(() => {
       if (!active || !gameOver) return;
       resultModalOpen = true;
@@ -396,14 +455,14 @@ window.initTicTacToe = function initTicTacToe(stage) {
     const animClass = isGhost ? 'opacity-0 group-hover:opacity-25 transition-opacity duration-150' : 'ttt-piece-anim';
     if (mark === 'X') {
       return `
-        <svg viewBox="0 0 100 100" class="w-14 h-14 sm:w-16 sm:h-16 ${animClass} ${isGhost ? '' : theme.xGlow}" fill="none">
+        <svg viewBox="0 0 100 100" class="w-[58%] h-[58%] shrink-0 pointer-events-none ${animClass} ${isGhost ? '' : theme.xGlow}" fill="none">
           <path d="M24 24 L76 76 M76 24 L24 76" stroke="${theme.xColor}" stroke-width="13" stroke-linecap="round" />
         </svg>
       `;
     }
     if (mark === 'O') {
       return `
-        <svg viewBox="0 0 100 100" class="w-14 h-14 sm:w-16 sm:h-16 ${animClass} ${isGhost ? '' : theme.oGlow}" fill="none">
+        <svg viewBox="0 0 100 100" class="w-[58%] h-[58%] shrink-0 pointer-events-none ${animClass} ${isGhost ? '' : theme.oGlow}" fill="none">
           <circle cx="50" cy="50" r="28" stroke="${theme.oColor}" stroke-width="13" />
         </svg>
       `;
@@ -417,7 +476,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
     const coords = LINE_COORDS[key];
     if (!coords) return '';
     return `
-      <svg viewBox="0 0 100 100" class="pointer-events-none absolute inset-0 w-full h-full z-20">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="pointer-events-none absolute inset-0 w-full h-full z-20">
         <line
           x1="${coords.x1}" y1="${coords.y1}"
           x2="${coords.x2}" y2="${coords.y2}"
@@ -441,19 +500,19 @@ window.initTicTacToe = function initTicTacToe(stage) {
       : '👥 2P LOCAL PVP';
 
     const canHumanMove = !gameOver && !settingsModalOpen && !resultModalOpen && (gameMode === 'pvp' || turn === humanMark);
+    const lockScroll = settingsModalOpen || resultModalOpen;
 
     stage.innerHTML = `
-      <div class="relative w-full h-full flex flex-col items-center justify-between px-4 py-4 pb-16 sm:pb-6 select-none overflow-y-auto">
+      <div class="relative w-full h-full flex flex-col items-center justify-between px-4 py-4 pb-16 sm:pb-6 select-none ${lockScroll ? 'overflow-hidden' : 'overflow-y-auto'}">
         
-        <!-- Top Clean HUD (Duplicate hamburger & Reset button removed) -->
-        <div class="w-full max-w-[min(92vw,420px)] flex flex-col items-center gap-3 z-10 pt-1">
+        <!-- Top Clean HUD -->
+        <div class="w-full max-w-[min(92vw,420px)] shrink-0 flex flex-col items-center gap-3 z-10 pt-1">
           
-          <!-- Mode & Quick Settings Pill -->
+          <!-- Mode & Streak Badge -->
           <div class="flex items-center justify-center gap-2">
-            <button id="ttt-open-settings" type="button" class="px-4 py-1.5 rounded-full bg-slate-900/85 hover:bg-slate-800 border border-amber-400/35 text-amber-200 font-extrabold text-xs tracking-wider shadow-lg flex items-center gap-2 transition active:scale-95 cursor-pointer" title="Open Game Settings">
-              <span>${modeBadge}</span>
-              <span class="text-amber-400/80">⚙️</span>
-            </button>
+            <div class="px-4 py-1.5 rounded-full bg-slate-900/85 border border-amber-400/35 text-amber-200 font-extrabold text-xs tracking-wider shadow-lg">
+              ${modeBadge}
+            </div>
             ${stats.streak >= 2 ? `
               <div class="px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-black text-xs tracking-wide shadow">
                 🔥 ${stats.streak} Streak
@@ -489,10 +548,10 @@ window.initTicTacToe = function initTicTacToe(stage) {
           </div>
         </div>
 
-        <!-- Enhanced Game Board -->
-        <div class="relative aspect-square w-[min(86vw,375px)] p-3.5 rounded-3xl border-2 ${theme.boardBg} my-auto z-10 transition-colors duration-300">
+        <!-- Fixed-Aspect Game Board -->
+        <div class="relative aspect-square shrink-0 w-[min(86vw,375px)] h-[min(86vw,375px)] p-3.5 rounded-3xl border-2 ${theme.boardBg} my-auto z-10 overflow-hidden transition-colors duration-300">
           ${renderStrikeOverlay(theme)}
-          <div class="grid grid-cols-3 gap-3 w-full h-full">
+          <div class="ttt-board-grid">
             ${board.map((cell, idx) => {
               const isWinCell = winLine.includes(idx);
               const isLastMove = idx === lastMoveIdx && !gameOver;
@@ -505,7 +564,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
                   data-idx="${idx}"
                   type="button"
                   ${cell !== null || !canHumanMove ? 'disabled' : ''}
-                  class="ttt-cell group relative rounded-2xl ${theme.cellBg} flex items-center justify-center transition-all duration-150 ${canHumanMove && cell === null ? 'cursor-pointer active:scale-95' : 'cursor-default'} ${isWinCell ? theme.winCell : ''} ${isLastMove ? 'ring-1 ring-white/30' : ''}"
+                  class="ttt-cell group rounded-2xl ${theme.cellBg} transition-colors duration-150 ${canHumanMove && cell === null ? 'cursor-pointer' : 'cursor-default'} ${isWinCell ? theme.winCell : ''} ${isLastMove ? 'ring-1 ring-inset ring-white/30' : ''}"
                   aria-label="Board cell ${idx + 1}"
                 >
                   ${cellContent}
@@ -516,8 +575,8 @@ window.initTicTacToe = function initTicTacToe(stage) {
         </div>
 
         <!-- Subtle Footer Hint -->
-        <div class="text-[11px] font-semibold text-slate-400/80 tracking-wide z-10">
-          Tap the top badge anytime to change mode, side, or theme
+        <div class="shrink-0 text-[11px] font-semibold text-slate-400/80 tracking-wide z-10">
+          Open the top-right menu (☰) for mode, AI, theme &amp; match options
         </div>
 
         <!-- END-OF-GAME / WIN / LOSE / DRAW MODAL OVERLAY -->
@@ -563,8 +622,8 @@ window.initTicTacToe = function initTicTacToe(stage) {
                   Play Next Round ⚔️
                 </button>
                 <div class="grid grid-cols-2 gap-2">
-                  <button id="ttt-modal-settings-btn" type="button" class="py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-bold text-xs transition cursor-pointer">
-                    ⚙️ Settings
+                  <button id="ttt-modal-menu-btn" type="button" class="py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-bold text-xs transition cursor-pointer">
+                    ☰ Match Menu
                   </button>
                   <button id="ttt-view-board-btn" type="button" class="py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 font-bold text-xs transition cursor-pointer">
                     👁️ View Board
@@ -575,12 +634,12 @@ window.initTicTacToe = function initTicTacToe(stage) {
           ` : ''}
         </div>
 
-        <!-- SETTINGS & CUSTOMIZATION MODAL -->
+        <!-- HAMBURGER MENU / TIC-TAC-TOE SETUP MODAL -->
         <div id="ttt-settings-backdrop" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md ${settingsModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
           <div id="ttt-settings-modal" class="ttt-modal-anim max-w-sm w-full bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-white/10 pb-3">
-              <h2 class="text-lg font-black text-amber-400">⚙️ Tic-Tac-Toe Setup</h2>
-              <button id="ttt-close-settings" type="button" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/15 text-white font-bold flex items-center justify-center transition cursor-pointer" aria-label="Close settings">✕</button>
+              <h2 class="text-lg font-black text-amber-400">☰ Tic-Tac-Toe Setup</h2>
+              <button id="ttt-close-settings" type="button" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/15 text-white font-bold flex items-center justify-center transition cursor-pointer" aria-label="Close menu">✕</button>
             </div>
 
             <!-- Game Mode -->
@@ -601,14 +660,13 @@ window.initTicTacToe = function initTicTacToe(stage) {
               </div>
             </div>
 
-            <!-- AI Difficulty -->
+            <!-- AI Difficulty (3 Modes: Easy, Normal, Hard) -->
             <div id="ttt-ai-diff" class="flex flex-col gap-1.5 ${gameMode === 'pvp' ? 'hidden' : ''}">
-              <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">AI Intelligence</label>
-              <div class="grid grid-cols-2 gap-2">
-                <button id="ttt-diff-easy" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'easy' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Casual</button>
-                <button id="ttt-diff-normal" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'normal' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Tactical</button>
-                <button id="ttt-diff-hard" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'hard' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Master</button>
-                <button id="ttt-diff-unbeatable" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'unbeatable' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Unbeatable 🧠</button>
+              <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">AI Difficulty</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button id="ttt-diff-easy" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'easy' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Easy</button>
+                <button id="ttt-diff-normal" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'normal' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Normal</button>
+                <button id="ttt-diff-hard" type="button" class="py-2 rounded-xl font-bold text-xs border-2 transition cursor-pointer ${aiDifficulty === 'hard' ? 'bg-amber-500 text-slate-950 border-amber-400 shadow' : 'bg-black/40 text-slate-300 border-white/10 hover:bg-white/5'}">Hard</button>
               </div>
             </div>
 
@@ -643,25 +701,17 @@ window.initTicTacToe = function initTicTacToe(stage) {
       </div>
     `;
 
+    bindTopRightHamburger();
+
     // Attach host footer actions if present in global arcade wrapper
     const tttSettingsExtra = document.getElementById('ttt-settings-extra');
     if (typeof window.attachGameSettingsFooterActions === 'function' && tttSettingsExtra) {
       window.attachGameSettingsFooterActions(tttSettingsExtra, {
         onCloseDrawer: () => {
-          if (!active) return;
-          settingsModalOpen = false;
-          render();
+          closeGameMenuModal();
         }
       });
     }
-
-    // Open Settings via Mode Pill
-    document.getElementById('ttt-open-settings').onclick = () => {
-      if (!active) return;
-      if (typeof AudioFX !== 'undefined') AudioFX.click();
-      settingsModalOpen = true;
-      render();
-    };
 
     // Result Modal Event Listeners
     const playAgainBtn = document.getElementById('ttt-play-again-btn');
@@ -673,14 +723,10 @@ window.initTicTacToe = function initTicTacToe(stage) {
       };
     }
 
-    const modalSettingsBtn = document.getElementById('ttt-modal-settings-btn');
-    if (modalSettingsBtn) {
-      modalSettingsBtn.onclick = () => {
-        if (!active) return;
-        if (typeof AudioFX !== 'undefined') AudioFX.click();
-        resultModalOpen = false;
-        settingsModalOpen = true;
-        render();
+    const modalMenuBtn = document.getElementById('ttt-modal-menu-btn');
+    if (modalMenuBtn) {
+      modalMenuBtn.onclick = () => {
+        openGameMenuModal();
       };
     }
 
@@ -690,23 +736,19 @@ window.initTicTacToe = function initTicTacToe(stage) {
         if (!active) return;
         if (typeof AudioFX !== 'undefined') AudioFX.click();
         resultModalOpen = false;
-        status = 'Round Complete — Tap Mode Pill or Board to Continue';
+        status = 'Round Complete — Tap Board for Next Round';
         render();
       };
     }
 
-    // Settings Modal Event Listeners
+    // Hamburger / Setup Modal Event Listeners
     document.getElementById('ttt-close-settings').onclick = () => {
-      if (!active) return;
-      if (typeof AudioFX !== 'undefined') AudioFX.click();
-      settingsModalOpen = false;
-      render();
+      closeGameMenuModal();
     };
 
     document.getElementById('ttt-settings-backdrop').onclick = (e) => {
       if (!active || e.target.id !== 'ttt-settings-backdrop') return;
-      settingsModalOpen = false;
-      render();
+      closeGameMenuModal();
     };
 
     document.getElementById('ttt-mode-pve').onclick = () => {
@@ -735,7 +777,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
       render();
     };
 
-    ['easy', 'normal', 'hard', 'unbeatable'].forEach(diff => {
+    ['easy', 'normal', 'hard'].forEach(diff => {
       const btn = document.getElementById(`ttt-diff-${diff}`);
       if (btn) {
         btn.onclick = () => {
@@ -783,7 +825,6 @@ window.initTicTacToe = function initTicTacToe(stage) {
       btn.onclick = () => {
         if (!active || settingsModalOpen || resultModalOpen) return;
 
-        // If user dismissed the result modal with "View Board", clicking the board starts the next round
         if (gameOver) {
           startNewRound(true);
           return;
@@ -826,6 +867,9 @@ window.initTicTacToe = function initTicTacToe(stage) {
 
   return () => {
     active = false;
+    window.removeEventListener('arcadehub:toggle-menu', onHostMenuEvent);
+    window.removeEventListener('arcadehub:open-settings', onHostMenuEvent);
+    window.removeEventListener('ttt:open-menu', onHostMenuEvent);
     if (aiTimeout) clearTimeout(aiTimeout);
     if (modalTimeout) clearTimeout(modalTimeout);
   };
