@@ -19,6 +19,18 @@ window.initDama = function initDama(stage) {
   let settingsModalOpen = false;
   let configModalOpen = true;
 
+  function playSound(name) {
+    try {
+      window.AudioFX?.[name]?.();
+    } catch (_) {}
+  }
+
+  function awardXp(pts, label) {
+    try {
+      window.addXP?.(pts, window.innerWidth / 2, window.innerHeight / 2, label);
+    } catch (_) {}
+  }
+
   function vibrate(ms = 12) {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       try { navigator.vibrate(ms); } catch (_) {}
@@ -149,9 +161,9 @@ window.initDama = function initDama(stage) {
     gameOver = true;
     winnerText = msg;
     status = msg;
-    AudioFX.win();
-    addXP(50, window.innerWidth / 2, window.innerHeight / 2, 'DAMA VICTORY!');
-    window.ArcadeHero?.awardGameScore('dama', 100);
+    playSound('win');
+    awardXp(50, 'DAMA VICTORY!');
+    window.ArcadeHero?.awardGameScore?.('dama', 100);
     render();
   }
 
@@ -231,7 +243,7 @@ window.initDama = function initDama(stage) {
     if (pick.cap) {
       board[pick.cap[0]][pick.cap[1]] = null;
       blueCaptured++;
-      AudioFX.coin();
+      playSound('coin');
       const nextMoves = getPieceMoves(pick.dr, pick.dc).filter(m => m.cap);
       if (nextMoves.length > 0) {
         chained = true;
@@ -240,7 +252,7 @@ window.initDama = function initDama(stage) {
     }
 
     if (!chained && pick.dr === 7) piece.king = true;
-    AudioFX.card();
+    playSound('card');
     vibrate(14);
 
     if (!chained) {
@@ -281,15 +293,15 @@ window.initDama = function initDama(stage) {
     moves = [];
     gameOver = false;
     winnerText = '';
-    AudioFX.click();
+    playSound('click');
     render();
   }
 
   function render() {
-    if (!active) return;
+    if (!active || !stage) return;
 
     stage.innerHTML = `
-      <div class="relative w-full h-full flex flex-col items-center justify-between px-3 py-2.5 pb-16 sm:pb-6 select-none overflow-hidden">
+      <div class="relative w-full h-full min-h-[420px] flex flex-col items-center justify-between px-3 py-2.5 pb-16 sm:pb-6 select-none overflow-hidden">
         <div class="flex items-center justify-between w-full max-w-[min(92vw,460px)] shrink-0 z-10 gap-2">
           <button id="dama-menu" type="button" class="w-10 h-10 shrink-0 rounded-xl bg-amber-950/80 border border-amber-500/40 flex items-center justify-center text-amber-300 text-lg font-black shadow hover:bg-amber-900 transition cursor-pointer" aria-label="Settings">
             ☰
@@ -297,11 +309,8 @@ window.initDama = function initDama(stage) {
           <div class="flex-1 px-3 py-2 rounded-xl bg-black/65 border border-amber-400/30 text-amber-200 font-bold text-xs shadow text-center truncate">
             ${status}
           </div>
-          <button id="dama-undo-btn" type="button" ${history.length === 0 || mustContinueFrom ? 'disabled' : ''} class="px-3 h-10 shrink-0 rounded-xl bg-slate-800/90 border border-white/15 hover:bg-slate-700 disabled:opacity-40 text-amber-200 font-bold text-xs shadow transition cursor-pointer">
+          <button id="dama-undo-btn" type="button" ${history.length === 0 || mustContinueFrom ? 'disabled' : ''} class="px-3.5 h-10 shrink-0 rounded-xl bg-slate-800/90 border border-white/15 hover:bg-slate-700 disabled:opacity-40 text-amber-200 font-bold text-xs shadow transition cursor-pointer">
             ↩ Undo
-          </button>
-          <button id="dama-reset-btn" type="button" class="px-3 h-10 shrink-0 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow transition cursor-pointer">
-            New
           </button>
         </div>
 
@@ -314,8 +323,8 @@ window.initDama = function initDama(stage) {
           </span>
         </div>
 
-        <div class="relative w-[min(88vw,430px)] aspect-square shrink-0 my-auto z-10">
-          <div class="grid grid-cols-8 grid-rows-8 w-full h-full rounded-2xl overflow-hidden border-4 border-[#3d1f0d] shadow-[0_20px_60px_rgba(0,0,0,0.85)]">
+        <div style="width: min(88vw, 430px); height: min(88vw, 430px);" class="relative shrink-0 my-auto z-10">
+          <div style="grid-template-columns: repeat(8, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr));" class="grid w-full h-full rounded-2xl overflow-hidden border-4 border-[#3d1f0d] shadow-[0_20px_60px_rgba(0,0,0,0.85)]">
             ${board.map((row, r) => row.map((cell, c) => {
               const dark = (r + c) % 2 === 1;
               const isSel = sel && sel[0] === r && sel[1] === c;
@@ -439,7 +448,6 @@ window.initDama = function initDama(stage) {
 
     document.getElementById('dama-menu').onclick = () => { if (!active) return; settingsModalOpen = true; render(); };
     document.getElementById('dama-undo-btn').onclick = () => undoMove();
-    document.getElementById('dama-reset-btn').onclick = () => { if (!active) return; configModalOpen = true; render(); };
     document.getElementById('dama-close-settings').onclick = () => { if (!active) return; settingsModalOpen = false; render(); };
     document.getElementById('dama-settings-backdrop').onclick = (e) => {
       if (!active || e.target.id !== 'dama-settings-backdrop') return;
@@ -492,10 +500,10 @@ window.initDama = function initDama(stage) {
             if (currentSide === 'r') redCaptured++;
             else blueCaptured++;
 
-            AudioFX.coin();
+            playSound('coin');
             vibrate(18);
             if (currentSide === 'r') {
-              addXP(15, window.innerWidth / 2, window.innerHeight / 2, 'CAPTURE!');
+              awardXp(15, 'CAPTURE!');
             }
 
             const nextMoves = getPieceMoves(r, c).filter(m => m.cap);
@@ -505,12 +513,12 @@ window.initDama = function initDama(stage) {
               sel = [r, c];
               moves = nextMoves;
               status = 'Chain Jump! Pick next target';
-              AudioFX.click();
+              playSound('click');
               render();
               return;
             }
           } else {
-            AudioFX.card();
+            playSound('card');
             vibrate(10);
           }
 
@@ -548,7 +556,7 @@ window.initDama = function initDama(stage) {
         if (board[r][c]?.side === currentSide) {
           sel = [r, c];
           moves = getPieceMoves(r, c);
-          AudioFX.click();
+          playSound('click');
           vibrate(8);
         } else {
           sel = null;
