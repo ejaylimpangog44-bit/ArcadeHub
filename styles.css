@@ -104,7 +104,7 @@ html, body {
 
 .discovery-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(244, 114, 182, 0.55);
+  border-color: rgba(245, 158, 11, 0.55);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
 }
 
@@ -652,28 +652,26 @@ html, body {
   transition: transform 3.2s cubic-bezier(0.15, 0.85, 0.2, 1);
 }
 
+/* Cozy Chill GIF Splash Screen (No Checkmark on Completion) */
 #splash-screen,
 .splash-screen {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100dvh;
-  background: #08080c url("./1793408885987.jpg") center / cover no-repeat;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(45, 212, 191, 0.14), transparent 45%),
+    radial-gradient(circle at 80% 78%, rgba(245, 158, 11, 0.14), transparent 48%),
+    linear-gradient(160deg, #161a22 0%, #1d232e 55%, #141820 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
   overflow: hidden;
   z-index: 10001;
   opacity: 1;
   visibility: visible;
-  transition: opacity 1.2s ease, visibility 1.2s ease;
-}
-
-.splash-full-bg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+  transition: opacity 0.65s ease, visibility 0.65s ease;
 }
 
 #splash-screen.splash-hide,
@@ -681,6 +679,143 @@ html, body {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+
+.cozy-splash-card {
+  width: 100%;
+  max-width: 390px;
+  padding: 22px 20px 20px;
+  border-radius: 24px;
+  background: rgba(27, 32, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.cozy-splash-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5eead4;
+  background: rgba(94, 234, 212, 0.1);
+  border: 1px solid rgba(94, 234, 212, 0.24);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.cozy-gif-frame {
+  width: 100%;
+  max-height: 220px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #11151d;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cozy-splash-gif {
+  width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.cozy-status-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.cozy-splash-sub {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.cozy-splash-pct {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #f5b963;
+}
+
+.cozy-game-cards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.cozy-mini-card {
+  padding: 9px 7px;
+  border-radius: 14px;
+  background: rgba(15, 19, 26, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  opacity: 0.52;
+  transform: translateY(2px);
+  transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+.cozy-mini-card.is-ready {
+  opacity: 1;
+  transform: translateY(0);
+  border-color: rgba(245, 185, 99, 0.35);
+  background: rgba(34, 41, 54, 0.92);
+}
+
+.cozy-card-emoji {
+  font-size: 1.15rem;
+  line-height: 1.1;
+}
+
+.cozy-card-name {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  line-height: 1.15;
+}
+
+.cozy-card-tag {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.cozy-progress-track {
+  width: 100%;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(10, 13, 19, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.cozy-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2dd4bf 0%, #f5b963 100%);
+  transition: width 0.14s ease-out;
 }
 
 .power-screen,
@@ -739,16 +874,16 @@ html, body {
 
 .power-screen.active-glow .neon-sign {
   color: #fff;
-  border-color: #ff007f;
-  text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f, 0 0 40px #ff007f, 0 0 80px #ff007f;
-  box-shadow: 0 0 20px rgba(255, 0, 127, 0.4), inset 0 0 20px rgba(255, 0, 127, 0.4);
+  border-color: #f59e0b;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.85), 0 0 24px rgba(45, 212, 191, 0.55);
+  box-shadow: 0 0 22px rgba(245, 158, 11, 0.32), inset 0 0 20px rgba(45, 212, 191, 0.16);
   animation: neon-flicker 2s infinite alternate;
 }
 
 @keyframes neon-flicker {
   0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-    text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f, 0 0 40px #ff007f, 0 0 80px #ff007f;
-    box-shadow: 0 0 20px rgba(255, 0, 127, 0.4), inset 0 0 20px rgba(255, 0, 127, 0.4);
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.85), 0 0 24px rgba(45, 212, 191, 0.55);
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.32), inset 0 0 20px rgba(45, 212, 191, 0.16);
   }
   20%, 24%, 55% {
     text-shadow: none;
