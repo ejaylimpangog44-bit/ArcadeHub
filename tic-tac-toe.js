@@ -171,21 +171,11 @@ window.initTicTacToe = function initTicTacToe(stage) {
 
   function handleExternalMenuClick(e) {
     if (!active) return;
-    if (e.type === 'pointerdown' && e.button !== undefined && e.button !== 0) return;
-    e.preventDefault();
     e.stopPropagation();
     if (typeof e.stopImmediatePropagation === 'function') {
       e.stopImmediatePropagation();
     }
-    if (e.type === 'click') {
-      if (settingsModalOpen) {
-        closeGameMenuModal();
-      } else {
-        openGameMenuModal();
-      }
-    } else if (!settingsModalOpen) {
-      openGameMenuModal();
-    }
+    openGameMenuModal();
   }
 
   // Bind top-right hamburger button outside `stage` if present
@@ -194,14 +184,12 @@ window.initTicTacToe = function initTicTacToe(stage) {
     candidates.forEach(btn => {
       if (btn.dataset.tttMenuBound === '1') return;
       btn.dataset.tttMenuBound = '1';
-      btn.addEventListener('pointerdown', handleExternalMenuClick, true);
       btn.addEventListener('click', handleExternalMenuClick, true);
     });
   }
 
   function unbindTopRightHamburger() {
     document.querySelectorAll('[data-ttt-menu-bound="1"]').forEach(btn => {
-      btn.removeEventListener('pointerdown', handleExternalMenuClick, true);
       btn.removeEventListener('click', handleExternalMenuClick, true);
       delete btn.dataset.tttMenuBound;
     });
