@@ -685,11 +685,6 @@ window.initTicTacToe = function initTicTacToe(stage) {
               <span class="text-lg sm:text-xl font-black text-white leading-tight">${stats.oWins}</span>
             </div>
           </div>
-
-          <!-- Live Turn Status Banner -->
-          <div class="px-4 py-1 rounded-full bg-white/5 border border-white/10">
-            <span class="text-sm sm:text-base font-black tracking-wide text-white drop-shadow">${status}</span>
-          </div>
         </div>
 
         <!-- Fixed-Aspect Game Board -->
@@ -919,7 +914,6 @@ window.initTicTacToe = function initTicTacToe(stage) {
         if (!active) return;
         playSfxClick();
         resultModalOpen = false;
-        status = 'Round Complete — Tap Board for Next Round';
         render();
       };
     }
