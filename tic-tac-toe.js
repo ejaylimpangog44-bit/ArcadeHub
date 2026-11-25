@@ -74,6 +74,8 @@ window.initTicTacToe = function initTicTacToe(stage) {
   let winLine = [];
   let settingsModalOpen = false;
   let resultModalOpen = false;
+  let prevSettingsOpen = false;
+  let prevResultOpen = false;
   let lastResultData = null;
 
   // Audio & Fullscreen Controller State
@@ -639,6 +641,11 @@ window.initTicTacToe = function initTicTacToe(stage) {
     const bgmActive = isBgmOn();
     const sfxActive = isSfxOn();
 
+    const settingsEnterClass = settingsModalOpen && !prevSettingsOpen ? 'ttt-modal-anim' : '';
+    const resultEnterClass = resultModalOpen && !prevResultOpen ? 'ttt-modal-anim' : '';
+    prevSettingsOpen = settingsModalOpen;
+    prevResultOpen = resultModalOpen;
+
     stage.innerHTML = `
       <div class="relative w-full h-full flex flex-col items-center justify-between px-4 py-4 pb-16 sm:pb-6 select-none ${lockScroll ? 'overflow-hidden' : 'overflow-y-auto'}">
         
@@ -719,7 +726,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
         <!-- END-OF-GAME / WIN / LOSE / DRAW MODAL OVERLAY -->
         <div id="ttt-result-backdrop" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md ${resultModalOpen && lastResultData ? 'flex' : 'hidden'} items-center justify-center p-4">
           ${lastResultData ? `
-            <div class="relative ttt-modal-anim max-w-sm w-full bg-slate-900/95 border-2 ${lastResultData.borderClass} ${lastResultData.glowClass} rounded-3xl p-6 flex flex-col items-center text-center gap-4">
+            <div class="relative ${resultEnterClass} max-w-sm w-full bg-slate-900/95 border-2 ${lastResultData.borderClass} ${lastResultData.glowClass} rounded-3xl p-6 flex flex-col items-center text-center gap-4">
               
               <!-- Small Eye Button in Top-Right of Card -->
               <button
@@ -774,7 +781,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
 
         <!-- HAMBURGER MENU / TIC-TAC-TOE SETUP MODAL -->
         <div id="ttt-settings-backdrop" class="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md ${settingsModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
-          <div id="ttt-settings-modal" class="ttt-modal-anim max-w-sm w-full bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+          <div id="ttt-settings-modal" class="${settingsEnterClass} max-w-sm w-full bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-white/10 pb-3">
               <h2 class="text-lg font-black text-amber-400">☰ Tic-Tac-Toe Setup</h2>
               <button id="ttt-close-settings" type="button" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/15 text-white font-bold flex items-center justify-center transition cursor-pointer" aria-label="Close menu">✕</button>
