@@ -76,6 +76,12 @@ window.initTicTacToe = function initTicTacToe(stage) {
   let resultModalOpen = false;
   let lastResultData = null;
 
+  // Audio & Fullscreen Controls
+  let mediaPanelOpen = false;
+  let bgmEnabled = true;
+  let sfxEnabled = true;
+  let isFullscreen = Boolean(document.fullscreenElement);
+
   // Persistent Session Scoreboard
   const stats = {
     xWins: 0,
@@ -84,64 +90,181 @@ window.initTicTacToe = function initTicTacToe(stage) {
     streak: 0
   };
 
-  function toggleMusicEmojiAction() {
+  function playSfxClick() {
+    if (!sfxEnabled) return;
+    if (typeof AudioFX !== 'undefined' && typeof AudioFX.click === 'function') {
+      AudioFX.click();
+    }
+  }
+
+  function playSfxCard() {
+    if (!sfxEnabled) return;
+    if (typeof AudioFX !== 'undefined' && typeof AudioFX.card === 'function') {
+      AudioFX.card();
+    }
+  }
+
+  function playSfxWin() {
+    if (!sfxEnabled) return;
+    if (typeof AudioFX !== 'undefined' && typeof AudioFX.win === 'function') {
+      AudioFX.win();
+    }
+  }
+
+  function playSfxLose() {
+    if (!sfxEnabled) return;
+    if (typeof AudioFX !== 'undefined' && typeof AudioFX.lose === 'function') {
+      AudioFX.lose();
+    }
+  }
+
+  function applyBgmState(enabled) {
+    bgmEnabled = Boolean(enabled);
     if (typeof AudioFX !== 'undefined') {
-      if (typeof AudioFX.toggleMusic === 'function') {
-        AudioFX.toggleMusic();
-      } else if (typeof AudioFX.toggleMute === 'function') {
-        AudioFX.toggleMute();
-      } else if (typeof AudioFX.click === 'function') {
-        AudioFX.click();
+      if (typeof AudioFX.setMusicEnabled === 'function') {
+        AudioFX.setMusicEnabled(bgmEnabled);
+      } else if (typeof AudioFX.toggleMusic === 'function') {
+        AudioFX.toggleMusic(bgmEnabled);
       }
     }
-    if (typeof window.toggleBackgroundMusic === 'function') {
+    if (typeof window.setBackgroundMusicEnabled === 'function') {
+      window.setBackgroundMusicEnabled(bgmEnabled);
+    } else if (!bgmEnabled && typeof window.pauseBackgroundMusic === 'function') {
+      window.pauseBackgroundMusic();
+    } else if (bgmEnabled && typeof window.resumeBackgroundMusic === 'function') {
+      window.resumeBackgroundMusic();
+    } else if (typeof window.toggleBackgroundMusic === 'function') {
       window.toggleBackgroundMusic();
     } else if (typeof window.toggleMusic === 'function') {
       window.toggleMusic();
     }
-    window.dispatchEvent(new CustomEvent('arcadehub:toggle-music'));
+    window.dispatchEvent(new CustomEvent('arcadehub:set-bgm', { detail: { enabled: bgmEnabled } }));
+    window.dispatchEvent(new CustomEvent('arcadehub:toggle-music', { detail: { enabled: bgmEnabled } }));
+  }
+
+  function applySfxState(enabled) {
+    sfxEnabled = Boolean(enabled);
+    if (typeof AudioFX !== 'undefined') {
+      if (typeof AudioFX.setSfxEnabled === 'function') {
+        AudioFX.setSfxEnabled(sfxEnabled);
+      } else if (typeof AudioFX.setMuted === 'function') {
+        AudioFX.setMuted(!sfxEnabled);
+      }
+    }
+    if (typeof window.setSfxEnabled === 'function') {
+      window.setSfxEnabled(sfxEnabled);
+    }
+    window.dispatchEvent(new CustomEvent('arcadehub:set-sfx', { detail: { enabled: sfxEnabled } }));
+    if (sfxEnabled) {
+      playSfxClick();
+    }
+  }
+
+  async function toggleFullscreenMode() {
+    try {
+      if (!document.fullscreenElement) {
+        const target = stage?.parentElement || document.documentElement;
+        if (target && typeof target.requestFullscreen === 'function') {
+          await target.requestFullscreen();
+        }
+      } else if (typeof document.exitFullscreen === 'function') {
+        await document.exitFullscreen();
+      }
+    } catch (_) {}
+    isFullscreen = Boolean(document.fullscreenElement);
+    render();
+  }
+
+  const onFullscreenChange = () => {
+    if (!active) return;
+    isFullscreen = Boolean(document.fullscreenElement);
+    render();
+  };
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+
+  function toggleMusicEmojiAction() {
+    mediaPanelOpen = !mediaPanelOpen;
+    playSfxClick();
     render();
   }
 
   function goHomeEmojiAction() {
-    closeGameMenuModal();
-    if (typeof window.backToHub === 'function') {
-      window.backToHub();
-      return;
-    }
-    if (typeof window.returnToHub === 'function') {
-      window.returnToHub();
-      return;
-    }
-    if (typeof window.goToHub === 'function') {
-      window.goToHub();
-      return;
-    }
-    window.dispatchEvent(new CustomEvent('arcadehub:back-to-hub'));
-    window.dispatchEvent(new CustomEvent('arcadehub:go-home'));
+    settingsModalOpen = false;
+    mediaPanelOpen = false;
 
-    const homeBtn = Array.from(document.querySelectorAll('button, a, [role="button"]')).find(el => {
+    const fnNames = [
+      'backToHub',
+      'returnToHub',
+      'goToHub',
+      'openHub',
+      'exitToHub',
+      'goHome',
+      'returnHome',
+      'closeGame',
+      'exitGame'
+    ];
+
+    for (const name of fnNames) {
+      if (typeof window[name] === 'function') {
+        window[name]();
+        return;
+      }
+      if (window.ArcadeHub && typeof window.ArcadeHub[name] === 'function') {
+        window.ArcadeHub[name]();
+        return;
+      }
+      if (window.ArcadeHero && typeof window.ArcadeHero[name] === 'function') {
+        window.ArcadeHero[name]();
+        return;
+      }
+    }
+
+    window.dispatchEvent(new CustomEvent('arcadehub:back-to-hub', { bubbles: true }));
+    window.dispatchEvent(new CustomEvent('arcadehub:go-home', { bubbles: true }));
+    window.dispatchEvent(new CustomEvent('arcadehub:close-game', { bubbles: true }));
+
+    const candidates = Array.from(document.querySelectorAll('button, a, [role="button"]')).filter(el => {
       if (stage && stage.contains(el)) return false;
-      const txt = `${el.textContent || ''} ${el.getAttribute('aria-label') || ''} ${el.title || ''}`.toLowerCase();
-      return txt.includes('back to hub') || txt.includes('hub') || txt.includes('home');
+      const txt = `${el.textContent || ''} ${el.getAttribute('aria-label') || ''} ${el.title || ''} ${el.id || ''}`.toLowerCase();
+      return (
+        txt.includes('back to hub') ||
+        txt.includes('hub') ||
+        txt.includes('lobby') ||
+        txt.includes('home') ||
+        txt.includes('exit')
+      );
     });
+
+    const homeBtn = candidates.find(el => {
+      const rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    }) || candidates[0];
+
     if (homeBtn instanceof HTMLElement) {
       homeBtn.click();
+      return;
+    }
+
+    if (stage) {
+      stage.innerHTML = '';
+      stage.style.display = 'none';
     }
   }
 
   function openGameMenuModal() {
     if (!active || !stage || !stage.isConnected) return;
-    if (typeof AudioFX !== 'undefined') AudioFX.click();
+    playSfxClick();
     resultModalOpen = false;
+    mediaPanelOpen = false;
     settingsModalOpen = true;
     render();
   }
 
   function closeGameMenuModal() {
     if (!active) return;
-    if (typeof AudioFX !== 'undefined') AudioFX.click();
+    playSfxClick();
     settingsModalOpen = false;
+    mediaPanelOpen = false;
     render();
   }
 
@@ -382,6 +505,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
     lastMoveIdx = -1;
     settingsModalOpen = false;
     resultModalOpen = false;
+    mediaPanelOpen = false;
     lastResultData = null;
 
     updateTurnStatus();
@@ -416,7 +540,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
       stats.draws += 1;
       stats.streak = 0;
       status = 'Draw Match!';
-      if (typeof AudioFX !== 'undefined') AudioFX.click();
+      playSfxClick();
       if (typeof addXP === 'function') addXP(15, window.innerWidth / 2, window.innerHeight / 2, 'DRAW +15 XP');
     } else {
       if (result.winner === 'X') stats.xWins += 1;
@@ -429,7 +553,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
           const xpEarned = Math.round(45 * diffMultiplier);
           const scoreEarned = Math.round(120 * diffMultiplier);
           status = '🎉 Victory!';
-          if (typeof AudioFX !== 'undefined') AudioFX.win();
+          playSfxWin();
           if (typeof addXP === 'function') addXP(xpEarned, window.innerWidth / 2, window.innerHeight / 2, `VICTORY +${xpEarned} XP!`);
           window.ArcadeHero?.awardGameScore('tictactoe', scoreEarned);
 
@@ -447,7 +571,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
         } else {
           stats.streak = 0;
           status = '🤖 AI Wins!';
-          if (typeof AudioFX !== 'undefined') AudioFX.lose();
+          playSfxLose();
 
           modalPayload = {
             outcome: 'lose',
@@ -464,7 +588,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
       } else {
         stats.streak += 1;
         status = `🎉 Player ${result.winner} Wins!`;
-        if (typeof AudioFX !== 'undefined') AudioFX.win();
+        playSfxWin();
         if (typeof addXP === 'function') addXP(35, window.innerWidth / 2, window.innerHeight / 2, `PLAYER ${result.winner} WINS!`);
         window.ArcadeHero?.awardGameScore('tictactoe', 100);
 
@@ -500,7 +624,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
     const aiMark = humanMark === 'X' ? 'O' : 'X';
     board[idx] = aiMark;
     lastMoveIdx = idx;
-    if (typeof AudioFX !== 'undefined') AudioFX.card();
+    playSfxCard();
 
     const res = checkWinner(board);
     if (res) {
@@ -758,9 +882,24 @@ window.initTicTacToe = function initTicTacToe(stage) {
               </button>
             </div>
 
+            <!-- BGM, SFX & Fullscreen Controller -->
+            <div id="ttt-media-panel" class="${mediaPanelOpen ? 'flex' : 'hidden'} flex-col gap-2 p-3 rounded-2xl bg-black/45 border border-white/10">
+              <div class="grid grid-cols-2 gap-2">
+                <button id="ttt-toggle-bgm" type="button" class="py-2 px-2.5 rounded-xl font-bold text-xs border transition cursor-pointer ${bgmEnabled ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40' : 'bg-white/5 text-slate-400 border-white/10'}">
+                  BGM: ${bgmEnabled ? 'ON' : 'OFF'}
+                </button>
+                <button id="ttt-toggle-sfx" type="button" class="py-2 px-2.5 rounded-xl font-bold text-xs border transition cursor-pointer ${sfxEnabled ? 'bg-sky-500/20 text-sky-300 border-sky-400/40' : 'bg-white/5 text-slate-400 border-white/10'}">
+                  SFX: ${sfxEnabled ? 'ON' : 'OFF'}
+                </button>
+              </div>
+              <button id="ttt-toggle-fullscreen" type="button" class="w-full py-2 px-3 rounded-xl font-bold text-xs border bg-white/5 hover:bg-white/10 text-amber-200 border-amber-400/30 transition cursor-pointer">
+                ${isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+              </button>
+            </div>
+
             <!-- Two-Emoji Footer: Music & Home -->
             <div id="ttt-settings-footer" class="grid grid-cols-2 gap-2 pt-3 border-t border-white/10">
-              <button id="ttt-footer-music" type="button" aria-label="Music" title="Music" class="py-2.5 rounded-xl bg-black/40 hover:bg-white/10 border border-white/10 text-lg leading-none flex items-center justify-center transition active:scale-95 cursor-pointer">🎵</button>
+              <button id="ttt-footer-music" type="button" aria-label="Audio & Fullscreen" title="Audio & Fullscreen" class="py-2.5 rounded-xl bg-black/40 hover:bg-white/10 border ${mediaPanelOpen ? 'border-amber-400/60 bg-amber-500/10' : 'border-white/10'} text-lg leading-none flex items-center justify-center transition active:scale-95 cursor-pointer">🎵</button>
               <button id="ttt-footer-home" type="button" aria-label="Home" title="Home" class="py-2.5 rounded-xl bg-black/40 hover:bg-white/10 border border-white/10 text-lg leading-none flex items-center justify-center transition active:scale-95 cursor-pointer">🏠</button>
             </div>
           </div>
@@ -778,16 +917,44 @@ window.initTicTacToe = function initTicTacToe(stage) {
 
     document.getElementById('ttt-footer-home').onclick = () => {
       if (!active) return;
-      if (typeof AudioFX !== 'undefined') AudioFX.click();
+      playSfxClick();
       goHomeEmojiAction();
     };
+
+    // BGM, SFX & Fullscreen Controller Listeners
+    const bgmBtn = document.getElementById('ttt-toggle-bgm');
+    if (bgmBtn) {
+      bgmBtn.onclick = () => {
+        if (!active) return;
+        applyBgmState(!bgmEnabled);
+        render();
+      };
+    }
+
+    const sfxBtn = document.getElementById('ttt-toggle-sfx');
+    if (sfxBtn) {
+      sfxBtn.onclick = () => {
+        if (!active) return;
+        applySfxState(!sfxEnabled);
+        render();
+      };
+    }
+
+    const fsBtn = document.getElementById('ttt-toggle-fullscreen');
+    if (fsBtn) {
+      fsBtn.onclick = () => {
+        if (!active) return;
+        playSfxClick();
+        toggleFullscreenMode();
+      };
+    }
 
     // Result Modal Event Listeners
     const playAgainBtn = document.getElementById('ttt-play-again-btn');
     if (playAgainBtn) {
       playAgainBtn.onclick = () => {
         if (!active) return;
-        if (typeof AudioFX !== 'undefined') AudioFX.click();
+        playSfxClick();
         startNewRound(true);
       };
     }
@@ -796,7 +963,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
     if (viewBoardBtn) {
       viewBoardBtn.onclick = () => {
         if (!active) return;
-        if (typeof AudioFX !== 'undefined') AudioFX.click();
+        playSfxClick();
         resultModalOpen = false;
         status = 'Round Complete — Tap Board for Next Round';
         render();
@@ -867,14 +1034,14 @@ window.initTicTacToe = function initTicTacToe(stage) {
 
     document.getElementById('ttt-apply-settings').onclick = () => {
       if (!active) return;
-      if (typeof AudioFX !== 'undefined') AudioFX.click();
+      playSfxClick();
       startingTurn = 'X';
       startNewRound(false);
     };
 
     document.getElementById('ttt-reset-scores').onclick = () => {
       if (!active) return;
-      if (typeof AudioFX !== 'undefined') AudioFX.click();
+      playSfxClick();
       stats.xWins = 0;
       stats.oWins = 0;
       stats.draws = 0;
@@ -899,7 +1066,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
 
         board[idx] = turn;
         lastMoveIdx = idx;
-        if (typeof AudioFX !== 'undefined') AudioFX.card();
+        playSfxCard();
 
         const res = checkWinner(board);
         if (res) {
@@ -938,6 +1105,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
 
   return () => {
     active = false;
+    document.removeEventListener('fullscreenchange', onFullscreenChange);
     if (headerObserver) {
       headerObserver.disconnect();
       headerObserver = null;
