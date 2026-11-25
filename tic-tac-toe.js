@@ -2,6 +2,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
   let active = true;
   let aiTimeout = null;
   let modalTimeout = null;
+  let headerObserver = null;
 
   const WINS = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
@@ -83,8 +84,54 @@ window.initTicTacToe = function initTicTacToe(stage) {
     streak: 0
   };
 
+  function toggleMusicEmojiAction() {
+    if (typeof AudioFX !== 'undefined') {
+      if (typeof AudioFX.toggleMusic === 'function') {
+        AudioFX.toggleMusic();
+      } else if (typeof AudioFX.toggleMute === 'function') {
+        AudioFX.toggleMute();
+      } else if (typeof AudioFX.click === 'function') {
+        AudioFX.click();
+      }
+    }
+    if (typeof window.toggleBackgroundMusic === 'function') {
+      window.toggleBackgroundMusic();
+    } else if (typeof window.toggleMusic === 'function') {
+      window.toggleMusic();
+    }
+    window.dispatchEvent(new CustomEvent('arcadehub:toggle-music'));
+    render();
+  }
+
+  function goHomeEmojiAction() {
+    closeGameMenuModal();
+    if (typeof window.backToHub === 'function') {
+      window.backToHub();
+      return;
+    }
+    if (typeof window.returnToHub === 'function') {
+      window.returnToHub();
+      return;
+    }
+    if (typeof window.goToHub === 'function') {
+      window.goToHub();
+      return;
+    }
+    window.dispatchEvent(new CustomEvent('arcadehub:back-to-hub'));
+    window.dispatchEvent(new CustomEvent('arcadehub:go-home'));
+
+    const homeBtn = Array.from(document.querySelectorAll('button, a, [role="button"]')).find(el => {
+      if (stage && stage.contains(el)) return false;
+      const txt = `${el.textContent || ''} ${el.getAttribute('aria-label') || ''} ${el.title || ''}`.toLowerCase();
+      return txt.includes('back to hub') || txt.includes('hub') || txt.includes('home');
+    });
+    if (homeBtn instanceof HTMLElement) {
+      homeBtn.click();
+    }
+  }
+
   function openGameMenuModal() {
-    if (!active) return;
+    if (!active || !stage || !stage.isConnected) return;
     if (typeof AudioFX !== 'undefined') AudioFX.click();
     resultModalOpen = false;
     settingsModalOpen = true;
@@ -99,14 +146,19 @@ window.initTicTacToe = function initTicTacToe(stage) {
   }
 
   // Listen for custom host/shell menu triggers if dispatched
-  const onHostMenuEvent = () => openGameMenuModal();
-  window.addEventListener('arcadehub:toggle-menu', onHostMenuEvent);
-  window.addEventListener('arcadehub:open-settings', onHostMenuEvent);
-  window.addEventListener('ttt:open-menu', onHostMenuEvent);
+  const onHostMenuEvent = (e) => {
+    if (!active) return;
+    if (e && typeof e.stopImmediatePropagation === 'function') {
+      e.stopImmediatePropagation();
+    }
+    openGameMenuModal();
+  };
+  window.addEventListener('arcadehub:toggle-menu', onHostMenuEvent, true);
+  window.addEventListener('arcadehub:open-settings', onHostMenuEvent, true);
+  window.addEventListener('ttt:open-menu', onHostMenuEvent, true);
 
-  // Bind top-right hamburger button outside `stage` if present
-  function bindTopRightHamburger() {
-    const candidates = Array.from(document.querySelectorAll('button, [role="button"]')).filter(el => {
+  function getTopRightMenuButtons() {
+    return Array.from(document.querySelectorAll('button, [role="button"]')).filter(el => {
       if (stage && stage.contains(el)) return false;
       const label = `${el.getAttribute('aria-label') || ''} ${el.title || ''} ${el.id || ''} ${el.className || ''}`.toLowerCase();
       const text = (el.textContent || '').trim();
@@ -115,21 +167,43 @@ window.initTicTacToe = function initTicTacToe(stage) {
       const rect = el.getBoundingClientRect();
       return rect.width > 0 && rect.top < window.innerHeight * 0.25 && rect.left > window.innerWidth * 0.5;
     });
+  }
 
+  function handleExternalMenuClick(e) {
+    if (!active) return;
+    if (e.type === 'pointerdown' && e.button !== undefined && e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof e.stopImmediatePropagation === 'function') {
+      e.stopImmediatePropagation();
+    }
+    if (e.type === 'click') {
+      if (settingsModalOpen) {
+        closeGameMenuModal();
+      } else {
+        openGameMenuModal();
+      }
+    } else if (!settingsModalOpen) {
+      openGameMenuModal();
+    }
+  }
+
+  // Bind top-right hamburger button outside `stage` if present
+  function bindTopRightHamburger() {
+    const candidates = getTopRightMenuButtons();
     candidates.forEach(btn => {
       if (btn.dataset.tttMenuBound === '1') return;
       btn.dataset.tttMenuBound = '1';
-      btn.addEventListener('click', (e) => {
-        if (!active) return;
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        if (settingsModalOpen) {
-          closeGameMenuModal();
-        } else {
-          openGameMenuModal();
-        }
-      }, true);
+      btn.addEventListener('pointerdown', handleExternalMenuClick, true);
+      btn.addEventListener('click', handleExternalMenuClick, true);
+    });
+  }
+
+  function unbindTopRightHamburger() {
+    document.querySelectorAll('[data-ttt-menu-bound="1"]').forEach(btn => {
+      btn.removeEventListener('pointerdown', handleExternalMenuClick, true);
+      btn.removeEventListener('click', handleExternalMenuClick, true);
+      delete btn.dataset.tttMenuBound;
     });
   }
 
@@ -491,7 +565,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
   }
 
   function render() {
-    if (!active) return;
+    if (!active || !stage) return;
     injectStyles();
 
     const theme = THEMES[themeKey] || THEMES.neon;
@@ -636,7 +710,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
         </div>
 
         <!-- HAMBURGER MENU / TIC-TAC-TOE SETUP MODAL -->
-        <div id="ttt-settings-backdrop" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md ${settingsModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
+        <div id="ttt-settings-backdrop" class="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md ${settingsModalOpen ? 'flex' : 'hidden'} items-center justify-center p-4">
           <div id="ttt-settings-modal" class="ttt-modal-anim max-w-sm w-full bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-white/10 pb-3">
               <h2 class="text-lg font-black text-amber-400">☰ Tic-Tac-Toe Setup</h2>
@@ -696,7 +770,11 @@ window.initTicTacToe = function initTicTacToe(stage) {
               </button>
             </div>
 
-            <div id="ttt-settings-extra"></div>
+            <!-- Two-Emoji Footer: Music & Home -->
+            <div id="ttt-settings-footer" class="grid grid-cols-2 gap-2 pt-3 border-t border-white/10">
+              <button id="ttt-footer-music" type="button" aria-label="Music" title="Music" class="py-2.5 rounded-xl bg-black/40 hover:bg-white/10 border border-white/10 text-lg leading-none flex items-center justify-center transition active:scale-95 cursor-pointer">🎵</button>
+              <button id="ttt-footer-home" type="button" aria-label="Home" title="Home" class="py-2.5 rounded-xl bg-black/40 hover:bg-white/10 border border-white/10 text-lg leading-none flex items-center justify-center transition active:scale-95 cursor-pointer">🏠</button>
+            </div>
           </div>
         </div>
       </div>
@@ -704,15 +782,17 @@ window.initTicTacToe = function initTicTacToe(stage) {
 
     bindTopRightHamburger();
 
-    // Attach host footer actions if present in global arcade wrapper
-    const tttSettingsExtra = document.getElementById('ttt-settings-extra');
-    if (typeof window.attachGameSettingsFooterActions === 'function' && tttSettingsExtra) {
-      window.attachGameSettingsFooterActions(tttSettingsExtra, {
-        onCloseDrawer: () => {
-          closeGameMenuModal();
-        }
-      });
-    }
+    // Footer Emoji Button Listeners
+    document.getElementById('ttt-footer-music').onclick = () => {
+      if (!active) return;
+      toggleMusicEmojiAction();
+    };
+
+    document.getElementById('ttt-footer-home').onclick = () => {
+      if (!active) return;
+      if (typeof AudioFX !== 'undefined') AudioFX.click();
+      goHomeEmojiAction();
+    };
 
     // Result Modal Event Listeners
     const playAgainBtn = document.getElementById('ttt-play-again-btn');
@@ -857,13 +937,27 @@ window.initTicTacToe = function initTicTacToe(stage) {
     });
   }
 
+  headerObserver = new MutationObserver(() => {
+    if (!active) return;
+    bindTopRightHamburger();
+  });
+
+  if (document.body) {
+    headerObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
   startNewRound(false);
 
   return () => {
     active = false;
-    window.removeEventListener('arcadehub:toggle-menu', onHostMenuEvent);
-    window.removeEventListener('arcadehub:open-settings', onHostMenuEvent);
-    window.removeEventListener('ttt:open-menu', onHostMenuEvent);
+    if (headerObserver) {
+      headerObserver.disconnect();
+      headerObserver = null;
+    }
+    unbindTopRightHamburger();
+    window.removeEventListener('arcadehub:toggle-menu', onHostMenuEvent, true);
+    window.removeEventListener('arcadehub:open-settings', onHostMenuEvent, true);
+    window.removeEventListener('ttt:open-menu', onHostMenuEvent, true);
     if (aiTimeout) clearTimeout(aiTimeout);
     if (modalTimeout) clearTimeout(modalTimeout);
   };
