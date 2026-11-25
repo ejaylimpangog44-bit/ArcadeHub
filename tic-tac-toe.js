@@ -76,11 +76,9 @@ window.initTicTacToe = function initTicTacToe(stage) {
   let resultModalOpen = false;
   let lastResultData = null;
 
-  // Audio & Fullscreen Controls
+  // Audio & Fullscreen Controller State
   let mediaPanelOpen = false;
-  let bgmEnabled = true;
-  let sfxEnabled = true;
-  let isFullscreen = Boolean(document.fullscreenElement);
+  let isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
 
   // Persistent Session Scoreboard
   const stats = {
@@ -90,97 +88,87 @@ window.initTicTacToe = function initTicTacToe(stage) {
     streak: 0
   };
 
+  function isSfxOn() {
+    return typeof window.AudioFX !== 'undefined' ? Boolean(window.AudioFX.enabled) : true;
+  }
+
+  function isBgmOn() {
+    return typeof window.bgmEnabled === 'boolean' ? window.bgmEnabled : true;
+  }
+
   function playSfxClick() {
-    if (!sfxEnabled) return;
-    if (typeof AudioFX !== 'undefined' && typeof AudioFX.click === 'function') {
-      AudioFX.click();
+    if (isSfxOn() && typeof window.AudioFX?.click === 'function') {
+      window.AudioFX.click();
     }
   }
 
   function playSfxCard() {
-    if (!sfxEnabled) return;
-    if (typeof AudioFX !== 'undefined' && typeof AudioFX.card === 'function') {
-      AudioFX.card();
+    if (isSfxOn() && typeof window.AudioFX?.card === 'function') {
+      window.AudioFX.card();
     }
   }
 
   function playSfxWin() {
-    if (!sfxEnabled) return;
-    if (typeof AudioFX !== 'undefined' && typeof AudioFX.win === 'function') {
-      AudioFX.win();
+    if (isSfxOn() && typeof window.AudioFX?.win === 'function') {
+      window.AudioFX.win();
     }
   }
 
   function playSfxLose() {
-    if (!sfxEnabled) return;
-    if (typeof AudioFX !== 'undefined' && typeof AudioFX.lose === 'function') {
-      AudioFX.lose();
+    if (isSfxOn() && typeof window.AudioFX?.lose === 'function') {
+      window.AudioFX.lose();
     }
   }
 
-  function applyBgmState(enabled) {
-    bgmEnabled = Boolean(enabled);
-    if (typeof AudioFX !== 'undefined') {
-      if (typeof AudioFX.setMusicEnabled === 'function') {
-        AudioFX.setMusicEnabled(bgmEnabled);
-      } else if (typeof AudioFX.toggleMusic === 'function') {
-        AudioFX.toggleMusic(bgmEnabled);
+  function handleToggleBgm() {
+    if (typeof window.toggleBGM === 'function') {
+      window.toggleBGM();
+    } else {
+      const bgm = document.getElementById('bgm-audio');
+      if (bgm) {
+        if (bgm.paused) bgm.play().catch(() => {});
+        else bgm.pause();
       }
-    }
-    if (typeof window.setBackgroundMusicEnabled === 'function') {
-      window.setBackgroundMusicEnabled(bgmEnabled);
-    } else if (!bgmEnabled && typeof window.pauseBackgroundMusic === 'function') {
-      window.pauseBackgroundMusic();
-    } else if (bgmEnabled && typeof window.resumeBackgroundMusic === 'function') {
-      window.resumeBackgroundMusic();
-    } else if (typeof window.toggleBackgroundMusic === 'function') {
-      window.toggleBackgroundMusic();
-    } else if (typeof window.toggleMusic === 'function') {
-      window.toggleMusic();
-    }
-    window.dispatchEvent(new CustomEvent('arcadehub:set-bgm', { detail: { enabled: bgmEnabled } }));
-    window.dispatchEvent(new CustomEvent('arcadehub:toggle-music', { detail: { enabled: bgmEnabled } }));
-  }
-
-  function applySfxState(enabled) {
-    sfxEnabled = Boolean(enabled);
-    if (typeof AudioFX !== 'undefined') {
-      if (typeof AudioFX.setSfxEnabled === 'function') {
-        AudioFX.setSfxEnabled(sfxEnabled);
-      } else if (typeof AudioFX.setMuted === 'function') {
-        AudioFX.setMuted(!sfxEnabled);
-      }
-    }
-    if (typeof window.setSfxEnabled === 'function') {
-      window.setSfxEnabled(sfxEnabled);
-    }
-    window.dispatchEvent(new CustomEvent('arcadehub:set-sfx', { detail: { enabled: sfxEnabled } }));
-    if (sfxEnabled) {
       playSfxClick();
     }
+    render();
   }
 
-  async function toggleFullscreenMode() {
-    try {
-      if (!document.fullscreenElement) {
-        const target = stage?.parentElement || document.documentElement;
-        if (target && typeof target.requestFullscreen === 'function') {
-          await target.requestFullscreen();
-        }
-      } else if (typeof document.exitFullscreen === 'function') {
-        await document.exitFullscreen();
-      }
-    } catch (_) {}
-    isFullscreen = Boolean(document.fullscreenElement);
+  function handleToggleSfx() {
+    if (typeof window.toggleSFX === 'function') {
+      window.toggleSFX();
+    } else if (typeof window.AudioFX?.toggle === 'function') {
+      window.AudioFX.toggle();
+      playSfxClick();
+    }
     render();
+  }
+
+  function handleToggleFullscreen() {
+    if (typeof window.toggleFullScreen === 'function') {
+      window.toggleFullScreen();
+    } else {
+      const docEl = document.documentElement;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        docEl.requestFullscreen?.().catch(() => {});
+      } else {
+        document.exitFullscreen?.().catch(() => {});
+      }
+    }
+    setTimeout(() => {
+      if (!active) return;
+      isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      render();
+    }, 60);
   }
 
   const onFullscreenChange = () => {
     if (!active) return;
-    isFullscreen = Boolean(document.fullscreenElement);
+    isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
     render();
   };
   document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 
   function toggleMusicEmojiAction() {
     mediaPanelOpen = !mediaPanelOpen;
@@ -191,63 +179,24 @@ window.initTicTacToe = function initTicTacToe(stage) {
   function goHomeEmojiAction() {
     settingsModalOpen = false;
     mediaPanelOpen = false;
+    playSfxClick();
 
-    const fnNames = [
-      'backToHub',
-      'returnToHub',
-      'goToHub',
-      'openHub',
-      'exitToHub',
-      'goHome',
-      'returnHome',
-      'closeGame',
-      'exitGame'
-    ];
-
-    for (const name of fnNames) {
-      if (typeof window[name] === 'function') {
-        window[name]();
-        return;
-      }
-      if (window.ArcadeHub && typeof window.ArcadeHub[name] === 'function') {
-        window.ArcadeHub[name]();
-        return;
-      }
-      if (window.ArcadeHero && typeof window.ArcadeHero[name] === 'function') {
-        window.ArcadeHero[name]();
-        return;
-      }
-    }
-
-    window.dispatchEvent(new CustomEvent('arcadehub:back-to-hub', { bubbles: true }));
-    window.dispatchEvent(new CustomEvent('arcadehub:go-home', { bubbles: true }));
-    window.dispatchEvent(new CustomEvent('arcadehub:close-game', { bubbles: true }));
-
-    const candidates = Array.from(document.querySelectorAll('button, a, [role="button"]')).filter(el => {
-      if (stage && stage.contains(el)) return false;
-      const txt = `${el.textContent || ''} ${el.getAttribute('aria-label') || ''} ${el.title || ''} ${el.id || ''}`.toLowerCase();
-      return (
-        txt.includes('back to hub') ||
-        txt.includes('hub') ||
-        txt.includes('lobby') ||
-        txt.includes('home') ||
-        txt.includes('exit')
-      );
-    });
-
-    const homeBtn = candidates.find(el => {
-      const rect = el.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0;
-    }) || candidates[0];
-
-    if (homeBtn instanceof HTMLElement) {
-      homeBtn.click();
+    if (typeof window.openHubHome === 'function') {
+      window.openHubHome();
       return;
     }
 
+    if (typeof openHubHome === 'function') {
+      openHubHome();
+      return;
+    }
+
+    if (typeof activeCleanup === 'function') {
+      try { activeCleanup(); } catch (_) {}
+    }
     if (stage) {
+      stage.classList.remove('in-game');
       stage.innerHTML = '';
-      stage.style.display = 'none';
     }
   }
 
@@ -687,6 +636,8 @@ window.initTicTacToe = function initTicTacToe(stage) {
 
     const canHumanMove = !gameOver && !settingsModalOpen && !resultModalOpen && (gameMode === 'pvp' || turn === humanMark);
     const lockScroll = settingsModalOpen || resultModalOpen;
+    const bgmActive = isBgmOn();
+    const sfxActive = isSfxOn();
 
     stage.innerHTML = `
       <div class="relative w-full h-full flex flex-col items-center justify-between px-4 py-4 pb-16 sm:pb-6 select-none ${lockScroll ? 'overflow-hidden' : 'overflow-y-auto'}">
@@ -885,11 +836,11 @@ window.initTicTacToe = function initTicTacToe(stage) {
             <!-- BGM, SFX & Fullscreen Controller -->
             <div id="ttt-media-panel" class="${mediaPanelOpen ? 'flex' : 'hidden'} flex-col gap-2 p-3 rounded-2xl bg-black/45 border border-white/10">
               <div class="grid grid-cols-2 gap-2">
-                <button id="ttt-toggle-bgm" type="button" class="py-2 px-2.5 rounded-xl font-bold text-xs border transition cursor-pointer ${bgmEnabled ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40' : 'bg-white/5 text-slate-400 border-white/10'}">
-                  BGM: ${bgmEnabled ? 'ON' : 'OFF'}
+                <button id="ttt-toggle-bgm" type="button" class="py-2 px-2.5 rounded-xl font-bold text-xs border transition cursor-pointer ${bgmActive ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40' : 'bg-white/5 text-slate-400 border-white/10'}">
+                  BGM: ${bgmActive ? 'ON' : 'OFF'}
                 </button>
-                <button id="ttt-toggle-sfx" type="button" class="py-2 px-2.5 rounded-xl font-bold text-xs border transition cursor-pointer ${sfxEnabled ? 'bg-sky-500/20 text-sky-300 border-sky-400/40' : 'bg-white/5 text-slate-400 border-white/10'}">
-                  SFX: ${sfxEnabled ? 'ON' : 'OFF'}
+                <button id="ttt-toggle-sfx" type="button" class="py-2 px-2.5 rounded-xl font-bold text-xs border transition cursor-pointer ${sfxActive ? 'bg-sky-500/20 text-sky-300 border-sky-400/40' : 'bg-white/5 text-slate-400 border-white/10'}">
+                  SFX: ${sfxActive ? 'ON' : 'OFF'}
                 </button>
               </div>
               <button id="ttt-toggle-fullscreen" type="button" class="w-full py-2 px-3 rounded-xl font-bold text-xs border bg-white/5 hover:bg-white/10 text-amber-200 border-amber-400/30 transition cursor-pointer">
@@ -917,7 +868,6 @@ window.initTicTacToe = function initTicTacToe(stage) {
 
     document.getElementById('ttt-footer-home').onclick = () => {
       if (!active) return;
-      playSfxClick();
       goHomeEmojiAction();
     };
 
@@ -926,8 +876,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
     if (bgmBtn) {
       bgmBtn.onclick = () => {
         if (!active) return;
-        applyBgmState(!bgmEnabled);
-        render();
+        handleToggleBgm();
       };
     }
 
@@ -935,8 +884,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
     if (sfxBtn) {
       sfxBtn.onclick = () => {
         if (!active) return;
-        applySfxState(!sfxEnabled);
-        render();
+        handleToggleSfx();
       };
     }
 
@@ -944,8 +892,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
     if (fsBtn) {
       fsBtn.onclick = () => {
         if (!active) return;
-        playSfxClick();
-        toggleFullscreenMode();
+        handleToggleFullscreen();
       };
     }
 
@@ -1106,6 +1053,7 @@ window.initTicTacToe = function initTicTacToe(stage) {
   return () => {
     active = false;
     document.removeEventListener('fullscreenchange', onFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
     if (headerObserver) {
       headerObserver.disconnect();
       headerObserver = null;
