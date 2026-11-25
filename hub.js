@@ -564,6 +564,9 @@ window.ArcadeHero.awardGameScore = async function awardGameScore(rawGameId, rawS
 };
 
 let bgmEnabled = true;
+Object.defineProperty(window, 'bgmEnabled', {
+  get: () => bgmEnabled
+});
 
 function toggleBGM() {
   bgmEnabled = !bgmEnabled;
@@ -584,6 +587,7 @@ function toggleBGM() {
   }
   AudioFX.click();
 }
+window.toggleBGM = toggleBGM;
 
 function updateBGMVolume(val) {
   const bgm = document.getElementById('bgm-audio');
@@ -604,6 +608,7 @@ function toggleSFX() {
   }
   if (on) AudioFX.click();
 }
+window.toggleSFX = toggleSFX;
 
 function openSettingsModal() {
   if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
@@ -789,11 +794,12 @@ function toggleFullScreen() {
   } else {
     if (document.exitFullscreen) {
       document.exitFullscreen().catch(() => {});
-    } else if (docEl.webkitExitFullscreen) {
-      docEl.webkitExitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
     }
   }
 }
+window.toggleFullScreen = toggleFullScreen;
 
 function syncFullscreenLabel() {
   const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
@@ -1833,6 +1839,7 @@ function openHubHome() {
     renderDiscoveryShelves();
   });
 }
+window.openHubHome = openHubHome;
 
 function resetDiscoveryFilters() {
   discoveryFilter = 'all';
