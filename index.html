@@ -394,24 +394,6 @@
     }
   };
 
-  function toggleHubMenu(e) {
-    if (e) e.stopPropagation();
-    const dropdown = document.getElementById('hub-hamburger-dropdown');
-    const btn = document.getElementById('hub-hamburger-btn');
-    if (!dropdown || !btn) return;
-    const willOpen = dropdown.classList.contains('hidden');
-    dropdown.classList.toggle('hidden', !willOpen);
-    btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-    if (willOpen && 'vibrate' in navigator) navigator.vibrate(10);
-  }
-
-  function closeHubMenu() {
-    const dropdown = document.getElementById('hub-hamburger-dropdown');
-    const btn = document.getElementById('hub-hamburger-btn');
-    if (dropdown) dropdown.classList.add('hidden');
-    if (btn) btn.setAttribute('aria-expanded', 'false');
-  }
-
   function toggleGameMenu(e) {
     if (e) e.stopPropagation();
     const dropdown = document.getElementById('game-hamburger-dropdown');
@@ -431,10 +413,6 @@
   }
 
   document.addEventListener('click', function(e) {
-    const hubWrapper = document.getElementById('hub-hamburger-wrapper');
-    if (hubWrapper && !hubWrapper.contains(e.target)) {
-      closeHubMenu();
-    }
     const gameWrapper = document.getElementById('game-hamburger-wrapper');
     if (gameWrapper && !gameWrapper.contains(e.target)) {
       closeGameMenu();
@@ -443,7 +421,7 @@
 
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-      closeHubMenu();
+      if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
       closeGameMenu();
       closeHeroModal();
       if (typeof window.closeSettingsModal === 'function') window.closeSettingsModal();
@@ -515,7 +493,7 @@
   }
 </script>
 
-<!-- Single Landscape Gate -->
+<!-- Initial-Visit Only Landscape Gate -->
 <div id="force-landscape-gate" class="fixed inset-0 z-[2147483647] hidden flex-col items-center justify-center gap-3.5 p-6 text-center text-slate-50" style="display:none;background:radial-gradient(circle at 50% 30%, #171b33 0%, #07080d 80%);backdrop-filter:blur(12px);" role="dialog" aria-live="assertive" aria-label="Rotate device to landscape" aria-hidden="true">
   <div class="text-4xl leading-none">📱↻🖥️</div>
   <div class="text-xl font-black tracking-wider">LANDSCAPE MODE REQUIRED</div>
@@ -606,27 +584,49 @@
       } catch (_) {}
     }
 
-    function markGateHandledOnce() {
-      try {
-        sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
-      } catch (_) {}
+    function hideGateElement() {
       const gate = document.getElementById('force-landscape-gate');
-      document.documentElement.dataset.isLandscape = 'true';
+      document.documentElement.dataset.isLandscape = isLandscapeNow() ? 'true' : 'false';
       if (gate) {
         gate.style.display = 'none';
         gate.classList.add('hidden');
+        gate.classList.remove('flex');
         gate.setAttribute('aria-hidden', 'true');
       }
     }
 
-    function hideGateIfLandscapeOrHandled() {
+    function markGateHandledOnce() {
+      try {
+        sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
+      } catch (_) {}
+      hideGateElement();
+    }
+
+    function evaluateInitialVisitGate() {
       let alreadyHandled = false;
+      let returningToHub = false;
       try {
         alreadyHandled = sessionStorage.getItem(INITIAL_GATE_SEEN_KEY) === '1';
+        const params = new URLSearchParams(window.location.search);
+        returningToHub =
+          params.get('hub') === 'true' ||
+          sessionStorage.getItem(TARGET_LOBBY_KEY) === '1' ||
+          sessionStorage.getItem(SKIP_POWER_KEY) === '1' ||
+          sessionStorage.getItem(FROM_BILLIARD_KEY) === '1';
       } catch (_) {}
 
-      if (alreadyHandled || isLandscapeNow()) {
+      if (alreadyHandled || returningToHub || isLandscapeNow()) {
         markGateHandledOnce();
+        return;
+      }
+
+      const gate = document.getElementById('force-landscape-gate');
+      document.documentElement.dataset.isLandscape = 'false';
+      if (gate) {
+        gate.classList.remove('hidden');
+        gate.classList.add('flex');
+        gate.style.display = 'flex';
+        gate.setAttribute('aria-hidden', 'false');
       }
     }
 
@@ -639,10 +639,10 @@
         returningFromGame =
           params.get('hub') === 'true' ||
           sessionStorage.getItem(TARGET_LOBBY_KEY) === '1' ||
+          sessionStorage.getItem(SKIP_POWER_KEY) === '1' ||
           sessionStorage.getItem(FROM_BILLIARD_KEY) === '1';
 
         shouldAutoLockFs =
-          returningFromGame ||
           sessionStorage.getItem(AUTO_FS_KEY) === '1' ||
           sessionStorage.getItem(KEEP_FS_KEY) === '1';
 
@@ -687,15 +687,9 @@
         }
       }
 
-      hideGateIfLandscapeOrHandled();
+      evaluateInitialVisitGate();
 
       if (shouldAutoLockFs) {
-        requestFullscreenAndLock();
-        setTimeout(() => {
-          requestFullscreenAndLock();
-          markGateHandledOnce();
-        }, 120);
-
         const onGesture = () => {
           requestFullscreenAndLock();
           markGateHandledOnce();
@@ -728,7 +722,6 @@
       syncHubLobbyReturn();
     }
     window.addEventListener('pageshow', () => setTimeout(syncHubLobbyReturn, 60));
-    window.addEventListener('resize', () => setTimeout(hideGateIfLandscapeOrHandled, 60));
   })();
 </script>
 </body>
