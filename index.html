@@ -17,7 +17,7 @@
 <body>
 
 <!-- Minimal Splash Screen -->
-<div id="splash-screen" class="splash-screen splash-hide" role="status" aria-live="polite" aria-label="Loading Arcade Hub" aria-hidden="true">
+<div id="splash-screen" class="splash-screen splash-hide" role="status" aria-live="polite" aria-label="Loading Arcade Hub" aria-hidden="true" style="display:none;pointer-events:none;">
   <div class="splash-clean-card">
     <h1 class="splash-title">Arcade Hub</h1>
     <p class="splash-tagline">Play &bull; Think &bull; Win</p>
@@ -34,97 +34,7 @@
   </div>
 </div>
 
-<script>
-  (function () {
-    var splashEl = document.getElementById("splash-screen");
-    var fillEl = document.getElementById("splash-progress-fill");
-    var pctEl = document.getElementById("splash-pct");
-    var statusEl = document.getElementById("splash-status");
-    if (!splashEl) return;
-
-    splashEl.classList.add("splash-hide");
-    splashEl.setAttribute("aria-hidden", "true");
-    splashEl.style.pointerEvents = "none";
-
-    var started = false;
-    var finished = false;
-    var progress = 0;
-    var intervalId = null;
-    var hideTimer = null;
-
-    function setProgress(val) {
-      progress = Math.max(0, Math.min(100, Math.round(val)));
-      if (fillEl) fillEl.style.width = progress + "%";
-      if (pctEl) pctEl.textContent = progress + "%";
-      if (statusEl) {
-        statusEl.textContent = progress < 100 ? "Loading..." : "Ready";
-      }
-    }
-
-    function hideSplashImmediate() {
-      finished = true;
-      started = false;
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-      if (hideTimer) {
-        clearTimeout(hideTimer);
-        hideTimer = null;
-      }
-      splashEl.classList.add("splash-hide");
-      splashEl.setAttribute("aria-hidden", "true");
-      splashEl.style.pointerEvents = "none";
-      splashEl.style.display = "none";
-    }
-
-    function finishSplash() {
-      if (finished) return;
-      finished = true;
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-      setProgress(100);
-
-      hideTimer = setTimeout(function () {
-        splashEl.classList.add("splash-hide");
-        splashEl.setAttribute("aria-hidden", "true");
-        setTimeout(function () {
-          if (splashEl && splashEl.classList.contains("splash-hide")) {
-            splashEl.style.pointerEvents = "none";
-          }
-        }, 650);
-      }, 300);
-    }
-
-    window.startSplashScreen = function () {
-      if (started || finished) return;
-      started = true;
-
-      splashEl.style.display = "";
-      splashEl.style.pointerEvents = "auto";
-      splashEl.removeAttribute("aria-hidden");
-      splashEl.classList.remove("splash-hide");
-      setProgress(0);
-
-      intervalId = setInterval(function () {
-        if (progress < 96) {
-          setProgress(progress + 6);
-        } else {
-          finishSplash();
-        }
-      }, 90);
-    };
-
-    window.SplashController = window.SplashController || {
-      start: window.startSplashScreen,
-      completeToFull: finishSplash,
-      hideSplashImmediate: hideSplashImmediate
-    };
-  })();
-</script>
-
+<!-- Power Pull-Chain Screen -->
 <div id="power-screen" class="power-screen">
   <div class="neon-sign-container">
     <div class="neon-sign" id="neonSign">ARCADE HUB</div>
@@ -135,6 +45,7 @@
   </div>
 </div>
 
+<!-- Early Return-to-Lobby Guard -->
 <script>
   (function () {
     try {
@@ -150,6 +61,7 @@
         sessionStorage.setItem('arcade_hub_initial_gate_checked', '1');
         var pwr = document.getElementById('power-screen');
         var lgn = document.getElementById('login-screen');
+        var spl = document.getElementById('splash-screen');
         if (pwr) {
           pwr.classList.add('hidden');
           pwr.style.display = 'none';
@@ -158,14 +70,18 @@
           lgn.classList.add('hidden');
           lgn.style.display = 'none';
         }
-        if (window.SplashController && typeof window.SplashController.hideSplashImmediate === 'function') {
-          window.SplashController.hideSplashImmediate();
+        if (spl) {
+          spl.classList.add('splash-hide');
+          spl.setAttribute('aria-hidden', 'true');
+          spl.style.pointerEvents = 'none';
+          spl.style.display = 'none';
         }
       }
     } catch (_) {}
   })();
 </script>
 
+<!-- Player Login / Name Screen -->
 <div id="login-screen" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4">
   <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-8 shadow-2xl text-center flex flex-col gap-6">
     <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-teal-600 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20 text-2xl">
@@ -187,10 +103,12 @@
   </div>
 </div>
 
+<!-- Fox Companion Trigger -->
 <div id="assistive-touch-fox" role="button" tabindex="0" aria-label="Fox Companion Hub — Open Wardrobe, Shop & Spin" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-teal-700 border-2 border-amber-300 shadow-2xl flex items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
   <span class="transform group-hover:scale-110 transition">🦊</span>
 </div>
 
+<!-- Hero Wardrobe / Shop / Rewards Modal -->
 <div id="hero-modal-backdrop" class="hero-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-lvl-title">
   <div id="hero-modal" class="hero-modal">
     <div class="hero-modal-header">
@@ -207,7 +125,7 @@
       </div>
       <div class="hero-wallet">
         <span class="coin-pill">🪙 <strong id="hero-coin-balance">0</strong></span>
-        <button type="button" onclick="closeHeroModal()" class="hero-close-btn" aria-label="Close">✕</button>
+        <button type="button" id="close-fox-menu" onclick="closeHeroModal()" class="hero-close-btn" aria-label="Close">✕</button>
       </div>
     </div>
 
@@ -259,6 +177,7 @@
   </div>
 </div>
 
+<!-- Main App Shell -->
 <div id="app-shell" class="hidden flex flex-col h-screen w-screen overflow-hidden">
   <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
@@ -276,12 +195,13 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <button type="button" onclick="surpriseMeGame()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition border border-white/10 active:scale-95" title="Surprise Me (Random Game)" aria-label="Random Game">
+      <button id="surprise-dice-btn" type="button" onclick="surpriseMeGame()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm transition border border-white/10 active:scale-95" title="Surprise Me (Random Game)" aria-label="Random Game">
         🎲
       </button>
     </div>
   </header>
 
+  <!-- Universal In-Game Hamburger Menu -->
   <div id="universal-game-bar" class="hidden fixed top-3 right-3 z-30 flex items-center justify-end pointer-events-none">
     <div class="pointer-events-auto relative" id="game-hamburger-wrapper">
       <button id="game-hamburger-btn" type="button" onclick="toggleGameMenu(event)" aria-label="Open Game Menu" aria-expanded="false" class="w-9 h-9 rounded-xl bg-slate-950/75 hover:bg-slate-900/90 text-white backdrop-blur-md border border-white/15 shadow-lg flex flex-col items-center justify-center gap-1 transition active:scale-95" title="Game Menu">
@@ -304,6 +224,7 @@
     </div>
   </div>
 
+  <!-- Settings Modal -->
   <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-label="Audio and Display Controls">
     <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
       <div class="flex items-center justify-between">
@@ -352,6 +273,7 @@
     </div>
   </div>
 
+  <!-- QR Share Modal -->
   <div id="qr-share-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-label="QR Code and URL">
     <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto text-center">
       <div class="flex items-center justify-between">
@@ -368,6 +290,7 @@
     </div>
   </div>
 
+  <!-- Instructions Modal -->
   <div id="instructions-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-label="Game Instructions">
     <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
       <div class="flex items-center justify-between">
@@ -382,6 +305,7 @@
     </div>
   </div>
 
+  <!-- About Modal -->
   <div id="about-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-label="About Arcade Hub">
     <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-6 shadow-2xl flex flex-col gap-4 my-auto">
       <div class="flex items-center justify-between">
@@ -397,6 +321,7 @@
     </div>
   </div>
 
+  <!-- Game Preview Modal -->
   <div id="game-preview-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="preview-title">
     <div class="max-w-sm w-full rounded-3xl bg-slate-900 border border-white/15 overflow-hidden shadow-2xl">
       <div id="preview-banner" class="relative h-36 flex items-center justify-center">
@@ -430,6 +355,7 @@
     </div>
   </div>
 
+  <!-- Game Stage -->
   <main id="game-stage" class="relative z-10 flex-1 w-full min-h-0 overflow-hidden flex flex-col">
   </main>
 </div>
@@ -440,41 +366,41 @@
 </audio>
 
 <script>
-  window.alert = function(msg) {
-    var text = String(msg || "");
+  window.alert = function (msg) {
+    var text = String(msg || '');
     if (/coin|balance|shop|enough/i.test(text) && navigator.vibrate) {
       navigator.vibrate([200, 100, 200]);
     } else if (text) {
-      console.log("Alert:", text);
+      console.log('Alert:', text);
     }
   };
 
   function toggleGameMenu(e) {
     if (e) e.stopPropagation();
-    const dropdown = document.getElementById('game-hamburger-dropdown');
-    const btn = document.getElementById('game-hamburger-btn');
+    var dropdown = document.getElementById('game-hamburger-dropdown');
+    var btn = document.getElementById('game-hamburger-btn');
     if (!dropdown || !btn) return;
-    const willOpen = dropdown.classList.contains('hidden');
+    var willOpen = dropdown.classList.contains('hidden');
     dropdown.classList.toggle('hidden', !willOpen);
     btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
     if (willOpen && 'vibrate' in navigator) navigator.vibrate(10);
   }
 
   function closeGameMenu() {
-    const dropdown = document.getElementById('game-hamburger-dropdown');
-    const btn = document.getElementById('game-hamburger-btn');
+    var dropdown = document.getElementById('game-hamburger-dropdown');
+    var btn = document.getElementById('game-hamburger-btn');
     if (dropdown) dropdown.classList.add('hidden');
     if (btn) btn.setAttribute('aria-expanded', 'false');
   }
 
-  document.addEventListener('click', function(e) {
-    const gameWrapper = document.getElementById('game-hamburger-wrapper');
+  document.addEventListener('click', function (e) {
+    var gameWrapper = document.getElementById('game-hamburger-wrapper');
     if (gameWrapper && !gameWrapper.contains(e.target)) {
       closeGameMenu();
     }
   });
 
-  document.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
       closeGameMenu();
@@ -488,39 +414,40 @@
   });
 
   function updatePHTCountdown() {
-    const timerEl = document.getElementById('streak-cooldown-timer');
+    var timerEl = document.getElementById('streak-cooldown-timer');
     if (!timerEl) return;
 
-    const now = new Date();
-    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const phtDate = new Date(utcTime + (3600000 * 8));
+    var now = new Date();
+    var utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+    var phtDate = new Date(utcTime + (3600000 * 8));
 
-    const nextMidnight = new Date(phtDate);
+    var nextMidnight = new Date(phtDate);
     nextMidnight.setHours(24, 0, 0, 0);
 
-    const diff = nextMidnight.getTime() - phtDate.getTime();
+    var diff = nextMidnight.getTime() - phtDate.getTime();
     if (diff <= 0) {
-      timerEl.textContent = "00:00:00";
+      timerEl.textContent = '00:00:00';
       return;
     }
 
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
     timerEl.textContent =
-      String(hours).padStart(2, '0') + ":" +
-      String(minutes).padStart(2, '0') + ":" +
+      String(hours).padStart(2, '0') + ':' +
+      String(minutes).padStart(2, '0') + ':' +
       String(seconds).padStart(2, '0');
   }
 
   setInterval(updatePHTCountdown, 1000);
 
   function openHeroModal() {
-    const backdrop = document.getElementById('hero-modal-backdrop');
+    var backdrop = document.getElementById('hero-modal-backdrop');
     if (backdrop) {
       backdrop.classList.remove('hidden');
       backdrop.classList.add('flex');
+      backdrop.style.display = 'flex';
     }
     if (typeof window.initHeroModal === 'function') {
       window.initHeroModal();
@@ -529,19 +456,23 @@
   }
 
   function closeHeroModal() {
-    const backdrop = document.getElementById('hero-modal-backdrop');
+    var backdrop = document.getElementById('hero-modal-backdrop');
     if (backdrop) {
       backdrop.classList.remove('flex');
       backdrop.classList.add('hidden');
+      backdrop.style.display = 'none';
+    }
+    if (typeof window.syncFoxCompanionVisibility === 'function') {
+      window.syncFoxCompanionVisibility();
     }
   }
 
   function switchHeroTab(tabName) {
-    document.querySelectorAll('.hero-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.hero-tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.hero-tab').forEach(function (t) { t.classList.remove('active'); });
+    document.querySelectorAll('.hero-tab-panel').forEach(function (p) { p.classList.remove('active'); });
 
-    const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
-    const selectedPanel = document.getElementById(`tab-${tabName}`);
+    var selectedTab = document.querySelector('[data-tab="' + tabName + '"]');
+    var selectedPanel = document.getElementById('tab-' + tabName);
 
     if (selectedTab) selectedTab.classList.add('active');
     if (selectedPanel) selectedPanel.classList.add('active');
