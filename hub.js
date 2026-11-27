@@ -21,6 +21,15 @@ let lobbyEntered = false;
 let navigatingToGamePage = false;
 let pendingReturnFullscreenArmed = false;
 
+function clearReturnFullscreenFlags() {
+  pendingReturnFullscreenArmed = false;
+  try {
+    sessionStorage.removeItem(HUB_KEEP_FS_KEY);
+    sessionStorage.removeItem(HUB_AUTO_LANDSCAPE_FS_KEY);
+    sessionStorage.removeItem('arcade_hub_from_billiard');
+  } catch (_) {}
+}
+
 const LandscapeGate = (() => {
   const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
   let gateEl = null;
@@ -51,7 +60,7 @@ const LandscapeGate = (() => {
         markInitialGateHandled();
         lastLockedOrientation = null;
         requestFullscreenSafe();
-        tryLockLandscape();
+        tryLockLandscape(true);
         hideGateNow();
       });
     }
@@ -123,8 +132,8 @@ const LandscapeGate = (() => {
     if (navigatingToGamePage) return;
     if (shouldEnforceLandscape()) {
       tryLockLandscape(force);
-    } else if (activeGameId && getActiveGameMode() === 'PORTRAIT' && isPortraitNow()) {
-      lastLockedOrientation = 'portrait';
+    } else if (!activeGameId || getActiveGameMode() === 'PORTRAIT') {
+      tryLockPortrait(force);
     }
   }
 
@@ -142,7 +151,7 @@ const LandscapeGate = (() => {
     document.documentElement.dataset.gameOrientation = activeGameId ? activeMode.toLowerCase() : 'hub';
 
     if (!activeGameId || hasHandledInitialGate() || !isPortraitNow()) {
-      if (!isPortraitNow()) markInitialGateHandled();
+      if (!isPortraitNow() && shouldEnforceLandscape()) markInitialGateHandled();
       hideGateNow();
       applyOrientationPolicy(false);
       if (typeof syncFoxCompanionVisibility === 'function') {
@@ -207,22 +216,33 @@ function isFullscreenNow() {
 
 function requestFullscreenSafe() {
   const docEl = document.documentElement;
+  const shouldLockLandscape = LandscapeGate && typeof LandscapeGate.tryLockLandscape === 'function' && activeGameId && getActiveGameModeForFullscreen() === 'LANDSCAPE';
   if (isFullscreenNow()) {
-    LandscapeGate.tryLockLandscape();
+    if (shouldLockLandscape) LandscapeGate.tryLockLandscape();
     return;
   }
   try {
     if (docEl.requestFullscreen) {
       docEl.requestFullscreen({ navigationUI: 'hide' })
-        .then(() => LandscapeGate.tryLockLandscape())
+        .then(() => {
+          if (shouldLockLandscape) LandscapeGate.tryLockLandscape();
+        })
         .catch(() => {
-          docEl.requestFullscreen().then(() => LandscapeGate.tryLockLandscape()).catch(() => {});
+          docEl.requestFullscreen().then(() => {
+            if (shouldLockLandscape) LandscapeGate.tryLockLandscape();
+          }).catch(() => {});
         });
     } else if (docEl.webkitRequestFullscreen) {
       docEl.webkitRequestFullscreen();
-      LandscapeGate.tryLockLandscape();
+      if (shouldLockLandscape) LandscapeGate.tryLockLandscape();
     }
   } catch (_) {}
+}
+
+function getActiveGameModeForFullscreen() {
+  if (!activeGameId) return 'PORTRAIT';
+  const g = (window.GAMES || []).find(item => item.id === activeGameId);
+  return g ? String(g.mode || 'PORTRAIT').toUpperCase() : 'PORTRAIT';
 }
 
 function handleReturnFullscreenGesture() {
@@ -238,19 +258,18 @@ function handleReturnFullscreenGesture() {
     return;
   }
 
-  requestFullscreenSafe();
-  if (autoLandscape) {
+  if (autoLandscape && activeGameId && getActiveGameModeForFullscreen() === 'LANDSCAPE') {
+    requestFullscreenSafe();
     LandscapeGate.tryLockLandscape(true);
+  } else {
+    clearReturnFullscreenFlags();
+    LandscapeGate.tryLockPortrait(true);
+    return;
   }
 
   setTimeout(() => {
     if (isFullscreenNow()) {
-      try {
-        sessionStorage.removeItem(HUB_KEEP_FS_KEY);
-        sessionStorage.removeItem(HUB_AUTO_LANDSCAPE_FS_KEY);
-        sessionStorage.removeItem('arcade_hub_from_billiard');
-      } catch (_) {}
-      pendingReturnFullscreenArmed = false;
+      clearReturnFullscreenFlags();
     }
   }, 150);
 }
@@ -265,7 +284,6 @@ function ensureReturnFullscreenListener() {
 function bindPowerScreenAutoFullscreen() {
   const triggerPowerFullscreen = () => {
     requestFullscreenSafe();
-    LandscapeGate.tryLockLandscape();
     LandscapeGate.scheduleSync(180);
   };
 
@@ -285,7 +303,6 @@ function bindPowerScreenAutoFullscreen() {
 
   const onFirstEntryGesture = () => {
     requestFullscreenSafe();
-    LandscapeGate.tryLockLandscape();
     LandscapeGate.scheduleSync(180);
     document.removeEventListener('pointerdown', onFirstEntryGesture, true);
     document.removeEventListener('click', onFirstEntryGesture, true);
@@ -1316,13 +1333,17 @@ function toggleFullScreen() {
   if (!isFullscreenNow()) {
     if (docEl.requestFullscreen) {
       docEl.requestFullscreen({ navigationUI: 'hide' })
-        .then(() => LandscapeGate.tryLockLandscape())
+        .then(() => {
+          if (getActiveGameModeForFullscreen() === 'LANDSCAPE') LandscapeGate.tryLockLandscape();
+        })
         .catch(() => {
-          docEl.requestFullscreen().then(() => LandscapeGate.tryLockLandscape()).catch(() => {});
+          docEl.requestFullscreen().then(() => {
+            if (getActiveGameModeForFullscreen() === 'LANDSCAPE') LandscapeGate.tryLockLandscape();
+          }).catch(() => {});
         });
     } else if (docEl.webkitRequestFullscreen) {
       docEl.webkitRequestFullscreen();
-      LandscapeGate.tryLockLandscape();
+      if (getActiveGameModeForFullscreen() === 'LANDSCAPE') LandscapeGate.tryLockLandscape();
     }
   } else {
     if (document.exitFullscreen) {
@@ -1341,11 +1362,7 @@ function syncFullscreenLabel() {
   if (label) label.textContent = isFs ? 'Exit Fullscreen Display' : 'Toggle Fullscreen Display';
   if (icon) icon.textContent = isFs ? '🗗' : '⛶';
   if (isFs && pendingReturnFullscreenArmed) {
-    try {
-      sessionStorage.removeItem(HUB_KEEP_FS_KEY);
-      sessionStorage.removeItem(HUB_AUTO_LANDSCAPE_FS_KEY);
-      sessionStorage.removeItem('arcade_hub_from_billiard');
-    } catch (_) {}
+    clearReturnFullscreenFlags();
   }
 }
 document.addEventListener('fullscreenchange', syncFullscreenLabel);
@@ -1423,7 +1440,6 @@ function submitPlayerName() {
   const resolvedName = typed || ('Player_' + Math.floor(100 + Math.random() * 899));
 
   requestFullscreenSafe();
-  LandscapeGate.tryLockLandscape();
   AudioFX.click();
   const bgm = document.getElementById('bgm-audio');
   if (bgm && bgmEnabled) {
@@ -2286,6 +2302,7 @@ function renderDiscoveryShelves() {
 
 function openHubHome() {
   navigatingToGamePage = false;
+  clearReturnFullscreenFlags();
   GameSettingsDrawer.close();
   GameLoopGuard.clearAllRaf();
   if (activeCleanup) {
@@ -2322,6 +2339,7 @@ function openHubHome() {
     appShell.style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
   }
   BgEngine.setTheme('hub');
+  LandscapeGate.tryLockPortrait(true);
   LandscapeGate.sync();
 
   stage.innerHTML = `
@@ -2486,16 +2504,19 @@ function launchGame(id) {
   recordGamePlay(canonId);
 
   if (canonId === 'flickpoint') {
+    activeGameId = canonId;
     requestFullscreenSafe();
     navigateToStandaloneGame('flickpoint.html');
     return;
   }
   if (canonId === 'mythic') {
+    activeGameId = canonId;
     requestFullscreenSafe();
     navigateToStandaloneGame('mythic.html');
     return;
   }
   if (canonId === 'billiard') {
+    activeGameId = canonId;
     try {
       sessionStorage.setItem(BILLIARD_ENTER_FS_KEY, '1');
     } catch (_) {}
@@ -2512,9 +2533,13 @@ function launchGame(id) {
   }
 
   activeGameId = canonId;
-  if (String(meta.mode || 'PORTRAIT').toUpperCase() === 'LANDSCAPE') {
+  const isLandscapeGame = String(meta.mode || 'PORTRAIT').toUpperCase() === 'LANDSCAPE';
+  if (isLandscapeGame) {
     requestFullscreenSafe();
     LandscapeGate.tryLockLandscape(true);
+  } else {
+    clearReturnFullscreenFlags();
+    LandscapeGate.tryLockPortrait(true);
   }
   LandscapeGate.sync();
 
