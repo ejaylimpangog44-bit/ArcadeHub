@@ -13,6 +13,43 @@ const OVERLAY_MODAL_IDS = [
   'hero-modal-backdrop'
 ];
 
+function forceLobbyEntryState(name) {
+  const cleanName = String(name || 'AJ').trim() || 'AJ';
+  window.playerName = cleanName;
+  try {
+    localStorage.setItem(PLAYER_NAME_STORAGE_KEY, cleanName);
+    sessionStorage.removeItem('arcade_hub_skip_power');
+    sessionStorage.removeItem('arcade_hub_target_lobby');
+  } catch (_) {}
+
+  ['power-screen', 'login-screen', 'entry-screen'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add('hidden');
+      el.style.display = 'none';
+      el.setAttribute('aria-hidden', 'true');
+    }
+  });
+
+  if (window.SplashController && typeof window.SplashController.hideSplashImmediate === 'function') {
+    window.SplashController.hideSplashImmediate();
+  }
+
+  const appShell = document.getElementById('app-shell');
+  if (appShell) {
+    appShell.classList.remove('hidden');
+    appShell.style.display = '';
+    appShell.removeAttribute('aria-hidden');
+  }
+
+  const headerName = document.getElementById('header-player-name');
+  if (headerName) headerName.textContent = cleanName;
+
+  if (typeof openHubHome === 'function') {
+    openHubHome();
+  }
+}
+
 function requestFullscreenSafe() {
   const docEl = document.documentElement;
   if (document.fullscreenElement || document.webkitFullscreenElement) return;
@@ -380,6 +417,7 @@ const SplashController = (() => {
       splash.classList.add('splash-hide');
       splash.setAttribute('aria-hidden', 'true');
       splash.style.pointerEvents = 'none';
+      splash.style.display = 'none';
     }
   }
 
@@ -995,8 +1033,8 @@ function toggleFullScreen() {
   } else {
     if (document.exitFullscreen) {
       document.exitFullscreen().catch(() => {});
-    } else if (docEl.webkitExitFullscreen) {
-      docEl.webkitExitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
     }
   }
 }
@@ -1049,13 +1087,23 @@ function enterHubShell(name) {
   try {
     localStorage.setItem(PLAYER_NAME_STORAGE_KEY, cleanName);
   } catch (_) {}
+
+  ['power-screen', 'login-screen', 'entry-screen'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add('hidden');
+      el.style.display = 'none';
+    }
+  });
+
   const headerName = document.getElementById('header-player-name');
-  const loginScreen = document.getElementById('login-screen');
   const appShell = document.getElementById('app-shell');
 
   if (headerName) headerName.textContent = window.playerName;
-  if (loginScreen) loginScreen.classList.add('hidden');
-  if (appShell) appShell.classList.remove('hidden');
+  if (appShell) {
+    appShell.classList.remove('hidden');
+    appShell.style.display = '';
+  }
 
   openHubHome();
 }
@@ -1928,6 +1976,14 @@ function openHubHome() {
   activeGameId = null;
   loadHubMetaState();
 
+  ['power-screen', 'login-screen', 'entry-screen'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add('hidden');
+      el.style.display = 'none';
+    }
+  });
+
   document.getElementById('hub-header')?.classList.remove('hidden');
   syncUniversalGameBar(null);
   syncFoxCompanionVisibility();
@@ -1937,7 +1993,11 @@ function openHubHome() {
   stage.classList.remove('in-game');
 
   const appShell = document.getElementById('app-shell');
-  if (appShell) appShell.style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
+  if (appShell) {
+    appShell.classList.remove('hidden');
+    appShell.style.display = '';
+    appShell.style.background = 'radial-gradient(circle at 50% 15%, #16182c 0%, #090a10 75%)';
+  }
   BgEngine.setTheme('hub');
 
   stage.innerHTML = `
@@ -2146,16 +2206,21 @@ function launchGame(id) {
 }
 window.launchGame = launchGame;
 
+function shouldEnterLobbyDirectly() {
+  const urlParams = new URLSearchParams(window.location.search);
+  let skipPower = false;
+  try {
+    skipPower = sessionStorage.getItem('arcade_hub_skip_power') === '1' ||
+                sessionStorage.getItem('arcade_hub_target_lobby') === '1';
+  } catch (_) {}
+  return urlParams.get('hub') === 'true' || skipPower;
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   SupabaseDB.init();
   loadHubMetaState();
 
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('hub') === 'true') {
-    const powerScreen = document.getElementById('power-screen');
-    SplashController.hideSplashImmediate();
-    if (powerScreen) powerScreen.style.display = 'none';
-
+  if (shouldEnterLobbyDirectly()) {
     let savedName = 'AJ';
     try {
       const fromStorage = localStorage.getItem(PLAYER_NAME_STORAGE_KEY);
@@ -2163,8 +2228,7 @@ window.addEventListener('DOMContentLoaded', () => {
         savedName = fromStorage.trim();
       }
     } catch (_) {}
-
-    enterHubShell(savedName);
+    forceLobbyEntryState(savedName);
   } else {
     syncFoxCompanionVisibility();
     SplashController.start();
@@ -2172,8 +2236,16 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('hub') !== 'true') {
+  if (shouldEnterLobbyDirectly()) {
+    let savedName = 'AJ';
+    try {
+      const fromStorage = localStorage.getItem(PLAYER_NAME_STORAGE_KEY);
+      if (fromStorage && fromStorage.trim()) {
+        savedName = fromStorage.trim();
+      }
+    } catch (_) {}
+    forceLobbyEntryState(savedName);
+  } else {
     SplashController.completeToFull();
   }
 
