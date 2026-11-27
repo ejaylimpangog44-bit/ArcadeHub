@@ -4,6 +4,8 @@ const closeFoxBtn = document.getElementById('close-fox-menu');
 const PLAYER_NAME_STORAGE_KEY = 'arcade_hub_player_name';
 const BILLIARD_ENTER_FS_KEY = 'arcade_hub_enter_fullscreen_on_billiard';
 const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
+const HUB_KEEP_FS_KEY = 'arcade_hub_keep_fullscreen';
+const HUB_AUTO_LANDSCAPE_FS_KEY = 'arcade_hub_auto_landscape_fs';
 
 const OVERLAY_MODAL_IDS = [
   'game-preview-modal',
@@ -17,6 +19,7 @@ const OVERLAY_MODAL_IDS = [
 
 let lobbyEntered = false;
 let navigatingToGamePage = false;
+let pendingReturnFullscreenArmed = false;
 
 const LandscapeGate = (() => {
   const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
@@ -198,9 +201,13 @@ const LandscapeGate = (() => {
 })();
 window.LandscapeGate = LandscapeGate;
 
+function isFullscreenNow() {
+  return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
 function requestFullscreenSafe() {
   const docEl = document.documentElement;
-  if (document.fullscreenElement || document.webkitFullscreenElement) {
+  if (isFullscreenNow()) {
     LandscapeGate.tryLockLandscape();
     return;
   }
@@ -216,6 +223,43 @@ function requestFullscreenSafe() {
       LandscapeGate.tryLockLandscape();
     }
   } catch (_) {}
+}
+
+function handleReturnFullscreenGesture() {
+  let keepFs = false;
+  let autoLandscape = false;
+  try {
+    keepFs = sessionStorage.getItem(HUB_KEEP_FS_KEY) === '1';
+    autoLandscape = sessionStorage.getItem(HUB_AUTO_LANDSCAPE_FS_KEY) === '1';
+  } catch (_) {}
+
+  if (!keepFs && !autoLandscape) {
+    pendingReturnFullscreenArmed = false;
+    return;
+  }
+
+  requestFullscreenSafe();
+  if (autoLandscape) {
+    LandscapeGate.tryLockLandscape(true);
+  }
+
+  setTimeout(() => {
+    if (isFullscreenNow()) {
+      try {
+        sessionStorage.removeItem(HUB_KEEP_FS_KEY);
+        sessionStorage.removeItem(HUB_AUTO_LANDSCAPE_FS_KEY);
+        sessionStorage.removeItem('arcade_hub_from_billiard');
+      } catch (_) {}
+      pendingReturnFullscreenArmed = false;
+    }
+  }, 150);
+}
+
+function ensureReturnFullscreenListener() {
+  if (pendingReturnFullscreenArmed) return;
+  pendingReturnFullscreenArmed = true;
+  document.addEventListener('pointerdown', handleReturnFullscreenGesture, { capture: true, passive: true });
+  document.addEventListener('click', handleReturnFullscreenGesture, { capture: true, passive: true });
 }
 
 function bindPowerScreenAutoFullscreen() {
@@ -254,22 +298,12 @@ function bindPowerScreenAutoFullscreen() {
 function bindLobbyFullscreenResume() {
   let shouldKeepFullscreen = false;
   try {
-    shouldKeepFullscreen = sessionStorage.getItem('arcade_hub_keep_fullscreen') === '1';
+    shouldKeepFullscreen =
+      sessionStorage.getItem(HUB_KEEP_FS_KEY) === '1' ||
+      sessionStorage.getItem(HUB_AUTO_LANDSCAPE_FS_KEY) === '1';
   } catch (_) {}
   if (!shouldKeepFullscreen) return;
-
-  const resumeOnce = () => {
-    try {
-      sessionStorage.removeItem('arcade_hub_keep_fullscreen');
-    } catch (_) {}
-    requestFullscreenSafe();
-    LandscapeGate.tryLockLandscape();
-    document.removeEventListener('pointerdown', resumeOnce, true);
-    document.removeEventListener('click', resumeOnce, true);
-  };
-
-  document.addEventListener('pointerdown', resumeOnce, true);
-  document.addEventListener('click', resumeOnce, true);
+  ensureReturnFullscreenListener();
 }
 
 function forceLobbyEntryState(name) {
@@ -1279,9 +1313,13 @@ window.copyHubLink = copyHubLink;
 function toggleFullScreen() {
   AudioFX.click();
   const docEl = document.documentElement;
-  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+  if (!isFullscreenNow()) {
     if (docEl.requestFullscreen) {
-      docEl.requestFullscreen().then(() => LandscapeGate.tryLockLandscape()).catch(() => {});
+      docEl.requestFullscreen({ navigationUI: 'hide' })
+        .then(() => LandscapeGate.tryLockLandscape())
+        .catch(() => {
+          docEl.requestFullscreen().then(() => LandscapeGate.tryLockLandscape()).catch(() => {});
+        });
     } else if (docEl.webkitRequestFullscreen) {
       docEl.webkitRequestFullscreen();
       LandscapeGate.tryLockLandscape();
@@ -1297,11 +1335,18 @@ function toggleFullScreen() {
 window.toggleFullScreen = toggleFullScreen;
 
 function syncFullscreenLabel() {
-  const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  const isFs = isFullscreenNow();
   const label = document.getElementById('fs-label');
   const icon = document.getElementById('fs-icon');
   if (label) label.textContent = isFs ? 'Exit Fullscreen Display' : 'Toggle Fullscreen Display';
   if (icon) icon.textContent = isFs ? '🗗' : '⛶';
+  if (isFs && pendingReturnFullscreenArmed) {
+    try {
+      sessionStorage.removeItem(HUB_KEEP_FS_KEY);
+      sessionStorage.removeItem(HUB_AUTO_LANDSCAPE_FS_KEY);
+      sessionStorage.removeItem('arcade_hub_from_billiard');
+    } catch (_) {}
+  }
 }
 document.addEventListener('fullscreenchange', syncFullscreenLabel);
 document.addEventListener('webkitfullscreenchange', syncFullscreenLabel);
