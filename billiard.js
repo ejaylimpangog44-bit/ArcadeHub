@@ -409,64 +409,6 @@
     window.location.href = './index.html?hub=true';
   }
 
-  function refreshSettingsAudioButtonLabel() {
-    const audioFsBtn = document.getElementById('btn-settings-audio-fs');
-    if (audioFsBtn) {
-      audioFsBtn.textContent = `🔊 ${state.sfx ? 'ON' : 'OFF'} • ⛶ FS`;
-    }
-  }
-
-  function ensureSettingsHubAndAudioControls() {
-    const settingsModal = document.getElementById('settings-modal');
-    if (!settingsModal) return;
-
-    if (document.getElementById('btn-settings-hub')) {
-      refreshSettingsAudioButtonLabel();
-      return;
-    }
-
-    const actionsContainer = settingsModal.querySelector('.modal-card') || settingsModal;
-
-    const row = document.createElement('div');
-    row.id = 'settings-audio-hub-row';
-    row.style.cssText = 'display:flex;gap:10px;margin-top:6px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);';
-
-    const audioFsBtn = document.createElement('button');
-    audioFsBtn.type = 'button';
-    audioFsBtn.id = 'btn-settings-audio-fs';
-    audioFsBtn.style.cssText = 'flex:1;padding:9px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:#f8fafc;font-weight:700;font-size:12px;cursor:pointer;';
-    audioFsBtn.addEventListener('click', () => {
-      state.sfx = !state.sfx;
-      const sfxRow = document.getElementById('opt-sfx');
-      if (sfxRow) {
-        sfxRow.querySelectorAll('.seg-btn').forEach(b => {
-          b.classList.toggle('active', b.dataset.val === (state.sfx ? 'on' : 'off'));
-        });
-      }
-      BilliardLandscapeGuard.requestFullscreenSafe(true);
-      BilliardLandscapeGuard.tryLockLandscape();
-      refreshSettingsAudioButtonLabel();
-      haptic(10);
-      setTimeout(resizeTable, 120);
-    });
-
-    const backHubBtn = document.createElement('button');
-    backHubBtn.type = 'button';
-    backHubBtn.id = 'btn-settings-hub';
-    backHubBtn.textContent = '🏠 Hub';
-    backHubBtn.style.cssText = 'flex:1;padding:9px 10px;border-radius:10px;border:1px solid rgba(244,114,182,0.35);background:rgba(236,72,153,0.18);color:#f9a8d4;font-weight:800;font-size:12px;cursor:pointer;';
-    backHubBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      settingsModal.classList.add('hidden');
-      goToHubLobby();
-    });
-
-    row.appendChild(audioFsBtn);
-    row.appendChild(backHubBtn);
-    actionsContainer.appendChild(row);
-    refreshSettingsAudioButtonLabel();
-  }
-
   function syncSettingsSummaries() {
     const modeSum = document.getElementById('val-mode-summary');
     const oppSum = document.getElementById('val-opponent-summary');
@@ -1763,10 +1705,7 @@
 
   bindSegRow('opt-tap-aim', val => { state.tapToAim = (val === 'on'); });
   bindSegRow('opt-guide', val => { state.guideMode = val; });
-  bindSegRow('opt-sfx', val => {
-    state.sfx = (val === 'on');
-    refreshSettingsAudioButtonLabel();
-  });
+  bindSegRow('opt-sfx', val => { state.sfx = (val === 'on'); });
 
   document.getElementById('btn-start-match')?.addEventListener('click', () => {
     markGateHandledOnce();
@@ -1796,16 +1735,36 @@
     setTimeout(resizeTable, 120);
   });
 
+  function closeSettingsModal() {
+    document.getElementById('settings-modal')?.classList.add('hidden');
+  }
+
   document.getElementById('btn-settings')?.addEventListener('click', () => {
-    ensureSettingsHubAndAudioControls();
     syncSettingsSummaries();
     document.getElementById('settings-modal')?.classList.remove('hidden');
   });
-  document.getElementById('btn-close-settings')?.addEventListener('click', () => {
-    document.getElementById('settings-modal')?.classList.add('hidden');
+  document.getElementById('btn-close-settings')?.addEventListener('click', closeSettingsModal);
+  document.getElementById('btn-save-settings')?.addEventListener('click', closeSettingsModal);
+  document.getElementById('btn-dock-done')?.addEventListener('click', closeSettingsModal);
+
+  document.getElementById('btn-dock-hub')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeSettingsModal();
+    goToHubLobby();
   });
-  document.getElementById('btn-save-settings')?.addEventListener('click', () => {
-    document.getElementById('settings-modal')?.classList.add('hidden');
+
+  document.getElementById('btn-dock-restart')?.addEventListener('click', () => {
+    closeSettingsModal();
+    setupRack();
+    setTimeout(resizeTable, 80);
+  });
+
+  document.getElementById('btn-dock-fs')?.addEventListener('click', () => {
+    BilliardLandscapeGuard.requestFullscreenSafe(true);
+    BilliardLandscapeGuard.tryLockLandscape();
+    BilliardLandscapeGuard.sync();
+    haptic(10);
+    setTimeout(resizeTable, 120);
   });
 
   document.getElementById('btn-setup-hub')?.addEventListener('click', (e) => {
@@ -1839,7 +1798,6 @@
   });
 
   BilliardLandscapeGuard.init();
-  ensureSettingsHubAndAudioControls();
   syncSettingsSummaries();
   syncPlayerNameFromHub();
   resizeTable();
