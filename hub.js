@@ -25,23 +25,62 @@ function findDiceAnchorEl() {
   return null;
 }
 
+function matchFoxSizeToDice(diceEl, targetSize) {
+  if (!foxWidget) return;
+  const px = Math.max(24, Math.round(targetSize));
+
+  foxWidget.style.width = `${px}px`;
+  foxWidget.style.height = `${px}px`;
+  foxWidget.style.minWidth = `${px}px`;
+  foxWidget.style.minHeight = `${px}px`;
+  foxWidget.style.maxWidth = `${px}px`;
+  foxWidget.style.maxHeight = `${px}px`;
+  foxWidget.style.padding = '0px';
+  foxWidget.style.fontSize = `${Math.max(14, Math.round(px * 0.52))}px`;
+  foxWidget.style.lineHeight = '1';
+
+  if (diceEl) {
+    const diceRadius = getComputedStyle(diceEl).borderRadius;
+    if (diceRadius) {
+      foxWidget.style.borderRadius = diceRadius;
+    }
+  }
+
+  const mediaOrIcon = foxWidget.querySelector('img, svg, span');
+  if (mediaOrIcon) {
+    const innerPx = Math.max(14, Math.round(px * 0.68));
+    if (mediaOrIcon.tagName === 'IMG' || mediaOrIcon.tagName === 'SVG') {
+      mediaOrIcon.style.width = `${innerPx}px`;
+      mediaOrIcon.style.height = `${innerPx}px`;
+      mediaOrIcon.style.objectFit = 'contain';
+    } else {
+      mediaOrIcon.style.fontSize = `${Math.max(13, Math.round(px * 0.52))}px`;
+      mediaOrIcon.style.lineHeight = '1';
+    }
+  }
+}
+
 function positionFoxBesideDice() {
   if (!foxWidget) return;
   const diceEl = findDiceAnchorEl();
   const rect = diceEl ? diceEl.getBoundingClientRect() : null;
 
   if (!rect || rect.width === 0 || rect.height === 0) {
+    matchFoxSizeToDice(null, 34);
     foxWidget.style.position = 'fixed';
     foxWidget.style.top = '12px';
-    foxWidget.style.right = '56px';
+    foxWidget.style.right = '52px';
     foxWidget.style.left = 'auto';
     foxWidget.style.bottom = 'auto';
     return;
   }
 
+  const size = Math.min(rect.width, rect.height);
+  matchFoxSizeToDice(diceEl, size);
+
   const gap = 8;
-  const widgetW = foxWidget.offsetWidth || 44;
-  const widgetH = foxWidget.offsetHeight || 44;
+  const widgetW = foxWidget.offsetWidth || size;
+  const widgetH = foxWidget.offsetHeight || size;
   const left = Math.max(8, Math.round(rect.left - widgetW - gap));
   const top = Math.max(8, Math.round(rect.top + (rect.height - widgetH) / 2));
 
