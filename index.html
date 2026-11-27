@@ -515,6 +515,18 @@
   }
 </script>
 
+<!-- Single Landscape Gate -->
+<div id="force-landscape-gate" class="fixed inset-0 z-[2147483647] hidden flex-col items-center justify-center gap-3.5 p-6 text-center text-slate-50" style="display:none;background:radial-gradient(circle at 50% 30%, #171b33 0%, #07080d 80%);backdrop-filter:blur(12px);" role="dialog" aria-live="assertive" aria-label="Rotate device to landscape" aria-hidden="true">
+  <div class="text-4xl leading-none">📱↻🖥️</div>
+  <div class="text-xl font-black tracking-wider">LANDSCAPE MODE REQUIRED</div>
+  <p class="max-w-xs text-xs leading-relaxed text-slate-300">
+    Rotate your device horizontally to use Arcade Hub in landscape mode.
+  </p>
+  <button type="button" id="landscape-gate-rotate-btn" class="mt-1 px-4 py-2.5 rounded-xl border border-white/20 bg-white/15 text-white text-xs font-extrabold cursor-pointer">
+    Lock Landscape &amp; Fullscreen
+  </button>
+</div>
+
 <script src="power.js"></script>
 <script src="hero.js"></script>
 <script src="basketball.js"></script>
