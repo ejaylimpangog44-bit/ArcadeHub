@@ -26,6 +26,7 @@ function clearReturnFullscreenFlags() {
   try {
     sessionStorage.removeItem(HUB_KEEP_FS_KEY);
     sessionStorage.removeItem(HUB_AUTO_LANDSCAPE_FS_KEY);
+    sessionStorage.removeItem(BILLIARD_ENTER_FS_KEY);
     sessionStorage.removeItem('arcade_hub_from_billiard');
   } catch (_) {}
 }
@@ -2495,7 +2496,8 @@ function getGameRunners() {
     towerstack: window.initTowerStack,
     carracing: window.initCarRacing,
     brickbreaker: window.initBrickBreaker,
-    stickrun: window.initStickRun
+    stickrun: window.initStickRun,
+    billiard: window.initBilliardPool
   };
 }
 
@@ -2526,15 +2528,6 @@ function launchGame(id) {
     activeGameId = canonId;
     requestFullscreenSafe();
     navigateToStandaloneGame('mythic.html');
-    return;
-  }
-  if (canonId === 'billiard') {
-    activeGameId = canonId;
-    try {
-      sessionStorage.setItem(BILLIARD_ENTER_FS_KEY, '1');
-    } catch (_) {}
-    requestFullscreenSafe();
-    navigateToStandaloneGame('billiard.html');
     return;
   }
 
