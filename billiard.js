@@ -2,6 +2,7 @@
   const canvas = document.getElementById('pool-canvas');
   const ctx = canvas.getContext('2d');
   const PLAYER_NAME_KEY = 'arcade_hub_player_name';
+  const ENTER_FS_FROM_HUB_KEY = 'arcade_hub_enter_fullscreen_on_billiard';
 
   const BALL_COLORS = {
     0: '#f8fafc',
@@ -183,6 +184,8 @@
   }
 
   window.addEventListener('resize', resizeTable);
+  document.addEventListener('fullscreenchange', () => setTimeout(resizeTable, 80));
+  document.addEventListener('webkitfullscreenchange', () => setTimeout(resizeTable, 80));
 
   function setBanner(msg) {
     const el = document.getElementById('status-banner');
@@ -221,6 +224,7 @@
     persistPlayerName(currentName);
     const wasFullscreen = isFullscreenActive();
     try {
+      sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY);
       sessionStorage.setItem('arcade_hub_skip_power', '1');
       sessionStorage.setItem('arcade_hub_target_lobby', '1');
       if (wasFullscreen) {
@@ -1424,9 +1428,11 @@
   bindSegRow('opt-sfx', val => { state.sfx = (val === 'on'); });
 
   document.getElementById('btn-start-match')?.addEventListener('click', () => {
+    try { sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY); } catch (_) {}
     requestFullscreenOnGesture(false);
     document.getElementById('setup-modal')?.classList.add('hidden');
     setupRack();
+    setTimeout(resizeTable, 120);
   });
 
   document.getElementById('btn-new-match')?.addEventListener('click', () => {
@@ -1440,6 +1446,7 @@
     requestFullscreenOnGesture(false);
     document.getElementById('gameover-modal')?.classList.add('hidden');
     setupRack();
+    setTimeout(resizeTable, 120);
   });
 
   document.getElementById('btn-settings')?.addEventListener('click', () => {
@@ -1488,6 +1495,28 @@
     if (valEl) valEl.textContent = state.fineAimSpeed.toFixed(2) + '×';
   });
 
+  function bindFirstGestureFullscreenFromHub() {
+    let shouldEnterFullscreen = false;
+    try {
+      shouldEnterFullscreen = sessionStorage.getItem(ENTER_FS_FROM_HUB_KEY) === '1';
+    } catch (_) {}
+    if (!shouldEnterFullscreen) return;
+
+    const triggerOnce = () => {
+      try {
+        sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY);
+      } catch (_) {}
+      requestFullscreenOnGesture(false);
+      setTimeout(resizeTable, 120);
+      document.removeEventListener('pointerdown', triggerOnce, true);
+      document.removeEventListener('click', triggerOnce, true);
+    };
+
+    document.addEventListener('pointerdown', triggerOnce, true);
+    document.addEventListener('click', triggerOnce, true);
+  }
+
+  bindFirstGestureFullscreenFromHub();
   ensureSettingsHubAndAudioControls();
   syncPlayerNameFromHub();
   resizeTable();
