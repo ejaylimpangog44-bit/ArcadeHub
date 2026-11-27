@@ -14,48 +14,19 @@ const OVERLAY_MODAL_IDS = [
   'hero-modal-backdrop'
 ];
 
+let lobbyEntered = false;
+let navigatingToGamePage = false;
+
 const LandscapeGate = (() => {
   let gateEl = null;
   let syncTimer = null;
+  let btnBound = false;
 
-  function ensureGateEl() {
-    if (gateEl) return gateEl;
+  function getSingleGateEl() {
+    if (gateEl && gateEl.isConnected) return gateEl;
     gateEl = document.getElementById('force-landscape-gate');
-    if (!gateEl) {
-      gateEl = document.createElement('div');
-      gateEl.id = 'force-landscape-gate';
-      gateEl.setAttribute('role', 'dialog');
-      gateEl.setAttribute('aria-live', 'assertive');
-      gateEl.setAttribute('aria-label', 'Rotate device to landscape');
-      gateEl.style.cssText = [
-        'position:fixed',
-        'inset:0',
-        'z-index:2147483647',
-        'display:none',
-        'flex-direction:column',
-        'align-items:center',
-        'justify-content:center',
-        'gap:14px',
-        'padding:24px',
-        'text-align:center',
-        'background:radial-gradient(circle at 50% 30%, #171b33 0%, #07080d 80%)',
-        'color:#f8fafc',
-        'backdrop-filter:blur(12px)'
-      ].join(';');
-
-      gateEl.innerHTML = `
-        <div style="font-size:44px;line-height:1;">📱↻🖥️</div>
-        <div style="font-size:20px;font-weight:900;letter-spacing:0.04em;">LANDSCAPE MODE REQUIRED</div>
-        <div style="max-width:340px;font-size:13px;line-height:1.5;color:#cbd5e1;">
-          Rotate your device horizontally to use Arcade Hub from the Power Screen, Loading Screen, Player Name entry, and Hub Lobby.
-        </div>
-        <button type="button" id="landscape-gate-rotate-btn" style="margin-top:4px;padding:10px 18px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.12);color:#ffffff;font-size:12px;font-weight:800;cursor:pointer;">
-          Lock Landscape &amp; Fullscreen
-        </button>
-      `;
-
-      document.body.appendChild(gateEl);
-
+    if (gateEl && !btnBound) {
+      btnBound = true;
       gateEl.querySelector('#landscape-gate-rotate-btn')?.addEventListener('click', () => {
         requestFullscreenSafe();
         tryLockLandscape();
@@ -65,10 +36,26 @@ const LandscapeGate = (() => {
     return gateEl;
   }
 
+  function hideGateNow() {
+    clearTimeout(syncTimer);
+    syncTimer = null;
+    const el = getSingleGateEl();
+    if (!el) return;
+    el.style.display = 'none';
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+    el.setAttribute('aria-hidden', 'true');
+  }
+
   function isPortraitNow() {
-    if (window.innerWidth > window.innerHeight) return false;
-    if (window.matchMedia && window.matchMedia('(orientation: landscape)').matches) {
-      return false;
+    const orientType = window.screen && window.screen.orientation && window.screen.orientation.type;
+    if (typeof orientType === 'string') {
+      if (orientType.startsWith('portrait')) return true;
+      if (orientType.startsWith('landscape')) return false;
+    }
+    if (window.matchMedia) {
+      if (window.matchMedia('(orientation: portrait)').matches) return true;
+      if (window.matchMedia('(orientation: landscape)').matches) return false;
     }
     return window.innerHeight > window.innerWidth;
   }
@@ -106,6 +93,7 @@ const LandscapeGate = (() => {
   }
 
   function applyOrientationPolicy() {
+    if (navigatingToGamePage) return;
     if (shouldEnforceLandscape()) {
       tryLockLandscape();
     } else if (activeGameId) {
@@ -114,12 +102,23 @@ const LandscapeGate = (() => {
   }
 
   function syncGate() {
-    const el = ensureGateEl();
+    if (navigatingToGamePage) {
+      hideGateNow();
+      return;
+    }
+
+    const el = getSingleGateEl();
     const activeMode = getActiveGameMode();
     const enforceLandscape = shouldEnforceLandscape();
     const needsRotate = enforceLandscape && isPortraitNow();
 
-    el.style.display = needsRotate ? 'flex' : 'none';
+    if (el) {
+      el.style.display = needsRotate ? 'flex' : 'none';
+      el.classList.toggle('hidden', !needsRotate);
+      el.classList.toggle('flex', needsRotate);
+      el.setAttribute('aria-hidden', needsRotate ? 'false' : 'true');
+    }
+
     document.documentElement.dataset.orientationRequired = enforceLandscape ? 'landscape' : 'portrait';
     document.documentElement.dataset.gameOrientation = activeMode
       ? activeMode.toLowerCase()
@@ -134,6 +133,7 @@ const LandscapeGate = (() => {
   }
 
   function scheduleSync(delay = 180) {
+    if (navigatingToGamePage) return;
     clearTimeout(syncTimer);
     syncTimer = setTimeout(() => {
       applyOrientationPolicy();
@@ -142,7 +142,7 @@ const LandscapeGate = (() => {
   }
 
   function init() {
-    ensureGateEl();
+    getSingleGateEl();
     applyOrientationPolicy();
     scheduleSync(160);
     window.addEventListener('resize', () => scheduleSync(70));
@@ -158,7 +158,7 @@ const LandscapeGate = (() => {
     }
   }
 
-  return { init, sync: syncGate, tryLockLandscape, tryLockPortrait };
+  return { init, sync: syncGate, hideNow: hideGateNow, tryLockLandscape, tryLockPortrait };
 })();
 window.LandscapeGate = LandscapeGate;
 
@@ -237,6 +237,9 @@ function bindLobbyFullscreenResume() {
 }
 
 function forceLobbyEntryState(name) {
+  if (lobbyEntered) return;
+  lobbyEntered = true;
+
   const cleanName = String(name || 'AJ').trim() || 'AJ';
   window.playerName = cleanName;
   try {
@@ -272,7 +275,6 @@ function forceLobbyEntryState(name) {
     openHubHome();
   }
 
-  requestFullscreenSafe();
   LandscapeGate.sync();
   bindLobbyFullscreenResume();
 }
@@ -382,6 +384,7 @@ function syncFoxCompanionVisibility() {
   const loginScreen = document.getElementById('login-screen');
   const hubHeader = document.getElementById('hub-header');
   const isLoggedIn = Boolean(
+    !navigatingToGamePage &&
     appShell &&
     !appShell.classList.contains('hidden') &&
     (!loginScreen || loginScreen.classList.contains('hidden'))
@@ -2195,6 +2198,7 @@ function renderDiscoveryShelves() {
 }
 
 function openHubHome() {
+  navigatingToGamePage = false;
   GameSettingsDrawer.close();
   GameLoopGuard.clearAllRaf();
   if (activeCleanup) {
@@ -2373,6 +2377,15 @@ function getGameRunners() {
   };
 }
 
+function navigateToStandaloneGame(url) {
+  navigatingToGamePage = true;
+  GameSettingsDrawer.close();
+  GameLoopGuard.clearAllRaf();
+  LandscapeGate.hideNow();
+  syncFoxCompanionVisibility();
+  window.location.href = url;
+}
+
 function launchGame(id) {
   const canonId = normalizeGameId(id);
   const meta = GAMES.find(g => g.id === canonId);
@@ -2382,18 +2395,18 @@ function launchGame(id) {
   recordGamePlay(canonId);
 
   if (canonId === 'flickpoint') {
-    window.location.href = 'flickpoint.html';
+    navigateToStandaloneGame('flickpoint.html');
     return;
   }
   if (canonId === 'mythic') {
-    window.location.href = 'mythic.html';
+    navigateToStandaloneGame('mythic.html');
     return;
   }
   if (canonId === 'billiard') {
     try {
       sessionStorage.setItem(BILLIARD_ENTER_FS_KEY, '1');
     } catch (_) {}
-    window.location.href = 'billiard.html';
+    navigateToStandaloneGame('billiard.html');
     return;
   }
 
@@ -2449,21 +2462,25 @@ function shouldEnterLobbyDirectly() {
   return urlParams.get('hub') === 'true' || skipPower;
 }
 
+function getSavedPlayerName() {
+  try {
+    const fromStorage = localStorage.getItem(PLAYER_NAME_STORAGE_KEY);
+    if (fromStorage && fromStorage.trim()) {
+      return fromStorage.trim();
+    }
+  } catch (_) {}
+  return 'AJ';
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+  navigatingToGamePage = false;
   LandscapeGate.init();
   bindPowerScreenAutoFullscreen();
   SupabaseDB.init();
   loadHubMetaState();
 
   if (shouldEnterLobbyDirectly()) {
-    let savedName = 'AJ';
-    try {
-      const fromStorage = localStorage.getItem(PLAYER_NAME_STORAGE_KEY);
-      if (fromStorage && fromStorage.trim()) {
-        savedName = fromStorage.trim();
-      }
-    } catch (_) {}
-    forceLobbyEntryState(savedName);
+    forceLobbyEntryState(getSavedPlayerName());
   } else {
     syncFoxCompanionVisibility();
     SplashController.start();
@@ -2471,16 +2488,13 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', () => {
+  if (navigatingToGamePage) {
+    LandscapeGate.hideNow();
+    return;
+  }
   LandscapeGate.sync();
   if (shouldEnterLobbyDirectly()) {
-    let savedName = 'AJ';
-    try {
-      const fromStorage = localStorage.getItem(PLAYER_NAME_STORAGE_KEY);
-      if (fromStorage && fromStorage.trim()) {
-        savedName = fromStorage.trim();
-      }
-    } catch (_) {}
-    forceLobbyEntryState(savedName);
+    forceLobbyEntryState(getSavedPlayerName());
   } else {
     SplashController.completeToFull();
   }
