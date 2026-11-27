@@ -2,22 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>ArcadeHub — Billiard Pool</title>
   <link rel="stylesheet" href="billiard.css" />
 </head>
 <body>
 
 <div id="portrait-gate" role="dialog" aria-modal="true" aria-label="Rotate Device to Landscape">
-  <div class="rotate-icon">📱</div>
+  <div class="rotate-badge">LANDSCAPE MODE</div>
+  <div class="rotate-icon" aria-hidden="true">📱</div>
   <h2>Rotate to Landscape</h2>
-  <p>Billiard Pool is a precision landscape table game. Please turn your device horizontally to play.</p>
+  <p>Billiard Pool is built for a wide table view. Turn your device sideways to aim, pull the Tako, and play.</p>
 </div>
 
 <div id="app">
   <header id="top-hud">
     <div class="hud-left">
-      <a href="index.html" id="btn-back-hub" class="icon-btn" title="Back to Arcade Hub" aria-label="Back to Arcade Hub">← Hub</a>
+      <a href="./index.html?hub=true" id="btn-back-hub" class="icon-btn" title="Back to Arcade Hub" aria-label="Back to Arcade Hub">← Hub</a>
       <div class="player-badge p1 active" id="badge-p1">
         <span class="p-dot" style="background: var(--accent)"></span>
         <span id="p1-name">P1</span>
@@ -45,7 +46,7 @@
 
   <main id="arena">
     <aside class="side-panel" id="left-panel">
-      <div class="panel-card">
+      <div class="panel-card spin-card">
         <div class="panel-title">Cue Spin</div>
         <div class="spin-pad" id="spin-pad" title="Click or drag to apply English / Top / Back spin">
           <div class="spin-cross-h"></div>
@@ -56,7 +57,7 @@
         <button type="button" class="mini-btn" id="btn-reset-spin">Reset Spin</button>
       </div>
 
-      <div class="panel-card">
+      <div class="panel-card aim-card">
         <div class="panel-title">Fine Aim</div>
         <div class="aim-wheel" id="aim-wheel" title="Slide vertically for precision micro-aiming">
           <div class="aim-ticks"></div>
@@ -75,7 +76,7 @@
     </section>
 
     <aside class="side-panel" id="right-panel">
-      <div class="panel-card" style="flex:1; justify-content: space-between;">
+      <div class="panel-card power-card">
         <div class="panel-title">Tako Pull</div>
         <div class="power-rail" id="power-rail" title="Pull down and release to strike with the Tako">
           <div class="power-fill" id="power-fill"></div>
@@ -91,7 +92,7 @@
   <div class="modal-card">
     <div class="modal-header">
       <h2>🎱 Billiard Pool</h2>
-      <a href="index.html" class="modal-hub-link">← Arcade Hub</a>
+      <a href="./index.html?hub=true" class="modal-hub-link">← Arcade Hub</a>
     </div>
     <p class="modal-sub">Pull back the Tako directly on the table or use the Tako pull rail. No hit button — pure touch &amp; drag stroke!</p>
 
@@ -174,7 +175,7 @@
     <p class="modal-sub" id="winner-reason" style="margin-top:6px;">8-Ball pocketed cleanly.</p>
     <div class="gameover-actions">
       <button type="button" class="primary-btn" id="btn-rematch">Play Again</button>
-      <a href="index.html" class="secondary-hub-btn">Back to Hub</a>
+      <a href="./index.html?hub=true" class="secondary-hub-btn">Back to Hub</a>
     </div>
   </div>
 </div>
