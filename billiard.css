@@ -570,7 +570,7 @@ canvas#pool-canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 18px;
+  padding: 14px;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
 }
@@ -584,10 +584,84 @@ canvas#pool-canvas {
   display: none;
 }
 
+/* Settings Stage + Side Docks filling highlighted spaces */
+.settings-stage {
+  width: 100%;
+  max-width: 920px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.settings-side-dock {
+  width: 116px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.dock-action-btn {
+  width: 100%;
+  padding: 12px 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(17, 24, 39, 0.94);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.dock-action-btn:hover {
+  border-color: var(--accent);
+  background: rgba(30, 41, 59, 0.96);
+}
+
+.dock-action-btn:active {
+  transform: scale(0.97);
+}
+
+.dock-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.dock-hub-btn {
+  border-color: rgba(244, 114, 182, 0.45);
+  background: rgba(131, 24, 67, 0.35);
+  color: #fbcfe8;
+}
+
+.dock-hub-btn:hover {
+  border-color: #f472b6;
+  background: rgba(157, 23, 77, 0.5);
+}
+
+.dock-done-btn {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(6, 95, 70, 0.35);
+  color: #a7f3d0;
+}
+
+.dock-done-btn:hover {
+  border-color: var(--emerald);
+  background: rgba(4, 120, 87, 0.5);
+}
+
 .modal-card {
   width: 100%;
   max-width: 440px;
-  max-height: 90dvh;
+  max-height: 92dvh;
   overflow-y: auto;
   overscroll-behavior: contain;
   touch-action: pan-y;
@@ -595,11 +669,43 @@ canvas#pool-canvas {
   background: #111827;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 20px;
-  padding: 15px 18px;
+  padding: 14px 16px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 8px;
+}
+
+.settings-compact-card {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 520px;
+  gap: 8px;
+}
+
+.settings-two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.settings-toggles-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.settings-sliders-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.compact-seg .seg-btn {
+  padding: 6px 8px;
+  font-size: 11px;
 }
 
 .modal-card button,
@@ -620,7 +726,8 @@ canvas#pool-canvas {
 .picker-list {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  justify-content: space-between;
+  gap: 6px;
 }
 
 .picker-trigger {
@@ -628,12 +735,13 @@ canvas#pool-canvas {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 12px;
+  gap: 6px;
+  padding: 8px 11px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border);
   color: var(--text);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.15s;
@@ -646,8 +754,9 @@ canvas#pool-canvas {
 
 .picker-trigger strong {
   color: var(--accent);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .sub-choice-grid {
@@ -688,7 +797,7 @@ canvas#pool-canvas {
 }
 
 .modal-header h2 {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 900;
   display: flex;
   align-items: center;
@@ -726,11 +835,11 @@ canvas#pool-canvas {
 .option-group {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .option-group label {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 800;
   text-transform: uppercase;
   color: #cbd5e1;
@@ -739,7 +848,7 @@ canvas#pool-canvas {
 
 .seg-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .seg-btn {
@@ -765,7 +874,7 @@ canvas#pool-canvas {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 11.5px;
   color: #e2e8f0;
 }
 
@@ -777,7 +886,7 @@ input[type="range"] {
 
 .primary-btn {
   width: 100%;
-  padding: 10px;
+  padding: 9px;
   border-radius: 12px;
   border: none;
   background: linear-gradient(135deg, #f59e0b, #10b981);
@@ -807,4 +916,21 @@ input[type="range"] {
   align-items: center;
   justify-content: center;
   white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .settings-stage {
+    gap: 8px;
+  }
+  .settings-side-dock {
+    width: 84px;
+  }
+  .dock-action-btn {
+    padding: 10px 6px;
+    font-size: 10px;
+  }
+  .settings-two-col,
+  .settings-sliders-grid {
+    grid-template-columns: 1fr;
+  }
 }
