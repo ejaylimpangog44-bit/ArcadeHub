@@ -2,18 +2,86 @@ const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
 
+function findDiceAnchorEl() {
+  const selectors = [
+    '#surprise-dice-btn',
+    '#dice-btn',
+    '[data-action="surprise"]',
+    '[onclick*="surpriseMeGame"]'
+  ];
+  for (const sel of selectors) {
+    const el = document.querySelector(sel);
+    if (el) return el;
+  }
+  const header = document.getElementById('hub-header');
+  if (header) {
+    const btns = header.querySelectorAll('button');
+    for (const btn of btns) {
+      if (btn.id !== 'assistive-touch-fox' && btn.textContent.includes('🎲')) {
+        return btn;
+      }
+    }
+  }
+  return null;
+}
+
+function positionFoxBesideDice() {
+  if (!foxWidget) return;
+  const diceEl = findDiceAnchorEl();
+  const rect = diceEl ? diceEl.getBoundingClientRect() : null;
+
+  if (!rect || rect.width === 0 || rect.height === 0) {
+    foxWidget.style.position = 'fixed';
+    foxWidget.style.top = '12px';
+    foxWidget.style.right = '56px';
+    foxWidget.style.left = 'auto';
+    foxWidget.style.bottom = 'auto';
+    return;
+  }
+
+  const gap = 8;
+  const widgetW = foxWidget.offsetWidth || 44;
+  const widgetH = foxWidget.offsetHeight || 44;
+  const left = Math.max(8, Math.round(rect.left - widgetW - gap));
+  const top = Math.max(8, Math.round(rect.top + (rect.height - widgetH) / 2));
+
+  foxWidget.style.position = 'fixed';
+  foxWidget.style.left = `${left}px`;
+  foxWidget.style.top = `${top}px`;
+  foxWidget.style.right = 'auto';
+  foxWidget.style.bottom = 'auto';
+}
+
 function syncFoxCompanionVisibility() {
   if (!foxWidget) return;
   const appShell = document.getElementById('app-shell');
   const loginScreen = document.getElementById('login-screen');
+  const hubHeader = document.getElementById('hub-header');
   const isLoggedIn = Boolean(
     appShell &&
     !appShell.classList.contains('hidden') &&
     (!loginScreen || loginScreen.classList.contains('hidden'))
   );
-  foxWidget.classList.toggle('hidden', !isLoggedIn);
-  foxWidget.classList.toggle('flex', isLoggedIn);
+  const inHub = Boolean(
+    isLoggedIn &&
+    !activeGameId &&
+    (!hubHeader || !hubHeader.classList.contains('hidden'))
+  );
+
+  foxWidget.classList.toggle('hidden', !inHub);
+  foxWidget.classList.toggle('flex', inHub);
+  foxWidget.style.display = inHub ? 'flex' : 'none';
+
+  if (inHub) {
+    requestAnimationFrame(positionFoxBesideDice);
+  }
 }
+
+window.addEventListener('resize', () => {
+  if (foxWidget && foxWidget.style.display !== 'none') {
+    positionFoxBesideDice();
+  }
+});
 
 function openFoxCompanionModal() {
   if (typeof window.openHeroModal === 'function') {
@@ -898,7 +966,6 @@ function enterHubShell(name) {
   if (loginScreen) loginScreen.classList.add('hidden');
   if (appShell) appShell.classList.remove('hidden');
 
-  syncFoxCompanionVisibility();
   openHubHome();
 }
 
@@ -1754,10 +1821,10 @@ function openHubHome() {
   }
   activeGameId = null;
   loadHubMetaState();
-  syncFoxCompanionVisibility();
 
   document.getElementById('hub-header')?.classList.remove('hidden');
   syncUniversalGameBar(null);
+  syncFoxCompanionVisibility();
 
   const stage = document.getElementById('game-stage');
   if (!stage) return;
@@ -1852,6 +1919,7 @@ function openHubHome() {
 
   updateSpotlightBanner();
   renderDiscoveryShelves();
+  syncFoxCompanionVisibility();
 
   const searchInput = document.getElementById('hub-search-input');
   const clearBtn = document.getElementById('discovery-clear-btn');
@@ -1937,6 +2005,7 @@ function launchGame(id) {
 
   document.getElementById('hub-header')?.classList.add('hidden');
   syncUniversalGameBar(canonId);
+  syncFoxCompanionVisibility();
 
   const appShell = document.getElementById('app-shell');
   if (appShell) appShell.style.background = getGameBgStyle(meta);
