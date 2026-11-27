@@ -2,6 +2,7 @@ const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
 const PLAYER_NAME_STORAGE_KEY = 'arcade_hub_player_name';
+const BILLIARD_ENTER_FS_KEY = 'arcade_hub_enter_fullscreen_on_billiard';
 
 const OVERLAY_MODAL_IDS = [
   'game-preview-modal',
@@ -1744,7 +1745,14 @@ function openGamePreviewModal(gameId) {
     launchBtn.onclick = () => {
       const idToLaunch = previewGameMeta?.id;
       closeGamePreviewModal();
-      if (idToLaunch) launchGame(idToLaunch);
+      if (idToLaunch) {
+        if (normalizeGameId(idToLaunch) === 'billiard') {
+          try {
+            sessionStorage.setItem(BILLIARD_ENTER_FS_KEY, '1');
+          } catch (_) {}
+        }
+        launchGame(idToLaunch);
+      }
     };
   }
 
@@ -2184,6 +2192,9 @@ function launchGame(id) {
     return;
   }
   if (canonId === 'billiard') {
+    try {
+      sessionStorage.setItem(BILLIARD_ENTER_FS_KEY, '1');
+    } catch (_) {}
     window.location.href = 'billiard.html';
     return;
   }
