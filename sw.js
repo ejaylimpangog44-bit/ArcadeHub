@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcadehub-cache-v29';
+const CACHE_NAME = 'arcadehub-cache-v30';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -23,7 +23,6 @@ const ASSETS_TO_CACHE = [
   './car-racing.js',
   './brick-breaker.js',
   './stick-run.js',
-  './tiny-cafe.js',
   './hero.js',
   './power.js',
   './bgm.mp3',
