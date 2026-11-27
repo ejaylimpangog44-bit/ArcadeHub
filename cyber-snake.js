@@ -10,6 +10,18 @@ window.initCyberSnakePreserved = function initCyberSnakePreserved(stage) {
 
       <canvas id="snake-canvas" class="absolute inset-0 w-full h-full block touch-none cursor-crosshair"></canvas>
 
+      <div id="snake-death-modal" class="hidden absolute inset-0 z-30 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-rose-500/40 rounded-2xl px-8 py-6 text-center shadow-2xl max-w-sm w-full text-white">
+          <h1 class="text-2xl font-extrabold text-rose-400 tracking-tight m-0"><b>Snake Died</b></h1><br>
+          <p class="text-xs font-mono text-slate-400 mb-4">Final Score: <span id="snake-final-score" class="text-amber-300 font-bold">0</span></p>
+          <button
+            id="btnTryAgain"
+            type="button"
+            class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 font-bold text-sm transition cursor-pointer shadow-lg"
+          >Try again</button>
+        </div>
+      </div>
+
       <div class="absolute bottom-3 left-0 right-0 z-20 text-center pointer-events-none">
         <span class="px-3 py-1 rounded-full bg-slate-900/70 border border-white/10 text-[11px] text-slate-400 font-semibold shadow">Swipe anywhere on screen to steer</span>
       </div>
@@ -18,14 +30,21 @@ window.initCyberSnakePreserved = function initCyberSnakePreserved(stage) {
 
   const canvas = document.getElementById('snake-canvas');
   const ctx = canvas.getContext('2d');
+  const deathModal = document.getElementById('snake-death-modal');
+  const finalScoreEl = document.getElementById('snake-final-score');
+  const btnTryAgain = document.getElementById('btnTryAgain');
 
-  let w = canvas.width = stage.clientWidth;
-  let h = canvas.height = stage.clientHeight;
   const grid = 20;
+  // Time-based step interval (ms) for consistent speed in fullscreen & high-Hz displays
+  const STEP_INTERVAL = 115;
 
-  let count = 0;
+  let w = (canvas.width = Math.max(grid, stage.clientWidth));
+  let h = (canvas.height = Math.max(grid, stage.clientHeight));
+
   let score = 0;
   let running = true;
+  let lastTimestamp = null;
+  let elapsedMs = 0;
 
   let snake = {
     x: Math.floor((w / 2) / grid) * grid,
@@ -38,21 +57,64 @@ window.initCyberSnakePreserved = function initCyberSnakePreserved(stage) {
     maxLen: 5
   };
 
-  let apple = {
-    x: Math.floor(Math.random() * Math.floor(w / grid)) * grid,
-    y: Math.floor(Math.random() * Math.floor(h / grid)) * grid
-  };
+  let apple = { x: grid * 2, y: grid * 2 };
+
+  function updateScoreDisplay(val) {
+    const scoreEl = document.getElementById('snake-score');
+    if (scoreEl) scoreEl.textContent = val;
+  }
 
   function spawnApple() {
-    apple.x = Math.floor(Math.random() * Math.floor(w / grid)) * grid;
-    apple.y = Math.floor(Math.random() * Math.floor(h / grid)) * grid;
+    const cols = Math.max(1, Math.floor(w / grid));
+    const rows = Math.max(1, Math.floor(h / grid));
+
+    let candidateX = Math.floor(Math.random() * cols) * grid;
+    let candidateY = Math.floor(Math.random() * rows) * grid;
+    let attempts = 0;
+
+    while (
+      attempts < 100 &&
+      snake.cells.some((cell) => cell.x === candidateX && cell.y === candidateY)
+    ) {
+      candidateX = Math.floor(Math.random() * cols) * grid;
+      candidateY = Math.floor(Math.random() * rows) * grid;
+      attempts++;
+    }
+
+    apple.x = candidateX;
+    apple.y = candidateY;
+  }
+
+  function hideDeathModal() {
+    if (deathModal) deathModal.classList.add('hidden');
+  }
+
+  function showDeathModal() {
+    if (finalScoreEl) finalScoreEl.textContent = score;
+    if (deathModal) deathModal.classList.remove('hidden');
+  }
+
+  function handleSnakeDeath() {
+    if (!active || !running) return;
+    running = false;
+    elapsedMs = 0;
+    lastTimestamp = null;
+
+    if (typeof AudioFX !== 'undefined' && AudioFX.lose) AudioFX.lose();
+    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+    window.ArcadeHero?.awardGameScore?.('snake', score);
+    showDeathModal();
   }
 
   function resetSnake() {
     if (!active) return;
+    hideDeathModal();
     score = 0;
-    const scoreEl = document.getElementById('snake-score');
-    if (scoreEl) scoreEl.textContent = score;
+    updateScoreDisplay(score);
+
+    w = canvas.width = Math.max(grid, stage.clientWidth);
+    h = canvas.height = Math.max(grid, stage.clientHeight);
+
     snake.x = Math.floor((w / 2) / grid) * grid;
     snake.y = Math.floor((h / 2) / grid) * grid;
     snake.dx = grid;
@@ -61,25 +123,33 @@ window.initCyberSnakePreserved = function initCyberSnakePreserved(stage) {
     snake.nextDy = 0;
     snake.cells = [];
     snake.maxLen = 5;
+
     spawnApple();
+    elapsedMs = 0;
+    lastTimestamp = null;
     running = true;
   }
 
+  const onTryAgainClick = () => {
+    resetSnake();
+  };
+  btnTryAgain?.addEventListener('click', onTryAgainClick);
+
   const onResize = () => {
     if (!active) return;
-    w = canvas.width = stage.clientWidth;
-    h = canvas.height = stage.clientHeight;
+    w = canvas.width = Math.max(grid, stage.clientWidth);
+    h = canvas.height = Math.max(grid, stage.clientHeight);
+
+    // Keep apple inside bounds after resizing (e.g. entering/exiting fullscreen)
+    const maxX = Math.max(0, (Math.floor(w / grid) - 1) * grid);
+    const maxY = Math.max(0, (Math.floor(h / grid) - 1) * grid);
+    if (apple.x > maxX || apple.y > maxY) {
+      spawnApple();
+    }
   };
   window.addEventListener('resize', onResize);
 
-  let animId;
-  function loop() {
-    if (!active) return;
-    animId = requestAnimationFrame(loop);
-    if (!running) return;
-    if (++count < 6) return;
-    count = 0;
-
+  function stepGame() {
     snake.dx = snake.nextDx;
     snake.dy = snake.nextDy;
 
@@ -88,21 +158,32 @@ window.initCyberSnakePreserved = function initCyberSnakePreserved(stage) {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
     ctx.lineWidth = 1;
     for (let x = 0; x < canvas.width; x += grid) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
     }
     for (let y = 0; y < canvas.height; y += grid) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
     }
 
     snake.x += snake.dx;
     snake.y += snake.dy;
 
     if (snake.x < 0 || snake.x >= canvas.width || snake.y < 0 || snake.y >= canvas.height) {
-      AudioFX.lose();
-      if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
-      window.ArcadeHero?.awardGameScore('snake', score);
-      resetSnake();
+      handleSnakeDeath();
       return;
+    }
+
+    // Self-collision check against existing body cells
+    for (let i = 0; i < snake.cells.length; i++) {
+      if (snake.x === snake.cells[i].x && snake.y === snake.cells[i].y) {
+        handleSnakeDeath();
+        return;
+      }
     }
 
     snake.cells.unshift({ x: snake.x, y: snake.y });
@@ -125,10 +206,9 @@ window.initCyberSnakePreserved = function initCyberSnakePreserved(stage) {
     if (snake.x === apple.x && snake.y === apple.y) {
       snake.maxLen++;
       score += 10;
-      const scoreEl = document.getElementById('snake-score');
-      if (scoreEl) scoreEl.textContent = score;
-      addXP(15, apple.x, apple.y, '+15 XP');
-      AudioFX.coin();
+      updateScoreDisplay(score);
+      if (typeof addXP === 'function') addXP(15, apple.x, apple.y, '+15 XP');
+      if (typeof AudioFX !== 'undefined' && AudioFX.coin) AudioFX.coin();
       spawnApple();
     }
 
@@ -170,16 +250,31 @@ window.initCyberSnakePreserved = function initCyberSnakePreserved(stage) {
         ctx.fill();
       }
       ctx.restore();
-
-      for (let i = index + 1; i < snake.cells.length; i++) {
-        if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
-          AudioFX.lose();
-          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-          window.ArcadeHero?.awardGameScore('snake', score);
-          resetSnake();
-        }
-      }
     });
+  }
+
+  let animId;
+  function loop(timestamp) {
+    if (!active) return;
+    animId = requestAnimationFrame(loop);
+
+    if (!running) {
+      lastTimestamp = timestamp;
+      return;
+    }
+
+    if (lastTimestamp === null) {
+      lastTimestamp = timestamp;
+    }
+
+    const delta = Math.min(timestamp - lastTimestamp, 250);
+    lastTimestamp = timestamp;
+    elapsedMs += delta;
+
+    while (elapsedMs >= STEP_INTERVAL && running) {
+      elapsedMs -= STEP_INTERVAL;
+      stepGame();
+    }
   }
 
   const setDir = (newDx, newDy) => {
@@ -191,6 +286,13 @@ window.initCyberSnakePreserved = function initCyberSnakePreserved(stage) {
 
   const handleKey = (e) => {
     if (!active) return;
+    if (!running && deathModal && !deathModal.classList.contains('hidden')) {
+      if (e.code === 'Enter' || e.code === 'Space') {
+        e.preventDefault();
+        resetSnake();
+        return;
+      }
+    }
     if (['ArrowUp', 'KeyW'].includes(e.code) && snake.dy === 0) setDir(0, -grid);
     else if (['ArrowDown', 'KeyS'].includes(e.code) && snake.dy === 0) setDir(0, grid);
     else if (['ArrowLeft', 'KeyA'].includes(e.code) && snake.dx === 0) setDir(-grid, 0);
@@ -201,14 +303,14 @@ window.initCyberSnakePreserved = function initCyberSnakePreserved(stage) {
   let touchStartX = 0, touchStartY = 0;
 
   const onTouchStart = (e) => {
-    if (!active) return;
+    if (!active || !running) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     e.preventDefault();
   };
 
   const onTouchEnd = (e) => {
-    if (!active) return;
+    if (!active || !running) return;
     if (!touchStartX || !touchStartY) return;
     const diffX = e.changedTouches[0].clientX - touchStartX;
     const diffY = e.changedTouches[0].clientY - touchStartY;
@@ -219,18 +321,21 @@ window.initCyberSnakePreserved = function initCyberSnakePreserved(stage) {
       if (diffY > 0) setDir(0, grid);
       else setDir(0, -grid);
     }
-    touchStartX = 0; touchStartY = 0;
+    touchStartX = 0;
+    touchStartY = 0;
     e.preventDefault();
   };
 
   canvas.addEventListener('touchstart', onTouchStart, { passive: false });
   canvas.addEventListener('touchend', onTouchEnd, { passive: false });
 
+  spawnApple();
   animId = requestAnimationFrame(loop);
 
   return () => {
     active = false;
     running = false;
+    btnTryAgain?.removeEventListener('click', onTryAgainClick);
     window.removeEventListener('keydown', handleKey);
     window.removeEventListener('resize', onResize);
     canvas.removeEventListener('touchstart', onTouchStart);
