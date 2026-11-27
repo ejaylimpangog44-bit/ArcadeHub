@@ -219,9 +219,15 @@
     clearTimeout(state.aiTimer);
     const currentName = document.getElementById('p1-name')?.textContent || getSavedPlayerName();
     persistPlayerName(currentName);
+    const wasFullscreen = isFullscreenActive();
     try {
       sessionStorage.setItem('arcade_hub_skip_power', '1');
       sessionStorage.setItem('arcade_hub_target_lobby', '1');
+      if (wasFullscreen) {
+        sessionStorage.setItem('arcade_hub_keep_fullscreen', '1');
+      } else {
+        sessionStorage.removeItem('arcade_hub_keep_fullscreen');
+      }
     } catch (_) {}
     haptic(10);
     window.location.replace('./index.html?hub=true');
