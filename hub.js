@@ -311,8 +311,6 @@ const GAME_ID_ALIASES = {
   'brick-breaker': 'brickbreaker',
   'stickrun': 'stickrun',
   'stick-run': 'stickrun',
-  'skyline-hustle': 'skyline-hustle',
-  'skylinehustle': 'skyline-hustle',
   'flickpoint': 'flickpoint',
   'mythic': 'mythic'
 };
@@ -602,8 +600,10 @@ function toggleBGM() {
   const bgm = document.getElementById('bgm-audio');
   if (bgm) {
     if (bgmEnabled) {
+      delete bgm.dataset.wasPlaying;
       bgm.play().catch(() => {});
     } else {
+      delete bgm.dataset.wasPlaying;
       bgm.pause();
     }
   }
@@ -701,7 +701,10 @@ function renderHubQrCode(targetUrl = activeShareUrl) {
         correctLevel: QRCode.CorrectLevel.H
       });
     } else {
-      container.innerHTML = `<div class="p-3 text-xs font-mono text-slate-900">${targetUrl}</div>`;
+      const fallback = document.createElement('div');
+      fallback.className = 'p-3 text-xs font-mono text-slate-900 break-all';
+      fallback.textContent = targetUrl;
+      container.appendChild(fallback);
     }
   }
 }
@@ -738,7 +741,6 @@ const GAME_GUIDES = {
   carracing: 'Steer across highway lanes at high speed to overtake traffic and dodge road obstacles.',
   brickbreaker: 'Deflect the ball off your paddle to smash all bricks while keeping the ball from falling below.',
   stickrun: 'Time jumps and runs cleanly across platforms and rooftops without falling into gaps.',
-  'skyline-hustle': 'Upgrade loft rooms, balance power load against capacity, restock team mood, and hit cash and level milestones.',
   flickpoint: 'Aim and flick quickly onto targets before time out to maximize accuracy and score.',
   mythic: 'Survive incoming enemy waves, gather XP gems, and pick upgrades to stay alive as long as possible.'
 };
@@ -763,11 +765,21 @@ function renderSelectedGameInstruction() {
   if (!select || !body) return;
   const game = GAMES.find((g) => g.id === select.value) || GAMES[0];
   const guideText = GAME_GUIDES[game.id] || `Play ${game.name} in ${game.envName} and aim for a high score.`;
+
   body.innerHTML = `
-    <div class="font-extrabold text-white text-sm mb-1">${game.icon} ${game.name} <span class="text-[11px] font-mono text-pink-400">(${game.mode || 'PORTRAIT'})</span></div>
-    <div class="text-[11px] text-slate-400 mb-2">${game.envName} • ${game.cat}</div>
-    <p class="text-xs text-slate-200 leading-relaxed">${guideText}</p>
+    <div class="font-extrabold text-white text-sm mb-1" data-role="inst-title"></div>
+    <div class="text-[11px] text-slate-400 mb-2" data-role="inst-meta"></div>
+    <p class="text-xs text-slate-200 leading-relaxed" data-role="inst-body"></p>
   `;
+  const titleEl = body.querySelector('[data-role="inst-title"]');
+  const metaEl = body.querySelector('[data-role="inst-meta"]');
+  const descEl = body.querySelector('[data-role="inst-body"]');
+  if (titleEl) {
+    titleEl.innerHTML = `${game.icon} <span></span> <span class="text-[11px] font-mono text-pink-400">(${game.mode || 'PORTRAIT'})</span>`;
+    titleEl.querySelector('span').textContent = game.name;
+  }
+  if (metaEl) metaEl.textContent = `${game.envName} • ${game.cat}`;
+  if (descEl) descEl.textContent = guideText;
 }
 
 function openInstructionsModal() {
@@ -854,8 +866,11 @@ function handleBgmVisibilityChange(shouldPause) {
       bgm.pause();
     }
   } else if (bgm.dataset.wasPlaying === 'true' && bgmEnabled) {
-    bgm.play().catch(() => {});
-    delete bgm.dataset.wasPlaying;
+    bgm.play()
+      .then(() => {
+        delete bgm.dataset.wasPlaying;
+      })
+      .catch(() => {});
   }
 }
 
@@ -945,20 +960,8 @@ const GAMES = [
   { id: 'brickbreaker', num: 16, name: 'Brick Breaker', cat: 'Racing', mode: 'PORTRAIT', featured: false, icon: '🧱', envName: 'Cosmic Synthwave Core', bg: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #03050a 100%)', theme: 'cosmic_core' },
   { id: 'stickrun', num: 17, name: 'Stick Run', cat: 'Runner', mode: 'PORTRAIT', featured: false, icon: '🏃', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' },
   {
-    id: 'skyline-hustle',
-    num: 18,
-    name: 'Skyline Hustle',
-    cat: 'Strategy',
-    mode: 'PORTRAIT',
-    featured: true,
-    icon: '🏙️',
-    envName: 'High-Rise Loft & Power Grid',
-    bg: 'radial-gradient(circle at 50% 25%, #1e293b 0%, #0f172a 65%, #020617 100%)',
-    theme: 'skyline_climb'
-  },
-  {
     id: 'flickpoint',
-    num: 19,
+    num: 18,
     name: 'FlickPoint',
     cat: 'Action',
     mode: 'LANDSCAPE',
@@ -970,7 +973,7 @@ const GAMES = [
   },
   {
     id: 'mythic',
-    num: 20,
+    num: 19,
     name: 'Mythic Survivors',
     cat: 'Survival / Action',
     mode: 'LANDSCAPE',
@@ -983,18 +986,33 @@ const GAMES = [
 ];
 window.GAMES = GAMES;
 
+const VALID_GAME_IDS = new Set(GAMES.map(g => g.id));
 const HUB_STORAGE_KEY = 'arcade_hub_discovery_v1';
 let hubMetaState = {
-  recentIds: ['mythic', 'flickpoint', 'skyline-hustle', 'solitaire'],
+  recentIds: ['mythic', 'flickpoint', 'solitaire'],
   playCounts: {}
 };
 let discoveryFilter = 'all';
 let discoverySearch = '';
 let spotlightIdx = 0;
 let previewGameMeta = null;
+let activeShelfObservers = [];
+
+function disconnectShelfObservers() {
+  activeShelfObservers.forEach((ro) => {
+    try { ro.disconnect(); } catch (_) {}
+  });
+  activeShelfObservers = [];
+}
 
 function loadHubMetaState() {
-  hubMetaState = { ...hubMetaState, ...readStorageJson(HUB_STORAGE_KEY, {}) };
+  const loaded = { ...hubMetaState, ...readStorageJson(HUB_STORAGE_KEY, {}) };
+  const rawRecent = Array.isArray(loaded.recentIds) ? loaded.recentIds : [];
+  hubMetaState.recentIds = rawRecent
+    .map(id => normalizeGameId(id))
+    .filter((id, idx, arr) => VALID_GAME_IDS.has(id) && arr.indexOf(id) === idx)
+    .slice(0, 8);
+  hubMetaState.playCounts = loaded.playCounts && typeof loaded.playCounts === 'object' ? loaded.playCounts : {};
 }
 
 function saveHubMetaState() {
@@ -1002,11 +1020,13 @@ function saveHubMetaState() {
 }
 
 function recordGamePlay(gameId) {
+  const canon = normalizeGameId(gameId);
+  if (!VALID_GAME_IDS.has(canon)) return;
   hubMetaState.recentIds = [
-    gameId,
-    ...hubMetaState.recentIds.filter(id => id !== gameId)
+    canon,
+    ...hubMetaState.recentIds.filter(id => id !== canon)
   ].slice(0, 8);
-  hubMetaState.playCounts[gameId] = (hubMetaState.playCounts[gameId] || 0) + 1;
+  hubMetaState.playCounts[canon] = (hubMetaState.playCounts[canon] || 0) + 1;
   saveHubMetaState();
 }
 
@@ -1496,6 +1516,7 @@ window.closeGamePreviewModal = closeGamePreviewModal;
 
 function surpriseMeGame() {
   AudioFX.click();
+  if (!GAMES.length) return;
   const pick = GAMES[Math.floor(Math.random() * GAMES.length)];
   if (pick) openGamePreviewModal(pick.id);
 }
@@ -1513,7 +1534,8 @@ window.cycleSpotlight = cycleSpotlight;
 function updateSpotlightBanner() {
   const featured = GAMES.filter(g => g.featured);
   if (!featured.length) return;
-  const game = featured[spotlightIdx % featured.length];
+  spotlightIdx = spotlightIdx % featured.length;
+  const game = featured[spotlightIdx];
 
   const backdrop = document.getElementById('discovery-hero-bg');
   const titleEl = document.getElementById('discovery-hero-title');
@@ -1553,8 +1575,8 @@ function buildDiscoveryCard(game) {
     </div>
     <div class="p-3 flex-1 flex flex-col justify-between gap-2">
       <div>
-        <div class="font-extrabold text-sm text-white leading-tight truncate">${game.name}</div>
-        <div class="text-[11px] text-slate-400 line-clamp-1 mt-0.5">${game.envName}</div>
+        <div class="font-extrabold text-sm text-white leading-tight truncate" data-role="card-title"></div>
+        <div class="text-[11px] text-slate-400 line-clamp-1 mt-0.5" data-role="card-sub"></div>
       </div>
       <div class="flex items-center justify-between pt-1.5 border-t border-white/10 text-[10px] font-bold text-slate-400">
         <span>${game.mode || 'PORTRAIT'}${plays > 0 ? ` • ${plays}x` : ''}</span>
@@ -1562,6 +1584,10 @@ function buildDiscoveryCard(game) {
       </div>
     </div>
   `;
+  const titleNode = btn.querySelector('[data-role="card-title"]');
+  const subNode = btn.querySelector('[data-role="card-sub"]');
+  if (titleNode) titleNode.textContent = game.name;
+  if (subNode) subNode.textContent = game.envName;
   return btn;
 }
 
@@ -1573,14 +1599,16 @@ function buildDiscoveryShelf(title, list) {
   header.className = 'flex items-center justify-between';
   header.innerHTML = `
     <div class="flex items-baseline gap-2">
-      <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">${title}</h2>
+      <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight" data-role="shelf-title"></h2>
       <span class="text-xs font-semibold text-slate-400">${list.length}</span>
     </div>
     <div class="flex items-center gap-1.5">
-      <button type="button" class="shelf-nav-btn shelf-left w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold flex items-center justify-center transition active:scale-95" aria-label="Scroll ${title} left">‹</button>
-      <button type="button" class="shelf-nav-btn shelf-right w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold flex items-center justify-center transition active:scale-95" aria-label="Scroll ${title} right">›</button>
+      <button type="button" class="shelf-nav-btn shelf-left w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold flex items-center justify-center transition active:scale-95">‹</button>
+      <button type="button" class="shelf-nav-btn shelf-right w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold flex items-center justify-center transition active:scale-95">›</button>
     </div>
   `;
+  const shelfTitleEl = header.querySelector('[data-role="shelf-title"]');
+  if (shelfTitleEl) shelfTitleEl.textContent = title;
 
   const trackWrap = document.createElement('div');
   trackWrap.className = 'shelf-track-wrap';
@@ -1595,6 +1623,8 @@ function buildDiscoveryShelf(title, list) {
 
   const leftBtn = header.querySelector('.shelf-left');
   const rightBtn = header.querySelector('.shelf-right');
+  if (leftBtn) leftBtn.setAttribute('aria-label', `Scroll ${title} left`);
+  if (rightBtn) rightBtn.setAttribute('aria-label', `Scroll ${title} right`);
 
   const syncShelfControls = () => {
     const maxScroll = track.scrollWidth - track.clientWidth;
@@ -1635,6 +1665,7 @@ function buildDiscoveryShelf(title, list) {
   if (typeof ResizeObserver !== 'undefined') {
     const ro = new ResizeObserver(syncShelfControls);
     ro.observe(track);
+    activeShelfObservers.push(ro);
   }
 
   requestAnimationFrame(syncShelfControls);
@@ -1652,6 +1683,7 @@ function renderDiscoveryShelves() {
   const heroEl = document.getElementById('discovery-hero');
   if (!shelvesEl) return;
 
+  disconnectShelfObservers();
   shelvesEl.innerHTML = '';
   const isFiltering = discoveryFilter !== 'all' || discoverySearch.trim() !== '';
   if (heroEl) heroEl.classList.toggle('hidden', isFiltering);
@@ -1663,7 +1695,8 @@ function renderDiscoveryShelves() {
       g.name.toLowerCase().includes(q) ||
       g.envName.toLowerCase().includes(q) ||
       g.cat.toLowerCase().includes(q) ||
-      formatGameNum(g.num).includes(q);
+      formatGameNum(g.num).toLowerCase().includes(q) ||
+      String(g.num).includes(q);
     if (!textMatch) return false;
     if (discoveryFilter === 'all') return true;
     if (discoveryFilter === 'portrait' || discoveryFilter === 'landscape') {
@@ -1873,8 +1906,7 @@ function getGameRunners() {
     towerstack: window.initTowerStack,
     carracing: window.initCarRacing,
     brickbreaker: window.initBrickBreaker,
-    stickrun: window.initStickRun,
-    'skyline-hustle': window.initSkylineHustle
+    stickrun: window.initStickRun
   };
 }
 
@@ -1923,11 +1955,13 @@ function launchGame(id) {
     stage.innerHTML = `
       <div class="w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center">
         <div class="text-4xl">${meta.icon}</div>
-        <div class="text-lg font-black text-white">${meta.name} script not loaded yet</div>
+        <div class="text-lg font-black text-white" data-role="missing-title"></div>
         <p class="text-xs text-slate-400">Make sure its script tag is included in index.html before hub.js.</p>
         <button type="button" onclick="openHubHome()" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs">Back to Hub</button>
       </div>
     `;
+    const missingTitle = stage.querySelector('[data-role="missing-title"]');
+    if (missingTitle) missingTitle.textContent = `${meta.name} script not loaded yet`;
   }
 }
 window.launchGame = launchGame;
