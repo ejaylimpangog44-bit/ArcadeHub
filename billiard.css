@@ -27,9 +27,11 @@ html, body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Rotate to Landscape Overlay */
+/* Rotate to Landscape Overlay (controlled by data-is-landscape) */
 #portrait-gate {
-  display: none;
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -44,13 +46,24 @@ html, body {
   gap: 14px;
 }
 
-@media (orientation: portrait) {
-  #portrait-gate {
-    display: flex;
-  }
-  #app {
-    display: none !important;
-  }
+#app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  gap: 10px;
+}
+
+html[data-is-landscape="false"] #portrait-gate {
+  display: flex !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+html[data-is-landscape="false"] #app {
+  display: none !important;
 }
 
 .rotate-badge {
@@ -97,17 +110,6 @@ html, body {
   color: var(--muted);
   max-width: 300px;
   line-height: 1.55;
-}
-
-/* Main Landscape App */
-#app {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: max(10px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
-  gap: 10px;
 }
 
 #top-hud {
@@ -249,7 +251,6 @@ html, body {
   background: rgba(255, 255, 255, 0.16);
 }
 
-/* Arena & Side Rails Spacing */
 #arena {
   flex: 1;
   min-height: 0;
@@ -510,7 +511,6 @@ canvas#pool-canvas {
   display: none;
 }
 
-/* Modals */
 .modal-backdrop {
   position: fixed;
   inset: 0;
