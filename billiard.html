@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ArcadeHub — Billiard Pool</title>
+  <link rel="stylesheet" href="billiard.css" />
+</head>
+<body>
+
+<div id="portrait-gate" role="dialog" aria-modal="true" aria-label="Rotate Device to Landscape">
+  <div class="rotate-icon">📱</div>
+  <h2>Rotate to Landscape</h2>
+  <p>Billiard Pool is a precision landscape table game. Please turn your device horizontally to play.</p>
+</div>
+
+<div id="app">
+  <header id="top-hud">
+    <div class="hud-left">
+      <a href="index.html" id="btn-back-hub" class="icon-btn" title="Back to Arcade Hub" aria-label="Back to Arcade Hub">← Hub</a>
+      <div class="player-badge p1 active" id="badge-p1">
+        <span class="p-dot" style="background: var(--accent)"></span>
+        <span id="p1-name">P1</span>
+        <span class="group-tag" id="p1-group">OPEN</span>
+      </div>
+      <div class="mode-pill" id="hud-mode-label">8-BALL • VS AI</div>
+      <div class="player-badge p2" id="badge-p2">
+        <span class="p-dot" style="background: #60a5fa"></span>
+        <span id="p2-name">AI BOT</span>
+        <span class="group-tag" id="p2-group">OPEN</span>
+      </div>
+    </div>
+
+    <div class="timer-box" id="timer-box">
+      <span>⏱</span>
+      <span id="timer-text">01:30</span>
+    </div>
+
+    <div class="hud-right">
+      <div class="rack-tray" id="rack-tray" title="Remaining Target Balls"></div>
+      <button type="button" class="icon-btn" id="btn-new-match" title="New Match">↻ New</button>
+      <button type="button" class="icon-btn" id="btn-settings" title="Aim & Game Settings">⚙ Settings</button>
+    </div>
+  </header>
+
+  <main id="arena">
+    <aside class="side-panel" id="left-panel">
+      <div class="panel-card">
+        <div class="panel-title">Cue Spin</div>
+        <div class="spin-pad" id="spin-pad" title="Click or drag to apply English / Top / Back spin">
+          <div class="spin-cross-h"></div>
+          <div class="spin-cross-v"></div>
+          <div class="spin-dot" id="spin-dot"></div>
+        </div>
+        <div class="spin-readout" id="spin-readout">CENTER</div>
+        <button type="button" class="mini-btn" id="btn-reset-spin">Reset Spin</button>
+      </div>
+
+      <div class="panel-card">
+        <div class="panel-title">Fine Aim</div>
+        <div class="aim-wheel" id="aim-wheel" title="Slide vertically for precision micro-aiming">
+          <div class="aim-ticks"></div>
+        </div>
+        <div class="aim-nudge-row">
+          <button type="button" class="nudge-btn" id="btn-aim-ccw" title="Nudge Counter-Clockwise">−</button>
+          <button type="button" class="nudge-btn" id="btn-aim-cw" title="Nudge Clockwise">+</button>
+        </div>
+      </div>
+    </aside>
+
+    <section id="table-wrap">
+      <canvas id="pool-canvas"></canvas>
+      <div id="status-banner">BREAK SHOT — DRAG TAKO TO SHOOT</div>
+      <div id="ball-in-hand-hint">BALL IN HAND — DRAG CUE BALL TO PLACE</div>
+    </section>
+
+    <aside class="side-panel" id="right-panel">
+      <div class="panel-card" style="flex:1; justify-content: space-between;">
+        <div class="panel-title">Tako Pull</div>
+        <div class="power-rail" id="power-rail" title="Pull down and release to strike with the Tako">
+          <div class="power-fill" id="power-fill"></div>
+          <div class="power-tako-grip" id="power-grip"></div>
+        </div>
+        <div class="power-pct" id="power-pct">0%</div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="setup-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2>🎱 Billiard Pool</h2>
+      <a href="index.html" class="modal-hub-link">← Arcade Hub</a>
+    </div>
+    <p class="modal-sub">Pull back the Tako directly on the table or use the Tako pull rail. No hit button — pure touch &amp; drag stroke!</p>
+
+    <div class="option-group">
+      <label>Game Mode</label>
+      <div class="seg-row" id="opt-mode">
+        <button type="button" class="seg-btn active" data-val="8ball">8-Ball Pool</button>
+        <button type="button" class="seg-btn" data-val="9ball">9-Ball Pool</button>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <label>Opponent</label>
+      <div class="seg-row" id="opt-opponent">
+        <button type="button" class="seg-btn active" data-val="ai">VS AI Bot</button>
+        <button type="button" class="seg-btn" data-val="pvp">2P Local PVP</button>
+      </div>
+    </div>
+
+    <div class="option-group" id="ai-diff-group">
+      <label>AI Difficulty</label>
+      <div class="seg-row" id="opt-diff">
+        <button type="button" class="seg-btn" data-val="easy">Casual</button>
+        <button type="button" class="seg-btn active" data-val="medium">Pro</button>
+        <button type="button" class="seg-btn" data-val="hard">Master</button>
+      </div>
+    </div>
+
+    <button type="button" class="primary-btn" id="btn-start-match">Start Match (01:30 Turn Clock)</button>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="settings-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2>⚙ Aim &amp; Table Settings</h2>
+      <button type="button" class="close-x" id="btn-close-settings">✕</button>
+    </div>
+    <p class="modal-sub">Tune your aiming control speed so lining up bank shots and cut angles feels effortless.</p>
+
+    <div class="option-group">
+      <div class="slider-row">
+        <span>Aim Rotation Sensitivity</span>
+        <strong id="sens-val">0.45×</strong>
+      </div>
+      <input type="range" id="slider-sens" min="0.10" max="1.20" step="0.05" value="0.45" />
+    </div>
+
+    <div class="option-group">
+      <div class="slider-row">
+        <span>Fine-Aim Wheel Speed</span>
+        <strong id="fine-val">0.20×</strong>
+      </div>
+      <input type="range" id="slider-fine" min="0.05" max="0.60" step="0.05" value="0.20" />
+    </div>
+
+    <div class="option-group">
+      <label>Trajectory Guide</label>
+      <div class="seg-row" id="opt-guide">
+        <button type="button" class="seg-btn active" data-val="full">Full + Deflection</button>
+        <button type="button" class="seg-btn" data-val="short">Short Line</button>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <label>Sound Effects &amp; Haptics</label>
+      <div class="seg-row" id="opt-sfx">
+        <button type="button" class="seg-btn active" data-val="on">Enabled</button>
+        <button type="button" class="seg-btn" data-val="off">Muted</button>
+      </div>
+    </div>
+
+    <button type="button" class="primary-btn" id="btn-save-settings">Apply Settings</button>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="gameover-modal">
+  <div class="modal-card" style="text-align:center;">
+    <h2 id="winner-title" style="justify-content:center; font-size:22px;">🏆 Player 1 Wins!</h2>
+    <p class="modal-sub" id="winner-reason" style="margin-top:6px;">8-Ball pocketed cleanly.</p>
+    <div class="gameover-actions">
+      <button type="button" class="primary-btn" id="btn-rematch">Play Again</button>
+      <a href="index.html" class="secondary-hub-btn">Back to Hub</a>
+    </div>
+  </div>
+</div>
+
+<script src="billiard.js"></script>
+</body>
+</html>

@@ -1,0 +1,1289 @@
+(() => {
+  const canvas = document.getElementById('pool-canvas');
+  const ctx = canvas.getContext('2d');
+
+  const BALL_COLORS = {
+    0: '#f8fafc',
+    1: '#facc15',
+    2: '#2563eb',
+    3: '#dc2626',
+    4: '#7c3aed',
+    5: '#f97316',
+    6: '#16a34a',
+    7: '#991b1b',
+    8: '#111827',
+    9: '#facc15',
+    10: '#2563eb',
+    11: '#dc2626',
+    12: '#7c3aed',
+    13: '#f97316',
+    14: '#16a34a',
+    15: '#991b1b'
+  };
+
+  const state = {
+    mode: '8ball',
+    opponent: 'ai',
+    aiDiff: 'medium',
+    aimSensitivity: 0.45,
+    fineAimSpeed: 0.20,
+    guideMode: 'full',
+    sfx: true,
+
+    phase: 'MENU',
+    turn: 1,
+    groups: { 1: null, 2: null },
+    timerSeconds: 90,
+    timerInterval: null,
+
+    aimAngle: 0,
+    takoPull: 0,
+    spin: { x: 0, y: 0 },
+
+    balls: [],
+    pocketedThisShot: [],
+    firstHitBall: null,
+    railHitAfterContact: false,
+    shotWasBreak: false,
+
+    dragMode: null,
+    lastPointer: { x: 0, y: 0 },
+    aiTimer: null
+  };
+
+  let W = 800, H = 400;
+  let rail = 32;
+  let playX = 32, playY = 32, playW = 736, playH = 336;
+  let ballR = 11;
+  let pocketR = 20;
+  let pockets = [];
+
+  let audioCtx = null;
+  function playTone(freq, type, dur, vol) {
+    if (!state.sfx) return;
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq * 0.35), audioCtx.currentTime + dur);
+      gain.gain.setValueAtTime(vol || 0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + dur);
+    } catch (e) {}
+  }
+
+  function haptic(ms) {
+    if (state.sfx && navigator.vibrate) {
+      try { navigator.vibrate(ms); } catch (e) {}
+    }
+  }
+
+  function resizeTable() {
+    const wrap = document.getElementById('table-wrap');
+    const rect = wrap.getBoundingClientRect();
+    if (rect.width < 100 || rect.height < 100) return;
+
+    const targetRatio = 2.0;
+    let cw = rect.width - 8;
+    let ch = cw / targetRatio;
+    if (ch > rect.height - 8) {
+      ch = rect.height - 8;
+      cw = ch * targetRatio;
+    }
+
+    const oldPlayX = playX, oldPlayY = playY, oldPlayW = playW, oldPlayH = playH;
+
+    W = Math.floor(cw);
+    H = Math.floor(ch);
+    canvas.width = W;
+    canvas.height = H;
+
+    rail = Math.max(22, Math.round(H * 0.088));
+    playX = rail;
+    playY = rail;
+    playW = W - rail * 2;
+    playH = H - rail * 2;
+    ballR = Math.max(8, Math.round(playH * 0.0335));
+    pocketR = Math.round(ballR * 1.82);
+
+    pockets = [
+      { x: playX + 2, y: playY + 2 },
+      { x: playX + playW / 2, y: playY - 2 },
+      { x: playX + playW - 2, y: playY + 2 },
+      { x: playX + 2, y: playY + playH - 2 },
+      { x: playX + playW / 2, y: playY + playH + 2 },
+      { x: playX + playW - 2, y: playY + playH - 2 }
+    ];
+
+    if (state.balls.length > 0 && oldPlayW > 0 && oldPlayH > 0) {
+      state.balls.forEach(b => {
+        const nx = (b.x - oldPlayX) / oldPlayW;
+        const ny = (b.y - oldPlayY) / oldPlayH;
+        b.x = playX + nx * playW;
+        b.y = playY + ny * playH;
+      });
+    }
+  }
+
+  window.addEventListener('resize', resizeTable);
+
+  function setBanner(msg) {
+    document.getElementById('status-banner').textContent = msg;
+  }
+
+  function syncPlayerNameFromHub() {
+    try {
+      const savedName = localStorage.getItem('arcade_hub_player_name') || localStorage.getItem('playerName');
+      if (savedName && savedName.trim()) {
+        document.getElementById('p1-name').textContent = savedName.trim().slice(0, 12);
+      }
+    } catch (e) {}
+  }
+
+  function updateHUD() {
+    const b1 = document.getElementById('badge-p1');
+    const b2 = document.getElementById('badge-p2');
+    b1.classList.toggle('active', state.turn === 1);
+    b2.classList.toggle('active', state.turn === 2);
+
+    document.getElementById('p2-name').textContent = state.opponent === 'ai' ? 'AI BOT' : 'P2';
+    document.getElementById('hud-mode-label').textContent =
+      (state.mode === '8ball' ? '8-BALL' : '9-BALL') + ' • ' + (state.opponent === 'ai' ? 'VS AI' : 'PVP');
+
+    const g1 = document.getElementById('p1-group');
+    const g2 = document.getElementById('p2-group');
+    if (state.mode === '9ball') {
+      const lowest = getLowestTargetNumber();
+      g1.textContent = lowest ? 'TARGET #' + lowest : 'DONE';
+      g2.textContent = lowest ? 'TARGET #' + lowest : 'DONE';
+    } else {
+      g1.textContent = state.groups[1] ? state.groups[1].toUpperCase() : 'OPEN';
+      g2.textContent = state.groups[2] ? state.groups[2].toUpperCase() : 'OPEN';
+    }
+
+    const tray = document.getElementById('rack-tray');
+    tray.innerHTML = '';
+    const maxBall = state.mode === '8ball' ? 15 : 9;
+    for (let n = 1; n <= maxBall; n++) {
+      const b = state.balls.find(item => item.num === n);
+      const div = document.createElement('div');
+      div.className = 'mini-ball' + (!b || b.pocketed ? ' pocketed' : '');
+      div.style.background = n > 8
+        ? `radial-gradient(circle, #fff 45%, ${BALL_COLORS[n]} 48%)`
+        : BALL_COLORS[n];
+      if (n === 8) div.style.color = '#fff';
+      div.textContent = n;
+      tray.appendChild(div);
+    }
+
+    document.getElementById('ball-in-hand-hint').style.display =
+      state.phase === 'BALL_IN_HAND' ? 'block' : 'none';
+  }
+
+  function startTurnTimer() {
+    clearInterval(state.timerInterval);
+    state.timerSeconds = 90;
+    renderTimer();
+    state.timerInterval = setInterval(() => {
+      if (state.phase === 'MENU' || state.phase === 'GAME_OVER' || state.phase === 'SHOOTING') return;
+      if (window.innerHeight > window.innerWidth) return;
+      state.timerSeconds--;
+      renderTimer();
+      if (state.timerSeconds <= 0) {
+        clearInterval(state.timerInterval);
+        handleTimeoutFoul();
+      }
+    }, 1000);
+  }
+
+  function renderTimer() {
+    const mins = Math.floor(Math.max(0, state.timerSeconds) / 60);
+    const secs = Math.max(0, state.timerSeconds) % 60;
+    document.getElementById('timer-text').textContent =
+      String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+    document.getElementById('timer-box').classList.toggle('warning', state.timerSeconds <= 15);
+  }
+
+  function handleTimeoutFoul() {
+    playTone(180, 'sawtooth', 0.35, 0.16);
+    haptic(60);
+    state.turn = state.turn === 1 ? 2 : 1;
+    state.phase = 'BALL_IN_HAND';
+    setBanner(`TIME OUT! FOUL — PLAYER ${state.turn} BALL IN HAND`);
+    updateHUD();
+    startTurnTimer();
+    maybeTriggerAI();
+  }
+
+  function setupRack() {
+    resizeTable();
+    state.balls = [];
+    state.groups = { 1: null, 2: null };
+    state.turn = 1;
+    state.spin = { x: 0, y: 0 };
+    updateSpinUI();
+    state.takoPull = 0;
+    updatePowerUI();
+
+    const cueX = playX + playW * 0.25;
+    const cueY = playY + playH * 0.5;
+    state.balls.push({ num: 0, x: cueX, y: cueY, vx: 0, vy: 0, pocketed: false });
+
+    const apexX = playX + playW * 0.72;
+    const apexY = playY + playH * 0.5;
+    const spacing = ballR * 2.04;
+    const rowDx = spacing * Math.cos(Math.PI / 6);
+
+    if (state.mode === '8ball') {
+      const order = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
+      let idx = 0;
+      for (let col = 0; col < 5; col++) {
+        const count = col + 1;
+        const startY = apexY - ((count - 1) * spacing) / 2;
+        for (let r = 0; r < count; r++) {
+          state.balls.push({
+            num: order[idx++],
+            x: apexX + col * rowDx,
+            y: startY + r * spacing,
+            vx: 0,
+            vy: 0,
+            pocketed: false
+          });
+        }
+      }
+    } else {
+      const diamondCols = [
+        [1],
+        [2, 3],
+        [4, 9, 5],
+        [6, 7],
+        [8]
+      ];
+      diamondCols.forEach((colNums, colIdx) => {
+        const startY = apexY - ((colNums.length - 1) * spacing) / 2;
+        colNums.forEach((num, rIdx) => {
+          state.balls.push({
+            num,
+            x: apexX + colIdx * rowDx,
+            y: startY + rIdx * spacing,
+            vx: 0,
+            vy: 0,
+            pocketed: false
+          });
+        });
+      });
+    }
+
+    state.aimAngle = 0;
+    state.phase = 'AIMING';
+    state.shotWasBreak = true;
+    setBanner('BREAK SHOT — PULL BACK TAKO TO STRIKE');
+    updateHUD();
+    startTurnTimer();
+  }
+
+  function getCueBall() {
+    return state.balls.find(b => b.num === 0);
+  }
+
+  function getLowestTargetNumber() {
+    let min = Infinity;
+    state.balls.forEach(b => {
+      if (!b.pocketed && b.num > 0 && b.num < min) min = b.num;
+    });
+    return min === Infinity ? null : min;
+  }
+
+  function isLegalTarget(ballNum) {
+    if (ballNum === 0) return false;
+    if (state.mode === '9ball') {
+      return ballNum === getLowestTargetNumber();
+    }
+    const myGroup = state.groups[state.turn];
+    if (!myGroup) return ballNum !== 8;
+    const remainingGroup = state.balls.some(b => !b.pocketed && (
+      myGroup === 'solids' ? (b.num >= 1 && b.num <= 7) : (b.num >= 9 && b.num <= 15)
+    ));
+    if (!remainingGroup) return ballNum === 8;
+    return myGroup === 'solids' ? (ballNum >= 1 && ballNum <= 7) : (ballNum >= 9 && ballNum <= 15);
+  }
+
+  function computeTrajectory() {
+    const cue = getCueBall();
+    if (!cue || cue.pocketed) return null;
+
+    const dx = Math.cos(state.aimAngle);
+    const dy = Math.sin(state.aimAngle);
+    let minDist = 2000;
+    let hitBall = null;
+    let hitWallNormal = null;
+
+    if (dx > 0.0001) {
+      const t = (playX + playW - ballR - cue.x) / dx;
+      if (t > 0 && t < minDist) { minDist = t; hitWallNormal = { x: -1, y: 0 }; }
+    } else if (dx < -0.0001) {
+      const t = (playX + ballR - cue.x) / dx;
+      if (t > 0 && t < minDist) { minDist = t; hitWallNormal = { x: 1, y: 0 }; }
+    }
+    if (dy > 0.0001) {
+      const t = (playY + playH - ballR - cue.y) / dy;
+      if (t > 0 && t < minDist) { minDist = t; hitWallNormal = { x: 0, y: -1 }; }
+    } else if (dy < -0.0001) {
+      const t = (playY + ballR - cue.y) / dy;
+      if (t > 0 && t < minDist) { minDist = t; hitWallNormal = { x: 0, y: 1 }; }
+    }
+
+    const rSum = ballR * 2;
+    state.balls.forEach(b => {
+      if (b.num === 0 || b.pocketed) return;
+      const ocX = cue.x - b.x;
+      const ocY = cue.y - b.y;
+      const proj = ocX * dx + ocY * dy;
+      if (proj > 0) return;
+      const perpSq = (ocX * ocX + ocY * ocY) - proj * proj;
+      if (perpSq < rSum * rSum) {
+        const thc = Math.sqrt(rSum * rSum - perpSq);
+        const t = -proj - thc;
+        if (t > 0 && t < minDist) {
+          minDist = t;
+          hitBall = b;
+          hitWallNormal = null;
+        }
+      }
+    });
+
+    const ghostX = cue.x + dx * minDist;
+    const ghostY = cue.y + dy * minDist;
+
+    let targetDir = null;
+    let cueDeflectDir = null;
+
+    if (hitBall) {
+      const nx = (hitBall.x - ghostX) / rSum;
+      const ny = (hitBall.y - ghostY) / rSum;
+      targetDir = { x: nx, y: ny };
+
+      const dot = dx * nx + dy * ny;
+      let tx = dx - dot * nx;
+      let ty = dy - dot * ny;
+      const tLen = Math.hypot(tx, ty);
+      if (tLen > 0.01) {
+        tx /= tLen;
+        ty /= tLen;
+        const followBias = -state.spin.y * 0.45;
+        const sideBias = state.spin.x * 0.25;
+        const perpX = -ty, perpY = tx;
+        let cdx = tx + nx * followBias + perpX * sideBias;
+        let cdy = ty + ny * followBias + perpY * sideBias;
+        const cLen = Math.hypot(cdx, cdy) || 1;
+        cueDeflectDir = { x: cdx / cLen, y: cdy / cLen };
+      }
+    } else if (hitWallNormal) {
+      const dot = dx * hitWallNormal.x + dy * hitWallNormal.y;
+      cueDeflectDir = {
+        x: dx - 2 * dot * hitWallNormal.x,
+        y: dy - 2 * dot * hitWallNormal.y
+      };
+    }
+
+    return { cue, ghostX, ghostY, hitBall, targetDir, cueDeflectDir };
+  }
+
+  function shootCueBall() {
+    const cue = getCueBall();
+    if (!cue || state.takoPull < 0.06) {
+      state.takoPull = 0;
+      updatePowerUI();
+      return;
+    }
+
+    const maxSpeed = 23.5;
+    const speed = (0.14 + state.takoPull * 0.86) * maxSpeed;
+    const squirtAngle = state.spin.x * 0.028 * state.takoPull;
+    const finalAngle = state.aimAngle + squirtAngle;
+
+    cue.vx = Math.cos(finalAngle) * speed;
+    cue.vy = Math.sin(finalAngle) * speed;
+    cue.spinX = state.spin.x;
+    cue.spinY = state.spin.y;
+
+    state.pocketedThisShot = [];
+    state.firstHitBall = null;
+    state.railHitAfterContact = false;
+    state.phase = 'SHOOTING';
+    state.takoPull = 0;
+    updatePowerUI();
+
+    playTone(260 + speed * 14, 'triangle', 0.14, 0.22);
+    haptic(25);
+  }
+
+  function stepPhysics() {
+    if (state.phase !== 'SHOOTING') return;
+
+    const subSteps = 4;
+    const friction = Math.pow(0.9865, 1 / subSteps);
+    let anyMoving = false;
+
+    for (let step = 0; step < subSteps; step++) {
+      for (let i = 0; i < state.balls.length; i++) {
+        const b = state.balls[i];
+        if (b.pocketed) continue;
+
+        b.x += b.vx / subSteps;
+        b.y += b.vy / subSteps;
+
+        if (b.num === 0 && (b.spinY || b.spinX)) {
+          const spd = Math.hypot(b.vx, b.vy);
+          if (spd > 0.2) {
+            const ux = b.vx / spd;
+            const uy = b.vy / spd;
+            b.vx += (-uy * b.spinX * 0.014 + ux * (-b.spinY) * 0.018) / subSteps;
+            b.vy += (ux * b.spinX * 0.014 + uy * (-b.spinY) * 0.018) / subSteps;
+            b.spinX *= 0.992;
+            b.spinY *= 0.992;
+          }
+        }
+
+        b.vx *= friction;
+        b.vy *= friction;
+
+        if (Math.hypot(b.vx, b.vy) < 0.045) {
+          b.vx = 0;
+          b.vy = 0;
+        } else {
+          anyMoving = true;
+        }
+
+        for (let p = 0; p < pockets.length; p++) {
+          const pk = pockets[p];
+          if (Math.hypot(b.x - pk.x, b.y - pk.y) < pocketR * 0.92) {
+            b.pocketed = true;
+            b.vx = 0;
+            b.vy = 0;
+            state.pocketedThisShot.push(b.num);
+            playTone(130, 'sine', 0.26, 0.24);
+            haptic(35);
+            break;
+          }
+        }
+        if (b.pocketed) continue;
+
+        let hitRail = false;
+        if (b.x - ballR < playX) {
+          b.x = playX + ballR;
+          b.vx = Math.abs(b.vx) * 0.84;
+          hitRail = true;
+        } else if (b.x + ballR > playX + playW) {
+          b.x = playX + playW - ballR;
+          b.vx = -Math.abs(b.vx) * 0.84;
+          hitRail = true;
+        }
+        if (b.y - ballR < playY) {
+          b.y = playY + ballR;
+          b.vy = Math.abs(b.vy) * 0.84;
+          hitRail = true;
+        } else if (b.y + ballR > playY + playH) {
+          b.y = playY + playH - ballR;
+          b.vy = -Math.abs(b.vy) * 0.84;
+          hitRail = true;
+        }
+        if (hitRail) {
+          if (state.firstHitBall !== null) state.railHitAfterContact = true;
+          if (step === 0) playTone(165, 'sine', 0.06, 0.06);
+        }
+      }
+
+      for (let i = 0; i < state.balls.length; i++) {
+        const a = state.balls[i];
+        if (a.pocketed) continue;
+        for (let j = i + 1; j < state.balls.length; j++) {
+          const b = state.balls[j];
+          if (b.pocketed) continue;
+
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy);
+          const minD = ballR * 2;
+
+          if (dist > 0 && dist < minD) {
+            if (state.firstHitBall === null) {
+              if (a.num === 0) state.firstHitBall = b.num;
+              else if (b.num === 0) state.firstHitBall = a.num;
+            }
+
+            const nx = dx / dist;
+            const ny = dy / dist;
+            const overlap = (minD - dist) * 0.5;
+            a.x -= nx * overlap;
+            a.y -= ny * overlap;
+            b.x += nx * overlap;
+            b.y += ny * overlap;
+
+            const rvx = b.vx - a.vx;
+            const rvy = b.vy - a.vy;
+            const velAlongNormal = rvx * nx + rvy * ny;
+
+            if (velAlongNormal < 0) {
+              const restitution = 0.94;
+              const impulse = -(1 + restitution) * velAlongNormal * 0.5;
+              a.vx -= impulse * nx;
+              a.vy -= impulse * ny;
+              b.vx += impulse * nx;
+              b.vy += impulse * ny;
+
+              if (a.num === 0 && a.spinY) {
+                a.vx += nx * (-a.spinY) * 1.1;
+                a.vy += ny * (-a.spinY) * 1.1;
+                a.spinY *= 0.4;
+              } else if (b.num === 0 && b.spinY) {
+                b.vx += (-nx) * (-b.spinY) * 1.1;
+                b.vy += (-ny) * (-b.spinY) * 1.1;
+                b.spinY *= 0.4;
+              }
+
+              const impact = Math.min(1, Math.abs(velAlongNormal) / 14);
+              if (impact > 0.08) playTone(520 + impact * 420, 'sine', 0.05, impact * 0.14);
+            }
+          }
+        }
+      }
+    }
+
+    if (!anyMoving) {
+      evaluateShotOutcome();
+    }
+  }
+
+  function evaluateShotOutcome() {
+    const scratched = state.pocketedThisShot.includes(0);
+    const objectPocketed = state.pocketedThisShot.filter(n => n !== 0);
+    const otherPlayer = state.turn === 1 ? 2 : 1;
+
+    if (scratched) {
+      const cue = getCueBall();
+      cue.pocketed = false;
+      cue.x = playX + playW * 0.25;
+      cue.y = playY + playH * 0.5;
+    }
+
+    if (state.mode === '9ball') {
+      const ninePocketed = objectPocketed.includes(9);
+      const foul = scratched || state.firstHitBall === null;
+      if (ninePocketed && !foul) {
+        endMatch(state.turn, '9-Ball pocketed legally!');
+        return;
+      }
+      if (ninePocketed && foul) {
+        const nine = state.balls.find(b => b.num === 9);
+        nine.pocketed = false;
+        nine.x = playX + playW * 0.72;
+        nine.y = playY + playH * 0.5;
+      }
+      if (foul) {
+        state.turn = otherPlayer;
+        state.phase = 'BALL_IN_HAND';
+        setBanner(`FOUL! PLAYER ${state.turn} GETS BALL IN HAND`);
+      } else if (objectPocketed.length > 0) {
+        state.phase = 'AIMING';
+        setBanner(`NICE SHOT! PLAYER ${state.turn} CONTINUES`);
+      } else {
+        state.turn = otherPlayer;
+        state.phase = 'AIMING';
+        setBanner(`PLAYER ${state.turn}'S TURN`);
+      }
+    } else {
+      const eightPocketed = objectPocketed.includes(8);
+      const myGroup = state.groups[state.turn];
+      const hadClearedGroup = myGroup && !state.balls.some(b =>
+        !b.pocketed && b.num !== 8 && (myGroup === 'solids' ? b.num <= 7 : b.num >= 9)
+      );
+
+      if (eightPocketed) {
+        if (scratched || !hadClearedGroup) {
+          endMatch(otherPlayer, `Player ${state.turn} pocketed the 8-Ball early / fouled!`);
+        } else {
+          endMatch(state.turn, '8-Ball pocketed cleanly for the win!');
+        }
+        return;
+      }
+
+      let foul = scratched || state.firstHitBall === null;
+      if (!foul && !state.shotWasBreak && myGroup) {
+        const hitSolids = state.firstHitBall >= 1 && state.firstHitBall <= 7;
+        const hitStripes = state.firstHitBall >= 9 && state.firstHitBall <= 15;
+        if (hadClearedGroup) {
+          if (state.firstHitBall !== 8) foul = true;
+        } else if ((myGroup === 'solids' && !hitSolids) || (myGroup === 'stripes' && !hitStripes)) {
+          foul = true;
+        }
+      }
+
+      if (!foul && !state.shotWasBreak && !state.groups[1] && objectPocketed.length > 0) {
+        const firstScored = objectPocketed[0];
+        if (firstScored >= 1 && firstScored <= 7) {
+          state.groups[state.turn] = 'solids';
+          state.groups[otherPlayer] = 'stripes';
+        } else if (firstScored >= 9 && firstScored <= 15) {
+          state.groups[state.turn] = 'stripes';
+          state.groups[otherPlayer] = 'solids';
+        }
+      }
+
+      let keepTurn = false;
+      if (!foul && objectPocketed.length > 0) {
+        const updatedGroup = state.groups[state.turn];
+        if (!updatedGroup) {
+          keepTurn = true;
+        } else {
+          keepTurn = objectPocketed.some(n =>
+            updatedGroup === 'solids' ? (n >= 1 && n <= 7) : (n >= 9 && n <= 15)
+          );
+        }
+      }
+
+      if (foul) {
+        state.turn = otherPlayer;
+        state.phase = 'BALL_IN_HAND';
+        setBanner(`FOUL! PLAYER ${state.turn} BALL IN HAND`);
+      } else if (keepTurn) {
+        state.phase = 'AIMING';
+        setBanner(`GREAT SHOT! PLAYER ${state.turn} SHOOTS AGAIN`);
+      } else {
+        state.turn = otherPlayer;
+        state.phase = 'AIMING';
+        setBanner(`PLAYER ${state.turn}'S TURN`);
+      }
+    }
+
+    state.shotWasBreak = false;
+    state.spin = { x: 0, y: 0 };
+    updateSpinUI();
+    updateHUD();
+    startTurnTimer();
+    maybeTriggerAI();
+  }
+
+  function endMatch(winnerNum, reason) {
+    state.phase = 'GAME_OVER';
+    clearInterval(state.timerInterval);
+    playTone(587, 'triangle', 0.45, 0.25);
+    haptic([40, 40, 80]);
+    const winnerLabel = (winnerNum === 2 && state.opponent === 'ai')
+      ? '🤖 AI Bot Wins!'
+      : `🏆 Player ${winnerNum} Wins!`;
+    document.getElementById('winner-title').textContent = winnerLabel;
+    document.getElementById('winner-reason').textContent = reason;
+    document.getElementById('gameover-modal').classList.remove('hidden');
+  }
+
+  function maybeTriggerAI() {
+    clearTimeout(state.aiTimer);
+    if (state.opponent !== 'ai' || state.turn !== 2) return;
+    if (state.phase !== 'AIMING' && state.phase !== 'BALL_IN_HAND') return;
+
+    setBanner('AI BOT IS ANALYZING TABLE...');
+    state.aiTimer = setTimeout(() => {
+      if (state.phase === 'BALL_IN_HAND') {
+        const cue = getCueBall();
+        const targets = state.balls.filter(b => !b.pocketed && isLegalTarget(b.num));
+        if (targets.length > 0) {
+          const t = targets[0];
+          cue.x = Math.max(playX + ballR * 2, Math.min(playX + playW - ballR * 2, t.x - playW * 0.18));
+          cue.y = Math.max(playY + ballR * 2, Math.min(playY + playH - ballR * 2, t.y));
+        }
+        state.phase = 'AIMING';
+        updateHUD();
+      }
+
+      const cue = getCueBall();
+      const legalTargets = state.balls.filter(b => !b.pocketed && isLegalTarget(b.num));
+      let bestAngle = Math.atan2((playY + playH / 2) - cue.y, (playX + playW * 0.72) - cue.x);
+      let bestScore = -Infinity;
+
+      legalTargets.forEach(t => {
+        pockets.forEach(pk => {
+          const toPkX = pk.x - t.x;
+          const toPkY = pk.y - t.y;
+          const distPk = Math.hypot(toPkX, toPkY) || 1;
+          const ghostX = t.x - (toPkX / distPk) * (ballR * 2);
+          const ghostY = t.y - (toPkY / distPk) * (ballR * 2);
+          const shotAngle = Math.atan2(ghostY - cue.y, ghostX - cue.x);
+
+          const cutCos = Math.cos(shotAngle) * (toPkX / distPk) + Math.sin(shotAngle) * (toPkY / distPk);
+          if (cutCos > 0.15) {
+            const score = cutCos * 120 - distPk * 0.15;
+            if (score > bestScore) {
+              bestScore = score;
+              bestAngle = shotAngle;
+            }
+          }
+        });
+      });
+
+      const jitterMap = { easy: 0.11, medium: 0.045, hard: 0.012 };
+      const jitter = (Math.random() - 0.5) * (jitterMap[state.aiDiff] || 0.045);
+      state.aimAngle = bestAngle + jitter;
+
+      let pullStep = 0;
+      const targetPull = state.shotWasBreak ? 0.92 : (0.48 + Math.random() * 0.28);
+      const pullAnim = setInterval(() => {
+        pullStep += 0.12;
+        state.takoPull = Math.min(targetPull, pullStep);
+        updatePowerUI();
+        if (state.takoPull >= targetPull) {
+          clearInterval(pullAnim);
+          setTimeout(() => shootCueBall(), 180);
+        }
+      }, 35);
+    }, 850);
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+
+    const frameGrad = ctx.createLinearGradient(0, 0, W, H);
+    frameGrad.addColorStop(0, '#5c2d16');
+    frameGrad.addColorStop(0.5, '#3e1d0d');
+    frameGrad.addColorStop(1, '#2b1207');
+    ctx.fillStyle = frameGrad;
+    roundRect(ctx, 0, 0, W, H, 16);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, 1, 1, W - 2, H - 2, 15);
+    ctx.stroke();
+
+    ctx.fillStyle = '#fbbf24';
+    for (let i = 1; i <= 3; i++) {
+      const dx = playX + (playW * i) / 4;
+      drawDiamond(dx, rail * 0.45);
+      drawDiamond(dx, H - rail * 0.45);
+    }
+    for (let i = 1; i <= 1; i++) {
+      const dy = playY + playH * 0.5;
+      drawDiamond(rail * 0.45, dy);
+      drawDiamond(W - rail * 0.45, dy);
+    }
+
+    const feltGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, 20, W * 0.5, H * 0.5, W * 0.65);
+    feltGrad.addColorStop(0, '#0f766e');
+    feltGrad.addColorStop(0.65, '#0d5c56');
+    feltGrad.addColorStop(1, '#083f3b');
+    ctx.fillStyle = feltGrad;
+    ctx.fillRect(playX, playY, playW, playH);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(playX + playW * 0.25, playY);
+    ctx.lineTo(playX + playW * 0.25, playY + playH);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(playX + playW * 0.72, playY + playH * 0.5, 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(playX, playY, playW, playH);
+
+    pockets.forEach(pk => {
+      ctx.beginPath();
+      ctx.arc(pk.x, pk.y, pocketR + 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#1e293b';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(pk.x, pk.y, pocketR, 0, Math.PI * 2);
+      ctx.fillStyle = '#030712';
+      ctx.fill();
+    });
+
+    if (state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') {
+      const traj = computeTrajectory();
+      if (traj) {
+        const { cue, ghostX, ghostY, hitBall, targetDir, cueDeflectDir } = traj;
+
+        ctx.save();
+        ctx.setLineDash([6, 6]);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+        ctx.beginPath();
+        ctx.moveTo(cue.x, cue.y);
+        if (state.guideMode === 'short') {
+          const shortDist = Math.min(Math.hypot(ghostX - cue.x, ghostY - cue.y), 140);
+          ctx.lineTo(cue.x + Math.cos(state.aimAngle) * shortDist, cue.y + Math.sin(state.aimAngle) * shortDist);
+        } else {
+          ctx.lineTo(ghostX, ghostY);
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        if (state.guideMode === 'full') {
+          ctx.beginPath();
+          ctx.arc(ghostX, ghostY, ballR, 0, Math.PI * 2);
+          ctx.strokeStyle = hitBall ? 'rgba(251, 191, 36, 0.85)' : 'rgba(255, 255, 255, 0.4)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          if (hitBall && targetDir) {
+            const legal = isLegalTarget(hitBall.num);
+            ctx.beginPath();
+            ctx.moveTo(hitBall.x, hitBall.y);
+            ctx.lineTo(hitBall.x + targetDir.x * 95, hitBall.y + targetDir.y * 95);
+            ctx.strokeStyle = legal ? '#34d399' : '#f87171';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+          }
+
+          if (cueDeflectDir) {
+            ctx.beginPath();
+            ctx.moveTo(ghostX, ghostY);
+            ctx.lineTo(ghostX + cueDeflectDir.x * 65, ghostY + cueDeflectDir.y * 65);
+            ctx.strokeStyle = 'rgba(96, 165, 250, 0.8)';
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    state.balls.forEach(b => {
+      if (b.pocketed) return;
+      drawBall(b);
+    });
+
+    if (state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') {
+      const cue = getCueBall();
+      if (cue && !cue.pocketed) {
+        drawTako(cue, state.aimAngle, state.takoPull);
+      }
+    }
+
+    stepPhysics();
+    requestAnimationFrame(render);
+  }
+
+  function drawBall(b) {
+    ctx.beginPath();
+    ctx.arc(b.x + 2.5, b.y + 3, ballR, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.38)';
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, ballR, 0, Math.PI * 2);
+    ctx.clip();
+
+    if (b.num === 0) {
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(b.x - ballR, b.y - ballR, ballR * 2, ballR * 2);
+      ctx.beginPath();
+      ctx.arc(b.x + state.spin.x * ballR * 0.45, b.y + state.spin.y * ballR * 0.45, 2.2, 0, Math.PI * 2);
+      ctx.fillStyle = '#ef4444';
+      ctx.fill();
+    } else if (b.num >= 9) {
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(b.x - ballR, b.y - ballR, ballR * 2, ballR * 2);
+      ctx.fillStyle = BALL_COLORS[b.num];
+      ctx.fillRect(b.x - ballR, b.y - ballR * 0.56, ballR * 2, ballR * 1.12);
+    } else {
+      ctx.fillStyle = BALL_COLORS[b.num];
+      ctx.fillRect(b.x - ballR, b.y - ballR, ballR * 2, ballR * 2);
+    }
+
+    const shine = ctx.createRadialGradient(
+      b.x - ballR * 0.35, b.y - ballR * 0.35, 1,
+      b.x, b.y, ballR
+    );
+    shine.addColorStop(0, 'rgba(255,255,255,0.65)');
+    shine.addColorStop(0.45, 'rgba(255,255,255,0.08)');
+    shine.addColorStop(1, 'rgba(0,0,0,0.45)');
+    ctx.fillStyle = shine;
+    ctx.fillRect(b.x - ballR, b.y - ballR, ballR * 2, ballR * 2);
+
+    if (b.num > 0) {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, ballR * 0.46, 0, Math.PI * 2);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fill();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = `900 ${Math.max(8, Math.round(ballR * 0.72))}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(b.num), b.x, b.y + 0.5);
+    }
+
+    ctx.restore();
+  }
+
+  function drawTako(cue, angle, pull) {
+    const backDirX = -Math.cos(angle);
+    const backDirY = -Math.sin(angle);
+    const pullOffset = ballR + 8 + pull * 105;
+    const stickLen = Math.min(240, playW * 0.36);
+
+    const tipX = cue.x + backDirX * pullOffset;
+    const tipY = cue.y + backDirY * pullOffset;
+    const buttX = tipX + backDirX * stickLen;
+    const buttY = tipY + backDirY * stickLen;
+
+    ctx.save();
+    ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(tipX + 4, tipY + 6);
+    ctx.lineTo(buttX + 4, buttY + 6);
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.lineWidth = 7;
+    ctx.stroke();
+
+    const shaftGrad = ctx.createLinearGradient(tipX, tipY, buttX, buttY);
+    shaftGrad.addColorStop(0, '#fde68a');
+    shaftGrad.addColorStop(0.45, '#d97706');
+    shaftGrad.addColorStop(0.48, '#1e293b');
+    shaftGrad.addColorStop(1, '#451a03');
+
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(buttX, buttY);
+    ctx.strokeStyle = shaftGrad;
+    ctx.lineWidth = 6.5;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(tipX, tipY, 3.2, 0, Math.PI * 2);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fill();
+
+    if (pull > 0.04) {
+      ctx.beginPath();
+      ctx.arc(cue.x, cue.y, ballR + 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pull);
+      ctx.strokeStyle = pull > 0.78 ? '#ef4444' : (pull > 0.45 ? '#f59e0b' : '#10b981');
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  function drawDiamond(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillRect(-2.5, -2.5, 5, 5);
+    ctx.restore();
+  }
+
+  function roundRect(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+
+  function isUserTurn() {
+    if (state.phase !== 'AIMING' && state.phase !== 'BALL_IN_HAND') return false;
+    if (state.opponent === 'ai' && state.turn === 2) return false;
+    return true;
+  }
+
+  function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * (W / rect.width),
+      y: (clientY - rect.top) * (H / rect.height)
+    };
+  }
+
+  function distToSegment(px, py, x1, y1, x2, y2) {
+    const l2 = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+    if (l2 === 0) return Math.hypot(px - x1, py - y1);
+    let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!isUserTurn()) return;
+    canvas.setPointerCapture(e.pointerId);
+    const pos = getCanvasCoords(e);
+    state.lastPointer = pos;
+    const cue = getCueBall();
+    if (!cue) return;
+
+    if (state.phase === 'BALL_IN_HAND' && Math.hypot(pos.x - cue.x, pos.y - cue.y) < ballR * 2.6) {
+      state.dragMode = 'PLACE_CUE';
+      return;
+    }
+
+    const backX = -Math.cos(state.aimAngle);
+    const backY = -Math.sin(state.aimAngle);
+    const tipX = cue.x + backX * (ballR + 8);
+    const tipY = cue.y + backY * (ballR + 8);
+    const buttX = tipX + backX * Math.min(240, playW * 0.36);
+    const buttY = tipY + backY * Math.min(240, playW * 0.36);
+
+    if (distToSegment(pos.x, pos.y, tipX, tipY, buttX, buttY) < 28) {
+      state.dragMode = 'TAKO_PULL';
+      return;
+    }
+
+    state.dragMode = 'AIM';
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (!state.dragMode || !isUserTurn()) return;
+    const pos = getCanvasCoords(e);
+    const cue = getCueBall();
+    if (!cue) return;
+
+    if (state.dragMode === 'PLACE_CUE') {
+      const nx = Math.max(playX + ballR, Math.min(playX + playW - ballR, pos.x));
+      const ny = Math.max(playY + ballR, Math.min(playY + playH - ballR, pos.y));
+      const overlaps = state.balls.some(b =>
+        b.num !== 0 && !b.pocketed && Math.hypot(b.x - nx, b.y - ny) < ballR * 2.05
+      );
+      if (!overlaps) {
+        cue.x = nx;
+        cue.y = ny;
+      }
+      return;
+    }
+
+    if (state.dragMode === 'TAKO_PULL') {
+      const backX = -Math.cos(state.aimAngle);
+      const backY = -Math.sin(state.aimAngle);
+      const relX = pos.x - cue.x;
+      const relY = pos.y - cue.y;
+      const proj = relX * backX + relY * backY - (ballR + 12);
+      state.takoPull = Math.max(0, Math.min(1, proj / 120));
+      updatePowerUI();
+      return;
+    }
+
+    if (state.dragMode === 'AIM') {
+      const prevAng = Math.atan2(state.lastPointer.y - cue.y, state.lastPointer.x - cue.x);
+      const currAng = Math.atan2(pos.y - cue.y, pos.x - cue.x);
+      let delta = currAng - prevAng;
+      while (delta > Math.PI) delta -= Math.PI * 2;
+      while (delta < -Math.PI) delta += Math.PI * 2;
+      state.aimAngle += delta * state.aimSensitivity;
+      state.lastPointer = pos;
+    }
+  });
+
+  canvas.addEventListener('pointerup', () => {
+    if (state.dragMode === 'TAKO_PULL') {
+      if (state.takoPull >= 0.06) {
+        if (state.phase === 'BALL_IN_HAND') state.phase = 'AIMING';
+        shootCueBall();
+      } else {
+        state.takoPull = 0;
+        updatePowerUI();
+      }
+    }
+    state.dragMode = null;
+  });
+
+  const powerRail = document.getElementById('power-rail');
+  let railDragging = false;
+  let railStartY = 0;
+
+  function updatePowerUI() {
+    const pct = Math.round(state.takoPull * 100);
+    document.getElementById('power-fill').style.height = pct + '%';
+    document.getElementById('power-grip').style.top = (4 + state.takoPull * 72) + '%';
+    document.getElementById('power-pct').textContent = pct + '%';
+  }
+
+  powerRail.addEventListener('pointerdown', (e) => {
+    if (!isUserTurn()) return;
+    powerRail.setPointerCapture(e.pointerId);
+    railDragging = true;
+    railStartY = e.clientY;
+  });
+
+  powerRail.addEventListener('pointermove', (e) => {
+    if (!railDragging || !isUserTurn()) return;
+    const dy = e.clientY - railStartY;
+    const h = powerRail.getBoundingClientRect().height || 130;
+    state.takoPull = Math.max(0, Math.min(1, dy / (h * 0.78)));
+    updatePowerUI();
+  });
+
+  powerRail.addEventListener('pointerup', () => {
+    if (!railDragging) return;
+    railDragging = false;
+    if (state.takoPull >= 0.06) {
+      if (state.phase === 'BALL_IN_HAND') state.phase = 'AIMING';
+      shootCueBall();
+    } else {
+      state.takoPull = 0;
+      updatePowerUI();
+    }
+  });
+
+  const aimWheel = document.getElementById('aim-wheel');
+  const aimTicks = aimWheel.querySelector('.aim-ticks');
+  let wheelDragging = false;
+  let wheelLastY = 0;
+  let tickOffset = 0;
+
+  aimWheel.addEventListener('pointerdown', (e) => {
+    if (!isUserTurn()) return;
+    aimWheel.setPointerCapture(e.pointerId);
+    wheelDragging = true;
+    wheelLastY = e.clientY;
+  });
+
+  aimWheel.addEventListener('pointermove', (e) => {
+    if (!wheelDragging || !isUserTurn()) return;
+    const dy = e.clientY - wheelLastY;
+    wheelLastY = e.clientY;
+    state.aimAngle += dy * 0.008 * state.fineAimSpeed;
+    tickOffset += dy;
+    aimTicks.style.backgroundPositionY = tickOffset + 'px';
+  });
+
+  aimWheel.addEventListener('pointerup', () => { wheelDragging = false; });
+
+  document.getElementById('btn-aim-ccw').addEventListener('click', () => {
+    if (!isUserTurn()) return;
+    state.aimAngle -= 0.008 * state.fineAimSpeed * 3;
+    haptic(8);
+  });
+
+  document.getElementById('btn-aim-cw').addEventListener('click', () => {
+    if (!isUserTurn()) return;
+    state.aimAngle += 0.008 * state.fineAimSpeed * 3;
+    haptic(8);
+  });
+
+  const spinPad = document.getElementById('spin-pad');
+  const spinDot = document.getElementById('spin-dot');
+  const spinReadout = document.getElementById('spin-readout');
+  let spinDragging = false;
+
+  function applySpinFromEvent(e) {
+    const rect = spinPad.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const maxR = rect.width * 0.36;
+    let dx = e.clientX - cx;
+    let dy = e.clientY - cy;
+    const d = Math.hypot(dx, dy);
+    if (d > maxR) {
+      dx = (dx / d) * maxR;
+      dy = (dy / d) * maxR;
+    }
+    state.spin.x = +(dx / maxR).toFixed(2);
+    state.spin.y = +(dy / maxR).toFixed(2);
+    updateSpinUI();
+  }
+
+  function updateSpinUI() {
+    spinDot.style.left = (50 + state.spin.x * 36) + '%';
+    spinDot.style.top = (50 + state.spin.y * 36) + '%';
+    if (Math.abs(state.spin.x) < 0.12 && Math.abs(state.spin.y) < 0.12) {
+      spinReadout.textContent = 'CENTER';
+    } else {
+      const v = state.spin.y < -0.15 ? 'TOP' : (state.spin.y > 0.15 ? 'BACK' : '');
+      const h = state.spin.x < -0.15 ? 'L' : (state.spin.x > 0.15 ? 'R' : '');
+      spinReadout.textContent = [v, h].filter(Boolean).join(' ') || 'CENTER';
+    }
+  }
+
+  spinPad.addEventListener('pointerdown', (e) => {
+    if (!isUserTurn()) return;
+    spinPad.setPointerCapture(e.pointerId);
+    spinDragging = true;
+    applySpinFromEvent(e);
+  });
+  spinPad.addEventListener('pointermove', (e) => {
+    if (spinDragging && isUserTurn()) applySpinFromEvent(e);
+  });
+  spinPad.addEventListener('pointerup', () => { spinDragging = false; });
+
+  document.getElementById('btn-reset-spin').addEventListener('click', () => {
+    state.spin = { x: 0, y: 0 };
+    updateSpinUI();
+  });
+
+  function bindSegRow(id, callback) {
+    const row = document.getElementById(id);
+    row.querySelectorAll('.seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        row.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        callback(btn.dataset.val);
+      });
+    });
+  }
+
+  bindSegRow('opt-mode', val => { state.mode = val; });
+  bindSegRow('opt-opponent', val => {
+    state.opponent = val;
+    document.getElementById('ai-diff-group').style.display = val === 'ai' ? 'flex' : 'none';
+  });
+  bindSegRow('opt-diff', val => { state.aiDiff = val; });
+  bindSegRow('opt-guide', val => { state.guideMode = val; });
+  bindSegRow('opt-sfx', val => { state.sfx = (val === 'on'); });
+
+  document.getElementById('btn-start-match').addEventListener('click', () => {
+    document.getElementById('setup-modal').classList.add('hidden');
+    setupRack();
+  });
+
+  document.getElementById('btn-new-match').addEventListener('click', () => {
+    clearInterval(state.timerInterval);
+    clearTimeout(state.aiTimer);
+    state.phase = 'MENU';
+    document.getElementById('setup-modal').classList.remove('hidden');
+  });
+
+  document.getElementById('btn-rematch').addEventListener('click', () => {
+    document.getElementById('gameover-modal').classList.add('hidden');
+    setupRack();
+  });
+
+  document.getElementById('btn-settings').addEventListener('click', () => {
+    document.getElementById('settings-modal').classList.remove('hidden');
+  });
+  document.getElementById('btn-close-settings').addEventListener('click', () => {
+    document.getElementById('settings-modal').classList.add('hidden');
+  });
+  document.getElementById('btn-save-settings').addEventListener('click', () => {
+    document.getElementById('settings-modal').classList.add('hidden');
+  });
+
+  const sliderSens = document.getElementById('slider-sens');
+  const sliderFine = document.getElementById('slider-fine');
+  sliderSens.addEventListener('input', () => {
+    state.aimSensitivity = parseFloat(sliderSens.value);
+    document.getElementById('sens-val').textContent = state.aimSensitivity.toFixed(2) + '×';
+  });
+  sliderFine.addEventListener('input', () => {
+    state.fineAimSpeed = parseFloat(sliderFine.value);
+    document.getElementById('fine-val').textContent = state.fineAimSpeed.toFixed(2) + '×';
+  });
+
+  syncPlayerNameFromHub();
+  resizeTable();
+  requestAnimationFrame(render);
+})();
