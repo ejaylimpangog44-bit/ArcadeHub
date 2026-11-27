@@ -69,8 +69,8 @@ if (foxWidget) {
     }
   });
 
-  foxWidget.addEventListener('pointerup', (e) => {
-    if (!isDragging) {
+  const finishPointer = (e, allowOpen) => {
+    if (allowOpen && !isDragging) {
       openFoxCompanionModal();
       if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
     }
@@ -80,7 +80,10 @@ if (foxWidget) {
     startX = null;
     startY = null;
     isDragging = false;
-  });
+  };
+
+  foxWidget.addEventListener('pointerup', (e) => finishPointer(e, true));
+  foxWidget.addEventListener('pointercancel', (e) => finishPointer(e, false));
 
   foxWidget.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -308,8 +311,8 @@ const GAME_ID_ALIASES = {
   'brick-breaker': 'brickbreaker',
   'stickrun': 'stickrun',
   'stick-run': 'stickrun',
-  'tiny-cafe': 'tiny-cafe',
-  'tinycafe': 'tiny-cafe',
+  'skyline-hustle': 'skyline-hustle',
+  'skylinehustle': 'skyline-hustle',
   'flickpoint': 'flickpoint',
   'mythic': 'mythic'
 };
@@ -372,6 +375,21 @@ function attachGameSettingsFooterActions(containerEl, options = {}) {
 }
 window.attachGameSettingsFooterActions = attachGameSettingsFooterActions;
 
+function readStorageJson(key, fallback) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) || 'null');
+    return parsed && typeof parsed === 'object' ? parsed : fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+
+function writeStorageJson(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (_) {}
+}
+
 const SupabaseDB = (() => {
   const SUPABASE_URL = 'https://nrlfudwhnncycjcyupgt.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_TFyTpbQI_sWvPT4G6HEpmQ_ANYNTYfW';
@@ -406,37 +424,27 @@ const SupabaseDB = (() => {
   }
 
   function readLocalScores() {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(LOCAL_SCORES_KEY) || '{}');
-      return parsed && typeof parsed === 'object' ? parsed : {};
-    } catch (e) {
-      return {};
-    }
+    return readStorageJson(LOCAL_SCORES_KEY, {});
   }
 
   function writeLocalScore(gameId, score, playerName) {
-    try {
-      const store = readLocalScores();
-      const list = Array.isArray(store[gameId]) ? store[gameId] : [];
-      list.push({
-        game_name: gameId,
-        player_name: playerName,
-        score: Number(score) || 0,
-        created_at: new Date().toISOString()
-      });
-      list.sort((a, b) => Number(b.score) - Number(a.score));
-      store[gameId] = list.slice(0, 25);
-      localStorage.setItem(LOCAL_SCORES_KEY, JSON.stringify(store));
-      return store[gameId];
-    } catch (e) {
-      return [];
-    }
+    const store = readLocalScores();
+    const list = Array.isArray(store[gameId]) ? store[gameId] : [];
+    list.push({
+      game_name: gameId,
+      player_name: playerName,
+      score: Number(score) || 0,
+      created_at: new Date().toISOString()
+    });
+    list.sort((a, b) => Number(b.score) - Number(a.score));
+    store[gameId] = list.slice(0, 25);
+    writeStorageJson(LOCAL_SCORES_KEY, store);
+    return store[gameId];
   }
 
   function getBestLocalScore(gameId) {
     const canon = normalizeGameId(gameId);
-    const store = readLocalScores();
-    const list = Array.isArray(store[canon]) ? store[canon] : [];
+    const list = Array.isArray(readLocalScores()[canon]) ? readLocalScores()[canon] : [];
     if (!list.length) return 0;
     return Math.max(...list.map(row => Number(row.score) || 0));
   }
@@ -498,8 +506,7 @@ const SupabaseDB = (() => {
     const sb = init();
 
     if (!sb) {
-      const localList = readLocalScores()[gameId] || [];
-      return localList.slice(0, safeLimit);
+      return (readLocalScores()[gameId] || []).slice(0, safeLimit);
     }
 
     try {
@@ -568,10 +575,31 @@ Object.defineProperty(window, 'bgmEnabled', {
   get: () => bgmEnabled
 });
 
+function setToggleBtnStyle(btn, enabled) {
+  if (!btn) return;
+  btn.textContent = enabled ? 'ON' : 'OFF';
+  btn.className = enabled
+    ? 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition'
+    : 'px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-extrabold text-xs transition';
+}
+
+function syncAudioSettingsUI() {
+  const bgm = document.getElementById('bgm-audio');
+  setToggleBtnStyle(document.getElementById('bgm-toggle-btn'), bgmEnabled);
+  setToggleBtnStyle(document.getElementById('sfx-toggle-btn'), AudioFX.enabled);
+
+  const volSlider = document.getElementById('bgm-vol-slider');
+  const volLabel = document.getElementById('bgm-vol-label');
+  if (bgm && volLabel) {
+    const pct = Math.round((bgm.volume ?? 0.5) * 100);
+    volLabel.textContent = `${pct}%`;
+    if (volSlider) volSlider.value = String(pct);
+  }
+}
+
 function toggleBGM() {
   bgmEnabled = !bgmEnabled;
   const bgm = document.getElementById('bgm-audio');
-  const btn = document.getElementById('bgm-toggle-btn');
   if (bgm) {
     if (bgmEnabled) {
       bgm.play().catch(() => {});
@@ -579,12 +607,7 @@ function toggleBGM() {
       bgm.pause();
     }
   }
-  if (btn) {
-    btn.textContent = bgmEnabled ? 'ON' : 'OFF';
-    btn.className = bgmEnabled
-      ? 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition'
-      : 'px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-extrabold text-xs transition';
-  }
+  syncAudioSettingsUI();
   AudioFX.click();
 }
 window.toggleBGM = toggleBGM;
@@ -596,38 +619,64 @@ function updateBGMVolume(val) {
   if (bgm) bgm.volume = clamped / 100;
   if (label) label.textContent = `${clamped}%`;
 }
+window.updateBGMVolume = updateBGMVolume;
 
 function toggleSFX() {
   const on = AudioFX.toggle();
-  const btn = document.getElementById('sfx-toggle-btn');
-  if (btn) {
-    btn.textContent = on ? 'ON' : 'OFF';
-    btn.className = on
-      ? 'px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-extrabold text-xs transition'
-      : 'px-4 py-2 rounded-xl bg-slate-700 text-slate-300 font-extrabold text-xs transition';
-  }
+  syncAudioSettingsUI();
   if (on) AudioFX.click();
 }
 window.toggleSFX = toggleSFX;
 
-function openSettingsModal() {
-  if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
-  AudioFX.click();
-  const modal = document.getElementById('settings-modal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
+function setModalVisible(modalId, visible) {
+  const modal = document.getElementById(modalId);
+  if (!modal) return;
+  modal.classList.toggle('hidden', !visible);
+  modal.classList.toggle('flex', visible);
 }
+
+function toggleHubMenu(event) {
+  if (event) event.stopPropagation();
+  const dropdown = document.getElementById('hub-hamburger-dropdown');
+  const btn = document.getElementById('hub-hamburger-btn');
+  if (!dropdown) return;
+  const willOpen = dropdown.classList.contains('hidden');
+  dropdown.classList.toggle('hidden', !willOpen);
+  if (btn) btn.setAttribute('aria-expanded', String(willOpen));
+  AudioFX.click();
+}
+window.toggleHubMenu = toggleHubMenu;
+
+function closeHubMenu() {
+  const dropdown = document.getElementById('hub-hamburger-dropdown');
+  const btn = document.getElementById('hub-hamburger-btn');
+  if (dropdown && !dropdown.classList.contains('hidden')) {
+    dropdown.classList.add('hidden');
+  }
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+window.closeHubMenu = closeHubMenu;
+
+document.addEventListener('click', (e) => {
+  const wrapper = document.getElementById('hub-hamburger-wrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    closeHubMenu();
+  }
+});
+
+function openSettingsModal() {
+  closeHubMenu();
+  syncAudioSettingsUI();
+  AudioFX.click();
+  setModalVisible('settings-modal', true);
+}
+window.openSettingsModal = openSettingsModal;
 
 function closeSettingsModal() {
   AudioFX.click();
-  const modal = document.getElementById('settings-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
+  setModalVisible('settings-modal', false);
 }
+window.closeSettingsModal = closeSettingsModal;
 
 const HUB_URLS = {
   vercel: 'https://arcadehubgames-july12.vercel.app/',
@@ -658,24 +707,18 @@ function renderHubQrCode(targetUrl = activeShareUrl) {
 }
 
 function openQrShareModal(url = activeShareUrl) {
-  if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
+  closeHubMenu();
   AudioFX.click();
   renderHubQrCode(url);
-  const modal = document.getElementById('qr-share-modal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
+  setModalVisible('qr-share-modal', true);
 }
+window.openQrShareModal = openQrShareModal;
 
 function closeQrShareModal() {
   AudioFX.click();
-  const modal = document.getElementById('qr-share-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
+  setModalVisible('qr-share-modal', false);
 }
+window.closeQrShareModal = closeQrShareModal;
 
 const GAME_GUIDES = {
   solitaire: 'Build all four foundation piles up from Ace to King by suit while arranging tableau cards in descending rank with alternating colors.',
@@ -695,7 +738,7 @@ const GAME_GUIDES = {
   carracing: 'Steer across highway lanes at high speed to overtake traffic and dodge road obstacles.',
   brickbreaker: 'Deflect the ball off your paddle to smash all bricks while keeping the ball from falling below.',
   stickrun: 'Time jumps and runs cleanly across platforms and rooftops without falling into gaps.',
-  'tiny-cafe': 'Prepare and serve café orders promptly to keep customers happy and maximize earnings.',
+  'skyline-hustle': 'Upgrade loft rooms, balance power load against capacity, restock team mood, and hit cash and level milestones.',
   flickpoint: 'Aim and flick quickly onto targets before time out to maximize accuracy and score.',
   mythic: 'Survive incoming enemy waves, gather XP gems, and pick upgrades to stay alive as long as possible.'
 };
@@ -710,6 +753,7 @@ function populateInstructionsDropdown() {
     opt.textContent = `${formatGameNum(game.num)} — ${game.name}`;
     select.appendChild(opt);
   });
+  select.onchange = renderSelectedGameInstruction;
   renderSelectedGameInstruction();
 }
 
@@ -727,48 +771,37 @@ function renderSelectedGameInstruction() {
 }
 
 function openInstructionsModal() {
-  if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
+  closeHubMenu();
   AudioFX.click();
   populateInstructionsDropdown();
-  const modal = document.getElementById('instructions-modal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
+  setModalVisible('instructions-modal', true);
 }
+window.openInstructionsModal = openInstructionsModal;
 
 function closeInstructionsModal() {
   AudioFX.click();
-  const modal = document.getElementById('instructions-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
+  setModalVisible('instructions-modal', false);
 }
+window.closeInstructionsModal = closeInstructionsModal;
 
 function openAboutModal() {
-  if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
+  closeHubMenu();
   AudioFX.click();
-  const modal = document.getElementById('about-modal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
+  setModalVisible('about-modal', true);
 }
+window.openAboutModal = openAboutModal;
 
 function closeAboutModal() {
   AudioFX.click();
-  const modal = document.getElementById('about-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
+  setModalVisible('about-modal', false);
 }
+window.closeAboutModal = closeAboutModal;
 
 function filterGames(query) {
   discoverySearch = String(query || '');
   renderDiscoveryShelves();
 }
+window.filterGames = filterGames;
 
 function copyHubLink() {
   if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
@@ -781,6 +814,7 @@ function copyHubLink() {
   }
   AudioFX.coin();
 }
+window.copyHubLink = copyHubLink;
 
 function toggleFullScreen() {
   AudioFX.click();
@@ -794,8 +828,8 @@ function toggleFullScreen() {
   } else {
     if (document.exitFullscreen) {
       document.exitFullscreen().catch(() => {});
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
+    } else if (docEl.webkitExitFullscreen) {
+      docEl.webkitExitFullscreen();
     }
   }
 }
@@ -811,37 +845,23 @@ function syncFullscreenLabel() {
 document.addEventListener('fullscreenchange', syncFullscreenLabel);
 document.addEventListener('webkitfullscreenchange', syncFullscreenLabel);
 
-document.addEventListener('visibilitychange', () => {
+function handleBgmVisibilityChange(shouldPause) {
   const bgm = document.getElementById('bgm-audio');
   if (!bgm) return;
-  if (document.hidden) {
+  if (shouldPause) {
     if (!bgm.paused) {
       bgm.dataset.wasPlaying = 'true';
       bgm.pause();
     }
-  } else {
-    if (bgm.dataset.wasPlaying === 'true' && bgmEnabled) {
-      bgm.play().catch(() => {});
-      delete bgm.dataset.wasPlaying;
-    }
-  }
-});
-
-window.addEventListener('blur', () => {
-  const bgm = document.getElementById('bgm-audio');
-  if (bgm && !bgm.paused) {
-    bgm.dataset.wasPlaying = 'true';
-    bgm.pause();
-  }
-});
-
-window.addEventListener('focus', () => {
-  const bgm = document.getElementById('bgm-audio');
-  if (bgm && bgm.dataset.wasPlaying === 'true' && bgmEnabled) {
+  } else if (bgm.dataset.wasPlaying === 'true' && bgmEnabled) {
     bgm.play().catch(() => {});
     delete bgm.dataset.wasPlaying;
   }
-});
+}
+
+document.addEventListener('visibilitychange', () => handleBgmVisibilityChange(document.hidden));
+window.addEventListener('blur', () => handleBgmVisibilityChange(true));
+window.addEventListener('focus', () => handleBgmVisibilityChange(false));
 
 window.playerName = 'AJ';
 const RANDOM_NAMES = ['CyberGamer', 'PixelNinja', 'ArcadeLegend', 'NeonFox', 'RetroMaster', 'BitHero', 'SpeedRunner', 'GlitchWizard'];
@@ -851,12 +871,10 @@ function randomizePlayerName() {
   const input = document.getElementById('player-name-input');
   if (input) input.value = randomName;
 }
+window.randomizePlayerName = randomizePlayerName;
 
-function submitPlayerName() {
-  const inputEl = document.getElementById('player-name-input');
-  const typed = inputEl ? inputEl.value.trim() : '';
-  window.playerName = typed || ('Player_' + Math.floor(100 + Math.random() * 899));
-
+function enterHubShell(name) {
+  window.playerName = name;
   const headerName = document.getElementById('header-player-name');
   const loginScreen = document.getElementById('login-screen');
   const appShell = document.getElementById('app-shell');
@@ -866,15 +884,23 @@ function submitPlayerName() {
   if (appShell) appShell.classList.remove('hidden');
 
   syncFoxCompanionVisibility();
-  AudioFX.click();
+  openHubHome();
+}
 
+function submitPlayerName() {
+  const inputEl = document.getElementById('player-name-input');
+  const typed = inputEl ? inputEl.value.trim() : '';
+  const resolvedName = typed || ('Player_' + Math.floor(100 + Math.random() * 899));
+
+  AudioFX.click();
   const bgm = document.getElementById('bgm-audio');
   if (bgm && bgmEnabled) {
     bgm.volume = 0.5;
     bgm.play().catch(() => {});
   }
-  openHubHome();
+  enterHubShell(resolvedName);
 }
+window.submitPlayerName = submitPlayerName;
 
 let userXP = 2118;
 function addXP(amount, x = window.innerWidth / 2, y = window.innerHeight / 2, label = null) {
@@ -919,16 +945,16 @@ const GAMES = [
   { id: 'brickbreaker', num: 16, name: 'Brick Breaker', cat: 'Racing', mode: 'PORTRAIT', featured: false, icon: '🧱', envName: 'Cosmic Synthwave Core', bg: 'radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 65%, #03050a 100%)', theme: 'cosmic_core' },
   { id: 'stickrun', num: 17, name: 'Stick Run', cat: 'Runner', mode: 'PORTRAIT', featured: false, icon: '🏃', envName: 'Sunlit Park & Rooftop Horizon', bg: 'linear-gradient(180deg, #0ea5e9 0%, #7dd3fc 58%, #fef08a 74%, #1e293b 75%)', theme: 'stick_world' },
   {
-    id: 'tiny-cafe',
+    id: 'skyline-hustle',
     num: 18,
-    name: 'Tiny Café',
+    name: 'Skyline Hustle',
     cat: 'Strategy',
     mode: 'PORTRAIT',
     featured: true,
-    icon: '☕',
-    envName: 'Cozy Cartoon Café',
-    bg: 'radial-gradient(circle at 50% 25%, #fff5e6 0%, #f5dec0 65%, #e4c096 100%)',
-    theme: 'wood'
+    icon: '🏙️',
+    envName: 'High-Rise Loft & Power Grid',
+    bg: 'radial-gradient(circle at 50% 25%, #1e293b 0%, #0f172a 65%, #020617 100%)',
+    theme: 'skyline_climb'
   },
   {
     id: 'flickpoint',
@@ -959,7 +985,7 @@ window.GAMES = GAMES;
 
 const HUB_STORAGE_KEY = 'arcade_hub_discovery_v1';
 let hubMetaState = {
-  recentIds: ['mythic', 'flickpoint', 'tiny-cafe', 'solitaire'],
+  recentIds: ['mythic', 'flickpoint', 'skyline-hustle', 'solitaire'],
   playCounts: {}
 };
 let discoveryFilter = 'all';
@@ -968,18 +994,11 @@ let spotlightIdx = 0;
 let previewGameMeta = null;
 
 function loadHubMetaState() {
-  try {
-    const raw = localStorage.getItem(HUB_STORAGE_KEY);
-    if (raw) {
-      hubMetaState = { ...hubMetaState, ...JSON.parse(raw) };
-    }
-  } catch (e) {}
+  hubMetaState = { ...hubMetaState, ...readStorageJson(HUB_STORAGE_KEY, {}) };
 }
 
 function saveHubMetaState() {
-  try {
-    localStorage.setItem(HUB_STORAGE_KEY, JSON.stringify(hubMetaState));
-  } catch (e) {}
+  writeStorageJson(HUB_STORAGE_KEY, hubMetaState);
 }
 
 function recordGamePlay(gameId) {
@@ -1038,18 +1057,11 @@ const GameSettingsDrawer = (() => {
   };
 
   function readAllSettings() {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(MODE_KEY) || '{}');
-      return parsed && typeof parsed === 'object' ? parsed : {};
-    } catch (_) {
-      return {};
-    }
+    return readStorageJson(MODE_KEY, {});
   }
 
   function writeAllSettings(store) {
-    try {
-      localStorage.setItem(MODE_KEY, JSON.stringify(store));
-    } catch (_) {}
+    writeStorageJson(MODE_KEY, store);
   }
 
   function getGameSettings(gameId) {
@@ -1169,7 +1181,7 @@ const GameSettingsDrawer = (() => {
             🔊 SFX: ${window.AudioFX && window.AudioFX.enabled ? 'ON' : 'OFF'}
           </button>
           <button type="button" id="drawer-bgm-btn" class="game-drawer-mini-btn">
-            🎵 BGM: ${typeof bgmEnabled !== 'undefined' && bgmEnabled ? 'ON' : 'OFF'}
+            🎵 BGM: ${bgmEnabled ? 'ON' : 'OFF'}
           </button>
         </div>
       </div>
@@ -1472,26 +1484,22 @@ function openGamePreviewModal(gameId) {
     };
   }
 
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
+  setModalVisible('game-preview-modal', true);
 }
+window.openGamePreviewModal = openGamePreviewModal;
 
 function closeGamePreviewModal() {
-  const modal = document.getElementById('game-preview-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
+  setModalVisible('game-preview-modal', false);
   previewGameMeta = null;
 }
+window.closeGamePreviewModal = closeGamePreviewModal;
 
 function surpriseMeGame() {
   AudioFX.click();
   const pick = GAMES[Math.floor(Math.random() * GAMES.length)];
   if (pick) openGamePreviewModal(pick.id);
 }
+window.surpriseMeGame = surpriseMeGame;
 
 function cycleSpotlight() {
   AudioFX.click();
@@ -1500,6 +1508,7 @@ function cycleSpotlight() {
   spotlightIdx = (spotlightIdx + 1) % featured.length;
   updateSpotlightBanner();
 }
+window.cycleSpotlight = cycleSpotlight;
 
 function updateSpotlightBanner() {
   const featured = GAMES.filter(g => g.featured);
@@ -1626,8 +1635,6 @@ function buildDiscoveryShelf(title, list) {
   if (typeof ResizeObserver !== 'undefined') {
     const ro = new ResizeObserver(syncShelfControls);
     ro.observe(track);
-  } else {
-    window.addEventListener('resize', syncShelfControls);
   }
 
   requestAnimationFrame(syncShelfControls);
@@ -1733,7 +1740,7 @@ function openHubHome() {
         <div class="flex flex-col gap-2.5">
           <div class="flex items-center gap-2">
             <div class="relative flex-1">
-              <input id="hub-search-input" type="text" value="${discoverySearch}" placeholder="Search ${GAMES.length} games..." autocomplete="off"
+              <input id="hub-search-input" type="text" value="${discoverySearch.replace(/"/g, '&quot;')}" placeholder="Search ${GAMES.length} games..." autocomplete="off"
                 class="w-full h-10 pl-3.5 pr-8 rounded-full bg-white/5 border border-white/10 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none focus:border-pink-400 transition" />
               <button type="button" id="discovery-clear-btn" class="${discoverySearch ? '' : 'hidden'} absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-sm font-bold">✕</button>
             </div>
@@ -1846,6 +1853,7 @@ function resetDiscoveryFilters() {
   discoverySearch = '';
   openHubHome();
 }
+window.resetDiscoveryFilters = resetDiscoveryFilters;
 
 function getGameRunners() {
   return {
@@ -1866,7 +1874,7 @@ function getGameRunners() {
     carracing: window.initCarRacing,
     brickbreaker: window.initBrickBreaker,
     stickrun: window.initStickRun,
-    'tiny-cafe': window.initTinyCafe
+    'skyline-hustle': window.initSkylineHustle
   };
 }
 
@@ -1927,26 +1935,15 @@ window.launchGame = launchGame;
 window.addEventListener('DOMContentLoaded', () => {
   SupabaseDB.init();
   loadHubMetaState();
-  syncFoxCompanionVisibility();
 
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('hub') === 'true') {
     const powerScreen = document.getElementById('power-screen');
-    const loginScreen = document.getElementById('login-screen');
-    const appShell = document.getElementById('app-shell');
-    const headerName = document.getElementById('header-player-name');
-
     SplashController.hideSplashImmediate();
     if (powerScreen) powerScreen.style.display = 'none';
-    if (loginScreen) loginScreen.classList.add('hidden');
-
-    if (appShell) appShell.classList.remove('hidden');
-    window.playerName = 'AJ';
-    if (headerName) headerName.textContent = window.playerName;
-
-    syncFoxCompanionVisibility();
-    openHubHome();
+    enterHubShell('AJ');
   } else {
+    syncFoxCompanionVisibility();
     SplashController.start();
   }
 });
@@ -1956,12 +1953,10 @@ window.addEventListener('load', () => {
   if (urlParams.get('hub') !== 'true') {
     SplashController.completeToFull();
   }
-});
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
+  if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch((err) => {
       console.error('Service worker registration failed:', err);
     });
-  });
-}
+  }
+});
