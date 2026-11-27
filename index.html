@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -110,6 +111,34 @@
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var returningToHub =
+        params.get('hub') === 'true' ||
+        sessionStorage.getItem('arcade_hub_target_lobby') === '1' ||
+        sessionStorage.getItem('arcade_hub_skip_power') === '1' ||
+        sessionStorage.getItem('arcade_hub_from_billiard') === '1';
+
+      if (returningToHub) {
+        sessionStorage.setItem('arcade_hub_skip_power', '1');
+        sessionStorage.setItem('arcade_hub_initial_gate_checked', '1');
+        var pwr = document.getElementById('power-screen');
+        var lgn = document.getElementById('login-screen');
+        if (pwr) {
+          pwr.classList.add('hidden');
+          pwr.style.display = 'none';
+        }
+        if (lgn) {
+          lgn.classList.add('hidden');
+          lgn.style.display = 'none';
+        }
+      }
+    } catch (_) {}
+  })();
+</script>
 
 <div id="login-screen" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4">
   <div class="max-w-md w-full rounded-3xl bg-slate-900 border border-white/15 p-8 shadow-2xl text-center flex flex-col gap-6">
