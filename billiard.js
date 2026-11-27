@@ -8,14 +8,14 @@
   const ENTER_FS_FROM_HUB_KEY = 'arcade_hub_enter_fullscreen_on_billiard';
   const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
 
+  function markGateHandledOnce() {
+    try {
+      sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
+    } catch (_) {}
+  }
+
   const BilliardLandscapeGuard = (() => {
     let initialized = false;
-
-    function markGateHandledOnce() {
-      try {
-        sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
-      } catch (_) {}
-    }
 
     function isLandscapeNow() {
       const orientType = window.screen && window.screen.orientation && window.screen.orientation.type;
@@ -38,6 +38,14 @@
       try {
         if (screen.orientation && typeof screen.orientation.lock === 'function') {
           screen.orientation.lock('landscape').catch(() => {});
+        }
+      } catch (_) {}
+    }
+
+    function releaseOrientationLock() {
+      try {
+        if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+          screen.orientation.unlock();
         }
       } catch (_) {}
     }
@@ -140,6 +148,7 @@
       isPortraitNow,
       isFullscreenActive,
       tryLockLandscape,
+      releaseOrientationLock,
       requestFullscreenSafe
     };
   })();
@@ -329,6 +338,7 @@
   }
 
   function goToHubLobby() {
+    state.phase = 'MENU';
     clearInterval(state.timerInterval);
     clearTimeout(state.aiTimer);
     const currentName = document.getElementById('p1-name')?.textContent || getSavedPlayerName();
@@ -344,12 +354,9 @@
       sessionStorage.setItem('arcade_hub_auto_landscape_fs', '1');
     } catch (_) {}
 
-    BilliardLandscapeGuard.tryLockLandscape();
+    BilliardLandscapeGuard.releaseOrientationLock();
     haptic(10);
-
-    setTimeout(() => {
-      window.location.replace('./index.html?hub=true');
-    }, 30);
+    window.location.href = './index.html?hub=true';
   }
 
   function refreshSettingsAudioButtonLabel() {
