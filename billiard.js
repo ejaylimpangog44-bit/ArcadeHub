@@ -7,6 +7,8 @@
   const PLAYER_NAME_KEY = 'arcade_hub_player_name';
   const ENTER_FS_FROM_HUB_KEY = 'arcade_hub_enter_fullscreen_on_billiard';
   const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
+  const HUB_KEEP_FS_KEY = 'arcade_hub_keep_fullscreen';
+  const HUB_AUTO_LANDSCAPE_FS_KEY = 'arcade_hub_auto_landscape_fs';
 
   function markGateHandledOnce() {
     try {
@@ -400,11 +402,10 @@
       sessionStorage.setItem('arcade_hub_skip_power', '1');
       sessionStorage.setItem('arcade_hub_target_lobby', '1');
       sessionStorage.setItem('arcade_hub_from_billiard', '1');
-      sessionStorage.setItem('arcade_hub_keep_fullscreen', '1');
-      sessionStorage.setItem('arcade_hub_auto_landscape_fs', '1');
+      sessionStorage.setItem(HUB_KEEP_FS_KEY, '1');
+      sessionStorage.setItem(HUB_AUTO_LANDSCAPE_FS_KEY, '1');
     } catch (_) {}
 
-    BilliardLandscapeGuard.releaseOrientationLock();
     haptic(10);
     window.location.href = './index.html?hub=true';
   }
@@ -1511,7 +1512,6 @@
     haptic(8);
   });
 
-  // Cue Spin Modal Overlay (opens on tap, applies spin, auto-returns to game screen)
   const spinDot = document.getElementById('spin-dot');
   const spinReadout = document.getElementById('spin-readout');
   const spinModal = document.getElementById('spin-modal');
