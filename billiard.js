@@ -233,6 +233,7 @@
     pointerMoved: false,
     lastPointer: { x: 0, y: 0 },
     aiTimer: null,
+    aiPullInterval: null,
     turnToastTimer: null,
     turnToastFadeTimer: null,
     pocketAnimTimer: null,
@@ -270,6 +271,15 @@
     if (state.sfx && navigator.vibrate) {
       try { navigator.vibrate(ms); } catch (e) {}
     }
+  }
+
+  function clearPendingTimers() {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+    clearTimeout(state.aiTimer);
+    state.aiTimer = null;
+    clearInterval(state.aiPullInterval);
+    state.aiPullInterval = null;
   }
 
   function applySpaciousLayoutSpacing() {
@@ -420,8 +430,7 @@
   function goToHubLobby() {
     leavingToHub = true;
     state.phase = 'MENU';
-    clearInterval(state.timerInterval);
-    clearTimeout(state.aiTimer);
+    clearPendingTimers();
     const currentName = document.getElementById('p1-name')?.textContent || getSavedPlayerName();
     persistPlayerName(currentName);
 
@@ -536,7 +545,11 @@
     state.timerSeconds = 60;
     renderTimer();
     state.timerInterval = setInterval(() => {
-      if (state.phase === 'MENU' || state.phase === 'GAME_OVER' || state.phase === 'SHOOTING') return;
+      if (leavingToHub || state.phase === 'MENU' || state.phase === 'GAME_OVER') {
+        clearInterval(state.timerInterval);
+        return;
+      }
+      if (state.phase === 'SHOOTING') return;
       state.timerSeconds--;
       renderTimer();
       if (state.timerSeconds <= 0) {
@@ -571,6 +584,7 @@
   }
 
   function setupRack() {
+    clearPendingTimers();
     resizeTable();
     state.balls = [];
     state.groups = { 1: null, 2: null };
@@ -1021,7 +1035,7 @@
 
   function endMatch(winnerNum, reason) {
     state.phase = 'GAME_OVER';
-    clearInterval(state.timerInterval);
+    clearPendingTimers();
     playTone(587, 'triangle', 0.45, 0.25);
     haptic([40, 40, 80]);
     const winnerLabel = (winnerNum === 2 && state.opponent === 'ai')
@@ -1037,10 +1051,12 @@
 
   function maybeTriggerAI() {
     clearTimeout(state.aiTimer);
-    if (state.opponent !== 'ai' || state.turn !== 2) return;
+    clearInterval(state.aiPullInterval);
+    if (leavingToHub || state.opponent !== 'ai' || state.turn !== 2) return;
     if (state.phase !== 'AIMING' && state.phase !== 'BALL_IN_HAND') return;
 
     state.aiTimer = setTimeout(() => {
+      if (leavingToHub || state.opponent !== 'ai' || state.turn !== 2) return;
       const cue = getCueBall();
       if (!cue) return;
 
@@ -1085,144 +1101,154 @@
 
       let pullStep = 0;
       const targetPull = state.shotWasBreak ? 0.92 : (0.48 + Math.random() * 0.28);
-      const pullAnim = setInterval(() => {
+      state.aiPullInterval = setInterval(() => {
+        if (leavingToHub) {
+          clearInterval(state.aiPullInterval);
+          return;
+        }
         pullStep += 0.12;
         state.takoPull = Math.min(targetPull, pullStep);
         updatePowerUI();
         if (state.takoPull >= targetPull) {
-          clearInterval(pullAnim);
-          setTimeout(() => shootCueBall(), 180);
+          clearInterval(state.aiPullInterval);
+          state.aiPullInterval = null;
+          setTimeout(() => {
+            if (!leavingToHub) shootCueBall();
+          }, 180);
         }
       }, 35);
     }, 850);
   }
 
   function render() {
-    ctx.clearRect(0, 0, W, H);
+    if (W > 0 && H > 0) {
+      ctx.clearRect(0, 0, W, H);
 
-    const frameGrad = ctx.createLinearGradient(0, 0, W, H);
-    frameGrad.addColorStop(0, '#5c2d16');
-    frameGrad.addColorStop(0.5, '#3e1d0d');
-    frameGrad.addColorStop(1, '#2b1207');
-    ctx.fillStyle = frameGrad;
-    roundRect(ctx, 0, 0, W, H, 16);
-    ctx.fill();
+      const frameGrad = ctx.createLinearGradient(0, 0, W, H);
+      frameGrad.addColorStop(0, '#5c2d16');
+      frameGrad.addColorStop(0.5, '#3e1d0d');
+      frameGrad.addColorStop(1, '#2b1207');
+      ctx.fillStyle = frameGrad;
+      roundRect(ctx, 0, 0, W, H, 16);
+      ctx.fill();
 
-    ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
-    ctx.lineWidth = 2;
-    roundRect(ctx, 1, 1, W - 2, H - 2, 15);
-    ctx.stroke();
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
+      ctx.lineWidth = 2;
+      roundRect(ctx, 1, 1, W - 2, H - 2, 15);
+      ctx.stroke();
 
-    ctx.fillStyle = '#fbbf24';
-    for (let i = 1; i <= 3; i++) {
-      const dx = playX + (playW * i) / 4;
-      drawDiamond(dx, rail * 0.45);
-      drawDiamond(dx, H - rail * 0.45);
-    }
-    for (let i = 1; i <= 1; i++) {
+      ctx.fillStyle = '#fbbf24';
+      for (let i = 1; i <= 3; i++) {
+        const dx = playX + (playW * i) / 4;
+        drawDiamond(dx, rail * 0.45);
+        drawDiamond(dx, H - rail * 0.45);
+      }
       const dy = playY + playH * 0.5;
       drawDiamond(rail * 0.45, dy);
       drawDiamond(W - rail * 0.45, dy);
-    }
 
-    const feltGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, 20, W * 0.5, H * 0.5, W * 0.65);
-    feltGrad.addColorStop(0, '#0f766e');
-    feltGrad.addColorStop(0.65, '#0d5c56');
-    feltGrad.addColorStop(1, '#083f3b');
-    ctx.fillStyle = feltGrad;
-    ctx.fillRect(playX, playY, playW, playH);
+      const feltGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, 20, W * 0.5, H * 0.5, W * 0.65);
+      feltGrad.addColorStop(0, '#0f766e');
+      feltGrad.addColorStop(0.65, '#0d5c56');
+      feltGrad.addColorStop(1, '#083f3b');
+      ctx.fillStyle = feltGrad;
+      ctx.fillRect(playX, playY, playW, playH);
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(playX + playW * 0.25, playY);
-    ctx.lineTo(playX + playW * 0.25, playY + playH);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(playX + playW * 0.72, playY + playH * 0.5, 3, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.fill();
-
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(playX, playY, playW, playH);
-
-    pockets.forEach(pk => {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.arc(pk.x, pk.y, pocketR + 3, 0, Math.PI * 2);
-      ctx.fillStyle = '#1e293b';
-      ctx.fill();
+      ctx.moveTo(playX + playW * 0.25, playY);
+      ctx.lineTo(playX + playW * 0.25, playY + playH);
+      ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(pk.x, pk.y, pocketR, 0, Math.PI * 2);
-      ctx.fillStyle = '#030712';
+      ctx.arc(playX + playW * 0.72, playY + playH * 0.5, 3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
       ctx.fill();
-    });
 
-    if (state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') {
-      const traj = computeTrajectory();
-      if (traj) {
-        const { cue, ghostX, ghostY, hitBall, targetDir, cueDeflectDir } = traj;
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(playX, playY, playW, playH);
 
-        ctx.save();
-        ctx.setLineDash([6, 6]);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+      pockets.forEach(pk => {
         ctx.beginPath();
-        ctx.moveTo(cue.x, cue.y);
-        if (state.guideMode === 'short') {
-          const shortDist = Math.min(Math.hypot(ghostX - cue.x, ghostY - cue.y), 140);
-          ctx.lineTo(cue.x + Math.cos(state.aimAngle) * shortDist, cue.y + Math.sin(state.aimAngle) * shortDist);
-        } else {
-          ctx.lineTo(ghostX, ghostY);
-        }
-        ctx.stroke();
-        ctx.restore();
+        ctx.arc(pk.x, pk.y, pocketR + 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#1e293b';
+        ctx.fill();
 
-        if (state.guideMode === 'full') {
+        ctx.beginPath();
+        ctx.arc(pk.x, pk.y, pocketR, 0, Math.PI * 2);
+        ctx.fillStyle = '#030712';
+        ctx.fill();
+      });
+
+      if (state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') {
+        const traj = computeTrajectory();
+        if (traj) {
+          const { cue, ghostX, ghostY, hitBall, targetDir, cueDeflectDir } = traj;
+
+          ctx.save();
+          ctx.setLineDash([6, 6]);
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
           ctx.beginPath();
-          ctx.arc(ghostX, ghostY, ballR, 0, Math.PI * 2);
-          ctx.strokeStyle = hitBall ? 'rgba(251, 191, 36, 0.85)' : 'rgba(255, 255, 255, 0.4)';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-
-          if (hitBall && targetDir) {
-            const legal = isLegalTarget(hitBall.num);
-            ctx.beginPath();
-            ctx.moveTo(hitBall.x, hitBall.y);
-            ctx.lineTo(hitBall.x + targetDir.x * 95, hitBall.y + targetDir.y * 95);
-            ctx.strokeStyle = legal ? '#34d399' : '#f87171';
-            ctx.lineWidth = 2.5;
-            ctx.stroke();
+          ctx.moveTo(cue.x, cue.y);
+          if (state.guideMode === 'short') {
+            const shortDist = Math.min(Math.hypot(ghostX - cue.x, ghostY - cue.y), 140);
+            ctx.lineTo(cue.x + Math.cos(state.aimAngle) * shortDist, cue.y + Math.sin(state.aimAngle) * shortDist);
+          } else {
+            ctx.lineTo(ghostX, ghostY);
           }
+          ctx.stroke();
+          ctx.restore();
 
-          if (cueDeflectDir) {
+          if (state.guideMode === 'full') {
             ctx.beginPath();
-            ctx.moveTo(ghostX, ghostY);
-            ctx.lineTo(ghostX + cueDeflectDir.x * 65, ghostY + cueDeflectDir.y * 65);
-            ctx.strokeStyle = 'rgba(96, 165, 250, 0.8)';
-            ctx.lineWidth = 1.8;
+            ctx.arc(ghostX, ghostY, ballR, 0, Math.PI * 2);
+            ctx.strokeStyle = hitBall ? 'rgba(251, 191, 36, 0.85)' : 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1.5;
             ctx.stroke();
+
+            if (hitBall && targetDir) {
+              const legal = isLegalTarget(hitBall.num);
+              ctx.beginPath();
+              ctx.moveTo(hitBall.x, hitBall.y);
+              ctx.lineTo(hitBall.x + targetDir.x * 95, hitBall.y + targetDir.y * 95);
+              ctx.strokeStyle = legal ? '#34d399' : '#f87171';
+              ctx.lineWidth = 2.5;
+              ctx.stroke();
+            }
+
+            if (cueDeflectDir) {
+              ctx.beginPath();
+              ctx.moveTo(ghostX, ghostY);
+              ctx.lineTo(ghostX + cueDeflectDir.x * 65, ghostY + cueDeflectDir.y * 65);
+              ctx.strokeStyle = 'rgba(96, 165, 250, 0.8)';
+              ctx.lineWidth = 1.8;
+              ctx.stroke();
+            }
           }
         }
       }
-    }
 
-    state.balls.forEach(b => {
-      if (b.pocketed) return;
-      drawBall(b);
-    });
+      state.balls.forEach(b => {
+        if (b.pocketed) return;
+        drawBall(b);
+      });
 
-    if (state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') {
-      const cue = getCueBall();
-      if (cue && !cue.pocketed) {
-        drawTako(cue, state.aimAngle, state.takoPull);
+      if (state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') {
+        const cue = getCueBall();
+        if (cue && !cue.pocketed) {
+          drawTako(cue, state.aimAngle, state.takoPull);
+        }
       }
+
+      stepPhysics();
     }
 
-    stepPhysics();
-    requestAnimationFrame(render);
+    if (!leavingToHub) {
+      requestAnimationFrame(render);
+    }
   }
 
   function drawBall(b) {
@@ -1753,8 +1779,7 @@
   });
 
   document.getElementById('btn-new-match')?.addEventListener('click', () => {
-    clearInterval(state.timerInterval);
-    clearTimeout(state.aiTimer);
+    clearPendingTimers();
     state.phase = 'MENU';
     document.getElementById('setup-modal')?.classList.remove('hidden');
   });
