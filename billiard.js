@@ -1,6 +1,7 @@
 (() => {
   const canvas = document.getElementById('pool-canvas');
   const ctx = canvas.getContext('2d');
+  const PLAYER_NAME_KEY = 'arcade_hub_player_name';
 
   const BALL_COLORS = {
     0: '#f8fafc',
@@ -84,8 +85,30 @@
     }
   }
 
+  function requestFullscreenOnGesture(forceToggle = false) {
+    const docEl = document.documentElement;
+    const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    try {
+      if (forceToggle && isFs) {
+        if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        return;
+      }
+      if (!isFs) {
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen({ navigationUI: 'hide' }).catch(() => {
+            docEl.requestFullscreen().catch(() => {});
+          });
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        }
+      }
+    } catch (_) {}
+  }
+
   function resizeTable() {
     const wrap = document.getElementById('table-wrap');
+    if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
     if (rect.width < 100 || rect.height < 100) return;
 
@@ -134,56 +157,92 @@
   window.addEventListener('resize', resizeTable);
 
   function setBanner(msg) {
-    document.getElementById('status-banner').textContent = msg;
+    const el = document.getElementById('status-banner');
+    if (el) el.textContent = msg;
+  }
+
+  function getSavedPlayerName() {
+    try {
+      const saved = localStorage.getItem(PLAYER_NAME_KEY) || localStorage.getItem('playerName');
+      if (saved && saved.trim()) return saved.trim();
+    } catch (_) {}
+    const domName = document.getElementById('p1-name')?.textContent;
+    return (domName && domName.trim()) || 'AJ';
+  }
+
+  function persistPlayerName(name) {
+    const clean = String(name || '').trim();
+    if (!clean) return;
+    window.playerName = clean;
+    try {
+      localStorage.setItem(PLAYER_NAME_KEY, clean);
+    } catch (_) {}
   }
 
   function syncPlayerNameFromHub() {
-    try {
-      const savedName = localStorage.getItem('arcade_hub_player_name') || localStorage.getItem('playerName');
-      if (savedName && savedName.trim()) {
-        document.getElementById('p1-name').textContent = savedName.trim().slice(0, 12);
-      }
-    } catch (e) {}
+    const name = getSavedPlayerName();
+    persistPlayerName(name);
+    const p1El = document.getElementById('p1-name');
+    if (p1El) p1El.textContent = name.slice(0, 12);
+  }
+
+  function goToHubLobby() {
+    clearInterval(state.timerInterval);
+    clearTimeout(state.aiTimer);
+    const currentName = document.getElementById('p1-name')?.textContent || getSavedPlayerName();
+    persistPlayerName(currentName);
+    haptic(10);
+    window.location.href = './index.html?hub=true';
   }
 
   function updateHUD() {
     const b1 = document.getElementById('badge-p1');
     const b2 = document.getElementById('badge-p2');
-    b1.classList.toggle('active', state.turn === 1);
-    b2.classList.toggle('active', state.turn === 2);
+    if (b1) b1.classList.toggle('active', state.turn === 1);
+    if (b2) b2.classList.toggle('active', state.turn === 2);
 
-    document.getElementById('p2-name').textContent = state.opponent === 'ai' ? 'AI BOT' : 'P2';
-    document.getElementById('hud-mode-label').textContent =
-      (state.mode === '8ball' ? '8-BALL' : '9-BALL') + ' • ' + (state.opponent === 'ai' ? 'VS AI' : 'PVP');
+    const p2El = document.getElementById('p2-name');
+    if (p2El) p2El.textContent = state.opponent === 'ai' ? 'AI BOT' : 'P2';
+    const modeEl = document.getElementById('hud-mode-label');
+    if (modeEl) {
+      modeEl.textContent =
+        (state.mode === '8ball' ? '8-BALL' : '9-BALL') + ' • ' + (state.opponent === 'ai' ? 'VS AI' : 'PVP');
+    }
 
     const g1 = document.getElementById('p1-group');
     const g2 = document.getElementById('p2-group');
-    if (state.mode === '9ball') {
-      const lowest = getLowestTargetNumber();
-      g1.textContent = lowest ? 'TARGET #' + lowest : 'DONE';
-      g2.textContent = lowest ? 'TARGET #' + lowest : 'DONE';
-    } else {
-      g1.textContent = state.groups[1] ? state.groups[1].toUpperCase() : 'OPEN';
-      g2.textContent = state.groups[2] ? state.groups[2].toUpperCase() : 'OPEN';
+    if (g1 && g2) {
+      if (state.mode === '9ball') {
+        const lowest = getLowestTargetNumber();
+        g1.textContent = lowest ? 'TARGET #' + lowest : 'DONE';
+        g2.textContent = lowest ? 'TARGET #' + lowest : 'DONE';
+      } else {
+        g1.textContent = state.groups[1] ? state.groups[1].toUpperCase() : 'OPEN';
+        g2.textContent = state.groups[2] ? state.groups[2].toUpperCase() : 'OPEN';
+      }
     }
 
     const tray = document.getElementById('rack-tray');
-    tray.innerHTML = '';
-    const maxBall = state.mode === '8ball' ? 15 : 9;
-    for (let n = 1; n <= maxBall; n++) {
-      const b = state.balls.find(item => item.num === n);
-      const div = document.createElement('div');
-      div.className = 'mini-ball' + (!b || b.pocketed ? ' pocketed' : '');
-      div.style.background = n > 8
-        ? `radial-gradient(circle, #fff 45%, ${BALL_COLORS[n]} 48%)`
-        : BALL_COLORS[n];
-      if (n === 8) div.style.color = '#fff';
-      div.textContent = n;
-      tray.appendChild(div);
+    if (tray) {
+      tray.innerHTML = '';
+      const maxBall = state.mode === '8ball' ? 15 : 9;
+      for (let n = 1; n <= maxBall; n++) {
+        const b = state.balls.find(item => item.num === n);
+        const div = document.createElement('div');
+        div.className = 'mini-ball' + (!b || b.pocketed ? ' pocketed' : '');
+        div.style.background = n > 8
+          ? `radial-gradient(circle, #fff 45%, ${BALL_COLORS[n]} 48%)`
+          : BALL_COLORS[n];
+        if (n === 8) div.style.color = '#fff';
+        div.textContent = n;
+        tray.appendChild(div);
+      }
     }
 
-    document.getElementById('ball-in-hand-hint').style.display =
-      state.phase === 'BALL_IN_HAND' ? 'block' : 'none';
+    const hintEl = document.getElementById('ball-in-hand-hint');
+    if (hintEl) {
+      hintEl.style.display = state.phase === 'BALL_IN_HAND' ? 'block' : 'none';
+    }
   }
 
   function startTurnTimer() {
@@ -205,9 +264,14 @@
   function renderTimer() {
     const mins = Math.floor(Math.max(0, state.timerSeconds) / 60);
     const secs = Math.max(0, state.timerSeconds) % 60;
-    document.getElementById('timer-text').textContent =
-      String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-    document.getElementById('timer-box').classList.toggle('warning', state.timerSeconds <= 15);
+    const textEl = document.getElementById('timer-text');
+    const boxEl = document.getElementById('timer-box');
+    if (textEl) {
+      textEl.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+    }
+    if (boxEl) {
+      boxEl.classList.toggle('warning', state.timerSeconds <= 15);
+    }
   }
 
   function handleTimeoutFoul() {
@@ -678,9 +742,12 @@
     const winnerLabel = (winnerNum === 2 && state.opponent === 'ai')
       ? '🤖 AI Bot Wins!'
       : `🏆 Player ${winnerNum} Wins!`;
-    document.getElementById('winner-title').textContent = winnerLabel;
-    document.getElementById('winner-reason').textContent = reason;
-    document.getElementById('gameover-modal').classList.remove('hidden');
+    const titleEl = document.getElementById('winner-title');
+    const reasonEl = document.getElementById('winner-reason');
+    const modalEl = document.getElementById('gameover-modal');
+    if (titleEl) titleEl.textContent = winnerLabel;
+    if (reasonEl) reasonEl.textContent = reason;
+    if (modalEl) modalEl.classList.remove('hidden');
   }
 
   function maybeTriggerAI() {
@@ -1107,69 +1174,76 @@
 
   function updatePowerUI() {
     const pct = Math.round(state.takoPull * 100);
-    document.getElementById('power-fill').style.height = pct + '%';
-    document.getElementById('power-grip').style.top = (4 + state.takoPull * 72) + '%';
-    document.getElementById('power-pct').textContent = pct + '%';
+    const fillEl = document.getElementById('power-fill');
+    const gripEl = document.getElementById('power-grip');
+    const pctEl = document.getElementById('power-pct');
+    if (fillEl) fillEl.style.height = pct + '%';
+    if (gripEl) gripEl.style.top = (4 + state.takoPull * 72) + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
   }
 
-  powerRail.addEventListener('pointerdown', (e) => {
-    if (!isUserTurn()) return;
-    powerRail.setPointerCapture(e.pointerId);
-    railDragging = true;
-    railStartY = e.clientY;
-  });
+  if (powerRail) {
+    powerRail.addEventListener('pointerdown', (e) => {
+      if (!isUserTurn()) return;
+      powerRail.setPointerCapture(e.pointerId);
+      railDragging = true;
+      railStartY = e.clientY;
+    });
 
-  powerRail.addEventListener('pointermove', (e) => {
-    if (!railDragging || !isUserTurn()) return;
-    const dy = e.clientY - railStartY;
-    const h = powerRail.getBoundingClientRect().height || 130;
-    state.takoPull = Math.max(0, Math.min(1, dy / (h * 0.78)));
-    updatePowerUI();
-  });
-
-  powerRail.addEventListener('pointerup', () => {
-    if (!railDragging) return;
-    railDragging = false;
-    if (state.takoPull >= 0.06) {
-      if (state.phase === 'BALL_IN_HAND') state.phase = 'AIMING';
-      shootCueBall();
-    } else {
-      state.takoPull = 0;
+    powerRail.addEventListener('pointermove', (e) => {
+      if (!railDragging || !isUserTurn()) return;
+      const dy = e.clientY - railStartY;
+      const h = powerRail.getBoundingClientRect().height || 130;
+      state.takoPull = Math.max(0, Math.min(1, dy / (h * 0.78)));
       updatePowerUI();
-    }
-  });
+    });
+
+    powerRail.addEventListener('pointerup', () => {
+      if (!railDragging) return;
+      railDragging = false;
+      if (state.takoPull >= 0.06) {
+        if (state.phase === 'BALL_IN_HAND') state.phase = 'AIMING';
+        shootCueBall();
+      } else {
+        state.takoPull = 0;
+        updatePowerUI();
+      }
+    });
+  }
 
   const aimWheel = document.getElementById('aim-wheel');
-  const aimTicks = aimWheel.querySelector('.aim-ticks');
+  const aimTicks = aimWheel ? aimWheel.querySelector('.aim-ticks') : null;
   let wheelDragging = false;
   let wheelLastY = 0;
   let tickOffset = 0;
 
-  aimWheel.addEventListener('pointerdown', (e) => {
-    if (!isUserTurn()) return;
-    aimWheel.setPointerCapture(e.pointerId);
-    wheelDragging = true;
-    wheelLastY = e.clientY;
-  });
+  if (aimWheel) {
+    aimWheel.addEventListener('pointerdown', (e) => {
+      if (!isUserTurn()) return;
+      aimWheel.setPointerCapture(e.pointerId);
+      wheelDragging = true;
+      wheelLastY = e.clientY;
+    });
 
-  aimWheel.addEventListener('pointermove', (e) => {
-    if (!wheelDragging || !isUserTurn()) return;
-    const dy = e.clientY - wheelLastY;
-    wheelLastY = e.clientY;
-    state.aimAngle += dy * 0.008 * state.fineAimSpeed;
-    tickOffset += dy;
-    aimTicks.style.backgroundPositionY = tickOffset + 'px';
-  });
+    aimWheel.addEventListener('pointermove', (e) => {
+      if (!wheelDragging || !isUserTurn()) return;
+      const dy = e.clientY - wheelLastY;
+      wheelLastY = e.clientY;
+      state.aimAngle += dy * 0.008 * state.fineAimSpeed;
+      tickOffset += dy;
+      if (aimTicks) aimTicks.style.backgroundPositionY = tickOffset + 'px';
+    });
 
-  aimWheel.addEventListener('pointerup', () => { wheelDragging = false; });
+    aimWheel.addEventListener('pointerup', () => { wheelDragging = false; });
+  }
 
-  document.getElementById('btn-aim-ccw').addEventListener('click', () => {
+  document.getElementById('btn-aim-ccw')?.addEventListener('click', () => {
     if (!isUserTurn()) return;
     state.aimAngle -= 0.008 * state.fineAimSpeed * 3;
     haptic(8);
   });
 
-  document.getElementById('btn-aim-cw').addEventListener('click', () => {
+  document.getElementById('btn-aim-cw')?.addEventListener('click', () => {
     if (!isUserTurn()) return;
     state.aimAngle += 0.008 * state.fineAimSpeed * 3;
     haptic(8);
@@ -1181,6 +1255,7 @@
   let spinDragging = false;
 
   function applySpinFromEvent(e) {
+    if (!spinPad) return;
     const rect = spinPad.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
@@ -1198,35 +1273,42 @@
   }
 
   function updateSpinUI() {
-    spinDot.style.left = (50 + state.spin.x * 36) + '%';
-    spinDot.style.top = (50 + state.spin.y * 36) + '%';
-    if (Math.abs(state.spin.x) < 0.12 && Math.abs(state.spin.y) < 0.12) {
-      spinReadout.textContent = 'CENTER';
-    } else {
-      const v = state.spin.y < -0.15 ? 'TOP' : (state.spin.y > 0.15 ? 'BACK' : '');
-      const h = state.spin.x < -0.15 ? 'L' : (state.spin.x > 0.15 ? 'R' : '');
-      spinReadout.textContent = [v, h].filter(Boolean).join(' ') || 'CENTER';
+    if (spinDot) {
+      spinDot.style.left = (50 + state.spin.x * 36) + '%';
+      spinDot.style.top = (50 + state.spin.y * 36) + '%';
+    }
+    if (spinReadout) {
+      if (Math.abs(state.spin.x) < 0.12 && Math.abs(state.spin.y) < 0.12) {
+        spinReadout.textContent = 'CENTER';
+      } else {
+        const v = state.spin.y < -0.15 ? 'TOP' : (state.spin.y > 0.15 ? 'BACK' : '');
+        const h = state.spin.x < -0.15 ? 'L' : (state.spin.x > 0.15 ? 'R' : '');
+        spinReadout.textContent = [v, h].filter(Boolean).join(' ') || 'CENTER';
+      }
     }
   }
 
-  spinPad.addEventListener('pointerdown', (e) => {
-    if (!isUserTurn()) return;
-    spinPad.setPointerCapture(e.pointerId);
-    spinDragging = true;
-    applySpinFromEvent(e);
-  });
-  spinPad.addEventListener('pointermove', (e) => {
-    if (spinDragging && isUserTurn()) applySpinFromEvent(e);
-  });
-  spinPad.addEventListener('pointerup', () => { spinDragging = false; });
+  if (spinPad) {
+    spinPad.addEventListener('pointerdown', (e) => {
+      if (!isUserTurn()) return;
+      spinPad.setPointerCapture(e.pointerId);
+      spinDragging = true;
+      applySpinFromEvent(e);
+    });
+    spinPad.addEventListener('pointermove', (e) => {
+      if (spinDragging && isUserTurn()) applySpinFromEvent(e);
+    });
+    spinPad.addEventListener('pointerup', () => { spinDragging = false; });
+  }
 
-  document.getElementById('btn-reset-spin').addEventListener('click', () => {
+  document.getElementById('btn-reset-spin')?.addEventListener('click', () => {
     state.spin = { x: 0, y: 0 };
     updateSpinUI();
   });
 
   function bindSegRow(id, callback) {
     const row = document.getElementById(id);
+    if (!row) return;
     row.querySelectorAll('.seg-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         row.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
@@ -1239,48 +1321,73 @@
   bindSegRow('opt-mode', val => { state.mode = val; });
   bindSegRow('opt-opponent', val => {
     state.opponent = val;
-    document.getElementById('ai-diff-group').style.display = val === 'ai' ? 'flex' : 'none';
+    const diffGroup = document.getElementById('ai-diff-group');
+    if (diffGroup) diffGroup.style.display = val === 'ai' ? 'flex' : 'none';
   });
   bindSegRow('opt-diff', val => { state.aiDiff = val; });
   bindSegRow('opt-guide', val => { state.guideMode = val; });
   bindSegRow('opt-sfx', val => { state.sfx = (val === 'on'); });
 
-  document.getElementById('btn-start-match').addEventListener('click', () => {
-    document.getElementById('setup-modal').classList.add('hidden');
+  document.getElementById('btn-start-match')?.addEventListener('click', () => {
+    requestFullscreenOnGesture(false);
+    document.getElementById('setup-modal')?.classList.add('hidden');
     setupRack();
   });
 
-  document.getElementById('btn-new-match').addEventListener('click', () => {
+  document.getElementById('btn-new-match')?.addEventListener('click', () => {
     clearInterval(state.timerInterval);
     clearTimeout(state.aiTimer);
     state.phase = 'MENU';
-    document.getElementById('setup-modal').classList.remove('hidden');
+    document.getElementById('setup-modal')?.classList.remove('hidden');
   });
 
-  document.getElementById('btn-rematch').addEventListener('click', () => {
-    document.getElementById('gameover-modal').classList.add('hidden');
+  document.getElementById('btn-rematch')?.addEventListener('click', () => {
+    requestFullscreenOnGesture(false);
+    document.getElementById('gameover-modal')?.classList.add('hidden');
     setupRack();
   });
 
-  document.getElementById('btn-settings').addEventListener('click', () => {
-    document.getElementById('settings-modal').classList.remove('hidden');
+  document.getElementById('btn-settings')?.addEventListener('click', () => {
+    document.getElementById('settings-modal')?.classList.remove('hidden');
   });
-  document.getElementById('btn-close-settings').addEventListener('click', () => {
-    document.getElementById('settings-modal').classList.add('hidden');
+  document.getElementById('btn-close-settings')?.addEventListener('click', () => {
+    document.getElementById('settings-modal')?.classList.add('hidden');
   });
-  document.getElementById('btn-save-settings').addEventListener('click', () => {
-    document.getElementById('settings-modal').classList.add('hidden');
+  document.getElementById('btn-save-settings')?.addEventListener('click', () => {
+    document.getElementById('settings-modal')?.classList.add('hidden');
   });
+
+  document.getElementById('btn-fullscreen')?.addEventListener('click', () => {
+    requestFullscreenOnGesture(true);
+    setTimeout(resizeTable, 120);
+  });
+
+  const hubBtn =
+    document.getElementById('btn-hub') ||
+    document.querySelector('[data-action="hub"]') ||
+    document.querySelector('[onclick*="openHubHome"]');
+  if (hubBtn) {
+    hubBtn.removeAttribute('onclick');
+    hubBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      goToHubLobby();
+    });
+  }
+
+  window.goToArcadeHub = goToHubLobby;
+  window.toggleBilliardFullscreen = () => requestFullscreenOnGesture(true);
 
   const sliderSens = document.getElementById('slider-sens');
   const sliderFine = document.getElementById('slider-fine');
-  sliderSens.addEventListener('input', () => {
+  sliderSens?.addEventListener('input', () => {
     state.aimSensitivity = parseFloat(sliderSens.value);
-    document.getElementById('sens-val').textContent = state.aimSensitivity.toFixed(2) + '×';
+    const valEl = document.getElementById('sens-val');
+    if (valEl) valEl.textContent = state.aimSensitivity.toFixed(2) + '×';
   });
-  sliderFine.addEventListener('input', () => {
+  sliderFine?.addEventListener('input', () => {
     state.fineAimSpeed = parseFloat(sliderFine.value);
-    document.getElementById('fine-val').textContent = state.fineAimSpeed.toFixed(2) + '×';
+    const valEl = document.getElementById('fine-val');
+    if (valEl) valEl.textContent = state.fineAimSpeed.toFixed(2) + '×';
   });
 
   syncPlayerNameFromHub();
