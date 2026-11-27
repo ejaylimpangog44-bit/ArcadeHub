@@ -1,8 +1,5 @@
-(() => {
-  const canvas = document.getElementById('pool-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
+  if (!stage) return () => {};
 
   const PLAYER_NAME_KEY = 'arcade_hub_player_name';
   const ENTER_FS_FROM_HUB_KEY = 'arcade_hub_enter_fullscreen_on_billiard';
@@ -10,7 +7,212 @@
   const HUB_KEEP_FS_KEY = 'arcade_hub_keep_fullscreen';
   const HUB_AUTO_LANDSCAPE_FS_KEY = 'arcade_hub_auto_landscape_fs';
 
+  let destroyed = false;
   let leavingToHub = false;
+  let rafId = null;
+
+  stage.innerHTML = `
+    <div id="billiard-runner-root" style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;background:#071312;color:#f8fafc;overflow:hidden;user-select:none;touch-action:none;">
+      <div id="top-hud" class="pool-hud" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;background:rgba(15,23,42,0.88);border-bottom:1px solid rgba(255,255,255,0.1);flex-wrap:wrap;z-index:5;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="badge-p1" style="padding:4px 10px;border-radius:8px;background:rgba(255,255,255,0.08);font-weight:700;font-size:12px;">
+            <span id="p1-name">P1</span> (<span id="p1-group">OPEN</span>)
+          </div>
+          <div id="badge-p2" style="padding:4px 10px;border-radius:8px;background:rgba(255,255,255,0.08);font-weight:700;font-size:12px;">
+            <span id="p2-name">🤖 AI</span> (<span id="p2-group">OPEN</span>)
+          </div>
+        </div>
+
+        <div id="hud-mode-label" style="font-size:12px;font-weight:700;color:#5eead4;">🎱 8-BALL • 🤖 AI</div>
+        <div id="rack-tray" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"></div>
+
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="timer-box" style="padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.35);font-family:monospace;font-size:12px;font-weight:700;">
+            <span id="timer-text">01:00</span>
+          </div>
+          <button id="btn-open-spin-modal" type="button" style="padding:5px 9px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;font-size:12px;cursor:pointer;">
+            Spin: <span id="spin-readout">CENTER</span>
+            <span id="spin-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ef4444;margin-left:4px;"></span>
+          </button>
+          <button id="btn-settings" type="button" style="padding:5px 9px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;font-size:12px;cursor:pointer;">⚙️</button>
+          <button id="btn-setup-hub" type="button" style="padding:5px 9px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#334155;color:#f8fafc;font-size:12px;cursor:pointer;">Hub</button>
+        </div>
+      </div>
+
+      <div style="position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 10px;">
+        <div id="power-rail" style="width:36px;height:140px;border-radius:10px;background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:6px 0;cursor:pointer;">
+          <span style="font-size:10px;font-weight:700;" id="power-pct">0%</span>
+          <div style="position:relative;width:8px;flex:1;margin:4px 0;background:rgba(255,255,255,0.12);border-radius:4px;overflow:hidden;">
+            <div id="power-fill" style="position:absolute;bottom:0;left:0;right:0;height:0%;background:linear-gradient(to top,#10b981,#f59e0b,#ef4444);"></div>
+          </div>
+          <div id="power-grip" style="position:absolute;top:4%;left:4px;right:4px;height:10px;border-radius:4px;background:#fbbf24;pointer-events:none;"></div>
+        </div>
+
+        <div id="table-wrap" style="flex:1;width:100%;height:100%;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;">
+          <canvas id="pool-canvas" style="display:block;max-width:100%;max-height:100%;"></canvas>
+        </div>
+
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <button id="btn-aim-ccw" type="button" style="width:34px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;cursor:pointer;">↺</button>
+          <div id="aim-wheel" style="width:34px;height:100px;border-radius:10px;background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);overflow:hidden;position:relative;cursor:ns-resize;">
+            <div class="aim-ticks" style="width:100%;height:100%;background-image:repeating-linear-gradient(to bottom,rgba(255,255,255,0.35) 0 1px,transparent 1px 10px);"></div>
+          </div>
+          <button id="btn-aim-cw" type="button" style="width:34px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;cursor:pointer;">↻</button>
+        </div>
+      </div>
+
+      <div id="ball-in-hand-hint" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.9);padding:5px 12px;border-radius:999px;font-size:12px;border:1px solid rgba(94,234,212,0.4);pointer-events:none;">
+        Ball in Hand — Drag cue ball to place
+      </div>
+
+      <div id="turn-modal-toast" class="hidden" style="position:absolute;top:54px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.94);border:1px solid rgba(251,191,36,0.5);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;z-index:15;pointer-events:none;"></div>
+      <div id="pocket-anim-badge" class="hidden" style="position:absolute;top:54px;right:16px;background:rgba(15,23,42,0.94);border:1px solid rgba(52,211,153,0.5);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;z-index:15;pointer-events:none;"></div>
+
+      <div id="spin-modal" class="hidden" style="position:fixed;inset:0;background:rgba(2,6,23,0.72);display:flex;align-items:center;justify-content:center;z-index:40;">
+        <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:16px;width:230px;text-align:center;">
+          <div style="font-weight:700;margin-bottom:8px;">Cue Spin (<span id="spin-modal-readout">CENTER</span>)</div>
+          <div id="spin-modal-pad" style="position:relative;width:130px;height:130px;margin:0 auto 12px;border-radius:50%;background:#f8fafc;border:3px solid #334155;cursor:pointer;">
+            <div id="spin-modal-dot" style="position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#ef4444;pointer-events:none;"></div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:center;">
+            <button id="btn-modal-reset-spin" type="button" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1e293b;color:#f8fafc;cursor:pointer;">Reset</button>
+            <button id="btn-close-spin-modal" type="button" style="padding:6px 12px;border-radius:8px;border:none;background:#0d9488;color:#fff;font-weight:700;cursor:pointer;">Done</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="setup-modal" class="hidden" style="position:fixed;inset:0;background:rgba(2,6,23,0.78);display:flex;align-items:center;justify-content:center;z-index:40;">
+        <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:18px;width:280px;text-align:center;">
+          <h3 style="margin:0 0 12px;">Billiard Setup</h3>
+          <button id="btn-start-match" type="button" style="width:100%;padding:8px 12px;border-radius:8px;border:none;background:#0d9488;color:#fff;font-weight:700;cursor:pointer;margin-bottom:8px;">Start Rack</button>
+          <button id="btn-gameover-hub" type="button" style="width:100%;padding:7px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1e293b;color:#f8fafc;cursor:pointer;">Back to Hub</button>
+        </div>
+      </div>
+
+      <div id="gameover-modal" class="hidden" style="position:fixed;inset:0;background:rgba(2,6,23,0.82);display:flex;align-items:center;justify-content:center;z-index:45;">
+        <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:18px;width:290px;text-align:center;">
+          <h3 id="winner-title" style="margin:0 0 6px;">Match Over</h3>
+          <p id="winner-reason" style="margin:0 0 14px;font-size:13px;color:#cbd5e1;"></p>
+          <button id="btn-rematch" type="button" style="width:100%;padding:8px 12px;border-radius:8px;border:none;background:#0d9488;color:#fff;font-weight:700;cursor:pointer;margin-bottom:8px;">Play Again</button>
+          <button id="btn-new-match" type="button" style="width:100%;padding:7px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1e293b;color:#f8fafc;cursor:pointer;">Match Setup</button>
+        </div>
+      </div>
+
+      <div id="settings-modal" class="hidden" style="position:fixed;inset:0;background:rgba(2,6,23,0.82);display:flex;align-items:center;justify-content:center;z-index:50;">
+        <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:16px;width:320px;max-height:90vh;overflow:auto;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <strong>Pool Settings</strong>
+            <button id="btn-close-settings" type="button" style="background:none;border:none;color:#f8fafc;font-size:16px;cursor:pointer;">✕</button>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;">
+            <button id="btn-open-mode-modal" type="button" style="display:flex;justify-content:space-between;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.14);background:#1e293b;color:#f8fafc;cursor:pointer;">
+              <span>Mode</span><strong id="val-mode-summary">🎱 8-Ball</strong>
+            </button>
+            <button id="btn-open-opponent-modal" type="button" style="display:flex;justify-content:space-between;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.14);background:#1e293b;color:#f8fafc;cursor:pointer;">
+              <span>Opponent</span><strong id="val-opponent-summary">🤖 AI</strong>
+            </button>
+            <button id="btn-open-diff-modal" type="button" style="display:flex;justify-content:space-between;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.14);background:#1e293b;color:#f8fafc;cursor:pointer;">
+              <span>AI Difficulty</span><strong id="val-diff-summary">⚡ Pro</strong>
+            </button>
+
+            <div id="opt-tap-aim" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>Tap to Aim</span>
+              <div>
+                <button class="seg-btn active" data-val="on" type="button">On</button>
+                <button class="seg-btn" data-val="off" type="button">Off</button>
+              </div>
+            </div>
+
+            <div id="opt-guide" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>Aim Guide</span>
+              <div>
+                <button class="seg-btn active" data-val="full" type="button">Full</button>
+                <button class="seg-btn" data-val="short" type="button">Short</button>
+                <button class="seg-btn" data-val="off" type="button">Off</button>
+              </div>
+            </div>
+
+            <div id="opt-sfx" style="display:flex;justify-content:space-between;align-items:center;">
+              <span>Sound & Haptics</span>
+              <div>
+                <button class="seg-btn active" data-val="on" type="button">On</button>
+                <button class="seg-btn" data-val="off" type="button">Off</button>
+              </div>
+            </div>
+
+            <label>Sensitivity <span id="sens-val">0.45×</span>
+              <input id="slider-sens" type="range" min="0.15" max="1.2" step="0.05" value="0.45" style="width:100%;">
+            </label>
+            <label>Fine Aim <span id="fine-val">0.20×</span>
+              <input id="slider-fine" type="range" min="0.05" max="0.8" step="0.05" value="0.20" style="width:100%;">
+            </label>
+
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+              <button id="btn-dock-restart" type="button" style="flex:1;padding:6px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;cursor:pointer;">Restart</button>
+              <button id="btn-dock-fs" type="button" style="flex:1;padding:6px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;cursor:pointer;">Fullscreen</button>
+              <button id="btn-dock-hub" type="button" style="flex:1;padding:6px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#334155;color:#f8fafc;cursor:pointer;">Hub</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:6px;">
+              <button id="btn-save-settings" type="button" style="flex:1;padding:7px;border-radius:8px;border:none;background:#0d9488;color:#fff;font-weight:700;cursor:pointer;">Save</button>
+              <button id="btn-dock-done" type="button" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1e293b;color:#f8fafc;cursor:pointer;">Done</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="mode-modal" class="hidden" style="position:fixed;inset:0;background:rgba(2,6,23,0.85);display:flex;align-items:center;justify-content:center;z-index:55;">
+        <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:14px;width:250px;text-align:center;">
+          <div style="font-weight:700;margin-bottom:10px;">Game Mode</div>
+          <div id="modal-opt-mode" style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
+            <button class="choice-tile active" data-val="8ball" type="button">🎱 8-Ball</button>
+            <button class="choice-tile" data-val="9ball" type="button">🟡 9-Ball</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button id="btn-close-mode-modal" type="button" style="flex:1;padding:6px;border-radius:7px;background:#1e293b;color:#fff;border:none;cursor:pointer;">Cancel</button>
+            <button id="btn-apply-mode-modal" type="button" style="flex:1;padding:6px;border-radius:7px;background:#0d9488;color:#fff;border:none;cursor:pointer;">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="opponent-modal" class="hidden" style="position:fixed;inset:0;background:rgba(2,6,23,0.85);display:flex;align-items:center;justify-content:center;z-index:55;">
+        <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:14px;width:250px;text-align:center;">
+          <div style="font-weight:700;margin-bottom:10px;">Opponent</div>
+          <div id="modal-opt-opponent" style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
+            <button class="choice-tile active" data-val="ai" type="button">🤖 AI</button>
+            <button class="choice-tile" data-val="pvp" type="button">👥 2P PVP</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button id="btn-close-opponent-modal" type="button" style="flex:1;padding:6px;border-radius:7px;background:#1e293b;color:#fff;border:none;cursor:pointer;">Cancel</button>
+            <button id="btn-apply-opponent-modal" type="button" style="flex:1;padding:6px;border-radius:7px;background:#0d9488;color:#fff;border:none;cursor:pointer;">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="diff-modal" class="hidden" style="position:fixed;inset:0;background:rgba(2,6,23,0.85);display:flex;align-items:center;justify-content:center;z-index:55;">
+        <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:14px;width:270px;text-align:center;">
+          <div style="font-weight:700;margin-bottom:10px;">AI Difficulty</div>
+          <div id="modal-opt-diff" style="display:flex;gap:6px;justify-content:center;margin-bottom:12px;">
+            <button class="choice-tile" data-val="easy" type="button">🌱 Easy</button>
+            <button class="choice-tile active" data-val="medium" type="button">⚡ Pro</button>
+            <button class="choice-tile" data-val="hard" type="button">👑 Boss</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button id="btn-close-diff-modal" type="button" style="flex:1;padding:6px;border-radius:7px;background:#1e293b;color:#fff;border:none;cursor:pointer;">Cancel</button>
+            <button id="btn-apply-diff-modal" type="button" style="flex:1;padding:6px;border-radius:7px;background:#0d9488;color:#fff;border:none;cursor:pointer;">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const root = stage.querySelector('#billiard-runner-root');
+  const $ = (id) => root?.querySelector(`#${id}`) || null;
+
+  const canvas = $('pool-canvas');
+  if (!canvas) return () => {};
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return () => {};
 
   function markGateHandledOnce() {
     try {
@@ -20,6 +222,16 @@
 
   const BilliardLandscapeGuard = (() => {
     let initialized = false;
+    const timers = new Set();
+
+    function trackTimeout(fn, ms) {
+      const id = setTimeout(() => {
+        timers.delete(id);
+        if (!destroyed && !leavingToHub) fn();
+      }, ms);
+      timers.add(id);
+      return id;
+    }
 
     function isLandscapeNow() {
       const orientType = window.screen && window.screen.orientation && window.screen.orientation.type;
@@ -39,7 +251,7 @@
     }
 
     function tryLockLandscape() {
-      if (leavingToHub) return;
+      if (destroyed || leavingToHub) return;
       try {
         if (screen.orientation && typeof screen.orientation.lock === 'function') {
           screen.orientation.lock('landscape').catch(() => {});
@@ -51,11 +263,6 @@
       try {
         if (screen.orientation && typeof screen.orientation.unlock === 'function') {
           screen.orientation.unlock();
-        }
-      } catch (_) {}
-      try {
-        if (screen.orientation && typeof screen.orientation.lock === 'function') {
-          screen.orientation.lock('portrait').catch(() => {});
         }
       } catch (_) {}
     }
@@ -75,7 +282,7 @@
     }
 
     function requestFullscreenSafe(forceToggle = false) {
-      if (leavingToHub) return;
+      if (destroyed || leavingToHub) return;
       const docEl = document.documentElement;
       const active = isFullscreenActive();
       try {
@@ -102,29 +309,52 @@
     }
 
     function sync() {
-      if (leavingToHub) return;
+      if (destroyed || leavingToHub) return;
       markGateHandledOnce();
       document.documentElement.dataset.isLandscape = isLandscapeNow() ? 'true' : 'false';
       tryLockLandscape();
     }
 
-    function bindAutoGestureLock() {
-      const onFirstGesture = () => {
-        if (leavingToHub) return;
-        markGateHandledOnce();
-        try {
-          sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY);
-        } catch (_) {}
-        requestFullscreenSafe(false);
+    const onFirstGesture = () => {
+      if (destroyed || leavingToHub) return;
+      markGateHandledOnce();
+      try {
+        sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY);
+      } catch (_) {}
+      requestFullscreenSafe(false);
+      tryLockLandscape();
+      sync();
+      document.removeEventListener('pointerdown', onFirstGesture, true);
+      document.removeEventListener('click', onFirstGesture, true);
+    };
+
+    const onResize = () => {
+      if (destroyed || leavingToHub) return;
+      sync();
+      trackTimeout(resizeTable, 40);
+    };
+
+    const onOrientationChange = () => {
+      if (destroyed || leavingToHub) return;
+      sync();
+      trackTimeout(() => {
         tryLockLandscape();
         sync();
-        document.removeEventListener('pointerdown', onFirstGesture, true);
-        document.removeEventListener('click', onFirstGesture, true);
-      };
+        resizeTable();
+      }, 180);
+    };
 
-      document.addEventListener('pointerdown', onFirstGesture, true);
-      document.addEventListener('click', onFirstGesture, true);
-    }
+    const onFullscreenChange = () => {
+      if (destroyed || leavingToHub) return;
+      sync();
+      trackTimeout(resizeTable, 80);
+    };
+
+    const onScreenOrientationChange = () => {
+      if (destroyed || leavingToHub) return;
+      tryLockLandscape();
+      sync();
+    };
 
     function init() {
       markGateHandledOnce();
@@ -134,44 +364,35 @@
       }
       initialized = true;
       sync();
-      bindAutoGestureLock();
 
-      window.addEventListener('resize', () => {
-        if (leavingToHub) return;
-        sync();
-        setTimeout(resizeTable, 40);
-      });
-      window.addEventListener('orientationchange', () => {
-        if (leavingToHub) return;
-        sync();
-        setTimeout(() => {
-          if (leavingToHub) return;
-          tryLockLandscape();
-          sync();
-          resizeTable();
-        }, 180);
-      });
-      document.addEventListener('fullscreenchange', () => {
-        if (leavingToHub) return;
-        sync();
-        setTimeout(resizeTable, 80);
-      });
-      document.addEventListener('webkitfullscreenchange', () => {
-        if (leavingToHub) return;
-        sync();
-        setTimeout(resizeTable, 80);
-      });
+      document.addEventListener('pointerdown', onFirstGesture, true);
+      document.addEventListener('click', onFirstGesture, true);
+      window.addEventListener('resize', onResize);
+      window.addEventListener('orientationchange', onOrientationChange);
+      document.addEventListener('fullscreenchange', onFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', onFullscreenChange);
       if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
-        screen.orientation.addEventListener('change', () => {
-          if (leavingToHub) return;
-          tryLockLandscape();
-          sync();
-        });
+        screen.orientation.addEventListener('change', onScreenOrientationChange);
+      }
+    }
+
+    function teardown() {
+      timers.forEach(id => clearTimeout(id));
+      timers.clear();
+      document.removeEventListener('pointerdown', onFirstGesture, true);
+      document.removeEventListener('click', onFirstGesture, true);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onOrientationChange);
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
+      if (screen.orientation && typeof screen.orientation.removeEventListener === 'function') {
+        screen.orientation.removeEventListener('change', onScreenOrientationChange);
       }
     }
 
     return {
       init,
+      teardown,
       sync,
       isLandscapeNow,
       isPortraitNow,
@@ -184,21 +405,9 @@
   })();
 
   const BALL_COLORS = {
-    0: '#f8fafc',
-    1: '#facc15',
-    2: '#2563eb',
-    3: '#dc2626',
-    4: '#7c3aed',
-    5: '#f97316',
-    6: '#16a34a',
-    7: '#991b1b',
-    8: '#111827',
-    9: '#facc15',
-    10: '#2563eb',
-    11: '#dc2626',
-    12: '#7c3aed',
-    13: '#f97316',
-    14: '#16a34a',
+    0: '#f8fafc', 1: '#facc15', 2: '#2563eb', 3: '#dc2626', 4: '#7c3aed',
+    5: '#f97316', 6: '#16a34a', 7: '#991b1b', 8: '#111827', 9: '#facc15',
+    10: '#2563eb', 11: '#dc2626', 12: '#7c3aed', 13: '#f97316', 14: '#16a34a',
     15: '#991b1b'
   };
 
@@ -212,7 +421,7 @@
     guideMode: 'full',
     sfx: true,
 
-    phase: 'MENU',
+    phase: 'AIMING',
     turn: 1,
     groups: { 1: null, 2: null },
     timerSeconds: 60,
@@ -237,7 +446,9 @@
     turnToastTimer: null,
     turnToastFadeTimer: null,
     pocketAnimTimer: null,
-    pocketAnimFadeTimer: null
+    pocketAnimFadeTimer: null,
+    shotFollowupTimer: null,
+    autoReturnTimer: null
   };
 
   let W = 800, H = 400;
@@ -249,7 +460,7 @@
 
   let audioCtx = null;
   function playTone(freq, type, dur, vol) {
-    if (!state.sfx) return;
+    if (!state.sfx || destroyed) return;
     try {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -264,12 +475,12 @@
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(audioCtx.currentTime + dur);
-    } catch (e) {}
+    } catch (_) {}
   }
 
   function haptic(ms) {
-    if (state.sfx && navigator.vibrate) {
-      try { navigator.vibrate(ms); } catch (e) {}
+    if (state.sfx && !destroyed && navigator.vibrate) {
+      try { navigator.vibrate(ms); } catch (_) {}
     }
   }
 
@@ -280,15 +491,27 @@
     state.aiTimer = null;
     clearInterval(state.aiPullInterval);
     state.aiPullInterval = null;
+    clearTimeout(state.shotFollowupTimer);
+    state.shotFollowupTimer = null;
+    clearTimeout(state.turnToastTimer);
+    state.turnToastTimer = null;
+    clearTimeout(state.turnToastFadeTimer);
+    state.turnToastFadeTimer = null;
+    clearTimeout(state.pocketAnimTimer);
+    state.pocketAnimTimer = null;
+    clearTimeout(state.pocketAnimFadeTimer);
+    state.pocketAnimFadeTimer = null;
+    clearTimeout(state.autoReturnTimer);
+    state.autoReturnTimer = null;
   }
 
   function applySpaciousLayoutSpacing() {
-    const wrap = document.getElementById('table-wrap');
+    const wrap = $('table-wrap');
     if (wrap) {
       wrap.style.padding = '12px 16px';
       wrap.style.boxSizing = 'border-box';
     }
-    const hud = document.getElementById('top-hud') || document.querySelector('.pool-hud');
+    const hud = $('top-hud') || root?.querySelector('.pool-hud');
     if (hud) {
       hud.style.gap = '12px';
       hud.style.padding = '8px 14px';
@@ -296,8 +519,9 @@
   }
 
   function resizeTable() {
+    if (destroyed) return;
     applySpaciousLayoutSpacing();
-    const wrap = document.getElementById('table-wrap');
+    const wrap = $('table-wrap');
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
     if (rect.width < 100 || rect.height < 100) return;
@@ -350,8 +574,8 @@
   }
 
   function showTurnModal(customText) {
-    const toast = document.getElementById('turn-modal-toast');
-    if (!toast) return;
+    const toast = $('turn-modal-toast');
+    if (!toast || destroyed) return;
     clearTimeout(state.turnToastTimer);
     clearTimeout(state.turnToastFadeTimer);
 
@@ -364,18 +588,17 @@
     toast.classList.remove('hidden', 'fading');
 
     state.turnToastFadeTimer = setTimeout(() => {
-      toast.classList.add('fading');
+      if (!destroyed) toast.classList.add('fading');
     }, 1050);
 
     state.turnToastTimer = setTimeout(() => {
-      toast.classList.add('hidden');
-      toast.classList.remove('fading');
+      if (!destroyed) toast.classList.add('hidden', 'fading');
     }, 1550);
   }
 
   function showPocketedAnimation(ballNum) {
-    const badge = document.getElementById('pocket-anim-badge');
-    if (!badge) return;
+    const badge = $('pocket-anim-badge');
+    if (!badge || destroyed) return;
     clearTimeout(state.pocketAnimTimer);
     clearTimeout(state.pocketAnimFadeTimer);
 
@@ -389,16 +612,15 @@
     const chipColor = ballNum === 8 ? '#fff' : '#0f172a';
     const chipText = ballNum === 0 ? '•' : String(ballNum);
 
-    badge.innerHTML = `<span class="pocket-anim-chip" style="background:${chipBg};color:${chipColor};">${chipText}</span><span>${label}</span>`;
+    badge.innerHTML = `<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:${chipBg};color:${chipColor};font-size:10px;font-weight:900;">${chipText}</span><span>${label}</span>`;
     badge.classList.remove('hidden', 'fading');
 
     state.pocketAnimFadeTimer = setTimeout(() => {
-      badge.classList.add('fading');
+      if (!destroyed) badge.classList.add('fading');
     }, 1150);
 
     state.pocketAnimTimer = setTimeout(() => {
-      badge.classList.add('hidden');
-      badge.classList.remove('fading');
+      if (!destroyed) badge.classList.add('hidden', 'fading');
     }, 1750);
   }
 
@@ -407,7 +629,7 @@
       const saved = localStorage.getItem(PLAYER_NAME_KEY) || localStorage.getItem('playerName');
       if (saved && saved.trim()) return saved.trim();
     } catch (_) {}
-    const domName = document.getElementById('p1-name')?.textContent;
+    const domName = $('p1-name')?.textContent;
     return (domName && domName.trim()) || 'P1';
   }
 
@@ -421,9 +643,9 @@
   }
 
   function syncPlayerNameFromHub() {
-    const name = getSavedPlayerName();
+    const name = meta.playerName || getSavedPlayerName();
     persistPlayerName(name);
-    const p1El = document.getElementById('p1-name');
+    const p1El = $('p1-name');
     if (p1El) p1El.textContent = name.slice(0, 12);
   }
 
@@ -431,7 +653,7 @@
     leavingToHub = true;
     state.phase = 'MENU';
     clearPendingTimers();
-    const currentName = document.getElementById('p1-name')?.textContent || getSavedPlayerName();
+    const currentName = $('p1-name')?.textContent || getSavedPlayerName();
     persistPlayerName(currentName);
 
     BilliardLandscapeGuard.releaseOrientationLock();
@@ -448,16 +670,19 @@
     } catch (_) {}
 
     haptic(10);
-    setTimeout(() => {
-      window.location.href = './index.html?hub=true';
-    }, 60);
+
+    if (typeof window.openHubHome === 'function') {
+      window.openHubHome();
+    } else if (typeof window.returnToHub === 'function') {
+      window.returnToHub();
+    }
   }
 
   function syncSettingsSummaries() {
-    const modeSum = document.getElementById('val-mode-summary');
-    const oppSum = document.getElementById('val-opponent-summary');
-    const diffSum = document.getElementById('val-diff-summary');
-    const diffTrigger = document.getElementById('btn-open-diff-modal');
+    const modeSum = $('val-mode-summary');
+    const oppSum = $('val-opponent-summary');
+    const diffSum = $('val-diff-summary');
+    const diffTrigger = $('btn-open-diff-modal');
 
     if (modeSum) modeSum.textContent = state.mode === '8ball' ? '🎱 8-Ball' : '🟡 9-Ball';
     if (oppSum) oppSum.textContent = state.opponent === 'ai' ? '🤖 AI' : '👥 2P PVP';
@@ -473,9 +698,9 @@
     const b = state.balls.find(item => item.num === n);
     const div = document.createElement('div');
     div.className = 'mini-ball' + (!b || b.pocketed ? ' pocketed' : '');
-    div.style.background = n > 8
-      ? `radial-gradient(circle, #fff 45%, ${BALL_COLORS[n]} 48%)`
-      : BALL_COLORS[n];
+    div.style.cssText = `width:14px;height:14px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#0f172a;opacity:${!b || b.pocketed ? '0.25' : '1'};background:${
+      n > 8 ? `radial-gradient(circle, #fff 45%, ${BALL_COLORS[n]} 48%)` : BALL_COLORS[n]
+    };`;
     if (n === 8) div.style.color = '#fff';
     div.textContent = n;
     return div;
@@ -483,26 +708,26 @@
 
   function appendDividerEl(tray) {
     const div = document.createElement('div');
-    div.className = 'tray-divider';
+    div.style.cssText = 'width:1px;height:12px;background:rgba(255,255,255,0.2);margin:0 2px;';
     tray.appendChild(div);
   }
 
   function updateHUD() {
-    const b1 = document.getElementById('badge-p1');
-    const b2 = document.getElementById('badge-p2');
-    if (b1) b1.classList.toggle('active', state.turn === 1);
-    if (b2) b2.classList.toggle('active', state.turn === 2);
+    const b1 = $('badge-p1');
+    const b2 = $('badge-p2');
+    if (b1) b1.style.outline = state.turn === 1 ? '2px solid #2dd4bf' : 'none';
+    if (b2) b2.style.outline = state.turn === 2 ? '2px solid #2dd4bf' : 'none';
 
-    const p2El = document.getElementById('p2-name');
+    const p2El = $('p2-name');
     if (p2El) p2El.textContent = state.opponent === 'ai' ? '🤖 AI' : '👥 P2';
-    const modeEl = document.getElementById('hud-mode-label');
+    const modeEl = $('hud-mode-label');
     if (modeEl) {
       modeEl.textContent =
         (state.mode === '8ball' ? '🎱 8-BALL' : '🟡 9-BALL') + ' • ' + (state.opponent === 'ai' ? '🤖 AI' : '👥 PVP');
     }
 
-    const g1 = document.getElementById('p1-group');
-    const g2 = document.getElementById('p2-group');
+    const g1 = $('p1-group');
+    const g2 = $('p2-group');
     if (g1 && g2) {
       if (state.mode === '9ball') {
         const lowest = getLowestTargetNumber();
@@ -514,7 +739,7 @@
       }
     }
 
-    const tray = document.getElementById('rack-tray');
+    const tray = $('rack-tray');
     if (tray) {
       tray.innerHTML = '';
       if (state.mode === '8ball' && state.groups[1] && state.groups[2]) {
@@ -533,7 +758,7 @@
       }
     }
 
-    const hintEl = document.getElementById('ball-in-hand-hint');
+    const hintEl = $('ball-in-hand-hint');
     if (hintEl) {
       hintEl.style.display = state.phase === 'BALL_IN_HAND' ? 'block' : 'none';
     }
@@ -545,7 +770,7 @@
     state.timerSeconds = 60;
     renderTimer();
     state.timerInterval = setInterval(() => {
-      if (leavingToHub || state.phase === 'MENU' || state.phase === 'GAME_OVER') {
+      if (destroyed || leavingToHub || state.phase === 'MENU' || state.phase === 'GAME_OVER') {
         clearInterval(state.timerInterval);
         return;
       }
@@ -562,13 +787,13 @@
   function renderTimer() {
     const mins = Math.floor(Math.max(0, state.timerSeconds) / 60);
     const secs = Math.max(0, state.timerSeconds) % 60;
-    const textEl = document.getElementById('timer-text');
-    const boxEl = document.getElementById('timer-box');
+    const textEl = $('timer-text');
+    const boxEl = $('timer-box');
     if (textEl) {
       textEl.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
     }
     if (boxEl) {
-      boxEl.classList.toggle('warning', state.timerSeconds <= 15);
+      boxEl.style.color = state.timerSeconds <= 15 ? '#f87171' : '#f8fafc';
     }
   }
 
@@ -621,13 +846,7 @@
         }
       }
     } else {
-      const diamondCols = [
-        [1],
-        [2, 3],
-        [4, 9, 5],
-        [6, 7],
-        [8]
-      ];
+      const diamondCols = [[1], [2, 3], [4, 9, 5], [6, 7], [8]];
       diamondCols.forEach((colNums, colIdx) => {
         const startY = apexY - ((colNums.length - 1) * spacing) / 2;
         colNums.forEach((num, rIdx) => {
@@ -665,9 +884,7 @@
 
   function isLegalTarget(ballNum) {
     if (ballNum === 0) return false;
-    if (state.mode === '9ball') {
-      return ballNum === getLowestTargetNumber();
-    }
+    if (state.mode === '9ball') return ballNum === getLowestTargetNumber();
     const myGroup = state.groups[state.turn];
     if (!myGroup) return ballNum !== 8;
     const remainingGroup = state.balls.some(b => !b.pocketed && (
@@ -1041,9 +1258,9 @@
     const winnerLabel = (winnerNum === 2 && state.opponent === 'ai')
       ? '🤖 AI Wins!'
       : `🏆 P${winnerNum} Wins!`;
-    const titleEl = document.getElementById('winner-title');
-    const reasonEl = document.getElementById('winner-reason');
-    const modalEl = document.getElementById('gameover-modal');
+    const titleEl = $('winner-title');
+    const reasonEl = $('winner-reason');
+    const modalEl = $('gameover-modal');
     if (titleEl) titleEl.textContent = winnerLabel;
     if (reasonEl) reasonEl.textContent = reason;
     if (modalEl) modalEl.classList.remove('hidden');
@@ -1052,11 +1269,11 @@
   function maybeTriggerAI() {
     clearTimeout(state.aiTimer);
     clearInterval(state.aiPullInterval);
-    if (leavingToHub || state.opponent !== 'ai' || state.turn !== 2) return;
+    if (destroyed || leavingToHub || state.opponent !== 'ai' || state.turn !== 2) return;
     if (state.phase !== 'AIMING' && state.phase !== 'BALL_IN_HAND') return;
 
     state.aiTimer = setTimeout(() => {
-      if (leavingToHub || state.opponent !== 'ai' || state.turn !== 2) return;
+      if (destroyed || leavingToHub || state.opponent !== 'ai' || state.turn !== 2) return;
       const cue = getCueBall();
       if (!cue) return;
 
@@ -1102,7 +1319,7 @@
       let pullStep = 0;
       const targetPull = state.shotWasBreak ? 0.92 : (0.48 + Math.random() * 0.28);
       state.aiPullInterval = setInterval(() => {
-        if (leavingToHub) {
+        if (destroyed || leavingToHub) {
           clearInterval(state.aiPullInterval);
           return;
         }
@@ -1112,8 +1329,8 @@
         if (state.takoPull >= targetPull) {
           clearInterval(state.aiPullInterval);
           state.aiPullInterval = null;
-          setTimeout(() => {
-            if (!leavingToHub) shootCueBall();
+          state.shotFollowupTimer = setTimeout(() => {
+            if (!destroyed && !leavingToHub) shootCueBall();
           }, 180);
         }
       }, 35);
@@ -1121,6 +1338,8 @@
   }
 
   function render() {
+    if (destroyed || leavingToHub) return;
+
     if (W > 0 && H > 0) {
       ctx.clearRect(0, 0, W, H);
 
@@ -1182,7 +1401,7 @@
         ctx.fill();
       });
 
-      if (state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') {
+      if ((state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') && state.guideMode !== 'off') {
         const traj = computeTrajectory();
         if (traj) {
           const { cue, ghostX, ghostY, hitBall, targetDir, cueDeflectDir } = traj;
@@ -1232,8 +1451,7 @@
       }
 
       state.balls.forEach(b => {
-        if (b.pocketed) return;
-        drawBall(b);
+        if (!b.pocketed) drawBall(b);
       });
 
       if (state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') {
@@ -1246,8 +1464,8 @@
       stepPhysics();
     }
 
-    if (!leavingToHub) {
-      requestAnimationFrame(render);
+    if (!destroyed && !leavingToHub) {
+      rafId = requestAnimationFrame(render);
     }
   }
 
@@ -1491,15 +1709,15 @@
     state.pointerMoved = false;
   });
 
-  const powerRail = document.getElementById('power-rail');
+  const powerRail = $('power-rail');
   let railDragging = false;
   let railStartY = 0;
 
   function updatePowerUI() {
     const pct = Math.round(state.takoPull * 100);
-    const fillEl = document.getElementById('power-fill');
-    const gripEl = document.getElementById('power-grip');
-    const pctEl = document.getElementById('power-pct');
+    const fillEl = $('power-fill');
+    const gripEl = $('power-grip');
+    const pctEl = $('power-pct');
     if (fillEl) fillEl.style.height = pct + '%';
     if (gripEl) gripEl.style.top = (4 + state.takoPull * 72) + '%';
     if (pctEl) pctEl.textContent = pct + '%';
@@ -1534,7 +1752,7 @@
     });
   }
 
-  const aimWheel = document.getElementById('aim-wheel');
+  const aimWheel = $('aim-wheel');
   const aimTicks = aimWheel ? aimWheel.querySelector('.aim-ticks') : null;
   let wheelDragging = false;
   let wheelLastY = 0;
@@ -1560,31 +1778,28 @@
     aimWheel.addEventListener('pointerup', () => { wheelDragging = false; });
   }
 
-  document.getElementById('btn-aim-ccw')?.addEventListener('click', () => {
+  $('btn-aim-ccw')?.addEventListener('click', () => {
     if (!isUserTurn()) return;
     state.aimAngle -= 0.008 * state.fineAimSpeed * 3;
     haptic(8);
   });
 
-  document.getElementById('btn-aim-cw')?.addEventListener('click', () => {
+  $('btn-aim-cw')?.addEventListener('click', () => {
     if (!isUserTurn()) return;
     state.aimAngle += 0.008 * state.fineAimSpeed * 3;
     haptic(8);
   });
 
-  const spinDot = document.getElementById('spin-dot');
-  const spinReadout = document.getElementById('spin-readout');
-  const spinModal = document.getElementById('spin-modal');
-  const spinModalPad = document.getElementById('spin-modal-pad');
-  const spinModalDot = document.getElementById('spin-modal-dot');
-  const spinModalReadout = document.getElementById('spin-modal-readout');
+  const spinDot = $('spin-dot');
+  const spinReadout = $('spin-readout');
+  const spinModal = $('spin-modal');
+  const spinModalPad = $('spin-modal-pad');
+  const spinModalDot = $('spin-modal-dot');
+  const spinModalReadout = $('spin-modal-readout');
   let modalSpinDragging = false;
-  let autoReturnTimer = null;
 
   function formatSpinLabel() {
-    if (Math.abs(state.spin.x) < 0.12 && Math.abs(state.spin.y) < 0.12) {
-      return 'CENTER';
-    }
+    if (Math.abs(state.spin.x) < 0.12 && Math.abs(state.spin.y) < 0.12) return 'CENTER';
     const v = state.spin.y < -0.15 ? 'TOP' : (state.spin.y > 0.15 ? 'BACK' : '');
     const h = state.spin.x < -0.15 ? 'L' : (state.spin.x > 0.15 ? 'R' : '');
     return [v, h].filter(Boolean).join(' ') || 'CENTER';
@@ -1608,15 +1823,15 @@
   }
 
   function closeSpinModalNow() {
-    clearTimeout(autoReturnTimer);
+    clearTimeout(state.autoReturnTimer);
     modalSpinDragging = false;
     spinModal?.classList.add('hidden');
   }
 
   function scheduleAutoReturnToGame() {
-    clearTimeout(autoReturnTimer);
-    autoReturnTimer = setTimeout(() => {
-      closeSpinModalNow();
+    clearTimeout(state.autoReturnTimer);
+    state.autoReturnTimer = setTimeout(() => {
+      if (!destroyed) closeSpinModalNow();
     }, 240);
   }
 
@@ -1639,16 +1854,16 @@
     haptic(10);
   }
 
-  document.getElementById('btn-open-spin-modal')?.addEventListener('click', () => {
+  $('btn-open-spin-modal')?.addEventListener('click', () => {
     if (!isUserTurn()) return;
-    clearTimeout(autoReturnTimer);
+    clearTimeout(state.autoReturnTimer);
     updateSpinUI();
     spinModal?.classList.remove('hidden');
   });
 
-  document.getElementById('btn-close-spin-modal')?.addEventListener('click', closeSpinModalNow);
+  $('btn-close-spin-modal')?.addEventListener('click', closeSpinModalNow);
 
-  document.getElementById('btn-modal-reset-spin')?.addEventListener('click', () => {
+  $('btn-modal-reset-spin')?.addEventListener('click', () => {
     state.spin = { x: 0, y: 0 };
     updateSpinUI();
     haptic(10);
@@ -1658,7 +1873,7 @@
   if (spinModalPad) {
     spinModalPad.addEventListener('pointerdown', (e) => {
       if (!isUserTurn()) return;
-      clearTimeout(autoReturnTimer);
+      clearTimeout(state.autoReturnTimer);
       spinModalPad.setPointerCapture(e.pointerId);
       modalSpinDragging = true;
       applyModalSpinFromEvent(e);
@@ -1677,7 +1892,7 @@
   }
 
   function bindSegRow(id, callback) {
-    const row = document.getElementById(id);
+    const row = $(id);
     if (!row) return;
     row.querySelectorAll('.seg-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1693,7 +1908,7 @@
   let draftDiff = state.aiDiff;
 
   function syncChoiceTiles(containerId, activeVal) {
-    const wrap = document.getElementById(containerId);
+    const wrap = $(containerId);
     if (!wrap) return;
     wrap.querySelectorAll('.choice-tile').forEach(tile => {
       tile.classList.toggle('active', tile.dataset.val === activeVal);
@@ -1701,7 +1916,7 @@
   }
 
   function bindChoiceTiles(containerId, onSelect) {
-    const wrap = document.getElementById(containerId);
+    const wrap = $(containerId);
     if (!wrap) return;
     wrap.querySelectorAll('.choice-tile').forEach(tile => {
       tile.addEventListener('click', () => {
@@ -1716,50 +1931,48 @@
   bindChoiceTiles('modal-opt-opponent', val => { draftOpponent = val; });
   bindChoiceTiles('modal-opt-diff', val => { draftDiff = val; });
 
-  document.getElementById('btn-open-mode-modal')?.addEventListener('click', () => {
+  $('btn-open-mode-modal')?.addEventListener('click', () => {
     draftMode = state.mode;
     syncChoiceTiles('modal-opt-mode', draftMode);
-    document.getElementById('mode-modal')?.classList.remove('hidden');
+    $('mode-modal')?.classList.remove('hidden');
   });
-  document.getElementById('btn-close-mode-modal')?.addEventListener('click', () => {
-    document.getElementById('mode-modal')?.classList.add('hidden');
+  $('btn-close-mode-modal')?.addEventListener('click', () => {
+    $('mode-modal')?.classList.add('hidden');
   });
-  document.getElementById('btn-apply-mode-modal')?.addEventListener('click', () => {
+  $('btn-apply-mode-modal')?.addEventListener('click', () => {
     const changed = state.mode !== draftMode;
     state.mode = draftMode;
-    document.getElementById('mode-modal')?.classList.add('hidden');
+    $('mode-modal')?.classList.add('hidden');
     updateHUD();
-    if (changed && state.phase !== 'MENU') {
-      setupRack();
-    }
+    if (changed && state.phase !== 'MENU') setupRack();
   });
 
-  document.getElementById('btn-open-opponent-modal')?.addEventListener('click', () => {
+  $('btn-open-opponent-modal')?.addEventListener('click', () => {
     draftOpponent = state.opponent;
     syncChoiceTiles('modal-opt-opponent', draftOpponent);
-    document.getElementById('opponent-modal')?.classList.remove('hidden');
+    $('opponent-modal')?.classList.remove('hidden');
   });
-  document.getElementById('btn-close-opponent-modal')?.addEventListener('click', () => {
-    document.getElementById('opponent-modal')?.classList.add('hidden');
+  $('btn-close-opponent-modal')?.addEventListener('click', () => {
+    $('opponent-modal')?.classList.add('hidden');
   });
-  document.getElementById('btn-apply-opponent-modal')?.addEventListener('click', () => {
+  $('btn-apply-opponent-modal')?.addEventListener('click', () => {
     state.opponent = draftOpponent;
-    document.getElementById('opponent-modal')?.classList.add('hidden');
+    $('opponent-modal')?.classList.add('hidden');
     updateHUD();
     maybeTriggerAI();
   });
 
-  document.getElementById('btn-open-diff-modal')?.addEventListener('click', () => {
+  $('btn-open-diff-modal')?.addEventListener('click', () => {
     draftDiff = state.aiDiff;
     syncChoiceTiles('modal-opt-diff', draftDiff);
-    document.getElementById('diff-modal')?.classList.remove('hidden');
+    $('diff-modal')?.classList.remove('hidden');
   });
-  document.getElementById('btn-close-diff-modal')?.addEventListener('click', () => {
-    document.getElementById('diff-modal')?.classList.add('hidden');
+  $('btn-close-diff-modal')?.addEventListener('click', () => {
+    $('diff-modal')?.classList.add('hidden');
   });
-  document.getElementById('btn-apply-diff-modal')?.addEventListener('click', () => {
+  $('btn-apply-diff-modal')?.addEventListener('click', () => {
     state.aiDiff = draftDiff;
-    document.getElementById('diff-modal')?.classList.add('hidden');
+    $('diff-modal')?.classList.add('hidden');
     updateHUD();
   });
 
@@ -1767,71 +1980,71 @@
   bindSegRow('opt-guide', val => { state.guideMode = val; });
   bindSegRow('opt-sfx', val => { state.sfx = (val === 'on'); });
 
-  document.getElementById('btn-start-match')?.addEventListener('click', () => {
+  $('btn-start-match')?.addEventListener('click', () => {
     markGateHandledOnce();
     try { sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY); } catch (_) {}
     BilliardLandscapeGuard.requestFullscreenSafe(false);
     BilliardLandscapeGuard.tryLockLandscape();
     BilliardLandscapeGuard.sync();
-    document.getElementById('setup-modal')?.classList.add('hidden');
+    $('setup-modal')?.classList.add('hidden');
     setupRack();
-    setTimeout(resizeTable, 120);
+    setTimeout(() => { if (!destroyed) resizeTable(); }, 120);
   });
 
-  document.getElementById('btn-new-match')?.addEventListener('click', () => {
+  $('btn-new-match')?.addEventListener('click', () => {
     clearPendingTimers();
     state.phase = 'MENU';
-    document.getElementById('setup-modal')?.classList.remove('hidden');
+    $('setup-modal')?.classList.remove('hidden');
   });
 
-  document.getElementById('btn-rematch')?.addEventListener('click', () => {
+  $('btn-rematch')?.addEventListener('click', () => {
     markGateHandledOnce();
     BilliardLandscapeGuard.requestFullscreenSafe(false);
     BilliardLandscapeGuard.tryLockLandscape();
     BilliardLandscapeGuard.sync();
-    document.getElementById('gameover-modal')?.classList.add('hidden');
+    $('gameover-modal')?.classList.add('hidden');
     setupRack();
-    setTimeout(resizeTable, 120);
+    setTimeout(() => { if (!destroyed) resizeTable(); }, 120);
   });
 
   function closeSettingsModal() {
-    document.getElementById('settings-modal')?.classList.add('hidden');
+    $('settings-modal')?.classList.add('hidden');
   }
 
-  document.getElementById('btn-settings')?.addEventListener('click', () => {
+  $('btn-settings')?.addEventListener('click', () => {
     syncSettingsSummaries();
-    document.getElementById('settings-modal')?.classList.remove('hidden');
+    $('settings-modal')?.classList.remove('hidden');
   });
-  document.getElementById('btn-close-settings')?.addEventListener('click', closeSettingsModal);
-  document.getElementById('btn-save-settings')?.addEventListener('click', closeSettingsModal);
-  document.getElementById('btn-dock-done')?.addEventListener('click', closeSettingsModal);
+  $('btn-close-settings')?.addEventListener('click', closeSettingsModal);
+  $('btn-save-settings')?.addEventListener('click', closeSettingsModal);
+  $('btn-dock-done')?.addEventListener('click', closeSettingsModal);
 
-  document.getElementById('btn-dock-hub')?.addEventListener('click', (e) => {
+  $('btn-dock-hub')?.addEventListener('click', (e) => {
     e.preventDefault();
     closeSettingsModal();
     goToHubLobby();
   });
 
-  document.getElementById('btn-dock-restart')?.addEventListener('click', () => {
+  $('btn-dock-restart')?.addEventListener('click', () => {
     closeSettingsModal();
     setupRack();
-    setTimeout(resizeTable, 80);
+    setTimeout(() => { if (!destroyed) resizeTable(); }, 80);
   });
 
-  document.getElementById('btn-dock-fs')?.addEventListener('click', () => {
+  $('btn-dock-fs')?.addEventListener('click', () => {
     BilliardLandscapeGuard.requestFullscreenSafe(true);
     BilliardLandscapeGuard.tryLockLandscape();
     BilliardLandscapeGuard.sync();
     haptic(10);
-    setTimeout(resizeTable, 120);
+    setTimeout(() => { if (!destroyed) resizeTable(); }, 120);
   });
 
-  document.getElementById('btn-setup-hub')?.addEventListener('click', (e) => {
+  $('btn-setup-hub')?.addEventListener('click', (e) => {
     e.preventDefault();
     goToHubLobby();
   });
 
-  document.getElementById('btn-gameover-hub')?.addEventListener('click', (e) => {
+  $('btn-gameover-hub')?.addEventListener('click', (e) => {
     e.preventDefault();
     goToHubLobby();
   });
@@ -1843,22 +2056,35 @@
     BilliardLandscapeGuard.sync();
   };
 
-  const sliderSens = document.getElementById('slider-sens');
-  const sliderFine = document.getElementById('slider-fine');
+  const sliderSens = $('slider-sens');
+  const sliderFine = $('slider-fine');
   sliderSens?.addEventListener('input', () => {
     state.aimSensitivity = parseFloat(sliderSens.value);
-    const valEl = document.getElementById('sens-val');
+    const valEl = $('sens-val');
     if (valEl) valEl.textContent = state.aimSensitivity.toFixed(2) + '×';
   });
   sliderFine?.addEventListener('input', () => {
     state.fineAimSpeed = parseFloat(sliderFine.value);
-    const valEl = document.getElementById('fine-val');
+    const valEl = $('fine-val');
     if (valEl) valEl.textContent = state.fineAimSpeed.toFixed(2) + '×';
   });
 
   BilliardLandscapeGuard.init();
   syncSettingsSummaries();
   syncPlayerNameFromHub();
-  resizeTable();
-  requestAnimationFrame(render);
-})();
+  setupRack();
+  rafId = requestAnimationFrame(render);
+
+  return function cleanupBilliardPool() {
+    destroyed = true;
+    leavingToHub = true;
+    if (rafId !== null) cancelAnimationFrame(rafId);
+    clearPendingTimers();
+    BilliardLandscapeGuard.teardown();
+    if (audioCtx && typeof audioCtx.close === 'function') {
+      audioCtx.close().catch(() => {});
+      audioCtx = null;
+    }
+    stage.innerHTML = '';
+  };
+};
