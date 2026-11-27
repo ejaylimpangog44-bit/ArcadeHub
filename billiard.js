@@ -11,11 +11,20 @@
     let gateEl = null;
     let initialized = false;
 
-    function isPortraitNow() {
-      if (window.matchMedia && window.matchMedia('(orientation: portrait)').matches) {
-        return window.innerHeight >= window.innerWidth;
+    function isLandscapeNow() {
+      if (window.innerWidth > window.innerHeight) return true;
+      if (window.matchMedia && window.matchMedia('(orientation: landscape)').matches) {
+        return true;
       }
-      return window.innerHeight > window.innerWidth;
+      const orientType = window.screen && window.screen.orientation && window.screen.orientation.type;
+      if (typeof orientType === 'string' && orientType.startsWith('landscape')) {
+        return true;
+      }
+      return false;
+    }
+
+    function isPortraitNow() {
+      return !isLandscapeNow();
     }
 
     function tryLockLandscape() {
@@ -58,43 +67,9 @@
 
     function ensureGateEl() {
       if (gateEl) return gateEl;
-      gateEl = document.getElementById('billiard-landscape-gate');
-      if (!gateEl) {
-        gateEl = document.createElement('div');
-        gateEl.id = 'billiard-landscape-gate';
-        gateEl.setAttribute('role', 'dialog');
-        gateEl.setAttribute('aria-live', 'assertive');
-        gateEl.setAttribute('aria-label', 'Rotate device to landscape');
-        gateEl.style.cssText = [
-          'position:fixed',
-          'inset:0',
-          'z-index:2147483647',
-          'display:none',
-          'flex-direction:column',
-          'align-items:center',
-          'justify-content:center',
-          'gap:14px',
-          'padding:24px',
-          'text-align:center',
-          'background:radial-gradient(circle at 50% 30%, #0f766e 0%, #041e1c 82%)',
-          'color:#f8fafc',
-          'backdrop-filter:blur(12px)'
-        ].join(';');
-
-        gateEl.innerHTML = `
-          <div style="font-size:44px;line-height:1;">🎱↻📱</div>
-          <div style="font-size:20px;font-weight:900;letter-spacing:0.04em;">LANDSCAPE MODE REQUIRED</div>
-          <div style="max-width:340px;font-size:13px;line-height:1.5;color:#cbd5e1;">
-            Rotate your device horizontally to play Billiard Pool in landscape mode.
-          </div>
-          <button type="button" id="billiard-landscape-btn" style="margin-top:4px;padding:10px 18px;border-radius:12px;border:1px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.14);color:#ffffff;font-size:12px;font-weight:800;cursor:pointer;">
-            Lock Landscape &amp; Fullscreen
-          </button>
-        `;
-
-        document.body.appendChild(gateEl);
-
-        gateEl.querySelector('#billiard-landscape-btn')?.addEventListener('click', () => {
+      gateEl = document.getElementById('portrait-gate');
+      if (gateEl) {
+        gateEl.querySelector('#billiard-lock-landscape-btn')?.addEventListener('click', () => {
           requestFullscreenSafe(false);
           tryLockLandscape();
           sync();
@@ -105,33 +80,32 @@
 
     function sync() {
       const el = ensureGateEl();
-      const portrait = isPortraitNow();
-      el.style.display = portrait ? 'flex' : 'none';
-      if (!portrait) {
+      const landscape = isLandscapeNow();
+      document.documentElement.dataset.isLandscape = landscape ? 'true' : 'false';
+      if (el) {
+        el.classList.toggle('hidden', landscape);
+        el.setAttribute('aria-hidden', landscape ? 'true' : 'false');
+      }
+      if (landscape) {
         tryLockLandscape();
       }
     }
 
-    function bindHubEntryFullscreenOnce() {
-      let shouldEnterFs = false;
-      try {
-        shouldEnterFs = sessionStorage.getItem(ENTER_FS_FROM_HUB_KEY) === '1';
-      } catch (_) {}
-      if (!shouldEnterFs) return;
-
-      const onGesture = () => {
+    function bindAutoGestureLock() {
+      const onFirstGesture = () => {
         try {
           sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY);
         } catch (_) {}
         requestFullscreenSafe(false);
         tryLockLandscape();
         sync();
-        document.removeEventListener('pointerdown', onGesture, true);
-        document.removeEventListener('click', onGesture, true);
+        setTimeout(sync, 160);
+        document.removeEventListener('pointerdown', onFirstGesture, true);
+        document.removeEventListener('click', onFirstGesture, true);
       };
 
-      document.addEventListener('pointerdown', onGesture, true);
-      document.addEventListener('click', onGesture, true);
+      document.addEventListener('pointerdown', onFirstGesture, true);
+      document.addEventListener('click', onFirstGesture, true);
     }
 
     function init() {
@@ -142,17 +116,34 @@
       initialized = true;
       ensureGateEl();
       sync();
-      tryLockLandscape();
-      bindHubEntryFullscreenOnce();
-
-      window.addEventListener('resize', sync);
-      window.addEventListener('orientationchange', () => {
+      if (isLandscapeNow()) {
         tryLockLandscape();
-        setTimeout(sync, 80);
+      }
+      bindAutoGestureLock();
+
+      window.addEventListener('resize', () => {
+        sync();
+        setTimeout(resizeTable, 40);
+      });
+      window.addEventListener('orientationchange', () => {
+        sync();
+        setTimeout(() => {
+          if (isLandscapeNow()) tryLockLandscape();
+          sync();
+          resizeTable();
+        }, 180);
+      });
+      document.addEventListener('fullscreenchange', () => {
+        sync();
+        setTimeout(resizeTable, 80);
+      });
+      document.addEventListener('webkitfullscreenchange', () => {
+        sync();
+        setTimeout(resizeTable, 80);
       });
       if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
         screen.orientation.addEventListener('change', () => {
-          tryLockLandscape();
+          if (isLandscapeNow()) tryLockLandscape();
           sync();
         });
       }
@@ -161,6 +152,7 @@
     return {
       init,
       sync,
+      isLandscapeNow,
       isPortraitNow,
       isFullscreenActive,
       tryLockLandscape,
@@ -321,10 +313,6 @@
       });
     }
   }
-
-  window.addEventListener('resize', resizeTable);
-  document.addEventListener('fullscreenchange', () => setTimeout(resizeTable, 80));
-  document.addEventListener('webkitfullscreenchange', () => setTimeout(resizeTable, 80));
 
   function setBanner(msg) {
     const el = document.getElementById('status-banner');
