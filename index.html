@@ -556,6 +556,7 @@
     const FROM_BILLIARD_KEY = 'arcade_hub_from_billiard';
     const AUTO_FS_KEY = 'arcade_hub_auto_landscape_fs';
     const KEEP_FS_KEY = 'arcade_hub_keep_fullscreen';
+    const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
 
     function isLandscapeNow() {
       const orientType = window.screen && window.screen.orientation && window.screen.orientation.type;
@@ -605,15 +606,27 @@
       } catch (_) {}
     }
 
-    function hideGateIfLandscape() {
+    function markGateHandledOnce() {
+      try {
+        sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
+      } catch (_) {}
       const gate = document.getElementById('force-landscape-gate');
-      if (isLandscapeNow()) {
-        document.documentElement.dataset.isLandscape = 'true';
-        if (gate) {
-          gate.style.display = 'none';
-          gate.classList.add('hidden');
-          gate.setAttribute('aria-hidden', 'true');
-        }
+      document.documentElement.dataset.isLandscape = 'true';
+      if (gate) {
+        gate.style.display = 'none';
+        gate.classList.add('hidden');
+        gate.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    function hideGateIfLandscapeOrHandled() {
+      let alreadyHandled = false;
+      try {
+        alreadyHandled = sessionStorage.getItem(INITIAL_GATE_SEEN_KEY) === '1';
+      } catch (_) {}
+
+      if (alreadyHandled || isLandscapeNow()) {
+        markGateHandledOnce();
       }
     }
 
@@ -635,6 +648,7 @@
 
         if (returningFromGame) {
           sessionStorage.setItem(SKIP_POWER_KEY, '1');
+          sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
           sessionStorage.removeItem(TARGET_LOBBY_KEY);
           sessionStorage.removeItem(FROM_BILLIARD_KEY);
         }
@@ -673,18 +687,18 @@
         }
       }
 
-      hideGateIfLandscape();
+      hideGateIfLandscapeOrHandled();
 
       if (shouldAutoLockFs) {
         requestFullscreenAndLock();
         setTimeout(() => {
           requestFullscreenAndLock();
-          hideGateIfLandscape();
+          markGateHandledOnce();
         }, 120);
 
         const onGesture = () => {
           requestFullscreenAndLock();
-          hideGateIfLandscape();
+          markGateHandledOnce();
           try {
             sessionStorage.removeItem(AUTO_FS_KEY);
             sessionStorage.removeItem(KEEP_FS_KEY);
@@ -704,7 +718,7 @@
     if (gateBtn) {
       gateBtn.addEventListener('click', () => {
         requestFullscreenAndLock();
-        setTimeout(hideGateIfLandscape, 150);
+        markGateHandledOnce();
       });
     }
 
@@ -714,7 +728,7 @@
       syncHubLobbyReturn();
     }
     window.addEventListener('pageshow', () => setTimeout(syncHubLobbyReturn, 60));
-    window.addEventListener('resize', () => setTimeout(hideGateIfLandscape, 60));
+    window.addEventListener('resize', () => setTimeout(hideGateIfLandscapeOrHandled, 60));
   })();
 </script>
 </body>
