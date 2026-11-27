@@ -91,6 +91,28 @@ const LandscapeGate = (() => {
     } catch (_) {}
   }
 
+  function tryLockPortrait() {
+    try {
+      if (screen.orientation && typeof screen.orientation.lock === 'function') {
+        screen.orientation.lock('portrait').catch(() => {
+          if (typeof screen.orientation.unlock === 'function') {
+            screen.orientation.unlock();
+          }
+        });
+      } else if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+        screen.orientation.unlock();
+      }
+    } catch (_) {}
+  }
+
+  function applyOrientationPolicy() {
+    if (shouldEnforceLandscape()) {
+      tryLockLandscape();
+    } else if (activeGameId) {
+      tryLockPortrait();
+    }
+  }
+
   function syncGate() {
     const el = ensureGateEl();
     const activeMode = getActiveGameMode();
@@ -103,8 +125,8 @@ const LandscapeGate = (() => {
       ? activeMode.toLowerCase()
       : 'hub';
 
-    if (!needsRotate && enforceLandscape) {
-      tryLockLandscape();
+    if (!needsRotate) {
+      applyOrientationPolicy();
     }
     if (typeof syncFoxCompanionVisibility === 'function') {
       syncFoxCompanionVisibility();
@@ -114,37 +136,29 @@ const LandscapeGate = (() => {
   function scheduleSync(delay = 180) {
     clearTimeout(syncTimer);
     syncTimer = setTimeout(() => {
-      if (shouldEnforceLandscape()) {
-        tryLockLandscape();
-      }
+      applyOrientationPolicy();
       syncGate();
     }, delay);
   }
 
   function init() {
     ensureGateEl();
-    if (shouldEnforceLandscape()) {
-      tryLockLandscape();
-    }
+    applyOrientationPolicy();
     scheduleSync(160);
     window.addEventListener('resize', () => scheduleSync(70));
     window.addEventListener('orientationchange', () => {
-      if (shouldEnforceLandscape()) {
-        tryLockLandscape();
-      }
+      applyOrientationPolicy();
       scheduleSync(220);
     });
     if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
       screen.orientation.addEventListener('change', () => {
-        if (shouldEnforceLandscape()) {
-          tryLockLandscape();
-        }
+        applyOrientationPolicy();
         scheduleSync(160);
       });
     }
   }
 
-  return { init, sync: syncGate, tryLockLandscape };
+  return { init, sync: syncGate, tryLockLandscape, tryLockPortrait };
 })();
 window.LandscapeGate = LandscapeGate;
 
