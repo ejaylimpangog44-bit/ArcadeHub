@@ -11,9 +11,44 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   let leavingToHub = false;
   let rafId = null;
 
+  function fillViewportContainer() {
+    try {
+      stage.style.position = 'fixed';
+      stage.style.inset = '0';
+      stage.style.width = '100vw';
+      stage.style.height = '100dvh';
+      stage.style.maxWidth = '100vw';
+      stage.style.maxHeight = '100dvh';
+      stage.style.margin = '0';
+      stage.style.padding = '0';
+      stage.style.overflow = 'hidden';
+      stage.style.zIndex = '30';
+      stage.style.background = '#071312';
+
+      document.documentElement.style.margin = '0';
+      document.documentElement.style.padding = '0';
+      document.documentElement.style.width = '100%';
+      document.documentElement.style.height = '100%';
+      document.documentElement.style.overflow = 'hidden';
+
+      if (document.body) {
+        document.body.style.margin = '0';
+        document.body.style.padding = '0';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
+        document.body.style.overflow = 'hidden';
+      }
+    } catch (_) {}
+  }
+
+  fillViewportContainer();
+
   stage.innerHTML = `
-    <div id="billiard-runner-root" style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;background:#071312;color:#f8fafc;overflow:hidden;user-select:none;touch-action:none;font-family:Inter,sans-serif;">
+    <div id="billiard-runner-root" style="position:relative;width:100vw;height:100dvh;display:flex;flex-direction:column;background:#071312;color:#f8fafc;overflow:hidden;user-select:none;touch-action:none;font-family:Inter,sans-serif;box-sizing:border-box;">
       <style>
+        #billiard-runner-root, #billiard-runner-root * {
+          box-sizing: border-box;
+        }
         #billiard-runner-root .turn-overlay-modal {
           position:absolute;
           inset:0;
@@ -34,22 +69,22 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           opacity:0;
         }
         #billiard-runner-root .turn-overlay-card {
-          padding:14px 28px;
-          border-radius:16px;
+          padding:12px 24px;
+          border-radius:14px;
           background:linear-gradient(135deg,rgba(15,23,42,0.96),rgba(19,78,74,0.92));
           border:1px solid rgba(94,234,212,0.55);
           box-shadow:0 18px 40px rgba(0,0,0,0.65);
           text-align:center;
         }
         #billiard-runner-root .turn-overlay-title {
-          font-size:20px;
+          font-size:18px;
           font-weight:900;
           letter-spacing:0.04em;
           color:#f8fafc;
         }
         #billiard-runner-root .turn-overlay-sub {
-          margin-top:3px;
-          font-size:11px;
+          margin-top:2px;
+          font-size:10px;
           font-weight:700;
           color:#5eead4;
           text-transform:uppercase;
@@ -58,34 +93,39 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         #billiard-runner-root .divider-drawer {
           display:flex;
           flex-direction:column;
-          gap:5px;
-          padding:6px 10px;
-          border-radius:12px;
+          gap:3px;
+          padding:4px 8px;
+          border-radius:10px;
           background:rgba(15,23,42,0.88);
           border:1px solid rgba(255,255,255,0.12);
-          min-width:250px;
-          max-width:430px;
+          min-width:185px;
+          max-width:265px;
+          flex-shrink:1;
         }
         #billiard-runner-root .divider-drawer-header {
           display:flex;
           align-items:center;
           justify-content:space-between;
-          gap:8px;
-          font-size:11px;
+          gap:6px;
+          font-size:10px;
           font-weight:800;
           line-height:1.1;
+          white-space:nowrap;
+          overflow:hidden;
         }
         #billiard-runner-root .divider-drawer-player {
           color:#fbbf24;
-          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
         }
         #billiard-runner-root .divider-drawer-sides {
           display:flex;
           align-items:center;
-          gap:8px;
-          font-size:10px;
+          gap:5px;
+          font-size:9px;
           font-weight:800;
-          letter-spacing:0.04em;
+          letter-spacing:0.03em;
+          flex-shrink:0;
         }
         #billiard-runner-root .side-solids {
           color:#38bdf8;
@@ -95,28 +135,29 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         }
         #billiard-runner-root .drawer-split-line {
           width:1px;
-          height:10px;
+          height:9px;
           background:rgba(255,255,255,0.25);
         }
         #billiard-runner-root .pocketed-row-stack {
           display:flex;
           align-items:center;
-          gap:4px;
-          min-height:20px;
-          padding:3px 6px;
-          border-radius:8px;
+          gap:3px;
+          min-height:18px;
+          padding:2px 5px;
+          border-radius:7px;
           background:rgba(2,6,23,0.65);
           border:1px dashed rgba(255,255,255,0.14);
-          flex-wrap:wrap;
+          overflow-x:auto;
         }
         #billiard-runner-root .pocketed-empty-hint {
-          font-size:10px;
+          font-size:9px;
           color:#64748b;
           font-weight:600;
+          white-space:nowrap;
         }
         #billiard-runner-root .pocketed-chip {
-          width:16px;
-          height:16px;
+          width:14px;
+          height:14px;
           border-radius:50%;
           display:inline-flex;
           align-items:center;
@@ -124,40 +165,41 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           font-size:8px;
           font-weight:900;
           color:#0f172a;
-          box-shadow:0 2px 5px rgba(0,0,0,0.45);
+          flex-shrink:0;
+          box-shadow:0 2px 4px rgba(0,0,0,0.45);
           transition:transform 0.2s ease;
         }
         #billiard-runner-root .pocketed-chip.just-pocketed {
-          transform:scale(1.18);
+          transform:scale(1.15);
           outline:2px solid #34d399;
         }
         #billiard-runner-root .cockpit-card {
           background:rgba(15,23,42,0.88);
           border:1px solid rgba(255,255,255,0.12);
-          border-radius:14px;
-          padding:10px;
+          border-radius:12px;
+          padding:8px;
           display:flex;
           flex-direction:column;
           align-items:center;
-          gap:8px;
+          gap:6px;
         }
         #billiard-runner-root .cockpit-label {
-          font-size:10px;
+          font-size:9px;
           font-weight:800;
           letter-spacing:0.08em;
           color:#cbd5e1;
           text-transform:uppercase;
         }
         #billiard-runner-root .fine-step-strip {
-          width:36px;
-          height:112px;
-          border-radius:10px;
+          width:30px;
+          height:88px;
+          border-radius:8px;
           background:#020617;
           border:1px solid rgba(255,255,255,0.14);
           background-image:repeating-linear-gradient(
             to bottom,
             rgba(251,191,36,0.75) 0 2px,
-            transparent 2px 11px
+            transparent 2px 10px
           );
           cursor:ns-resize;
         }
@@ -180,39 +222,39 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         }
       </style>
 
-      <!-- Top HUD -->
-      <div id="top-hud" class="pool-hud" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 14px;background:rgba(15,23,42,0.92);border-bottom:1px solid rgba(255,255,255,0.1);flex-wrap:wrap;z-index:5;">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <div id="badge-p1" style="display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:10px;background:rgba(255,255,255,0.07);font-weight:800;font-size:12px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>
-            <span id="p1-name">Player_701</span>
-            <span id="p1-group" style="font-size:10px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.1);color:#e2e8f0;">OPEN</span>
+      <!-- Single-Row Top HUD -->
+      <div id="top-hud" class="pool-hud" style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 10px;background:rgba(15,23,42,0.94);border-bottom:1px solid rgba(255,255,255,0.1);flex-wrap:nowrap;min-height:44px;z-index:5;">
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap;min-width:0;">
+          <div id="badge-p1" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.07);font-weight:800;font-size:11px;white-space:nowrap;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>
+            <span id="p1-name" style="max-width:86px;overflow:hidden;text-overflow:ellipsis;">Player_701</span>
+            <span id="p1-group" style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,0.1);color:#e2e8f0;">OPEN</span>
           </div>
 
-          <div id="hud-mode-label" style="padding:5px 10px;border-radius:10px;background:rgba(13,148,136,0.18);border:1px solid rgba(94,234,212,0.28);font-size:11px;font-weight:800;color:#5eead4;">
+          <div id="hud-mode-label" style="padding:4px 8px;border-radius:8px;background:rgba(13,148,136,0.18);border:1px solid rgba(94,234,212,0.28);font-size:10px;font-weight:800;color:#5eead4;white-space:nowrap;">
             🎱 8-BALL • 🤖 AI
           </div>
 
-          <div id="badge-p2" style="display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:10px;background:rgba(255,255,255,0.07);font-weight:800;font-size:12px;">
+          <div id="badge-p2" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.07);font-weight:800;font-size:11px;white-space:nowrap;">
             <span id="p2-icon">🤖</span>
             <span id="p2-name">AI</span>
-            <span id="p2-group" style="font-size:10px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.1);color:#e2e8f0;">OPEN</span>
+            <span id="p2-group" style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,0.1);color:#e2e8f0;">OPEN</span>
           </div>
 
-          <div id="timer-box" style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:10px;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.1);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;">
+          <div id="timer-box" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.1);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;white-space:nowrap;">
             <span>⏱</span>
             <span id="timer-text">01:00</span>
           </div>
         </div>
 
-        <!-- Divider Drawer: Player Name Above + Left/Right Group Split + Pocketed Ball Stack Row -->
+        <!-- Compact Divider Drawer -->
         <div id="divider-drawer" class="divider-drawer">
           <div class="divider-drawer-header">
             <span id="drawer-player-title" class="divider-drawer-player">Player: Player_701</span>
             <div id="drawer-group-split" class="divider-drawer-sides">
-              <span id="drawer-left-label" class="side-solids">SOLIDS (LEFT)</span>
+              <span id="drawer-left-label" class="side-solids">SOLIDS</span>
               <span class="drawer-split-line"></span>
-              <span id="drawer-right-label" class="side-stripes">STRIPES (RIGHT)</span>
+              <span id="drawer-right-label" class="side-stripes">STRIPES</span>
             </div>
           </div>
           <div id="pocketed-ball-row" class="pocketed-row-stack" aria-label="Pocketed Balls Row">
@@ -220,35 +262,34 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           </div>
         </div>
 
-        <div style="display:flex;align-items:center;gap:8px;">
+        <!-- Right Action Controls -->
+        <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
           <div id="rack-tray" style="display:none;"></div>
-          <button id="btn-new-rack-top" type="button" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 11px;border-radius:10px;border:1px solid rgba(255,255,255,0.16);background:#1e293b;color:#f8fafc;font-size:11px;font-weight:800;cursor:pointer;line-height:1.15;">
-            <span>↻</span>
-            <span>New</span>
+          <button id="btn-new-rack-top" type="button" style="display:inline-flex;align-items:center;gap:3px;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.16);background:#1e293b;color:#f8fafc;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;">
+            <span>↻</span><span>New</span>
           </button>
-          <button id="btn-settings" type="button" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 11px;border-radius:10px;border:1px solid rgba(255,255,255,0.16);background:#1e293b;color:#f8fafc;font-size:11px;font-weight:800;cursor:pointer;line-height:1.15;">
-            <span>⚙</span>
-            <span>Settings</span>
+          <button id="btn-settings" type="button" style="display:inline-flex;align-items:center;gap:3px;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.16);background:#1e293b;color:#f8fafc;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;">
+            <span>⚙</span><span>Settings</span>
           </button>
-          <button id="btn-setup-hub" type="button" style="padding:7px 11px;border-radius:10px;border:1px solid rgba(255,255,255,0.16);background:#334155;color:#f8fafc;font-size:11px;font-weight:800;cursor:pointer;">
+          <button id="btn-setup-hub" type="button" style="padding:5px 9px;border-radius:8px;border:1px solid rgba(255,255,255,0.16);background:#334155;color:#f8fafc;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap;">
             Hub
           </button>
         </div>
       </div>
 
-      <!-- Main Cockpit + Table Area -->
-      <div style="position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;">
+      <!-- Main Cockpit + Full Table Area -->
+      <div style="position:relative;flex:1;width:100%;min-height:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;">
         <!-- Left Panel: Cue Spin & Fine Aim -->
-        <div style="display:flex;flex-direction:column;gap:10px;width:118px;flex-shrink:0;z-index:5;">
+        <div style="display:flex;flex-direction:column;gap:8px;width:96px;flex-shrink:0;z-index:5;">
           <div class="cockpit-card">
             <div class="cockpit-label">CUE SPIN</div>
-            <div id="cockpit-spin-pad" style="position:relative;width:62px;height:62px;border-radius:50%;background:#f8fafc;border:2px solid #475569;cursor:pointer;">
+            <div id="cockpit-spin-pad" style="position:relative;width:52px;height:52px;border-radius:50%;background:#f8fafc;border:2px solid #475569;cursor:pointer;">
               <div style="position:absolute;left:50%;top:4px;bottom:4px;width:1px;background:rgba(15,23,42,0.2);transform:translateX(-50%);pointer-events:none;"></div>
               <div style="position:absolute;top:50%;left:4px;right:4px;height:1px;background:rgba(15,23,42,0.2);transform:translateY(-50%);pointer-events:none;"></div>
-              <div id="spin-dot" style="position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#ef4444;pointer-events:none;"></div>
+              <div id="spin-dot" style="position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:#ef4444;pointer-events:none;"></div>
             </div>
-            <div id="spin-readout" style="font-size:10px;font-weight:800;letter-spacing:0.06em;color:#e2e8f0;">CENTER</div>
-            <button id="btn-cockpit-reset-spin" type="button" style="width:100%;padding:5px 6px;border-radius:8px;border:1px solid rgba(255,255,255,0.16);background:#1e293b;color:#f8fafc;font-size:10px;font-weight:700;cursor:pointer;">
+            <div id="spin-readout" style="font-size:9px;font-weight:800;letter-spacing:0.06em;color:#e2e8f0;">CENTER</div>
+            <button id="btn-cockpit-reset-spin" type="button" style="width:100%;padding:4px 5px;border-radius:7px;border:1px solid rgba(255,255,255,0.16);background:#1e293b;color:#f8fafc;font-size:9px;font-weight:700;cursor:pointer;">
               Reset Spin
             </button>
           </div>
@@ -258,16 +299,16 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
             <div id="aim-wheel" class="fine-step-strip" title="Drag to fine-tune aim">
               <div class="aim-ticks" style="display:none;"></div>
             </div>
-            <div style="display:flex;gap:8px;width:100%;justify-content:center;">
-              <button id="btn-aim-ccw" type="button" style="flex:1;padding:4px 0;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;font-weight:800;cursor:pointer;">-</button>
-              <button id="btn-aim-cw" type="button" style="flex:1;padding:4px 0;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;font-weight:800;cursor:pointer;">+</button>
+            <div style="display:flex;gap:6px;width:100%;justify-content:center;">
+              <button id="btn-aim-ccw" type="button" style="flex:1;padding:3px 0;border-radius:6px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;font-weight:800;cursor:pointer;">-</button>
+              <button id="btn-aim-cw" type="button" style="flex:1;padding:3px 0;border-radius:6px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;font-weight:800;cursor:pointer;">+</button>
             </div>
           </div>
         </div>
 
         <!-- Center Table -->
         <div style="position:relative;flex:1;width:100%;height:100%;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div id="ai-thinking-banner" class="hidden" style="position:absolute;top:4px;left:50%;transform:translateX(-50%);padding:5px 14px;border-radius:999px;background:rgba(15,23,42,0.92);border:1px solid rgba(251,191,36,0.45);color:#fde68a;font-size:11px;font-weight:800;letter-spacing:0.06em;z-index:12;pointer-events:none;">
+          <div id="ai-thinking-banner" class="hidden" style="position:absolute;top:4px;left:50%;transform:translateX(-50%);padding:4px 12px;border-radius:999px;background:rgba(15,23,42,0.92);border:1px solid rgba(251,191,36,0.45);color:#fde68a;font-size:10px;font-weight:800;letter-spacing:0.06em;z-index:12;pointer-events:none;">
             🤖 AI THINKING...
           </div>
 
@@ -277,14 +318,14 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         </div>
 
         <!-- Right Panel: Tako Pull -->
-        <div style="display:flex;flex-direction:column;align-items:center;width:82px;height:100%;max-height:340px;flex-shrink:0;z-index:5;">
-          <div id="power-rail" style="width:100%;height:100%;border-radius:14px;background:rgba(15,23,42,0.88);border:1px solid rgba(255,255,255,0.12);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 8px;cursor:pointer;">
-            <div style="font-size:10px;font-weight:800;letter-spacing:0.07em;color:#cbd5e1;text-align:center;">TAKO PULL</div>
-            <div style="position:relative;width:12px;flex:1;margin:8px 0;background:rgba(255,255,255,0.12);border-radius:6px;overflow:hidden;">
+        <div style="display:flex;flex-direction:column;align-items:center;width:68px;height:100%;max-height:320px;flex-shrink:0;z-index:5;">
+          <div id="power-rail" style="width:100%;height:100%;border-radius:12px;background:rgba(15,23,42,0.88);border:1px solid rgba(255,255,255,0.12);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 6px;cursor:pointer;">
+            <div style="font-size:9px;font-weight:800;letter-spacing:0.06em;color:#cbd5e1;text-align:center;">TAKO PULL</div>
+            <div style="position:relative;width:10px;flex:1;margin:6px 0;background:rgba(255,255,255,0.12);border-radius:6px;overflow:hidden;">
               <div id="power-fill" style="position:absolute;bottom:0;left:0;right:0;height:0%;background:linear-gradient(to top,#10b981,#f59e0b,#ef4444);"></div>
             </div>
-            <div id="power-grip" style="position:absolute;top:24%;left:14px;right:14px;height:20px;border-radius:6px;background:linear-gradient(180deg,#fbbf24,#d97706);box-shadow:0 3px 8px rgba(0,0,0,0.45);pointer-events:none;"></div>
-            <span style="font-size:11px;font-weight:800;color:#f8fafc;" id="power-pct">0%</span>
+            <div id="power-grip" style="position:absolute;top:22%;left:12px;right:12px;height:18px;border-radius:6px;background:linear-gradient(180deg,#fbbf24,#d97706);box-shadow:0 3px 8px rgba(0,0,0,0.45);pointer-events:none;"></div>
+            <span style="font-size:10px;font-weight:800;color:#f8fafc;" id="power-pct">0%</span>
           </div>
         </div>
 
@@ -297,12 +338,12 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         </div>
       </div>
 
-      <div id="ball-in-hand-hint" style="display:none;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.92);padding:5px 12px;border-radius:999px;font-size:12px;border:1px solid rgba(94,234,212,0.4);pointer-events:none;z-index:20;">
+      <div id="ball-in-hand-hint" style="display:none;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.92);padding:4px 12px;border-radius:999px;font-size:11px;border:1px solid rgba(94,234,212,0.4);pointer-events:none;z-index:20;">
         Ball in Hand — Drag cue ball to place
       </div>
 
       <div id="turn-modal-toast" class="hidden" style="display:none;"></div>
-      <div id="pocket-anim-badge" class="hidden" style="position:absolute;top:52px;right:104px;background:rgba(15,23,42,0.94);border:1px solid rgba(52,211,153,0.5);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;z-index:20;pointer-events:none;"></div>
+      <div id="pocket-anim-badge" class="hidden" style="position:absolute;top:50px;right:84px;background:rgba(15,23,42,0.94);border:1px solid rgba(52,211,153,0.5);padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;z-index:20;pointer-events:none;"></div>
 
       <div id="spin-modal" class="hidden" style="position:fixed;inset:0;background:rgba(2,6,23,0.72);display:flex;align-items:center;justify-content:center;z-index:40;">
         <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:16px;width:230px;text-align:center;">
@@ -546,6 +587,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
 
     function sync() {
       if (destroyed || leavingToHub) return;
+      fillViewportContainer();
       markGateHandledOnce();
       document.documentElement.dataset.isLandscape = isLandscapeNow() ? 'true' : 'false';
       tryLockLandscape();
@@ -567,7 +609,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     const onResize = () => {
       if (destroyed || leavingToHub) return;
       sync();
-      trackTimeout(resizeTable, 40);
+      trackTimeout(() => resizeTable(true), 40);
     };
 
     const onOrientationChange = () => {
@@ -576,14 +618,14 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       trackTimeout(() => {
         tryLockLandscape();
         sync();
-        resizeTable();
+        resizeTable(true);
       }, 180);
     };
 
     const onFullscreenChange = () => {
       if (destroyed || leavingToHub) return;
       sync();
-      trackTimeout(resizeTable, 80);
+      trackTimeout(() => resizeTable(true), 80);
     };
 
     const onScreenOrientationChange = () => {
@@ -743,28 +785,30 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   }
 
   function applySpaciousLayoutSpacing() {
+    fillViewportContainer();
     const wrap = $('table-wrap');
     if (wrap) {
-      wrap.style.padding = '10px 14px';
+      wrap.style.padding = '4px 6px';
       wrap.style.boxSizing = 'border-box';
     }
     const hud = $('top-hud') || root?.querySelector('.pool-hud');
     if (hud) {
-      hud.style.gap = '10px';
-      hud.style.padding = '7px 14px';
+      hud.style.gap = '6px';
+      hud.style.padding = '5px 10px';
+      hud.style.flexWrap = 'nowrap';
     }
   }
 
-  function resizeTable() {
+  function resizeTable(preservePositions = true) {
     if (destroyed) return;
     applySpaciousLayoutSpacing();
     const wrap = $('table-wrap');
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
-    if (rect.width < 100 || rect.height < 100) return;
+    if (rect.width < 100 || rect.height < 80) return;
 
-    const padX = Math.max(20, Math.round(rect.width * 0.025));
-    const padY = Math.max(16, Math.round(rect.height * 0.035));
+    const padX = Math.max(8, Math.round(rect.width * 0.012));
+    const padY = Math.max(6, Math.round(rect.height * 0.015));
     const availW = Math.max(120, rect.width - padX * 2);
     const availH = Math.max(80, rect.height - padY * 2);
 
@@ -783,7 +827,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     canvas.width = W;
     canvas.height = H;
 
-    rail = Math.max(24, Math.round(H * 0.095));
+    rail = Math.max(22, Math.round(H * 0.092));
     playX = rail;
     playY = rail;
     playW = Math.max(60, W - rail * 2);
@@ -800,7 +844,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       { x: playX + playW - 2, y: playY + playH - 2 }
     ];
 
-    if (state.balls.length > 0 && oldPlayW > 0 && oldPlayH > 0) {
+    if (preservePositions && state.balls.length > 0 && oldPlayW > 0 && oldPlayH > 0) {
       state.balls.forEach(b => {
         const nx = (b.x - oldPlayX) / oldPlayW;
         const ny = (b.y - oldPlayY) / oldPlayH;
@@ -979,13 +1023,13 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         const g1 = state.groups[1];
         const g2 = state.groups[2];
         if (!g1 && !g2) {
-          leftLabel.textContent = 'SOLIDS (LEFT)';
-          rightLabel.textContent = 'STRIPES (RIGHT)';
+          leftLabel.textContent = 'SOLIDS';
+          rightLabel.textContent = 'STRIPES';
           leftLabel.className = 'side-solids';
           rightLabel.className = 'side-stripes';
         } else {
-          const p1Name = $('p1-name')?.textContent?.trim() || 'Player 1';
-          const p2Name = state.opponent === 'ai' ? 'AI' : 'Player 2';
+          const p1Name = $('p1-name')?.textContent?.trim() || 'P1';
+          const p2Name = state.opponent === 'ai' ? 'AI' : 'P2';
           const solidsOwner = g1 === 'solids' ? p1Name : p2Name;
           const stripesOwner = g1 === 'stripes' ? p1Name : p2Name;
           leftLabel.textContent = `SOLIDS • ${solidsOwner}`;
@@ -995,8 +1039,8 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         }
       } else {
         const lowest = getLowestTargetNumber();
-        leftLabel.textContent = lowest ? `TARGET #${lowest}` : '9-BALL READY';
-        rightLabel.textContent = '9-BALL RACK';
+        leftLabel.textContent = lowest ? `TARGET #${lowest}` : '9-BALL';
+        rightLabel.textContent = 'RACK';
         leftLabel.className = 'side-solids';
         rightLabel.className = 'side-stripes';
       }
@@ -1107,26 +1151,15 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     maybeTriggerAI();
   }
 
-  function setupRack() {
-    clearPendingTimers();
-    resizeTable();
+  function buildRackBalls() {
     state.balls = [];
-    state.groups = { 1: null, 2: null };
-    state.pocketedStack = [];
-    state.pocketedThisShot = [];
-    state.turn = 1;
-    state.spin = { x: 0, y: 0 };
-    updateSpinUI();
-    state.takoPull = 0;
-    updatePowerUI();
-
     const cueX = playX + playW * 0.25;
     const cueY = playY + playH * 0.5;
-    state.balls.push({ num: 0, x: cueX, y: cueY, vx: 0, vy: 0, pocketed: false });
+    state.balls.push({ num: 0, x: cueX, y: cueY, vx: 0, vy: 0, pocketed: false, spinX: 0, spinY: 0 });
 
     const apexX = playX + playW * 0.72;
     const apexY = playY + playH * 0.5;
-    const spacing = ballR * 2.04;
+    const spacing = ballR * 2.01;
     const rowDx = spacing * Math.cos(Math.PI / 6);
 
     if (state.mode === '8ball') {
@@ -1142,7 +1175,9 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
             y: startY + r * spacing,
             vx: 0,
             vy: 0,
-            pocketed: false
+            pocketed: false,
+            spinX: 0,
+            spinY: 0
           });
         }
       }
@@ -1157,11 +1192,30 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
             y: startY + rIdx * spacing,
             vx: 0,
             vy: 0,
-            pocketed: false
+            pocketed: false,
+            spinX: 0,
+            spinY: 0
           });
         });
       });
     }
+  }
+
+  function setupRack() {
+    clearPendingTimers();
+    resizeTable(false);
+    state.groups = { 1: null, 2: null };
+    state.pocketedStack = [];
+    state.pocketedThisShot = [];
+    state.firstHitBall = null;
+    state.railHitAfterContact = false;
+    state.turn = 1;
+    state.spin = { x: 0, y: 0 };
+    updateSpinUI();
+    state.takoPull = 0;
+    updatePowerUI();
+
+    buildRackBalls();
 
     state.aimAngle = 0;
     state.phase = 'AIMING';
@@ -1169,6 +1223,13 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     updateHUD();
     showTurnModal(`${getActiveTurnName()}'s Turn`, 'Break Shot');
     startTurnTimer();
+
+    requestAnimationFrame(() => {
+      if (!destroyed && !leavingToHub && state.shotWasBreak && state.phase === 'AIMING') {
+        resizeTable(false);
+        buildRackBalls();
+      }
+    });
   }
 
   function getCueBall() {
@@ -1462,6 +1523,8 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       }
     }
 
+    let keepTurn = false;
+
     if (state.mode === '9ball') {
       const ninePocketed = objectPocketed.includes(9);
       const foul = scratched || state.firstHitBall === null;
@@ -1482,6 +1545,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         state.turn = otherPlayer;
         state.phase = 'BALL_IN_HAND';
       } else if (objectPocketed.length > 0) {
+        keepTurn = true;
         state.phase = 'AIMING';
       } else {
         state.turn = otherPlayer;
@@ -1525,7 +1589,6 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         }
       }
 
-      let keepTurn = false;
       if (!foul && objectPocketed.length > 0) {
         const updatedGroup = state.groups[state.turn];
         if (!updatedGroup) {
@@ -2330,7 +2393,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     BilliardLandscapeGuard.sync();
     $('setup-modal')?.classList.add('hidden');
     setupRack();
-    setTimeout(() => { if (!destroyed) resizeTable(); }, 120);
+    setTimeout(() => { if (!destroyed) resizeTable(true); }, 120);
   });
 
   $('btn-new-match')?.addEventListener('click', () => {
@@ -2347,7 +2410,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     BilliardLandscapeGuard.sync();
     $('gameover-modal')?.classList.add('hidden');
     setupRack();
-    setTimeout(() => { if (!destroyed) resizeTable(); }, 120);
+    setTimeout(() => { if (!destroyed) resizeTable(true); }, 120);
   });
 
   function closeSettingsModal() {
@@ -2371,7 +2434,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   $('btn-dock-restart')?.addEventListener('click', () => {
     closeSettingsModal();
     setupRack();
-    setTimeout(() => { if (!destroyed) resizeTable(); }, 80);
+    setTimeout(() => { if (!destroyed) resizeTable(true); }, 80);
   });
 
   $('btn-dock-fs')?.addEventListener('click', () => {
@@ -2379,7 +2442,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     BilliardLandscapeGuard.tryLockLandscape();
     BilliardLandscapeGuard.sync();
     haptic(10);
-    setTimeout(() => { if (!destroyed) resizeTable(); }, 120);
+    setTimeout(() => { if (!destroyed) resizeTable(true); }, 120);
   });
 
   $('btn-setup-hub')?.addEventListener('click', (e) => {
