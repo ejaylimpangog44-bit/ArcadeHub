@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,26 +12,32 @@
 <div id="app">
   <header id="top-hud">
     <div class="hud-left">
-      <div class="player-badge p1 active" id="badge-p1">
-        <span class="p-dot" style="background: var(--accent)"></span>
-        <span id="p1-name">P1</span>
-        <span class="group-tag" id="p1-group">OPEN</span>
-      </div>
-      <div class="mode-pill" id="hud-mode-label">8-BALL • VS AI</div>
-      <div class="player-badge p2" id="badge-p2">
-        <span class="p-dot" style="background: #60a5fa"></span>
-        <span id="p2-name">AI BOT</span>
-        <span class="group-tag" id="p2-group">OPEN</span>
+      <div class="mode-pill" id="hud-mode-label">🎱 8-BALL • 🤖 AI</div>
+      <div class="timer-box" id="timer-box">
+        <span>⏱</span>
+        <span id="timer-text">01:00</span>
       </div>
     </div>
 
-    <div class="timer-box" id="timer-box">
-      <span>⏱</span>
-      <span id="timer-text">01:30</span>
+    <div class="hud-center">
+      <div class="drawers-stack">
+        <div class="drawer-headers">
+          <div class="drawer-owner p1 active" id="badge-p1">
+            <span class="p-dot" style="background: var(--accent)"></span>
+            <span id="p1-name">P1</span>
+            <span class="group-tag" id="p1-group">OPEN</span>
+          </div>
+          <div class="drawer-owner p2" id="badge-p2">
+            <span class="p-dot" style="background: #60a5fa"></span>
+            <span id="p2-name">🤖 AI</span>
+            <span class="group-tag" id="p2-group">OPEN</span>
+          </div>
+        </div>
+        <div class="rack-tray" id="rack-tray" title="Remaining Target Balls"></div>
+      </div>
     </div>
 
     <div class="hud-right">
-      <div class="rack-tray" id="rack-tray" title="Remaining Target Balls"></div>
       <button type="button" class="icon-btn" id="btn-new-match" title="New Match">↻ New</button>
       <button type="button" class="icon-btn" id="btn-settings" title="Game Settings">⚙ Settings</button>
     </div>
@@ -38,16 +45,15 @@
 
   <main id="arena">
     <aside class="side-panel" id="left-panel">
-      <div class="panel-card spin-card">
+      <button type="button" class="panel-card spin-card spin-trigger-card" id="btn-open-spin-modal" title="Tap to set Cue Spin">
         <div class="panel-title">Cue Spin</div>
-        <div class="spin-pad" id="spin-pad" title="Click or drag to apply English / Top / Back spin">
+        <div class="spin-pad" id="spin-pad">
           <div class="spin-cross-h"></div>
           <div class="spin-cross-v"></div>
           <div class="spin-dot" id="spin-dot"></div>
         </div>
         <div class="spin-readout" id="spin-readout">CENTER</div>
-        <button type="button" class="mini-btn" id="btn-reset-spin">Reset Spin</button>
-      </div>
+      </button>
 
       <div class="panel-card aim-card">
         <div class="panel-title">Fine Aim</div>
@@ -63,7 +69,8 @@
 
     <section id="table-wrap">
       <canvas id="pool-canvas"></canvas>
-      <div id="status-banner">BREAK SHOT — DRAG TAKO TO SHOOT</div>
+      <div id="turn-modal-toast" class="turn-toast hidden" aria-live="polite"></div>
+      <div id="pocket-anim-badge" class="pocket-anim hidden" aria-live="polite"></div>
       <div id="ball-in-hand-hint">BALL IN HAND — DRAG CUE BALL TO PLACE</div>
     </section>
 
@@ -78,6 +85,24 @@
       </div>
     </aside>
   </main>
+</div>
+
+<!-- Cue Spin Modal Overlay -->
+<div class="modal-backdrop hidden sub-modal-backdrop" id="spin-modal">
+  <div class="modal-card sub-modal-card spin-modal-card">
+    <div class="modal-header">
+      <h2>🎯 Cue Spin</h2>
+      <button type="button" class="close-x" id="btn-close-spin-modal">✕</button>
+    </div>
+    <p class="modal-sub">Tap or drag where you want to hit the cue ball. Returns automatically to the table.</p>
+    <div class="spin-pad spin-pad-lg" id="spin-modal-pad">
+      <div class="spin-cross-h"></div>
+      <div class="spin-cross-v"></div>
+      <div class="spin-dot" id="spin-modal-dot"></div>
+    </div>
+    <div class="spin-readout spin-readout-lg" id="spin-modal-readout">CENTER</div>
+    <button type="button" class="mini-btn" id="btn-modal-reset-spin">Reset Spin</button>
+  </div>
 </div>
 
 <div class="modal-backdrop" id="setup-modal">
