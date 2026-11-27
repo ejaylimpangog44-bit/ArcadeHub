@@ -176,6 +176,7 @@
     mode: '8ball',
     opponent: 'ai',
     aiDiff: 'medium',
+    tapToAim: true,
     aimSensitivity: 0.45,
     fineAimSpeed: 0.20,
     guideMode: 'full',
@@ -198,6 +199,8 @@
     shotWasBreak: false,
 
     dragMode: null,
+    pointerStart: { x: 0, y: 0 },
+    pointerMoved: false,
     lastPointer: { x: 0, y: 0 },
     aiTimer: null
   };
@@ -362,7 +365,7 @@
   function refreshSettingsAudioButtonLabel() {
     const audioFsBtn = document.getElementById('btn-settings-audio-fs');
     if (audioFsBtn) {
-      audioFsBtn.textContent = `Audio: ${state.sfx ? 'ON' : 'OFF'} & Fullscreen`;
+      audioFsBtn.textContent = `🔊 ${state.sfx ? 'ON' : 'OFF'} • ⛶ FS`;
     }
   }
 
@@ -376,18 +379,17 @@
     }
 
     const actionsContainer =
-      settingsModal.querySelector('.settings-actions, .modal-footer, .modal-actions') ||
-      settingsModal.querySelector('.modal-card, .modal-box, .settings-body') ||
+      settingsModal.querySelector('.modal-card') ||
       settingsModal;
 
     const row = document.createElement('div');
     row.id = 'settings-audio-hub-row';
-    row.style.cssText = 'display:flex;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.12);flex-wrap:wrap;';
+    row.style.cssText = 'display:flex;gap:10px;margin-top:6px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);';
 
     const audioFsBtn = document.createElement('button');
     audioFsBtn.type = 'button';
     audioFsBtn.id = 'btn-settings-audio-fs';
-    audioFsBtn.style.cssText = 'flex:1;min-width:140px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:#f8fafc;font-weight:700;font-size:12px;cursor:pointer;';
+    audioFsBtn.style.cssText = 'flex:1;padding:9px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:#f8fafc;font-weight:700;font-size:12px;cursor:pointer;';
     audioFsBtn.addEventListener('click', () => {
       state.sfx = !state.sfx;
       const sfxRow = document.getElementById('opt-sfx');
@@ -406,8 +408,8 @@
     const backHubBtn = document.createElement('button');
     backHubBtn.type = 'button';
     backHubBtn.id = 'btn-settings-hub';
-    backHubBtn.textContent = 'Back to Hub';
-    backHubBtn.style.cssText = 'flex:1;min-width:120px;padding:10px 12px;border-radius:10px;border:1px solid rgba(244,114,182,0.35);background:rgba(236,72,153,0.18);color:#f9a8d4;font-weight:800;font-size:12px;cursor:pointer;';
+    backHubBtn.textContent = '🏠 Hub';
+    backHubBtn.style.cssText = 'flex:1;padding:9px 10px;border-radius:10px;border:1px solid rgba(244,114,182,0.35);background:rgba(236,72,153,0.18);color:#f9a8d4;font-weight:800;font-size:12px;cursor:pointer;';
     backHubBtn.addEventListener('click', (e) => {
       e.preventDefault();
       settingsModal.classList.add('hidden');
@@ -420,6 +422,22 @@
     refreshSettingsAudioButtonLabel();
   }
 
+  function syncSettingsSummaries() {
+    const modeSum = document.getElementById('val-mode-summary');
+    const oppSum = document.getElementById('val-opponent-summary');
+    const diffSum = document.getElementById('val-diff-summary');
+    const diffTrigger = document.getElementById('btn-open-diff-modal');
+
+    if (modeSum) modeSum.textContent = state.mode === '8ball' ? '🎱 8-Ball' : '🟡 9-Ball';
+    if (oppSum) oppSum.textContent = state.opponent === 'ai' ? '🤖 AI' : '👥 2P PVP';
+    if (diffSum) {
+      diffSum.textContent = state.aiDiff === 'easy' ? '🌱 Easy' : (state.aiDiff === 'hard' ? '👑 Boss' : '⚡ Pro');
+    }
+    if (diffTrigger) {
+      diffTrigger.style.display = state.opponent === 'ai' ? 'flex' : 'none';
+    }
+  }
+
   function updateHUD() {
     const b1 = document.getElementById('badge-p1');
     const b2 = document.getElementById('badge-p2');
@@ -427,11 +445,11 @@
     if (b2) b2.classList.toggle('active', state.turn === 2);
 
     const p2El = document.getElementById('p2-name');
-    if (p2El) p2El.textContent = state.opponent === 'ai' ? 'AI BOT' : 'P2';
+    if (p2El) p2El.textContent = state.opponent === 'ai' ? '🤖 AI' : '👥 P2';
     const modeEl = document.getElementById('hud-mode-label');
     if (modeEl) {
       modeEl.textContent =
-        (state.mode === '8ball' ? '8-BALL' : '9-BALL') + ' • ' + (state.opponent === 'ai' ? 'VS AI' : 'PVP');
+        (state.mode === '8ball' ? '🎱 8-BALL' : '🟡 9-BALL') + ' • ' + (state.opponent === 'ai' ? '🤖 AI' : '👥 PVP');
     }
 
     const g1 = document.getElementById('p1-group');
@@ -439,8 +457,8 @@
     if (g1 && g2) {
       if (state.mode === '9ball') {
         const lowest = getLowestTargetNumber();
-        g1.textContent = lowest ? 'TARGET #' + lowest : 'DONE';
-        g2.textContent = lowest ? 'TARGET #' + lowest : 'DONE';
+        g1.textContent = lowest ? '#' + lowest : 'DONE';
+        g2.textContent = lowest ? '#' + lowest : 'DONE';
       } else {
         g1.textContent = state.groups[1] ? state.groups[1].toUpperCase() : 'OPEN';
         g2.textContent = state.groups[2] ? state.groups[2].toUpperCase() : 'OPEN';
@@ -469,6 +487,7 @@
     if (hintEl) {
       hintEl.style.display = state.phase === 'BALL_IN_HAND' ? 'block' : 'none';
     }
+    syncSettingsSummaries();
   }
 
   function startTurnTimer() {
@@ -504,7 +523,7 @@
     haptic(60);
     state.turn = state.turn === 1 ? 2 : 1;
     state.phase = 'BALL_IN_HAND';
-    setBanner(`TIME OUT! FOUL — PLAYER ${state.turn} BALL IN HAND`);
+    setBanner(`⏱ FOUL — P${state.turn} BALL IN HAND`);
     updateHUD();
     startTurnTimer();
     maybeTriggerAI();
@@ -572,7 +591,7 @@
     state.aimAngle = 0;
     state.phase = 'AIMING';
     state.shotWasBreak = true;
-    setBanner('BREAK SHOT — PULL BACK TAKO TO STRIKE');
+    setBanner('BREAK — PULL TAKO TO SHOOT');
     updateHUD();
     startTurnTimer();
   }
@@ -882,14 +901,14 @@
       if (foul) {
         state.turn = otherPlayer;
         state.phase = 'BALL_IN_HAND';
-        setBanner(`FOUL! PLAYER ${state.turn} GETS BALL IN HAND`);
+        setBanner(`FOUL! P${state.turn} BALL IN HAND`);
       } else if (objectPocketed.length > 0) {
         state.phase = 'AIMING';
-        setBanner(`NICE SHOT! PLAYER ${state.turn} CONTINUES`);
+        setBanner(`NICE! P${state.turn} CONTINUES`);
       } else {
         state.turn = otherPlayer;
         state.phase = 'AIMING';
-        setBanner(`PLAYER ${state.turn}'S TURN`);
+        setBanner(`P${state.turn}'S TURN`);
       }
     } else {
       const eightPocketed = objectPocketed.includes(8);
@@ -944,14 +963,14 @@
       if (foul) {
         state.turn = otherPlayer;
         state.phase = 'BALL_IN_HAND';
-        setBanner(`FOUL! PLAYER ${state.turn} BALL IN HAND`);
+        setBanner(`FOUL! P${state.turn} BALL IN HAND`);
       } else if (keepTurn) {
         state.phase = 'AIMING';
-        setBanner(`GREAT SHOT! PLAYER ${state.turn} SHOOTS AGAIN`);
+        setBanner(`NICE! P${state.turn} AGAIN`);
       } else {
         state.turn = otherPlayer;
         state.phase = 'AIMING';
-        setBanner(`PLAYER ${state.turn}'S TURN`);
+        setBanner(`P${state.turn}'S TURN`);
       }
     }
 
@@ -969,8 +988,8 @@
     playTone(587, 'triangle', 0.45, 0.25);
     haptic([40, 40, 80]);
     const winnerLabel = (winnerNum === 2 && state.opponent === 'ai')
-      ? '🤖 AI Bot Wins!'
-      : `🏆 Player ${winnerNum} Wins!`;
+      ? '🤖 AI Wins!'
+      : `🏆 P${winnerNum} Wins!`;
     const titleEl = document.getElementById('winner-title');
     const reasonEl = document.getElementById('winner-reason');
     const modalEl = document.getElementById('gameover-modal');
@@ -984,7 +1003,7 @@
     if (state.opponent !== 'ai' || state.turn !== 2) return;
     if (state.phase !== 'AIMING' && state.phase !== 'BALL_IN_HAND') return;
 
-    setBanner('AI BOT IS ANALYZING TABLE...');
+    setBanner('🤖 AI THINKING...');
     state.aiTimer = setTimeout(() => {
       const cue = getCueBall();
       if (!cue) return;
@@ -1320,6 +1339,8 @@
     if (!isUserTurn()) return;
     canvas.setPointerCapture(e.pointerId);
     const pos = getCanvasCoords(e);
+    state.pointerStart = pos;
+    state.pointerMoved = false;
     state.lastPointer = pos;
     const cue = getCueBall();
     if (!cue) return;
@@ -1347,6 +1368,9 @@
   canvas.addEventListener('pointermove', (e) => {
     if (!state.dragMode || !isUserTurn()) return;
     const pos = getCanvasCoords(e);
+    if (Math.hypot(pos.x - state.pointerStart.x, pos.y - state.pointerStart.y) > 5) {
+      state.pointerMoved = true;
+    }
     const cue = getCueBall();
     if (!cue) return;
 
@@ -1394,8 +1418,15 @@
         state.takoPull = 0;
         updatePowerUI();
       }
+    } else if (state.dragMode === 'AIM' && state.tapToAim && !state.pointerMoved) {
+      const cue = getCueBall();
+      if (cue && !cue.pocketed && Math.hypot(state.pointerStart.x - cue.x, state.pointerStart.y - cue.y) > ballR) {
+        state.aimAngle = Math.atan2(state.pointerStart.y - cue.y, state.pointerStart.x - cue.x);
+        haptic(8);
+      }
     }
     state.dragMode = null;
+    state.pointerMoved = false;
   });
 
   const powerRail = document.getElementById('power-rail');
@@ -1548,13 +1579,82 @@
     });
   }
 
-  bindSegRow('opt-mode', val => { state.mode = val; });
-  bindSegRow('opt-opponent', val => {
-    state.opponent = val;
-    const diffGroup = document.getElementById('ai-diff-group');
-    if (diffGroup) diffGroup.style.display = val === 'ai' ? 'flex' : 'none';
+  let draftMode = state.mode;
+  let draftOpponent = state.opponent;
+  let draftDiff = state.aiDiff;
+
+  function syncChoiceTiles(containerId, activeVal) {
+    const wrap = document.getElementById(containerId);
+    if (!wrap) return;
+    wrap.querySelectorAll('.choice-tile').forEach(tile => {
+      tile.classList.toggle('active', tile.dataset.val === activeVal);
+    });
+  }
+
+  function bindChoiceTiles(containerId, onSelect) {
+    const wrap = document.getElementById(containerId);
+    if (!wrap) return;
+    wrap.querySelectorAll('.choice-tile').forEach(tile => {
+      tile.addEventListener('click', () => {
+        wrap.querySelectorAll('.choice-tile').forEach(t => t.classList.remove('active'));
+        tile.classList.add('active');
+        onSelect(tile.dataset.val);
+      });
+    });
+  }
+
+  bindChoiceTiles('modal-opt-mode', val => { draftMode = val; });
+  bindChoiceTiles('modal-opt-opponent', val => { draftOpponent = val; });
+  bindChoiceTiles('modal-opt-diff', val => { draftDiff = val; });
+
+  document.getElementById('btn-open-mode-modal')?.addEventListener('click', () => {
+    draftMode = state.mode;
+    syncChoiceTiles('modal-opt-mode', draftMode);
+    document.getElementById('mode-modal')?.classList.remove('hidden');
   });
-  bindSegRow('opt-diff', val => { state.aiDiff = val; });
+  document.getElementById('btn-close-mode-modal')?.addEventListener('click', () => {
+    document.getElementById('mode-modal')?.classList.add('hidden');
+  });
+  document.getElementById('btn-apply-mode-modal')?.addEventListener('click', () => {
+    const changed = state.mode !== draftMode;
+    state.mode = draftMode;
+    document.getElementById('mode-modal')?.classList.add('hidden');
+    updateHUD();
+    if (changed && state.phase !== 'MENU') {
+      setupRack();
+    }
+  });
+
+  document.getElementById('btn-open-opponent-modal')?.addEventListener('click', () => {
+    draftOpponent = state.opponent;
+    syncChoiceTiles('modal-opt-opponent', draftOpponent);
+    document.getElementById('opponent-modal')?.classList.remove('hidden');
+  });
+  document.getElementById('btn-close-opponent-modal')?.addEventListener('click', () => {
+    document.getElementById('opponent-modal')?.classList.add('hidden');
+  });
+  document.getElementById('btn-apply-opponent-modal')?.addEventListener('click', () => {
+    state.opponent = draftOpponent;
+    document.getElementById('opponent-modal')?.classList.add('hidden');
+    updateHUD();
+    maybeTriggerAI();
+  });
+
+  document.getElementById('btn-open-diff-modal')?.addEventListener('click', () => {
+    draftDiff = state.aiDiff;
+    syncChoiceTiles('modal-opt-diff', draftDiff);
+    document.getElementById('diff-modal')?.classList.remove('hidden');
+  });
+  document.getElementById('btn-close-diff-modal')?.addEventListener('click', () => {
+    document.getElementById('diff-modal')?.classList.add('hidden');
+  });
+  document.getElementById('btn-apply-diff-modal')?.addEventListener('click', () => {
+    state.aiDiff = draftDiff;
+    document.getElementById('diff-modal')?.classList.add('hidden');
+    updateHUD();
+  });
+
+  bindSegRow('opt-tap-aim', val => { state.tapToAim = (val === 'on'); });
   bindSegRow('opt-guide', val => { state.guideMode = val; });
   bindSegRow('opt-sfx', val => {
     state.sfx = (val === 'on');
@@ -1591,6 +1691,7 @@
 
   document.getElementById('btn-settings')?.addEventListener('click', () => {
     ensureSettingsHubAndAudioControls();
+    syncSettingsSummaries();
     document.getElementById('settings-modal')?.classList.remove('hidden');
   });
   document.getElementById('btn-close-settings')?.addEventListener('click', () => {
@@ -1632,6 +1733,7 @@
 
   BilliardLandscapeGuard.init();
   ensureSettingsHubAndAudioControls();
+  syncSettingsSummaries();
   syncPlayerNameFromHub();
   resizeTable();
   requestAnimationFrame(render);
