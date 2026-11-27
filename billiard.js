@@ -202,7 +202,11 @@
     pointerStart: { x: 0, y: 0 },
     pointerMoved: false,
     lastPointer: { x: 0, y: 0 },
-    aiTimer: null
+    aiTimer: null,
+    turnToastTimer: null,
+    turnToastFadeTimer: null,
+    pocketAnimTimer: null,
+    pocketAnimFadeTimer: null
   };
 
   let W = 800, H = 400;
@@ -246,13 +250,8 @@
     }
     const hud = document.getElementById('top-hud') || document.querySelector('.pool-hud');
     if (hud) {
-      hud.style.gap = '10px';
+      hud.style.gap = '12px';
       hud.style.padding = '8px 14px';
-    }
-    const controls = document.getElementById('controls-bar') || document.querySelector('.pool-controls');
-    if (controls) {
-      controls.style.gap = '12px';
-      controls.style.padding = '8px 14px';
     }
   }
 
@@ -310,9 +309,57 @@
     }
   }
 
-  function setBanner(msg) {
-    const el = document.getElementById('status-banner');
-    if (el) el.textContent = msg;
+  function showTurnModal(customText) {
+    const toast = document.getElementById('turn-modal-toast');
+    if (!toast) return;
+    clearTimeout(state.turnToastTimer);
+    clearTimeout(state.turnToastFadeTimer);
+
+    const text = customText || (
+      state.turn === 1
+        ? "Player 1's Turn"
+        : (state.opponent === 'ai' ? "AI's Turn" : "Player 2's Turn")
+    );
+    toast.textContent = text;
+    toast.classList.remove('hidden', 'fading');
+
+    state.turnToastFadeTimer = setTimeout(() => {
+      toast.classList.add('fading');
+    }, 1050);
+
+    state.turnToastTimer = setTimeout(() => {
+      toast.classList.add('hidden');
+      toast.classList.remove('fading');
+    }, 1550);
+  }
+
+  function showPocketedAnimation(ballNum) {
+    const badge = document.getElementById('pocket-anim-badge');
+    if (!badge) return;
+    clearTimeout(state.pocketAnimTimer);
+    clearTimeout(state.pocketAnimFadeTimer);
+
+    const label = ballNum === 0
+      ? 'Cue Ball Scratch'
+      : (ballNum === 8 ? '8-Ball Pocketed!' : `Ball #${ballNum} Pocketed`);
+
+    const chipBg = ballNum > 8
+      ? `radial-gradient(circle, #fff 45%, ${BALL_COLORS[ballNum]} 48%)`
+      : (BALL_COLORS[ballNum] || '#f8fafc');
+    const chipColor = ballNum === 8 ? '#fff' : '#0f172a';
+    const chipText = ballNum === 0 ? '•' : String(ballNum);
+
+    badge.innerHTML = `<span class="pocket-anim-chip" style="background:${chipBg};color:${chipColor};">${chipText}</span><span>${label}</span>`;
+    badge.classList.remove('hidden', 'fading');
+
+    state.pocketAnimFadeTimer = setTimeout(() => {
+      badge.classList.add('fading');
+    }, 1150);
+
+    state.pocketAnimTimer = setTimeout(() => {
+      badge.classList.add('hidden');
+      badge.classList.remove('fading');
+    }, 1750);
   }
 
   function getSavedPlayerName() {
@@ -321,7 +368,7 @@
       if (saved && saved.trim()) return saved.trim();
     } catch (_) {}
     const domName = document.getElementById('p1-name')?.textContent;
-    return (domName && domName.trim()) || 'AJ';
+    return (domName && domName.trim()) || 'P1';
   }
 
   function persistPlayerName(name) {
@@ -378,9 +425,7 @@
       return;
     }
 
-    const actionsContainer =
-      settingsModal.querySelector('.modal-card') ||
-      settingsModal;
+    const actionsContainer = settingsModal.querySelector('.modal-card') || settingsModal;
 
     const row = document.createElement('div');
     row.id = 'settings-audio-hub-row';
@@ -438,6 +483,24 @@
     }
   }
 
+  function createMiniBallEl(n) {
+    const b = state.balls.find(item => item.num === n);
+    const div = document.createElement('div');
+    div.className = 'mini-ball' + (!b || b.pocketed ? ' pocketed' : '');
+    div.style.background = n > 8
+      ? `radial-gradient(circle, #fff 45%, ${BALL_COLORS[n]} 48%)`
+      : BALL_COLORS[n];
+    if (n === 8) div.style.color = '#fff';
+    div.textContent = n;
+    return div;
+  }
+
+  function appendDividerEl(tray) {
+    const div = document.createElement('div');
+    div.className = 'tray-divider';
+    tray.appendChild(div);
+  }
+
   function updateHUD() {
     const b1 = document.getElementById('badge-p1');
     const b2 = document.getElementById('badge-p2');
@@ -468,18 +531,19 @@
     const tray = document.getElementById('rack-tray');
     if (tray) {
       tray.innerHTML = '';
-      tray.style.gap = '5px';
-      const maxBall = state.mode === '8ball' ? 15 : 9;
-      for (let n = 1; n <= maxBall; n++) {
-        const b = state.balls.find(item => item.num === n);
-        const div = document.createElement('div');
-        div.className = 'mini-ball' + (!b || b.pocketed ? ' pocketed' : '');
-        div.style.background = n > 8
-          ? `radial-gradient(circle, #fff 45%, ${BALL_COLORS[n]} 48%)`
-          : BALL_COLORS[n];
-        if (n === 8) div.style.color = '#fff';
-        div.textContent = n;
-        tray.appendChild(div);
+      if (state.mode === '8ball' && state.groups[1] && state.groups[2]) {
+        const p1Nums = state.groups[1] === 'solids' ? [1, 2, 3, 4, 5, 6, 7] : [9, 10, 11, 12, 13, 14, 15];
+        const p2Nums = state.groups[2] === 'solids' ? [1, 2, 3, 4, 5, 6, 7] : [9, 10, 11, 12, 13, 14, 15];
+        p1Nums.forEach(n => tray.appendChild(createMiniBallEl(n)));
+        appendDividerEl(tray);
+        tray.appendChild(createMiniBallEl(8));
+        appendDividerEl(tray);
+        p2Nums.forEach(n => tray.appendChild(createMiniBallEl(n)));
+      } else {
+        const maxBall = state.mode === '8ball' ? 15 : 9;
+        for (let n = 1; n <= maxBall; n++) {
+          tray.appendChild(createMiniBallEl(n));
+        }
       }
     }
 
@@ -523,8 +587,8 @@
     haptic(60);
     state.turn = state.turn === 1 ? 2 : 1;
     state.phase = 'BALL_IN_HAND';
-    setBanner(`⏱ FOUL — P${state.turn} BALL IN HAND`);
     updateHUD();
+    showTurnModal(state.turn === 1 ? "Player 1's Turn (Ball in Hand)" : (state.opponent === 'ai' ? "AI's Turn" : "Player 2's Turn (Ball in Hand)"));
     startTurnTimer();
     maybeTriggerAI();
   }
@@ -591,8 +655,8 @@
     state.aimAngle = 0;
     state.phase = 'AIMING';
     state.shotWasBreak = true;
-    setBanner('BREAK — PULL TAKO TO SHOOT');
     updateHUD();
+    showTurnModal("Player 1's Turn");
     startTurnTimer();
   }
 
@@ -776,6 +840,7 @@
             b.vx = 0;
             b.vy = 0;
             state.pocketedThisShot.push(b.num);
+            showPocketedAnimation(b.num);
             playTone(130, 'sine', 0.26, 0.24);
             haptic(35);
             break;
@@ -901,14 +966,11 @@
       if (foul) {
         state.turn = otherPlayer;
         state.phase = 'BALL_IN_HAND';
-        setBanner(`FOUL! P${state.turn} BALL IN HAND`);
       } else if (objectPocketed.length > 0) {
         state.phase = 'AIMING';
-        setBanner(`NICE! P${state.turn} CONTINUES`);
       } else {
         state.turn = otherPlayer;
         state.phase = 'AIMING';
-        setBanner(`P${state.turn}'S TURN`);
       }
     } else {
       const eightPocketed = objectPocketed.includes(8);
@@ -963,14 +1025,11 @@
       if (foul) {
         state.turn = otherPlayer;
         state.phase = 'BALL_IN_HAND';
-        setBanner(`FOUL! P${state.turn} BALL IN HAND`);
       } else if (keepTurn) {
         state.phase = 'AIMING';
-        setBanner(`NICE! P${state.turn} AGAIN`);
       } else {
         state.turn = otherPlayer;
         state.phase = 'AIMING';
-        setBanner(`P${state.turn}'S TURN`);
       }
     }
 
@@ -978,6 +1037,7 @@
     state.spin = { x: 0, y: 0 };
     updateSpinUI();
     updateHUD();
+    showTurnModal();
     startTurnTimer();
     maybeTriggerAI();
   }
@@ -1003,7 +1063,6 @@
     if (state.opponent !== 'ai' || state.turn !== 2) return;
     if (state.phase !== 'AIMING' && state.phase !== 'BALL_IN_HAND') return;
 
-    setBanner('🤖 AI THINKING...');
     state.aiTimer = setTimeout(() => {
       const cue = getCueBall();
       if (!cue) return;
@@ -1510,14 +1569,58 @@
     haptic(8);
   });
 
-  const spinPad = document.getElementById('spin-pad');
+  // Cue Spin Modal Overlay (opens on tap, applies spin, auto-returns to game screen)
   const spinDot = document.getElementById('spin-dot');
   const spinReadout = document.getElementById('spin-readout');
-  let spinDragging = false;
+  const spinModal = document.getElementById('spin-modal');
+  const spinModalPad = document.getElementById('spin-modal-pad');
+  const spinModalDot = document.getElementById('spin-modal-dot');
+  const spinModalReadout = document.getElementById('spin-modal-readout');
+  let modalSpinDragging = false;
+  let autoReturnTimer = null;
 
-  function applySpinFromEvent(e) {
-    if (!spinPad) return;
-    const rect = spinPad.getBoundingClientRect();
+  function formatSpinLabel() {
+    if (Math.abs(state.spin.x) < 0.12 && Math.abs(state.spin.y) < 0.12) {
+      return 'CENTER';
+    }
+    const v = state.spin.y < -0.15 ? 'TOP' : (state.spin.y > 0.15 ? 'BACK' : '');
+    const h = state.spin.x < -0.15 ? 'L' : (state.spin.x > 0.15 ? 'R' : '');
+    return [v, h].filter(Boolean).join(' ') || 'CENTER';
+  }
+
+  function updateSpinUI() {
+    const leftPct = (50 + state.spin.x * 36) + '%';
+    const topPct = (50 + state.spin.y * 36) + '%';
+    const label = formatSpinLabel();
+
+    if (spinDot) {
+      spinDot.style.left = leftPct;
+      spinDot.style.top = topPct;
+    }
+    if (spinModalDot) {
+      spinModalDot.style.left = leftPct;
+      spinModalDot.style.top = topPct;
+    }
+    if (spinReadout) spinReadout.textContent = label;
+    if (spinModalReadout) spinModalReadout.textContent = label;
+  }
+
+  function closeSpinModalNow() {
+    clearTimeout(autoReturnTimer);
+    modalSpinDragging = false;
+    spinModal?.classList.add('hidden');
+  }
+
+  function scheduleAutoReturnToGame() {
+    clearTimeout(autoReturnTimer);
+    autoReturnTimer = setTimeout(() => {
+      closeSpinModalNow();
+    }, 240);
+  }
+
+  function applyModalSpinFromEvent(e) {
+    if (!spinModalPad) return;
+    const rect = spinModalPad.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const maxR = rect.width * 0.36;
@@ -1531,41 +1634,45 @@
     state.spin.x = +(dx / maxR).toFixed(2);
     state.spin.y = +(dy / maxR).toFixed(2);
     updateSpinUI();
+    haptic(10);
   }
 
-  function updateSpinUI() {
-    if (spinDot) {
-      spinDot.style.left = (50 + state.spin.x * 36) + '%';
-      spinDot.style.top = (50 + state.spin.y * 36) + '%';
-    }
-    if (spinReadout) {
-      if (Math.abs(state.spin.x) < 0.12 && Math.abs(state.spin.y) < 0.12) {
-        spinReadout.textContent = 'CENTER';
-      } else {
-        const v = state.spin.y < -0.15 ? 'TOP' : (state.spin.y > 0.15 ? 'BACK' : '');
-        const h = state.spin.x < -0.15 ? 'L' : (state.spin.x > 0.15 ? 'R' : '');
-        spinReadout.textContent = [v, h].filter(Boolean).join(' ') || 'CENTER';
-      }
-    }
-  }
+  document.getElementById('btn-open-spin-modal')?.addEventListener('click', () => {
+    if (!isUserTurn()) return;
+    clearTimeout(autoReturnTimer);
+    updateSpinUI();
+    spinModal?.classList.remove('hidden');
+  });
 
-  if (spinPad) {
-    spinPad.addEventListener('pointerdown', (e) => {
-      if (!isUserTurn()) return;
-      spinPad.setPointerCapture(e.pointerId);
-      spinDragging = true;
-      applySpinFromEvent(e);
-    });
-    spinPad.addEventListener('pointermove', (e) => {
-      if (spinDragging && isUserTurn()) applySpinFromEvent(e);
-    });
-    spinPad.addEventListener('pointerup', () => { spinDragging = false; });
-  }
+  document.getElementById('btn-close-spin-modal')?.addEventListener('click', closeSpinModalNow);
 
-  document.getElementById('btn-reset-spin')?.addEventListener('click', () => {
+  document.getElementById('btn-modal-reset-spin')?.addEventListener('click', () => {
     state.spin = { x: 0, y: 0 };
     updateSpinUI();
+    haptic(10);
+    scheduleAutoReturnToGame();
   });
+
+  if (spinModalPad) {
+    spinModalPad.addEventListener('pointerdown', (e) => {
+      if (!isUserTurn()) return;
+      clearTimeout(autoReturnTimer);
+      spinModalPad.setPointerCapture(e.pointerId);
+      modalSpinDragging = true;
+      applyModalSpinFromEvent(e);
+    });
+
+    spinModalPad.addEventListener('pointermove', (e) => {
+      if (!modalSpinDragging || !isUserTurn()) return;
+      applyModalSpinFromEvent(e);
+    });
+
+    spinModalPad.addEventListener('pointerup', () => {
+      if (!modalSpinDragging) return;
+      modalSpinDragging = false;
+      scheduleAutoReturnToGame();
+    });
+  }
 
   function bindSegRow(id, callback) {
     const row = document.getElementById(id);
