@@ -9,7 +9,6 @@
   const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
 
   const BilliardLandscapeGuard = (() => {
-    let gateEl = null;
     let initialized = false;
 
     function markGateHandledOnce() {
@@ -28,11 +27,11 @@
         if (window.matchMedia('(orientation: landscape)').matches) return true;
         if (window.matchMedia('(orientation: portrait)').matches) return false;
       }
-      return window.innerWidth > window.innerHeight;
+      return window.innerWidth >= window.innerHeight;
     }
 
     function isPortraitNow() {
-      return false;
+      return !isLandscapeNow();
     }
 
     function tryLockLandscape() {
@@ -73,29 +72,9 @@
       } catch (_) {}
     }
 
-    function ensureGateEl() {
-      if (gateEl) return gateEl;
-      gateEl = document.getElementById('force-landscape-gate');
-      if (gateEl) {
-        gateEl.querySelector('#billiard-lock-landscape-btn')?.addEventListener('click', () => {
-          markGateHandledOnce();
-          requestFullscreenSafe(false);
-          tryLockLandscape();
-          sync();
-        });
-      }
-      return gateEl;
-    }
-
     function sync() {
       markGateHandledOnce();
-      const el = ensureGateEl();
-      document.documentElement.dataset.isLandscape = 'true';
-      if (el) {
-        el.style.display = 'none';
-        el.classList.add('hidden');
-        el.setAttribute('aria-hidden', 'true');
-      }
+      document.documentElement.dataset.isLandscape = isLandscapeNow() ? 'true' : 'false';
       tryLockLandscape();
     }
 
@@ -123,7 +102,6 @@
         return;
       }
       initialized = true;
-      ensureGateEl();
       sync();
       bindAutoGestureLock();
 
@@ -367,7 +345,6 @@
     } catch (_) {}
 
     BilliardLandscapeGuard.tryLockLandscape();
-    BilliardLandscapeGuard.requestFullscreenSafe(false);
     haptic(10);
 
     setTimeout(() => {
@@ -385,12 +362,6 @@
   function ensureSettingsHubAndAudioControls() {
     const settingsModal = document.getElementById('settings-modal');
     if (!settingsModal) return;
-
-    const standaloneHubBtn = document.getElementById('btn-hub');
-    if (standaloneHubBtn) {
-      standaloneHubBtn.classList.add('hidden');
-      standaloneHubBtn.style.display = 'none';
-    }
 
     if (document.getElementById('btn-settings-hub')) {
       refreshSettingsAudioButtonLabel();
@@ -499,7 +470,6 @@
     renderTimer();
     state.timerInterval = setInterval(() => {
       if (state.phase === 'MENU' || state.phase === 'GAME_OVER' || state.phase === 'SHOOTING') return;
-      if (BilliardLandscapeGuard.isPortraitNow()) return;
       state.timerSeconds--;
       renderTimer();
       if (state.timerSeconds <= 0) {
@@ -1316,7 +1286,6 @@
   }
 
   function isUserTurn() {
-    if (BilliardLandscapeGuard.isPortraitNow()) return false;
     if (state.phase !== 'AIMING' && state.phase !== 'BALL_IN_HAND') return false;
     if (state.opponent === 'ai' && state.turn === 2) return false;
     return true;
@@ -1624,26 +1593,15 @@
     document.getElementById('settings-modal')?.classList.add('hidden');
   });
 
-  document.getElementById('btn-fullscreen')?.addEventListener('click', () => {
-    BilliardLandscapeGuard.requestFullscreenSafe(true);
-    BilliardLandscapeGuard.tryLockLandscape();
-    BilliardLandscapeGuard.sync();
-    setTimeout(resizeTable, 120);
+  document.getElementById('btn-setup-hub')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    goToHubLobby();
   });
 
-  const hubBtn =
-    document.getElementById('btn-hub') ||
-    document.querySelector('[data-action="hub"]') ||
-    document.querySelector('[onclick*="openHubHome"]');
-  if (hubBtn) {
-    hubBtn.removeAttribute('onclick');
-    hubBtn.classList.add('hidden');
-    hubBtn.style.display = 'none';
-    hubBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      goToHubLobby();
-    });
-  }
+  document.getElementById('btn-gameover-hub')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    goToHubLobby();
+  });
 
   window.goToArcadeHub = goToHubLobby;
   window.toggleBilliardFullscreen = () => {
