@@ -2,6 +2,26 @@ const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
 
+const OVERLAY_MODAL_IDS = [
+  'game-preview-modal',
+  'settings-modal',
+  'qr-share-modal',
+  'instructions-modal',
+  'about-modal',
+  'fox-menu-modal',
+  'hero-modal-backdrop'
+];
+
+function isAnyOverlayModalOpen() {
+  return OVERLAY_MODAL_IDS.some((id) => {
+    const el = document.getElementById(id);
+    if (!el) return false;
+    if (el.classList.contains('hidden')) return false;
+    const style = getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0;
+  });
+}
+
 function findDiceAnchorEl() {
   const selectors = [
     '#surprise-dice-btn',
@@ -40,9 +60,9 @@ function matchFoxSizeToDice(diceEl, targetSize) {
   foxWidget.style.lineHeight = '1';
 
   if (diceEl) {
-    const diceRadius = getComputedStyle(diceEl).borderRadius;
-    if (diceRadius) {
-      foxWidget.style.borderRadius = diceRadius;
+    const diceStyle = getComputedStyle(diceEl);
+    if (diceStyle.borderRadius) {
+      foxWidget.style.borderRadius = diceStyle.borderRadius;
     }
   }
 
@@ -104,6 +124,7 @@ function syncFoxCompanionVisibility() {
   const inHub = Boolean(
     isLoggedIn &&
     !activeGameId &&
+    !isAnyOverlayModalOpen() &&
     (!hubHeader || !hubHeader.classList.contains('hidden'))
   );
 
@@ -137,6 +158,7 @@ if (closeFoxBtn && foxModal) {
   closeFoxBtn.onclick = () => {
     foxModal.classList.remove('flex');
     foxModal.classList.add('hidden');
+    syncFoxCompanionVisibility();
     if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
   };
 }
@@ -740,6 +762,7 @@ function setModalVisible(modalId, visible) {
   if (!modal) return;
   modal.classList.toggle('hidden', !visible);
   modal.classList.toggle('flex', visible);
+  syncFoxCompanionVisibility();
 }
 
 function toggleHubMenu(event) {
@@ -1374,6 +1397,7 @@ const GameSettingsDrawer = (() => {
 
     backdropEl.classList.remove('hidden', 'is-closing');
     drawerEl.classList.remove('hidden', 'is-closing');
+    syncFoxCompanionVisibility();
 
     requestAnimationFrame(() => {
       backdropEl.classList.add('is-open');
@@ -1401,6 +1425,7 @@ const GameSettingsDrawer = (() => {
       drawerEl.classList.remove('is-closing');
       backdropEl.classList.add('hidden');
       backdropEl.classList.remove('is-closing');
+      syncFoxCompanionVisibility();
       if (typeof afterClose === 'function') afterClose();
     }, 340);
   }
