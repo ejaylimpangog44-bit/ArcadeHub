@@ -53,8 +53,8 @@
   };
 
   let W = 800, H = 400;
-  let rail = 32;
-  let playX = 32, playY = 32, playW = 736, playH = 336;
+  let rail = 34;
+  let playX = 34, playY = 34, playW = 732, playH = 332;
   let ballR = 11;
   let pocketR = 20;
   let pockets = [];
@@ -85,9 +85,13 @@
     }
   }
 
+  function isFullscreenActive() {
+    return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
   function requestFullscreenOnGesture(forceToggle = false) {
     const docEl = document.documentElement;
-    const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    const isFs = isFullscreenActive();
     try {
       if (forceToggle && isFs) {
         if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
@@ -106,33 +110,57 @@
     } catch (_) {}
   }
 
+  function applySpaciousLayoutSpacing() {
+    const wrap = document.getElementById('table-wrap');
+    if (wrap) {
+      wrap.style.padding = '12px 16px';
+      wrap.style.boxSizing = 'border-box';
+    }
+    const hud = document.getElementById('top-hud') || document.querySelector('.pool-hud');
+    if (hud) {
+      hud.style.gap = '10px';
+      hud.style.padding = '8px 14px';
+    }
+    const controls = document.getElementById('controls-bar') || document.querySelector('.pool-controls');
+    if (controls) {
+      controls.style.gap = '12px';
+      controls.style.padding = '8px 14px';
+    }
+  }
+
   function resizeTable() {
+    applySpaciousLayoutSpacing();
     const wrap = document.getElementById('table-wrap');
     if (!wrap) return;
     const rect = wrap.getBoundingClientRect();
     if (rect.width < 100 || rect.height < 100) return;
 
+    const padX = Math.max(24, Math.round(rect.width * 0.032));
+    const padY = Math.max(20, Math.round(rect.height * 0.045));
+    const availW = Math.max(120, rect.width - padX * 2);
+    const availH = Math.max(80, rect.height - padY * 2);
+
     const targetRatio = 2.0;
-    let cw = rect.width - 8;
+    let cw = availW;
     let ch = cw / targetRatio;
-    if (ch > rect.height - 8) {
-      ch = rect.height - 8;
+    if (ch > availH) {
+      ch = availH;
       cw = ch * targetRatio;
     }
 
     const oldPlayX = playX, oldPlayY = playY, oldPlayW = playW, oldPlayH = playH;
 
-    W = Math.floor(cw);
-    H = Math.floor(ch);
+    W = Math.max(160, Math.floor(cw));
+    H = Math.max(80, Math.floor(ch));
     canvas.width = W;
     canvas.height = H;
 
-    rail = Math.max(22, Math.round(H * 0.088));
+    rail = Math.max(24, Math.round(H * 0.095));
     playX = rail;
     playY = rail;
-    playW = W - rail * 2;
-    playH = H - rail * 2;
-    ballR = Math.max(8, Math.round(playH * 0.0335));
+    playW = Math.max(60, W - rail * 2);
+    playH = Math.max(40, H - rail * 2);
+    ballR = Math.max(8, Math.round(playH * 0.0325));
     pocketR = Math.round(ballR * 1.82);
 
     pockets = [
@@ -191,8 +219,68 @@
     clearTimeout(state.aiTimer);
     const currentName = document.getElementById('p1-name')?.textContent || getSavedPlayerName();
     persistPlayerName(currentName);
+    try {
+      sessionStorage.setItem('arcade_hub_skip_power', '1');
+      sessionStorage.setItem('arcade_hub_target_lobby', '1');
+    } catch (_) {}
     haptic(10);
-    window.location.href = './index.html?hub=true';
+    window.location.replace('./index.html?hub=true');
+  }
+
+  function ensureSettingsHubAndAudioControls() {
+    const settingsModal = document.getElementById('settings-modal');
+    if (!settingsModal) return;
+
+    const standaloneHubBtn = document.getElementById('btn-hub');
+    if (standaloneHubBtn) {
+      standaloneHubBtn.classList.add('hidden');
+      standaloneHubBtn.style.display = 'none';
+    }
+
+    if (document.getElementById('btn-settings-hub')) return;
+
+    const actionsContainer =
+      settingsModal.querySelector('.settings-actions, .modal-footer, .modal-actions') ||
+      settingsModal.querySelector('.modal-card, .modal-box, .settings-body') ||
+      settingsModal;
+
+    const row = document.createElement('div');
+    row.id = 'settings-audio-hub-row';
+    row.style.cssText = 'display:flex;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.12);flex-wrap:wrap;';
+
+    const audioFsBtn = document.createElement('button');
+    audioFsBtn.type = 'button';
+    audioFsBtn.id = 'btn-settings-audio-fs';
+    audioFsBtn.textContent = `Audio: ${state.sfx ? 'ON' : 'OFF'} & Fullscreen`;
+    audioFsBtn.style.cssText = 'flex:1;min-width:140px;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:#f8fafc;font-weight:700;font-size:12px;cursor:pointer;';
+    audioFsBtn.addEventListener('click', () => {
+      state.sfx = !state.sfx;
+      const sfxRow = document.getElementById('opt-sfx');
+      if (sfxRow) {
+        sfxRow.querySelectorAll('.seg-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.val === (state.sfx ? 'on' : 'off'));
+        });
+      }
+      requestFullscreenOnGesture(true);
+      audioFsBtn.textContent = `Audio: ${state.sfx ? 'ON' : 'OFF'} & Fullscreen`;
+      haptic(10);
+      setTimeout(resizeTable, 120);
+    });
+
+    const backHubBtn = document.createElement('button');
+    backHubBtn.type = 'button';
+    backHubBtn.id = 'btn-settings-hub';
+    backHubBtn.textContent = 'Back to Hub';
+    backHubBtn.style.cssText = 'flex:1;min-width:120px;padding:10px 12px;border-radius:10px;border:1px solid rgba(244,114,182,0.35);background:rgba(236,72,153,0.18);color:#f9a8d4;font-weight:800;font-size:12px;cursor:pointer;';
+    backHubBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      settingsModal.classList.add('hidden');
+      goToHubLobby();
+    });
+
+    row.appendChild(audioFsBtn);
+    row.appendChild(backHubBtn);
+    actionsContainer.appendChild(row);
   }
 
   function updateHUD() {
@@ -225,6 +313,7 @@
     const tray = document.getElementById('rack-tray');
     if (tray) {
       tray.innerHTML = '';
+      tray.style.gap = '5px';
       const maxBall = state.mode === '8ball' ? 15 : 9;
       for (let n = 1; n <= maxBall; n++) {
         const b = state.balls.find(item => item.num === n);
@@ -1348,6 +1437,7 @@
   });
 
   document.getElementById('btn-settings')?.addEventListener('click', () => {
+    ensureSettingsHubAndAudioControls();
     document.getElementById('settings-modal')?.classList.remove('hidden');
   });
   document.getElementById('btn-close-settings')?.addEventListener('click', () => {
@@ -1368,6 +1458,8 @@
     document.querySelector('[onclick*="openHubHome"]');
   if (hubBtn) {
     hubBtn.removeAttribute('onclick');
+    hubBtn.classList.add('hidden');
+    hubBtn.style.display = 'none';
     hubBtn.addEventListener('click', (e) => {
       e.preventDefault();
       goToHubLobby();
@@ -1390,6 +1482,7 @@
     if (valEl) valEl.textContent = state.fineAimSpeed.toFixed(2) + '×';
   });
 
+  ensureSettingsHubAndAudioControls();
   syncPlayerNameFromHub();
   resizeTable();
   requestAnimationFrame(render);
