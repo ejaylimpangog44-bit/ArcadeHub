@@ -27,14 +27,14 @@ html, body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Rotate to Landscape Overlay (controlled by data-is-landscape) */
-#portrait-gate {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
+/* Single Landscape Gate (#force-landscape-gate) */
+#force-landscape-gate {
+  display: none;
+  visibility: hidden;
+  pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 2147483647;
   background:
     radial-gradient(circle at 50% 22%, rgba(245, 158, 11, 0.14) 0%, rgba(9, 13, 20, 0.98) 65%),
     #090d14;
@@ -56,14 +56,14 @@ html, body {
   gap: 10px;
 }
 
-html[data-is-landscape="false"] #portrait-gate {
-  display: flex !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
+html[data-is-landscape="false"] #force-landscape-gate {
+  display: flex;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 html[data-is-landscape="false"] #app {
-  display: none !important;
+  display: none;
 }
 
 .rotate-badge {
@@ -98,14 +98,14 @@ html[data-is-landscape="false"] #app {
   50% { transform: rotate(0deg); }
 }
 
-#portrait-gate h2 {
+#force-landscape-gate h2 {
   font-size: 21px;
   font-weight: 900;
   letter-spacing: -0.01em;
   color: var(--text);
 }
 
-#portrait-gate p {
+#force-landscape-gate p {
   font-size: 13px;
   color: var(--muted);
   max-width: 300px;
