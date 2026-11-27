@@ -31,7 +31,6 @@ function clearReturnFullscreenFlags() {
 }
 
 const LandscapeGate = (() => {
-  const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
   let gateEl = null;
   let syncTimer = null;
   let btnBound = false;
@@ -214,6 +213,12 @@ function isFullscreenNow() {
   return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
 }
 
+function getActiveGameModeForFullscreen() {
+  if (!activeGameId) return 'PORTRAIT';
+  const g = (window.GAMES || []).find(item => item.id === activeGameId);
+  return g ? String(g.mode || 'PORTRAIT').toUpperCase() : 'PORTRAIT';
+}
+
 function requestFullscreenSafe() {
   const docEl = document.documentElement;
   const shouldLockLandscape = LandscapeGate && typeof LandscapeGate.tryLockLandscape === 'function' && activeGameId && getActiveGameModeForFullscreen() === 'LANDSCAPE';
@@ -237,12 +242,6 @@ function requestFullscreenSafe() {
       if (shouldLockLandscape) LandscapeGate.tryLockLandscape();
     }
   } catch (_) {}
-}
-
-function getActiveGameModeForFullscreen() {
-  if (!activeGameId) return 'PORTRAIT';
-  const g = (window.GAMES || []).find(item => item.id === activeGameId);
-  return g ? String(g.mode || 'PORTRAIT').toUpperCase() : 'PORTRAIT';
 }
 
 function handleReturnFullscreenGesture() {
@@ -294,7 +293,7 @@ function bindPowerScreenAutoFullscreen() {
   }
 
   const pullTargets = document.querySelectorAll(
-    '#pull-cord, .pull-cord, .pull-chain, [data-pull-cord], [id*="cord"], [class*="cord"]'
+    '#pullHandle, #pull-cord, .pull-cord, .pull-chain, [data-pull-cord], [id*="cord"], [class*="cord"]'
   );
   pullTargets.forEach((el) => {
     el.addEventListener('pointerdown', triggerPowerFullscreen, { passive: true });
@@ -492,6 +491,7 @@ function syncFoxCompanionVisibility() {
     requestAnimationFrame(positionFoxBesideDice);
   }
 }
+window.syncFoxCompanionVisibility = syncFoxCompanionVisibility;
 
 window.addEventListener('resize', () => {
   if (foxWidget && foxWidget.style.display !== 'none') {
@@ -507,6 +507,7 @@ function openFoxCompanionModal() {
   if (foxModal) {
     foxModal.classList.remove('hidden');
     foxModal.classList.add('flex');
+    foxModal.style.display = 'flex';
   }
 }
 
@@ -517,6 +518,7 @@ if (closeFoxBtn) {
     } else if (foxModal) {
       foxModal.classList.remove('flex');
       foxModal.classList.add('hidden');
+      foxModal.style.display = 'none';
     }
     syncFoxCompanionVisibility();
     if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
@@ -741,6 +743,11 @@ const SplashController = (() => {
         splash.classList.add('splash-hide');
         splash.setAttribute('aria-hidden', 'true');
         splash.style.pointerEvents = 'none';
+        setTimeout(() => {
+          if (splash.classList.contains('splash-hide')) {
+            splash.style.display = 'none';
+          }
+        }, 650);
       }
       requestFullscreenSafe();
       LandscapeGate.scheduleSync(180);
@@ -749,8 +756,13 @@ const SplashController = (() => {
 
   function start() {
     const splash = document.getElementById('splash-screen');
-    if (!splash || splash.classList.contains('splash-hide')) return;
-    if (timerId || done) return;
+    if (!splash || done) return;
+    if (timerId) return;
+
+    splash.style.display = '';
+    splash.style.pointerEvents = 'auto';
+    splash.removeAttribute('aria-hidden');
+    splash.classList.remove('splash-hide');
 
     updateUI(progress);
     timerId = setInterval(() => {
@@ -771,6 +783,7 @@ const SplashController = (() => {
   return { start, completeToFull, hideSplashImmediate };
 })();
 window.SplashController = SplashController;
+window.startSplashScreen = SplashController.start;
 
 const GAME_ID_ALIASES = {
   'solitaire': 'solitaire',
@@ -1130,6 +1143,7 @@ function setModalVisible(modalId, visible) {
   if (!modal) return;
   modal.classList.toggle('hidden', !visible);
   modal.classList.toggle('flex', visible);
+  modal.style.display = visible ? 'flex' : 'none';
   syncFoxCompanionVisibility();
 }
 
@@ -1901,7 +1915,7 @@ const BgEngine = (() => {
 
   function loop() {
     tick += 0.016;
-    if (!ctx) {
+    if (!ctx || w <= 0 || h <= 0) {
       requestAnimationFrame(loop);
       return;
     }
@@ -2019,7 +2033,6 @@ function openGamePreviewModal(gameId) {
   AudioFX.click();
   previewGameMeta = game;
 
-  const modal = document.getElementById('game-preview-modal');
   const banner = document.getElementById('preview-banner');
   const badge = document.getElementById('preview-badge');
 
