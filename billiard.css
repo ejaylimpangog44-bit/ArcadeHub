@@ -523,6 +523,11 @@ canvas#pool-canvas {
   padding: 18px;
 }
 
+.modal-backdrop.sub-modal-backdrop {
+  z-index: 650;
+  background: rgba(4, 7, 14, 0.78);
+}
+
 .modal-backdrop.hidden {
   display: none;
 }
@@ -530,14 +535,84 @@ canvas#pool-canvas {
 .modal-card {
   width: 100%;
   max-width: 440px;
+  max-height: 88vh;
+  overflow-y: auto;
   background: #111827;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 20px;
-  padding: 20px 22px;
+  padding: 18px 20px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
   display: flex;
   flex-direction: column;
-  gap: 13px;
+  gap: 11px;
+}
+
+.sub-modal-card {
+  max-width: 360px;
+  gap: 14px;
+}
+
+.picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.picker-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.picker-trigger:hover {
+  border-color: var(--accent);
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.picker-trigger strong {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.sub-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sub-choice-grid.triple {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.choice-tile {
+  padding: 13px 10px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.choice-tile.active {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.22);
 }
 
 .modal-header {
@@ -585,7 +660,7 @@ canvas#pool-canvas {
 .option-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .option-group label {
