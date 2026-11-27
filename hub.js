@@ -1,6 +1,7 @@
 const foxWidget = document.getElementById('assistive-touch-fox');
 const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
 const closeFoxBtn = document.getElementById('close-fox-menu');
+const PLAYER_NAME_STORAGE_KEY = 'arcade_hub_player_name';
 
 const OVERLAY_MODAL_IDS = [
   'game-preview-modal',
@@ -11,6 +12,20 @@ const OVERLAY_MODAL_IDS = [
   'fox-menu-modal',
   'hero-modal-backdrop'
 ];
+
+function requestFullscreenSafe() {
+  const docEl = document.documentElement;
+  if (document.fullscreenElement || document.webkitFullscreenElement) return;
+  try {
+    if (docEl.requestFullscreen) {
+      docEl.requestFullscreen({ navigationUI: 'hide' }).catch(() => {
+        docEl.requestFullscreen().catch(() => {});
+      });
+    } else if (docEl.webkitRequestFullscreen) {
+      docEl.webkitRequestFullscreen();
+    }
+  } catch (_) {}
+}
 
 function isAnyOverlayModalOpen() {
   return OVERLAY_MODAL_IDS.some((id) => {
@@ -1029,9 +1044,10 @@ function randomizePlayerName() {
 window.randomizePlayerName = randomizePlayerName;
 
 function enterHubShell(name) {
-  window.playerName = name;
+  const cleanName = String(name || 'AJ').trim() || 'AJ';
+  window.playerName = cleanName;
   try {
-    localStorage.setItem('arcade_hub_player_name', name);
+    localStorage.setItem(PLAYER_NAME_STORAGE_KEY, cleanName);
   } catch (_) {}
   const headerName = document.getElementById('header-player-name');
   const loginScreen = document.getElementById('login-screen');
@@ -1049,6 +1065,7 @@ function submitPlayerName() {
   const typed = inputEl ? inputEl.value.trim() : '';
   const resolvedName = typed || ('Player_' + Math.floor(100 + Math.random() * 899));
 
+  requestFullscreenSafe();
   AudioFX.click();
   const bgm = document.getElementById('bgm-audio');
   if (bgm && bgmEnabled) {
@@ -2071,6 +2088,7 @@ function launchGame(id) {
   const canonId = normalizeGameId(id);
   const meta = GAMES.find(g => g.id === canonId);
   if (!meta) return;
+  requestFullscreenSafe();
   AudioFX.click();
   recordGamePlay(canonId);
 
@@ -2137,7 +2155,16 @@ window.addEventListener('DOMContentLoaded', () => {
     const powerScreen = document.getElementById('power-screen');
     SplashController.hideSplashImmediate();
     if (powerScreen) powerScreen.style.display = 'none';
-    enterHubShell('AJ');
+
+    let savedName = 'AJ';
+    try {
+      const fromStorage = localStorage.getItem(PLAYER_NAME_STORAGE_KEY);
+      if (fromStorage && fromStorage.trim()) {
+        savedName = fromStorage.trim();
+      }
+    } catch (_) {}
+
+    enterHubShell(savedName);
   } else {
     syncFoxCompanionVisibility();
     SplashController.start();
