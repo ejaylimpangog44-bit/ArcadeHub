@@ -548,5 +548,174 @@
 <script src="brick-breaker.js"></script>
 <script src="stick-run.js"></script>
 <script src="hub.js"></script>
+
+<script>
+  (function () {
+    const TARGET_LOBBY_KEY = 'arcade_hub_target_lobby';
+    const SKIP_POWER_KEY = 'arcade_hub_skip_power';
+    const FROM_BILLIARD_KEY = 'arcade_hub_from_billiard';
+    const AUTO_FS_KEY = 'arcade_hub_auto_landscape_fs';
+    const KEEP_FS_KEY = 'arcade_hub_keep_fullscreen';
+
+    function isLandscapeNow() {
+      const orientType = window.screen && window.screen.orientation && window.screen.orientation.type;
+      if (typeof orientType === 'string') {
+        if (orientType.startsWith('landscape')) return true;
+        if (orientType.startsWith('portrait')) return false;
+      }
+      if (window.matchMedia) {
+        if (window.matchMedia('(orientation: landscape)').matches) return true;
+        if (window.matchMedia('(orientation: portrait)').matches) return false;
+      }
+      return window.innerWidth >= window.innerHeight;
+    }
+
+    function isFullscreenNow() {
+      return Boolean(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+    }
+
+    function lockLandscape() {
+      try {
+        if (screen.orientation && typeof screen.orientation.lock === 'function') {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+      } catch (_) {}
+    }
+
+    function requestFullscreenAndLock() {
+      lockLandscape();
+      if (isFullscreenNow()) return;
+      const el = document.documentElement;
+      try {
+        if (el.requestFullscreen) {
+          el.requestFullscreen({ navigationUI: 'hide' })
+            .then(() => lockLandscape())
+            .catch(() => {
+              el.requestFullscreen().then(() => lockLandscape()).catch(() => {});
+            });
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+          lockLandscape();
+        }
+      } catch (_) {}
+    }
+
+    function hideGateIfLandscape() {
+      const gate = document.getElementById('force-landscape-gate');
+      if (isLandscapeNow()) {
+        document.documentElement.dataset.isLandscape = 'true';
+        if (gate) {
+          gate.style.display = 'none';
+          gate.classList.add('hidden');
+          gate.setAttribute('aria-hidden', 'true');
+        }
+      }
+    }
+
+    function syncHubLobbyReturn() {
+      let returningFromGame = false;
+      let shouldAutoLockFs = false;
+
+      try {
+        const params = new URLSearchParams(window.location.search);
+        returningFromGame =
+          params.get('hub') === 'true' ||
+          sessionStorage.getItem(TARGET_LOBBY_KEY) === '1' ||
+          sessionStorage.getItem(FROM_BILLIARD_KEY) === '1';
+
+        shouldAutoLockFs =
+          returningFromGame ||
+          sessionStorage.getItem(AUTO_FS_KEY) === '1' ||
+          sessionStorage.getItem(KEEP_FS_KEY) === '1';
+
+        if (returningFromGame) {
+          sessionStorage.setItem(SKIP_POWER_KEY, '1');
+          sessionStorage.removeItem(TARGET_LOBBY_KEY);
+          sessionStorage.removeItem(FROM_BILLIARD_KEY);
+        }
+      } catch (_) {}
+
+      if (returningFromGame) {
+        const powerEl = document.getElementById('power-screen');
+        const loginEl = document.getElementById('login-screen');
+        const shellEl = document.getElementById('app-shell');
+
+        if (powerEl) {
+          powerEl.classList.add('hidden');
+          powerEl.style.display = 'none';
+        }
+        if (loginEl) {
+          loginEl.classList.add('hidden');
+          loginEl.style.display = 'none';
+        }
+        if (shellEl) {
+          shellEl.classList.remove('hidden');
+          shellEl.style.display = 'flex';
+        }
+
+        const savedName = (function () {
+          try {
+            return localStorage.getItem('arcade_hub_player_name') || localStorage.getItem('playerName') || 'AJ';
+          } catch (_) {
+            return 'AJ';
+          }
+        })();
+        const nameEl = document.getElementById('header-player-name');
+        if (nameEl && savedName) nameEl.textContent = savedName.slice(0, 16);
+
+        if (typeof window.openHubHome === 'function') {
+          try { window.openHubHome(); } catch (_) {}
+        }
+      }
+
+      hideGateIfLandscape();
+
+      if (shouldAutoLockFs) {
+        requestFullscreenAndLock();
+        setTimeout(() => {
+          requestFullscreenAndLock();
+          hideGateIfLandscape();
+        }, 120);
+
+        const onGesture = () => {
+          requestFullscreenAndLock();
+          hideGateIfLandscape();
+          try {
+            sessionStorage.removeItem(AUTO_FS_KEY);
+            sessionStorage.removeItem(KEEP_FS_KEY);
+          } catch (_) {}
+          document.removeEventListener('pointerdown', onGesture, true);
+          document.removeEventListener('touchstart', onGesture, true);
+          document.removeEventListener('click', onGesture, true);
+        };
+
+        document.addEventListener('pointerdown', onGesture, true);
+        document.addEventListener('touchstart', onGesture, true);
+        document.addEventListener('click', onGesture, true);
+      }
+    }
+
+    const gateBtn = document.getElementById('landscape-gate-rotate-btn');
+    if (gateBtn) {
+      gateBtn.addEventListener('click', () => {
+        requestFullscreenAndLock();
+        setTimeout(hideGateIfLandscape, 150);
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', syncHubLobbyReturn);
+    } else {
+      syncHubLobbyReturn();
+    }
+    window.addEventListener('pageshow', () => setTimeout(syncHubLobbyReturn, 60));
+    window.addEventListener('resize', () => setTimeout(hideGateIfLandscape, 60));
+  })();
+</script>
 </body>
 </html>
