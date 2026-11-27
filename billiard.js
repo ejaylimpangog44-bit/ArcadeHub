@@ -35,7 +35,7 @@
     phase: 'MENU',
     turn: 1,
     groups: { 1: null, 2: null },
-    timerSeconds: 90,
+    timerSeconds: 60,
     timerInterval: null,
 
     aimAngle: 0,
@@ -346,7 +346,7 @@
 
   function startTurnTimer() {
     clearInterval(state.timerInterval);
-    state.timerSeconds = 90;
+    state.timerSeconds = 60;
     renderTimer();
     state.timerInterval = setInterval(() => {
       if (state.phase === 'MENU' || state.phase === 'GAME_OVER' || state.phase === 'SHOOTING') return;
