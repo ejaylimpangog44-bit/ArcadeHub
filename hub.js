@@ -13,6 +13,40 @@ const OVERLAY_MODAL_IDS = [
   'hero-modal-backdrop'
 ];
 
+function requestFullscreenSafe() {
+  const docEl = document.documentElement;
+  if (document.fullscreenElement || document.webkitFullscreenElement) return;
+  try {
+    if (docEl.requestFullscreen) {
+      docEl.requestFullscreen({ navigationUI: 'hide' }).catch(() => {
+        docEl.requestFullscreen().catch(() => {});
+      });
+    } else if (docEl.webkitRequestFullscreen) {
+      docEl.webkitRequestFullscreen();
+    }
+  } catch (_) {}
+}
+
+function bindLobbyFullscreenResume() {
+  let shouldKeepFullscreen = false;
+  try {
+    shouldKeepFullscreen = sessionStorage.getItem('arcade_hub_keep_fullscreen') === '1';
+  } catch (_) {}
+  if (!shouldKeepFullscreen) return;
+
+  const resumeOnce = () => {
+    try {
+      sessionStorage.removeItem('arcade_hub_keep_fullscreen');
+    } catch (_) {}
+    requestFullscreenSafe();
+    document.removeEventListener('pointerdown', resumeOnce, true);
+    document.removeEventListener('click', resumeOnce, true);
+  };
+
+  document.addEventListener('pointerdown', resumeOnce, true);
+  document.addEventListener('click', resumeOnce, true);
+}
+
 function forceLobbyEntryState(name) {
   const cleanName = String(name || 'AJ').trim() || 'AJ';
   window.playerName = cleanName;
@@ -48,20 +82,8 @@ function forceLobbyEntryState(name) {
   if (typeof openHubHome === 'function') {
     openHubHome();
   }
-}
 
-function requestFullscreenSafe() {
-  const docEl = document.documentElement;
-  if (document.fullscreenElement || document.webkitFullscreenElement) return;
-  try {
-    if (docEl.requestFullscreen) {
-      docEl.requestFullscreen({ navigationUI: 'hide' }).catch(() => {
-        docEl.requestFullscreen().catch(() => {});
-      });
-    } else if (docEl.webkitRequestFullscreen) {
-      docEl.webkitRequestFullscreen();
-    }
-  } catch (_) {}
+  bindLobbyFullscreenResume();
 }
 
 function isAnyOverlayModalOpen() {
@@ -1106,6 +1128,7 @@ function enterHubShell(name) {
   }
 
   openHubHome();
+  bindLobbyFullscreenResume();
 }
 
 function submitPlayerName() {
