@@ -10,6 +10,8 @@
   const HUB_KEEP_FS_KEY = 'arcade_hub_keep_fullscreen';
   const HUB_AUTO_LANDSCAPE_FS_KEY = 'arcade_hub_auto_landscape_fs';
 
+  let leavingToHub = false;
+
   function markGateHandledOnce() {
     try {
       sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
@@ -37,6 +39,7 @@
     }
 
     function tryLockLandscape() {
+      if (leavingToHub) return;
       try {
         if (screen.orientation && typeof screen.orientation.lock === 'function') {
           screen.orientation.lock('landscape').catch(() => {});
@@ -50,6 +53,21 @@
           screen.orientation.unlock();
         }
       } catch (_) {}
+      try {
+        if (screen.orientation && typeof screen.orientation.lock === 'function') {
+          screen.orientation.lock('portrait').catch(() => {});
+        }
+      } catch (_) {}
+    }
+
+    function exitFullscreenSafe() {
+      try {
+        if (document.fullscreenElement && typeof document.exitFullscreen === 'function') {
+          document.exitFullscreen().catch(() => {});
+        } else if (document.webkitFullscreenElement && typeof document.webkitExitFullscreen === 'function') {
+          document.webkitExitFullscreen();
+        }
+      } catch (_) {}
     }
 
     function isFullscreenActive() {
@@ -57,6 +75,7 @@
     }
 
     function requestFullscreenSafe(forceToggle = false) {
+      if (leavingToHub) return;
       const docEl = document.documentElement;
       const active = isFullscreenActive();
       try {
@@ -83,6 +102,7 @@
     }
 
     function sync() {
+      if (leavingToHub) return;
       markGateHandledOnce();
       document.documentElement.dataset.isLandscape = isLandscapeNow() ? 'true' : 'false';
       tryLockLandscape();
@@ -90,6 +110,7 @@
 
     function bindAutoGestureLock() {
       const onFirstGesture = () => {
+        if (leavingToHub) return;
         markGateHandledOnce();
         try {
           sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY);
@@ -116,27 +137,33 @@
       bindAutoGestureLock();
 
       window.addEventListener('resize', () => {
+        if (leavingToHub) return;
         sync();
         setTimeout(resizeTable, 40);
       });
       window.addEventListener('orientationchange', () => {
+        if (leavingToHub) return;
         sync();
         setTimeout(() => {
+          if (leavingToHub) return;
           tryLockLandscape();
           sync();
           resizeTable();
         }, 180);
       });
       document.addEventListener('fullscreenchange', () => {
+        if (leavingToHub) return;
         sync();
         setTimeout(resizeTable, 80);
       });
       document.addEventListener('webkitfullscreenchange', () => {
+        if (leavingToHub) return;
         sync();
         setTimeout(resizeTable, 80);
       });
       if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
         screen.orientation.addEventListener('change', () => {
+          if (leavingToHub) return;
           tryLockLandscape();
           sync();
         });
@@ -151,6 +178,7 @@
       isFullscreenActive,
       tryLockLandscape,
       releaseOrientationLock,
+      exitFullscreenSafe,
       requestFullscreenSafe
     };
   })();
@@ -390,24 +418,30 @@
   }
 
   function goToHubLobby() {
+    leavingToHub = true;
     state.phase = 'MENU';
     clearInterval(state.timerInterval);
     clearTimeout(state.aiTimer);
     const currentName = document.getElementById('p1-name')?.textContent || getSavedPlayerName();
     persistPlayerName(currentName);
 
+    BilliardLandscapeGuard.releaseOrientationLock();
+    BilliardLandscapeGuard.exitFullscreenSafe();
+
     try {
       sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
       sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY);
+      sessionStorage.removeItem(HUB_KEEP_FS_KEY);
+      sessionStorage.removeItem(HUB_AUTO_LANDSCAPE_FS_KEY);
+      sessionStorage.removeItem('arcade_hub_from_billiard');
       sessionStorage.setItem('arcade_hub_skip_power', '1');
       sessionStorage.setItem('arcade_hub_target_lobby', '1');
-      sessionStorage.setItem('arcade_hub_from_billiard', '1');
-      sessionStorage.setItem(HUB_KEEP_FS_KEY, '1');
-      sessionStorage.setItem(HUB_AUTO_LANDSCAPE_FS_KEY, '1');
     } catch (_) {}
 
     haptic(10);
-    window.location.href = './index.html?hub=true';
+    setTimeout(() => {
+      window.location.href = './index.html?hub=true';
+    }, 60);
   }
 
   function syncSettingsSummaries() {
