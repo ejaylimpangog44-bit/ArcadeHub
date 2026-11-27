@@ -3,6 +3,7 @@ const foxModal = document.getElementById('fox-menu-modal') || document.getElemen
 const closeFoxBtn = document.getElementById('close-fox-menu');
 const PLAYER_NAME_STORAGE_KEY = 'arcade_hub_player_name';
 const BILLIARD_ENTER_FS_KEY = 'arcade_hub_enter_fullscreen_on_billiard';
+const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
 
 const OVERLAY_MODAL_IDS = [
   'game-preview-modal',
@@ -18,9 +19,24 @@ let lobbyEntered = false;
 let navigatingToGamePage = false;
 
 const LandscapeGate = (() => {
+  const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
   let gateEl = null;
   let syncTimer = null;
   let btnBound = false;
+
+  function hasHandledInitialGate() {
+    try {
+      return sessionStorage.getItem(INITIAL_GATE_SEEN_KEY) === '1';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function markInitialGateHandled() {
+    try {
+      sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
+    } catch (_) {}
+  }
 
   function getSingleGateEl() {
     if (gateEl && gateEl.isConnected) return gateEl;
@@ -28,9 +44,10 @@ const LandscapeGate = (() => {
     if (gateEl && !btnBound) {
       btnBound = true;
       gateEl.querySelector('#landscape-gate-rotate-btn')?.addEventListener('click', () => {
+        markInitialGateHandled();
         requestFullscreenSafe();
         tryLockLandscape();
-        syncGate();
+        hideGateNow();
       });
     }
     return gateEl;
@@ -61,13 +78,14 @@ const LandscapeGate = (() => {
   }
 
   function getActiveGameMode() {
-    if (!activeGameId) return null;
+    if (!activeGameId) return 'PORTRAIT';
     const g = (window.GAMES || []).find(item => item.id === activeGameId);
     return g ? String(g.mode || 'PORTRAIT').toUpperCase() : 'PORTRAIT';
   }
 
   function shouldEnforceLandscape() {
-    return getActiveGameMode() !== 'PORTRAIT';
+    if (!activeGameId) return false;
+    return getActiveGameMode() === 'LANDSCAPE';
   }
 
   function tryLockLandscape() {
@@ -109,9 +127,21 @@ const LandscapeGate = (() => {
 
     const el = getSingleGateEl();
     const activeMode = getActiveGameMode();
-    const enforceLandscape = shouldEnforceLandscape();
-    const needsRotate = enforceLandscape && isPortraitNow();
 
+    // Never re-show the landscape gate on Hub return or after initial session check
+    if (!activeGameId || hasHandledInitialGate() || !isPortraitNow()) {
+      if (!isPortraitNow()) markInitialGateHandled();
+      hideGateNow();
+      document.documentElement.dataset.orientationRequired = activeGameId && shouldEnforceLandscape() ? 'landscape' : 'portrait';
+      document.documentElement.dataset.gameOrientation = activeGameId ? activeMode.toLowerCase() : 'hub';
+      applyOrientationPolicy();
+      if (typeof syncFoxCompanionVisibility === 'function') {
+        syncFoxCompanionVisibility();
+      }
+      return;
+    }
+
+    const needsRotate = shouldEnforceLandscape() && isPortraitNow();
     if (el) {
       el.style.display = needsRotate ? 'flex' : 'none';
       el.classList.toggle('hidden', !needsRotate);
@@ -119,12 +149,11 @@ const LandscapeGate = (() => {
       el.setAttribute('aria-hidden', needsRotate ? 'false' : 'true');
     }
 
-    document.documentElement.dataset.orientationRequired = enforceLandscape ? 'landscape' : 'portrait';
-    document.documentElement.dataset.gameOrientation = activeMode
-      ? activeMode.toLowerCase()
-      : 'hub';
+    document.documentElement.dataset.orientationRequired = shouldEnforceLandscape() ? 'landscape' : 'portrait';
+    document.documentElement.dataset.gameOrientation = activeMode.toLowerCase();
 
     if (!needsRotate) {
+      markInitialGateHandled();
       applyOrientationPolicy();
     }
     if (typeof syncFoxCompanionVisibility === 'function') {
@@ -158,7 +187,7 @@ const LandscapeGate = (() => {
     }
   }
 
-  return { init, sync: syncGate, hideNow: hideGateNow, tryLockLandscape, tryLockPortrait };
+  return { init, sync: syncGate, hideNow: hideGateNow, markHandled: markInitialGateHandled, tryLockLandscape, tryLockPortrait };
 })();
 window.LandscapeGate = LandscapeGate;
 
@@ -244,6 +273,7 @@ function forceLobbyEntryState(name) {
   window.playerName = cleanName;
   try {
     localStorage.setItem(PLAYER_NAME_STORAGE_KEY, cleanName);
+    sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
     sessionStorage.removeItem('arcade_hub_skip_power');
     sessionStorage.removeItem('arcade_hub_target_lobby');
   } catch (_) {}
@@ -1305,6 +1335,7 @@ function enterHubShell(name) {
   window.playerName = cleanName;
   try {
     localStorage.setItem(PLAYER_NAME_STORAGE_KEY, cleanName);
+    sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
   } catch (_) {}
 
   ['power-screen', 'login-screen', 'entry-screen'].forEach((id) => {
@@ -2379,6 +2410,7 @@ function getGameRunners() {
 
 function navigateToStandaloneGame(url) {
   navigatingToGamePage = true;
+  if (LandscapeGate.markHandled) LandscapeGate.markHandled();
   GameSettingsDrawer.close();
   GameLoopGuard.clearAllRaf();
   LandscapeGate.hideNow();
