@@ -12,15 +12,16 @@
     let initialized = false;
 
     function isLandscapeNow() {
-      if (window.innerWidth > window.innerHeight) return true;
-      if (window.matchMedia && window.matchMedia('(orientation: landscape)').matches) {
-        return true;
-      }
       const orientType = window.screen && window.screen.orientation && window.screen.orientation.type;
-      if (typeof orientType === 'string' && orientType.startsWith('landscape')) {
-        return true;
+      if (typeof orientType === 'string') {
+        if (orientType.startsWith('landscape')) return true;
+        if (orientType.startsWith('portrait')) return false;
       }
-      return false;
+      if (window.matchMedia) {
+        if (window.matchMedia('(orientation: landscape)').matches) return true;
+        if (window.matchMedia('(orientation: portrait)').matches) return false;
+      }
+      return window.innerWidth > window.innerHeight;
     }
 
     function isPortraitNow() {
@@ -67,12 +68,13 @@
 
     function ensureGateEl() {
       if (gateEl) return gateEl;
-      gateEl = document.getElementById('portrait-gate');
+      gateEl = document.getElementById('force-landscape-gate');
       if (gateEl) {
         gateEl.querySelector('#billiard-lock-landscape-btn')?.addEventListener('click', () => {
           requestFullscreenSafe(false);
           tryLockLandscape();
           sync();
+          setTimeout(sync, 150);
         });
       }
       return gateEl;
@@ -83,7 +85,7 @@
       const landscape = isLandscapeNow();
       document.documentElement.dataset.isLandscape = landscape ? 'true' : 'false';
       if (el) {
-        el.classList.toggle('hidden', landscape);
+        el.style.display = landscape ? 'none' : 'flex';
         el.setAttribute('aria-hidden', landscape ? 'true' : 'false');
       }
       if (landscape) {
