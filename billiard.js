@@ -6,10 +6,17 @@
 
   const PLAYER_NAME_KEY = 'arcade_hub_player_name';
   const ENTER_FS_FROM_HUB_KEY = 'arcade_hub_enter_fullscreen_on_billiard';
+  const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
 
   const BilliardLandscapeGuard = (() => {
     let gateEl = null;
     let initialized = false;
+
+    function markGateHandledOnce() {
+      try {
+        sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
+      } catch (_) {}
+    }
 
     function isLandscapeNow() {
       const orientType = window.screen && window.screen.orientation && window.screen.orientation.type;
@@ -25,7 +32,7 @@
     }
 
     function isPortraitNow() {
-      return !isLandscapeNow();
+      return false;
     }
 
     function tryLockLandscape() {
@@ -71,37 +78,36 @@
       gateEl = document.getElementById('force-landscape-gate');
       if (gateEl) {
         gateEl.querySelector('#billiard-lock-landscape-btn')?.addEventListener('click', () => {
+          markGateHandledOnce();
           requestFullscreenSafe(false);
           tryLockLandscape();
           sync();
-          setTimeout(sync, 150);
         });
       }
       return gateEl;
     }
 
     function sync() {
+      markGateHandledOnce();
       const el = ensureGateEl();
-      const landscape = isLandscapeNow();
-      document.documentElement.dataset.isLandscape = landscape ? 'true' : 'false';
+      document.documentElement.dataset.isLandscape = 'true';
       if (el) {
-        el.style.display = landscape ? 'none' : 'flex';
-        el.setAttribute('aria-hidden', landscape ? 'true' : 'false');
+        el.style.display = 'none';
+        el.classList.add('hidden');
+        el.setAttribute('aria-hidden', 'true');
       }
-      if (landscape) {
-        tryLockLandscape();
-      }
+      tryLockLandscape();
     }
 
     function bindAutoGestureLock() {
       const onFirstGesture = () => {
+        markGateHandledOnce();
         try {
           sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY);
         } catch (_) {}
         requestFullscreenSafe(false);
         tryLockLandscape();
         sync();
-        setTimeout(sync, 160);
         document.removeEventListener('pointerdown', onFirstGesture, true);
         document.removeEventListener('click', onFirstGesture, true);
       };
@@ -111,6 +117,7 @@
     }
 
     function init() {
+      markGateHandledOnce();
       if (initialized) {
         sync();
         return;
@@ -118,9 +125,6 @@
       initialized = true;
       ensureGateEl();
       sync();
-      if (isLandscapeNow()) {
-        tryLockLandscape();
-      }
       bindAutoGestureLock();
 
       window.addEventListener('resize', () => {
@@ -130,7 +134,7 @@
       window.addEventListener('orientationchange', () => {
         sync();
         setTimeout(() => {
-          if (isLandscapeNow()) tryLockLandscape();
+          tryLockLandscape();
           sync();
           resizeTable();
         }, 180);
@@ -145,7 +149,7 @@
       });
       if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
         screen.orientation.addEventListener('change', () => {
-          if (isLandscapeNow()) tryLockLandscape();
+          tryLockLandscape();
           sync();
         });
       }
@@ -353,6 +357,7 @@
     persistPlayerName(currentName);
 
     try {
+      sessionStorage.setItem(INITIAL_GATE_SEEN_KEY, '1');
       sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY);
       sessionStorage.setItem('arcade_hub_skip_power', '1');
       sessionStorage.setItem('arcade_hub_target_lobby', '1');
@@ -1581,6 +1586,7 @@
   });
 
   document.getElementById('btn-start-match')?.addEventListener('click', () => {
+    markGateHandledOnce();
     try { sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY); } catch (_) {}
     BilliardLandscapeGuard.requestFullscreenSafe(false);
     BilliardLandscapeGuard.tryLockLandscape();
@@ -1598,6 +1604,7 @@
   });
 
   document.getElementById('btn-rematch')?.addEventListener('click', () => {
+    markGateHandledOnce();
     BilliardLandscapeGuard.requestFullscreenSafe(false);
     BilliardLandscapeGuard.tryLockLandscape();
     BilliardLandscapeGuard.sync();
