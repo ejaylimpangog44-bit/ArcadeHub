@@ -14,18 +14,165 @@ const OVERLAY_MODAL_IDS = [
   'hero-modal-backdrop'
 ];
 
+const LandscapeGate = (() => {
+  let gateEl = null;
+
+  function ensureGateEl() {
+    if (gateEl) return gateEl;
+    gateEl = document.getElementById('force-landscape-gate');
+    if (!gateEl) {
+      gateEl = document.createElement('div');
+      gateEl.id = 'force-landscape-gate';
+      gateEl.setAttribute('role', 'dialog');
+      gateEl.setAttribute('aria-live', 'assertive');
+      gateEl.setAttribute('aria-label', 'Rotate device to landscape');
+      gateEl.style.cssText = [
+        'position:fixed',
+        'inset:0',
+        'z-index:2147483647',
+        'display:none',
+        'flex-direction:column',
+        'align-items:center',
+        'justify-content:center',
+        'gap:14px',
+        'padding:24px',
+        'text-align:center',
+        'background:radial-gradient(circle at 50% 30%, #171b33 0%, #07080d 80%)',
+        'color:#f8fafc',
+        'backdrop-filter:blur(12px)'
+      ].join(';');
+
+      gateEl.innerHTML = `
+        <div style="font-size:44px;line-height:1;">📱↻🖥️</div>
+        <div style="font-size:20px;font-weight:900;letter-spacing:0.04em;">LANDSCAPE MODE REQUIRED</div>
+        <div style="max-width:340px;font-size:13px;line-height:1.5;color:#cbd5e1;">
+          Rotate your device horizontally to use Arcade Hub from the Power Screen, Loading Screen, Player Name entry, and Hub Lobby.
+        </div>
+        <button type="button" id="landscape-gate-rotate-btn" style="margin-top:4px;padding:10px 18px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.12);color:#ffffff;font-size:12px;font-weight:800;cursor:pointer;">
+          Lock Landscape &amp; Fullscreen
+        </button>
+      `;
+
+      document.body.appendChild(gateEl);
+
+      gateEl.querySelector('#landscape-gate-rotate-btn')?.addEventListener('click', () => {
+        tryLockLandscape();
+        requestFullscreenSafe();
+        syncGate();
+      });
+    }
+    return gateEl;
+  }
+
+  function isPortraitNow() {
+    if (window.matchMedia && window.matchMedia('(orientation: portrait)').matches) {
+      return window.innerHeight >= window.innerWidth;
+    }
+    return window.innerHeight > window.innerWidth;
+  }
+
+  function shouldEnforceLandscape() {
+    if (activeGameId) {
+      const g = (window.GAMES || []).find(item => item.id === activeGameId);
+      if (g && String(g.mode || '').toUpperCase() === 'PORTRAIT') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function tryLockLandscape() {
+    try {
+      if (screen.orientation && typeof screen.orientation.lock === 'function') {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    } catch (_) {}
+  }
+
+  function syncGate() {
+    const el = ensureGateEl();
+    const needsRotate = shouldEnforceLandscape() && isPortraitNow();
+    el.style.display = needsRotate ? 'flex' : 'none';
+    document.documentElement.dataset.orientationRequired = shouldEnforceLandscape() ? 'landscape' : 'any';
+    if (!needsRotate) {
+      tryLockLandscape();
+    }
+    if (typeof syncFoxCompanionVisibility === 'function') {
+      syncFoxCompanionVisibility();
+    }
+  }
+
+  function init() {
+    ensureGateEl();
+    syncGate();
+    window.addEventListener('resize', syncGate);
+    window.addEventListener('orientationchange', () => {
+      tryLockLandscape();
+      setTimeout(syncGate, 80);
+    });
+    if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
+      screen.orientation.addEventListener('change', () => {
+        tryLockLandscape();
+        syncGate();
+      });
+    }
+  }
+
+  return { init, sync: syncGate, tryLockLandscape };
+})();
+window.LandscapeGate = LandscapeGate;
+
 function requestFullscreenSafe() {
   const docEl = document.documentElement;
-  if (document.fullscreenElement || document.webkitFullscreenElement) return;
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    LandscapeGate.tryLockLandscape();
+    return;
+  }
   try {
     if (docEl.requestFullscreen) {
-      docEl.requestFullscreen({ navigationUI: 'hide' }).catch(() => {
-        docEl.requestFullscreen().catch(() => {});
-      });
+      docEl.requestFullscreen({ navigationUI: 'hide' })
+        .then(() => LandscapeGate.tryLockLandscape())
+        .catch(() => {
+          docEl.requestFullscreen().catch(() => {});
+        });
     } else if (docEl.webkitRequestFullscreen) {
       docEl.webkitRequestFullscreen();
+      LandscapeGate.tryLockLandscape();
     }
   } catch (_) {}
+}
+
+function bindPowerScreenAutoFullscreen() {
+  const triggerPowerFullscreen = () => {
+    requestFullscreenSafe();
+    LandscapeGate.tryLockLandscape();
+    LandscapeGate.sync();
+  };
+
+  const powerScreen = document.getElementById('power-screen');
+  if (powerScreen) {
+    powerScreen.addEventListener('pointerdown', triggerPowerFullscreen, { passive: true });
+    powerScreen.addEventListener('click', triggerPowerFullscreen, { passive: true });
+  }
+
+  const pullTargets = document.querySelectorAll(
+    '#pull-cord, .pull-cord, .pull-chain, [data-pull-cord], [id*="cord"], [class*="cord"]'
+  );
+  pullTargets.forEach((el) => {
+    el.addEventListener('pointerdown', triggerPowerFullscreen, { passive: true });
+    el.addEventListener('click', triggerPowerFullscreen, { passive: true });
+  });
+
+  const onFirstEntryGesture = () => {
+    requestFullscreenSafe();
+    LandscapeGate.tryLockLandscape();
+    LandscapeGate.sync();
+    document.removeEventListener('pointerdown', onFirstEntryGesture, true);
+    document.removeEventListener('click', onFirstEntryGesture, true);
+  };
+
+  document.addEventListener('pointerdown', onFirstEntryGesture, true);
+  document.addEventListener('click', onFirstEntryGesture, true);
 }
 
 function bindLobbyFullscreenResume() {
@@ -84,6 +231,8 @@ function forceLobbyEntryState(name) {
     openHubHome();
   }
 
+  requestFullscreenSafe();
+  LandscapeGate.sync();
   bindLobbyFullscreenResume();
 }
 
@@ -461,6 +610,8 @@ const SplashController = (() => {
         splash.setAttribute('aria-hidden', 'true');
         splash.style.pointerEvents = 'none';
       }
+      requestFullscreenSafe();
+      LandscapeGate.sync();
     }, 320);
   }
 
@@ -957,7 +1108,7 @@ const GAME_GUIDES = {
   brickbreaker: 'Deflect the ball off your paddle to smash all bricks while keeping the ball from falling below.',
   stickrun: 'Time jumps and runs cleanly across platforms and rooftops without falling into gaps.',
   flickpoint: 'Aim and flick quickly onto targets before time out to maximize accuracy and score.',
-  billiard: 'Play 8-Ball or 9-Ball in VS AI or PVP with a 01:30 turn clock, cue spin, trajectory lines, and Tako pull-back shooting in landscape.',
+  billiard: 'Play 8-Ball or 9-Ball in VS AI or PVP with a 01:00 turn clock, cue spin, trajectory lines, and Tako pull-back shooting in landscape.',
   mythic: 'Survive incoming enemy waves, gather XP gems, and pick upgrades to stay alive as long as possible.'
 };
 
@@ -1049,9 +1200,10 @@ function toggleFullScreen() {
   const docEl = document.documentElement;
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
     if (docEl.requestFullscreen) {
-      docEl.requestFullscreen().catch(() => {});
+      docEl.requestFullscreen().then(() => LandscapeGate.tryLockLandscape()).catch(() => {});
     } else if (docEl.webkitRequestFullscreen) {
       docEl.webkitRequestFullscreen();
+      LandscapeGate.tryLockLandscape();
     }
   } else {
     if (document.exitFullscreen) {
@@ -1129,6 +1281,8 @@ function enterHubShell(name) {
   }
 
   openHubHome();
+  requestFullscreenSafe();
+  LandscapeGate.sync();
   bindLobbyFullscreenResume();
 }
 
@@ -1138,6 +1292,7 @@ function submitPlayerName() {
   const resolvedName = typed || ('Player_' + Math.floor(100 + Math.random() * 899));
 
   requestFullscreenSafe();
+  LandscapeGate.tryLockLandscape();
   AudioFX.click();
   const bgm = document.getElementById('bgm-audio');
   if (bgm && bgmEnabled) {
@@ -1222,7 +1377,7 @@ const GAMES = [
     mode: 'LANDSCAPE',
     featured: true,
     icon: '🎱',
-    envName: '8-Ball & 9-Ball • VS AI & PVP (01:30)',
+    envName: '8-Ball & 9-Ball • VS AI & PVP (01:00)',
     bg: 'radial-gradient(circle at 50% 35%, #0f766e 0%, #083f3b 65%, #041e1c 100%)',
     theme: 'casino_green'
   }
@@ -2005,6 +2160,7 @@ function openHubHome() {
     activeCleanup = null;
   }
   activeGameId = null;
+  LandscapeGate.sync();
   loadHubMetaState();
 
   ['power-screen', 'login-screen', 'entry-screen'].forEach((id) => {
@@ -2207,6 +2363,7 @@ function launchGame(id) {
   }
 
   activeGameId = canonId;
+  LandscapeGate.sync();
 
   document.getElementById('hub-header')?.classList.add('hidden');
   syncUniversalGameBar(canonId);
@@ -2251,6 +2408,8 @@ function shouldEnterLobbyDirectly() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  LandscapeGate.init();
+  bindPowerScreenAutoFullscreen();
   SupabaseDB.init();
   loadHubMetaState();
 
@@ -2270,6 +2429,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', () => {
+  LandscapeGate.sync();
   if (shouldEnterLobbyDirectly()) {
     let savedName = 'AJ';
     try {
