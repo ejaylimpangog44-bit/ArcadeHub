@@ -521,6 +521,8 @@ canvas#pool-canvas {
   align-items: center;
   justify-content: center;
   padding: 18px;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-backdrop.sub-modal-backdrop {
@@ -535,16 +537,29 @@ canvas#pool-canvas {
 .modal-card {
   width: 100%;
   max-width: 440px;
-  max-height: 88vh;
+  max-height: 90dvh;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   background: #111827;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 20px;
-  padding: 18px 20px;
+  padding: 15px 18px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 9px;
+}
+
+.modal-card button,
+.modal-card input,
+.modal-card select {
+  touch-action: manipulation;
+}
+
+.modal-card input[type="range"] {
+  touch-action: pan-x;
 }
 
 .sub-modal-card {
@@ -563,7 +578,7 @@ canvas#pool-canvas {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border);
@@ -596,7 +611,7 @@ canvas#pool-canvas {
 }
 
 .choice-tile {
-  padding: 13px 10px;
+  padding: 11px 9px;
   border-radius: 13px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
@@ -711,7 +726,7 @@ input[type="range"] {
 
 .primary-btn {
   width: 100%;
-  padding: 11px;
+  padding: 10px;
   border-radius: 12px;
   border: none;
   background: linear-gradient(135deg, #f59e0b, #10b981);
