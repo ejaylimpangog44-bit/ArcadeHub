@@ -12,61 +12,297 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   let rafId = null;
 
   stage.innerHTML = `
-    <div id="billiard-runner-root" style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;background:#071312;color:#f8fafc;overflow:hidden;user-select:none;touch-action:none;">
-      <div id="top-hud" class="pool-hud" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;background:rgba(15,23,42,0.88);border-bottom:1px solid rgba(255,255,255,0.1);flex-wrap:wrap;z-index:5;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div id="badge-p1" style="padding:4px 10px;border-radius:8px;background:rgba(255,255,255,0.08);font-weight:700;font-size:12px;">
-            <span id="p1-name">P1</span> (<span id="p1-group">OPEN</span>)
-          </div>
-          <div id="badge-p2" style="padding:4px 10px;border-radius:8px;background:rgba(255,255,255,0.08);font-weight:700;font-size:12px;">
-            <span id="p2-name">🤖 AI</span> (<span id="p2-group">OPEN</span>)
-          </div>
-        </div>
+    <div id="billiard-runner-root" style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;background:#071312;color:#f8fafc;overflow:hidden;user-select:none;touch-action:none;font-family:Inter,sans-serif;">
+      <style>
+        #billiard-runner-root .turn-overlay-modal {
+          position:absolute;
+          inset:0;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:rgba(2,6,23,0.42);
+          backdrop-filter:blur(2px);
+          z-index:26;
+          pointer-events:none;
+          opacity:1;
+          transition:opacity 0.35s ease;
+        }
+        #billiard-runner-root .turn-overlay-modal.hidden {
+          display:none;
+        }
+        #billiard-runner-root .turn-overlay-modal.fading {
+          opacity:0;
+        }
+        #billiard-runner-root .turn-overlay-card {
+          padding:14px 28px;
+          border-radius:16px;
+          background:linear-gradient(135deg,rgba(15,23,42,0.96),rgba(19,78,74,0.92));
+          border:1px solid rgba(94,234,212,0.55);
+          box-shadow:0 18px 40px rgba(0,0,0,0.65);
+          text-align:center;
+        }
+        #billiard-runner-root .turn-overlay-title {
+          font-size:20px;
+          font-weight:900;
+          letter-spacing:0.04em;
+          color:#f8fafc;
+        }
+        #billiard-runner-root .turn-overlay-sub {
+          margin-top:3px;
+          font-size:11px;
+          font-weight:700;
+          color:#5eead4;
+          text-transform:uppercase;
+          letter-spacing:0.08em;
+        }
+        #billiard-runner-root .divider-drawer {
+          display:flex;
+          flex-direction:column;
+          gap:5px;
+          padding:6px 10px;
+          border-radius:12px;
+          background:rgba(15,23,42,0.88);
+          border:1px solid rgba(255,255,255,0.12);
+          min-width:250px;
+          max-width:430px;
+        }
+        #billiard-runner-root .divider-drawer-header {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:8px;
+          font-size:11px;
+          font-weight:800;
+          line-height:1.1;
+        }
+        #billiard-runner-root .divider-drawer-player {
+          color:#fbbf24;
+          white-space:nowrap;
+        }
+        #billiard-runner-root .divider-drawer-sides {
+          display:flex;
+          align-items:center;
+          gap:8px;
+          font-size:10px;
+          font-weight:800;
+          letter-spacing:0.04em;
+        }
+        #billiard-runner-root .side-solids {
+          color:#38bdf8;
+        }
+        #billiard-runner-root .side-stripes {
+          color:#f472b6;
+        }
+        #billiard-runner-root .drawer-split-line {
+          width:1px;
+          height:10px;
+          background:rgba(255,255,255,0.25);
+        }
+        #billiard-runner-root .pocketed-row-stack {
+          display:flex;
+          align-items:center;
+          gap:4px;
+          min-height:20px;
+          padding:3px 6px;
+          border-radius:8px;
+          background:rgba(2,6,23,0.65);
+          border:1px dashed rgba(255,255,255,0.14);
+          flex-wrap:wrap;
+        }
+        #billiard-runner-root .pocketed-empty-hint {
+          font-size:10px;
+          color:#64748b;
+          font-weight:600;
+        }
+        #billiard-runner-root .pocketed-chip {
+          width:16px;
+          height:16px;
+          border-radius:50%;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          font-size:8px;
+          font-weight:900;
+          color:#0f172a;
+          box-shadow:0 2px 5px rgba(0,0,0,0.45);
+          transition:transform 0.2s ease;
+        }
+        #billiard-runner-root .pocketed-chip.just-pocketed {
+          transform:scale(1.18);
+          outline:2px solid #34d399;
+        }
+        #billiard-runner-root .cockpit-card {
+          background:rgba(15,23,42,0.88);
+          border:1px solid rgba(255,255,255,0.12);
+          border-radius:14px;
+          padding:10px;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          gap:8px;
+        }
+        #billiard-runner-root .cockpit-label {
+          font-size:10px;
+          font-weight:800;
+          letter-spacing:0.08em;
+          color:#cbd5e1;
+          text-transform:uppercase;
+        }
+        #billiard-runner-root .fine-step-strip {
+          width:36px;
+          height:112px;
+          border-radius:10px;
+          background:#020617;
+          border:1px solid rgba(255,255,255,0.14);
+          background-image:repeating-linear-gradient(
+            to bottom,
+            rgba(251,191,36,0.75) 0 2px,
+            transparent 2px 11px
+          );
+          cursor:ns-resize;
+        }
+        #billiard-runner-root .choice-tile.active,
+        #billiard-runner-root .seg-btn.active {
+          background:#0d9488;
+          color:#ffffff;
+          border-color:#2dd4bf;
+        }
+        #billiard-runner-root .choice-tile,
+        #billiard-runner-root .seg-btn {
+          padding:5px 9px;
+          border-radius:7px;
+          border:1px solid rgba(255,255,255,0.16);
+          background:#1e293b;
+          color:#e2e8f0;
+          font-size:11px;
+          font-weight:700;
+          cursor:pointer;
+        }
+      </style>
 
-        <div id="hud-mode-label" style="font-size:12px;font-weight:700;color:#5eead4;">🎱 8-BALL • 🤖 AI</div>
-        <div id="rack-tray" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"></div>
+      <!-- Top HUD -->
+      <div id="top-hud" class="pool-hud" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 14px;background:rgba(15,23,42,0.92);border-bottom:1px solid rgba(255,255,255,0.1);flex-wrap:wrap;z-index:5;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div id="badge-p1" style="display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:10px;background:rgba(255,255,255,0.07);font-weight:800;font-size:12px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>
+            <span id="p1-name">Player_701</span>
+            <span id="p1-group" style="font-size:10px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.1);color:#e2e8f0;">OPEN</span>
+          </div>
 
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div id="timer-box" style="padding:4px 8px;border-radius:6px;background:rgba(0,0,0,0.35);font-family:monospace;font-size:12px;font-weight:700;">
+          <div id="hud-mode-label" style="padding:5px 10px;border-radius:10px;background:rgba(13,148,136,0.18);border:1px solid rgba(94,234,212,0.28);font-size:11px;font-weight:800;color:#5eead4;">
+            🎱 8-BALL • 🤖 AI
+          </div>
+
+          <div id="badge-p2" style="display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:10px;background:rgba(255,255,255,0.07);font-weight:800;font-size:12px;">
+            <span id="p2-icon">🤖</span>
+            <span id="p2-name">AI</span>
+            <span id="p2-group" style="font-size:10px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,0.1);color:#e2e8f0;">OPEN</span>
+          </div>
+
+          <div id="timer-box" style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:10px;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.1);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;">
+            <span>⏱</span>
             <span id="timer-text">01:00</span>
           </div>
-          <button id="btn-open-spin-modal" type="button" style="padding:5px 9px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;font-size:12px;cursor:pointer;">
-            Spin: <span id="spin-readout">CENTER</span>
-            <span id="spin-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ef4444;margin-left:4px;"></span>
+        </div>
+
+        <!-- Divider Drawer: Player Name Above + Left/Right Group Split + Pocketed Ball Stack Row -->
+        <div id="divider-drawer" class="divider-drawer">
+          <div class="divider-drawer-header">
+            <span id="drawer-player-title" class="divider-drawer-player">Player: Player_701</span>
+            <div id="drawer-group-split" class="divider-drawer-sides">
+              <span id="drawer-left-label" class="side-solids">SOLIDS (LEFT)</span>
+              <span class="drawer-split-line"></span>
+              <span id="drawer-right-label" class="side-stripes">STRIPES (RIGHT)</span>
+            </div>
+          </div>
+          <div id="pocketed-ball-row" class="pocketed-row-stack" aria-label="Pocketed Balls Row">
+            <span class="pocketed-empty-hint">Pocketed balls stack here</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="rack-tray" style="display:none;"></div>
+          <button id="btn-new-rack-top" type="button" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 11px;border-radius:10px;border:1px solid rgba(255,255,255,0.16);background:#1e293b;color:#f8fafc;font-size:11px;font-weight:800;cursor:pointer;line-height:1.15;">
+            <span>↻</span>
+            <span>New</span>
           </button>
-          <button id="btn-settings" type="button" style="padding:5px 9px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;font-size:12px;cursor:pointer;">⚙️</button>
-          <button id="btn-setup-hub" type="button" style="padding:5px 9px;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#334155;color:#f8fafc;font-size:12px;cursor:pointer;">Hub</button>
+          <button id="btn-settings" type="button" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 11px;border-radius:10px;border:1px solid rgba(255,255,255,0.16);background:#1e293b;color:#f8fafc;font-size:11px;font-weight:800;cursor:pointer;line-height:1.15;">
+            <span>⚙</span>
+            <span>Settings</span>
+          </button>
+          <button id="btn-setup-hub" type="button" style="padding:7px 11px;border-radius:10px;border:1px solid rgba(255,255,255,0.16);background:#334155;color:#f8fafc;font-size:11px;font-weight:800;cursor:pointer;">
+            Hub
+          </button>
         </div>
       </div>
 
-      <div style="position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 10px;">
-        <div id="power-rail" style="width:36px;height:140px;border-radius:10px;background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:6px 0;cursor:pointer;">
-          <span style="font-size:10px;font-weight:700;" id="power-pct">0%</span>
-          <div style="position:relative;width:8px;flex:1;margin:4px 0;background:rgba(255,255,255,0.12);border-radius:4px;overflow:hidden;">
-            <div id="power-fill" style="position:absolute;bottom:0;left:0;right:0;height:0%;background:linear-gradient(to top,#10b981,#f59e0b,#ef4444);"></div>
+      <!-- Main Cockpit + Table Area -->
+      <div style="position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;">
+        <!-- Left Panel: Cue Spin & Fine Aim -->
+        <div style="display:flex;flex-direction:column;gap:10px;width:118px;flex-shrink:0;z-index:5;">
+          <div class="cockpit-card">
+            <div class="cockpit-label">CUE SPIN</div>
+            <div id="cockpit-spin-pad" style="position:relative;width:62px;height:62px;border-radius:50%;background:#f8fafc;border:2px solid #475569;cursor:pointer;">
+              <div style="position:absolute;left:50%;top:4px;bottom:4px;width:1px;background:rgba(15,23,42,0.2);transform:translateX(-50%);pointer-events:none;"></div>
+              <div style="position:absolute;top:50%;left:4px;right:4px;height:1px;background:rgba(15,23,42,0.2);transform:translateY(-50%);pointer-events:none;"></div>
+              <div id="spin-dot" style="position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#ef4444;pointer-events:none;"></div>
+            </div>
+            <div id="spin-readout" style="font-size:10px;font-weight:800;letter-spacing:0.06em;color:#e2e8f0;">CENTER</div>
+            <button id="btn-cockpit-reset-spin" type="button" style="width:100%;padding:5px 6px;border-radius:8px;border:1px solid rgba(255,255,255,0.16);background:#1e293b;color:#f8fafc;font-size:10px;font-weight:700;cursor:pointer;">
+              Reset Spin
+            </button>
           </div>
-          <div id="power-grip" style="position:absolute;top:4%;left:4px;right:4px;height:10px;border-radius:4px;background:#fbbf24;pointer-events:none;"></div>
+
+          <div class="cockpit-card">
+            <div class="cockpit-label">FINE AIM</div>
+            <div id="aim-wheel" class="fine-step-strip" title="Drag to fine-tune aim">
+              <div class="aim-ticks" style="display:none;"></div>
+            </div>
+            <div style="display:flex;gap:8px;width:100%;justify-content:center;">
+              <button id="btn-aim-ccw" type="button" style="flex:1;padding:4px 0;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;font-weight:800;cursor:pointer;">-</button>
+              <button id="btn-aim-cw" type="button" style="flex:1;padding:4px 0;border-radius:7px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;font-weight:800;cursor:pointer;">+</button>
+            </div>
+          </div>
         </div>
 
-        <div id="table-wrap" style="flex:1;width:100%;height:100%;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;">
-          <canvas id="pool-canvas" style="display:block;max-width:100%;max-height:100%;"></canvas>
+        <!-- Center Table -->
+        <div style="position:relative;flex:1;width:100%;height:100%;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div id="ai-thinking-banner" class="hidden" style="position:absolute;top:4px;left:50%;transform:translateX(-50%);padding:5px 14px;border-radius:999px;background:rgba(15,23,42,0.92);border:1px solid rgba(251,191,36,0.45);color:#fde68a;font-size:11px;font-weight:800;letter-spacing:0.06em;z-index:12;pointer-events:none;">
+            🤖 AI THINKING...
+          </div>
+
+          <div id="table-wrap" style="flex:1;width:100%;height:100%;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;">
+            <canvas id="pool-canvas" style="display:block;max-width:100%;max-height:100%;"></canvas>
+          </div>
         </div>
 
-        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <button id="btn-aim-ccw" type="button" style="width:34px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;cursor:pointer;">↺</button>
-          <div id="aim-wheel" style="width:34px;height:100px;border-radius:10px;background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);overflow:hidden;position:relative;cursor:ns-resize;">
-            <div class="aim-ticks" style="width:100%;height:100%;background-image:repeating-linear-gradient(to bottom,rgba(255,255,255,0.35) 0 1px,transparent 1px 10px);"></div>
+        <!-- Right Panel: Tako Pull -->
+        <div style="display:flex;flex-direction:column;align-items:center;width:82px;height:100%;max-height:340px;flex-shrink:0;z-index:5;">
+          <div id="power-rail" style="width:100%;height:100%;border-radius:14px;background:rgba(15,23,42,0.88);border:1px solid rgba(255,255,255,0.12);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 8px;cursor:pointer;">
+            <div style="font-size:10px;font-weight:800;letter-spacing:0.07em;color:#cbd5e1;text-align:center;">TAKO PULL</div>
+            <div style="position:relative;width:12px;flex:1;margin:8px 0;background:rgba(255,255,255,0.12);border-radius:6px;overflow:hidden;">
+              <div id="power-fill" style="position:absolute;bottom:0;left:0;right:0;height:0%;background:linear-gradient(to top,#10b981,#f59e0b,#ef4444);"></div>
+            </div>
+            <div id="power-grip" style="position:absolute;top:24%;left:14px;right:14px;height:20px;border-radius:6px;background:linear-gradient(180deg,#fbbf24,#d97706);box-shadow:0 3px 8px rgba(0,0,0,0.45);pointer-events:none;"></div>
+            <span style="font-size:11px;font-weight:800;color:#f8fafc;" id="power-pct">0%</span>
           </div>
-          <button id="btn-aim-cw" type="button" style="width:34px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.18);background:#1e293b;color:#f8fafc;cursor:pointer;">↻</button>
+        </div>
+
+        <!-- Turn Modal Overlay -->
+        <div id="turn-modal-overlay" class="turn-overlay-modal hidden" role="dialog" aria-live="polite">
+          <div class="turn-overlay-card">
+            <div id="turn-overlay-title" class="turn-overlay-title">Player 1's Turn</div>
+            <div id="turn-overlay-sub" class="turn-overlay-sub">8-Ball Rack</div>
+          </div>
         </div>
       </div>
 
-      <div id="ball-in-hand-hint" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.9);padding:5px 12px;border-radius:999px;font-size:12px;border:1px solid rgba(94,234,212,0.4);pointer-events:none;">
+      <div id="ball-in-hand-hint" style="display:none;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.92);padding:5px 12px;border-radius:999px;font-size:12px;border:1px solid rgba(94,234,212,0.4);pointer-events:none;z-index:20;">
         Ball in Hand — Drag cue ball to place
       </div>
 
-      <div id="turn-modal-toast" class="hidden" style="position:absolute;top:54px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.94);border:1px solid rgba(251,191,36,0.5);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;z-index:15;pointer-events:none;"></div>
-      <div id="pocket-anim-badge" class="hidden" style="position:absolute;top:54px;right:16px;background:rgba(15,23,42,0.94);border:1px solid rgba(52,211,153,0.5);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;z-index:15;pointer-events:none;"></div>
+      <div id="turn-modal-toast" class="hidden" style="display:none;"></div>
+      <div id="pocket-anim-badge" class="hidden" style="position:absolute;top:52px;right:104px;background:rgba(15,23,42,0.94);border:1px solid rgba(52,211,153,0.5);padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;z-index:20;pointer-events:none;"></div>
 
       <div id="spin-modal" class="hidden" style="position:fixed;inset:0;background:rgba(2,6,23,0.72);display:flex;align-items:center;justify-content:center;z-index:40;">
         <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:16px;width:230px;text-align:center;">
@@ -424,6 +660,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     phase: 'AIMING',
     turn: 1,
     groups: { 1: null, 2: null },
+    pocketedStack: [],
     timerSeconds: 60,
     timerInterval: null,
 
@@ -508,13 +745,13 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   function applySpaciousLayoutSpacing() {
     const wrap = $('table-wrap');
     if (wrap) {
-      wrap.style.padding = '12px 16px';
+      wrap.style.padding = '10px 14px';
       wrap.style.boxSizing = 'border-box';
     }
     const hud = $('top-hud') || root?.querySelector('.pool-hud');
     if (hud) {
-      hud.style.gap = '12px';
-      hud.style.padding = '8px 14px';
+      hud.style.gap = '10px';
+      hud.style.padding = '7px 14px';
     }
   }
 
@@ -526,8 +763,8 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     const rect = wrap.getBoundingClientRect();
     if (rect.width < 100 || rect.height < 100) return;
 
-    const padX = Math.max(24, Math.round(rect.width * 0.032));
-    const padY = Math.max(20, Math.round(rect.height * 0.045));
+    const padX = Math.max(20, Math.round(rect.width * 0.025));
+    const padY = Math.max(16, Math.round(rect.height * 0.035));
     const availW = Math.max(120, rect.width - padX * 2);
     const availH = Math.max(80, rect.height - padY * 2);
 
@@ -573,27 +810,47 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     }
   }
 
-  function showTurnModal(customText) {
-    const toast = $('turn-modal-toast');
-    if (!toast || destroyed) return;
+  function getActiveTurnName() {
+    if (state.turn === 1) {
+      return $('p1-name')?.textContent?.trim() || 'Player 1';
+    }
+    return state.opponent === 'ai' ? 'AI' : 'Player 2';
+  }
+
+  function showTurnModal(customText, customSub) {
+    const overlay = $('turn-modal-overlay');
+    const titleEl = $('turn-overlay-title');
+    const subEl = $('turn-overlay-sub');
+    if (!overlay || destroyed) return;
+
     clearTimeout(state.turnToastTimer);
     clearTimeout(state.turnToastFadeTimer);
 
-    const text = customText || (
+    const activeName = getActiveTurnName();
+    const label = customText || (
       state.turn === 1
-        ? "Player 1's Turn"
+        ? `${activeName}'s Turn`
         : (state.opponent === 'ai' ? "AI's Turn" : "Player 2's Turn")
     );
-    toast.textContent = text;
-    toast.classList.remove('hidden', 'fading');
+
+    if (titleEl) titleEl.textContent = label;
+    if (subEl) {
+      subEl.textContent = customSub || (
+        state.phase === 'BALL_IN_HAND'
+          ? 'Ball in Hand • Place Cue Ball'
+          : (state.mode === '8ball' ? '8-Ball Pool' : '9-Ball Pool')
+      );
+    }
+
+    overlay.classList.remove('hidden', 'fading');
 
     state.turnToastFadeTimer = setTimeout(() => {
-      if (!destroyed) toast.classList.add('fading');
+      if (!destroyed) overlay.classList.add('fading');
     }, 1050);
 
     state.turnToastTimer = setTimeout(() => {
-      if (!destroyed) toast.classList.add('hidden', 'fading');
-    }, 1550);
+      if (!destroyed) overlay.classList.add('hidden', 'fading');
+    }, 1500);
   }
 
   function showPocketedAnimation(ballNum) {
@@ -630,7 +887,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       if (saved && saved.trim()) return saved.trim();
     } catch (_) {}
     const domName = $('p1-name')?.textContent;
-    return (domName && domName.trim()) || 'P1';
+    return (domName && domName.trim()) || 'Player 1';
   }
 
   function persistPlayerName(name) {
@@ -646,7 +903,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     const name = meta.playerName || getSavedPlayerName();
     persistPlayerName(name);
     const p1El = $('p1-name');
-    if (p1El) p1El.textContent = name.slice(0, 12);
+    if (p1El) p1El.textContent = name.slice(0, 14);
   }
 
   function goToHubLobby() {
@@ -694,32 +951,84 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     }
   }
 
-  function createMiniBallEl(n) {
-    const b = state.balls.find(item => item.num === n);
-    const div = document.createElement('div');
-    div.className = 'mini-ball' + (!b || b.pocketed ? ' pocketed' : '');
-    div.style.cssText = `width:14px;height:14px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#0f172a;opacity:${!b || b.pocketed ? '0.25' : '1'};background:${
-      n > 8 ? `radial-gradient(circle, #fff 45%, ${BALL_COLORS[n]} 48%)` : BALL_COLORS[n]
-    };`;
-    if (n === 8) div.style.color = '#fff';
-    div.textContent = n;
-    return div;
+  function createPocketedBallChip(n, highlight = false) {
+    const chip = document.createElement('span');
+    chip.className = 'pocketed-chip' + (highlight ? ' just-pocketed' : '');
+    chip.style.background = n > 8
+      ? `radial-gradient(circle, #fff 44%, ${BALL_COLORS[n]} 47%)`
+      : (BALL_COLORS[n] || '#f8fafc');
+    if (n === 8) chip.style.color = '#ffffff';
+    chip.textContent = String(n);
+    chip.title = `Pocketed Ball #${n}`;
+    return chip;
   }
 
-  function appendDividerEl(tray) {
-    const div = document.createElement('div');
-    div.style.cssText = 'width:1px;height:12px;background:rgba(255,255,255,0.2);margin:0 2px;';
-    tray.appendChild(div);
+  function updateDividerDrawer() {
+    const drawerTitle = $('drawer-player-title');
+    const leftLabel = $('drawer-left-label');
+    const rightLabel = $('drawer-right-label');
+    const rowEl = $('pocketed-ball-row');
+
+    const activePlayerLabel = getActiveTurnName();
+    if (drawerTitle) {
+      drawerTitle.textContent = `Player: ${activePlayerLabel}`;
+    }
+
+    if (leftLabel && rightLabel) {
+      if (state.mode === '8ball') {
+        const g1 = state.groups[1];
+        const g2 = state.groups[2];
+        if (!g1 && !g2) {
+          leftLabel.textContent = 'SOLIDS (LEFT)';
+          rightLabel.textContent = 'STRIPES (RIGHT)';
+          leftLabel.className = 'side-solids';
+          rightLabel.className = 'side-stripes';
+        } else {
+          const p1Name = $('p1-name')?.textContent?.trim() || 'Player 1';
+          const p2Name = state.opponent === 'ai' ? 'AI' : 'Player 2';
+          const solidsOwner = g1 === 'solids' ? p1Name : p2Name;
+          const stripesOwner = g1 === 'stripes' ? p1Name : p2Name;
+          leftLabel.textContent = `SOLIDS • ${solidsOwner}`;
+          rightLabel.textContent = `STRIPES • ${stripesOwner}`;
+          leftLabel.className = 'side-solids';
+          rightLabel.className = 'side-stripes';
+        }
+      } else {
+        const lowest = getLowestTargetNumber();
+        leftLabel.textContent = lowest ? `TARGET #${lowest}` : '9-BALL READY';
+        rightLabel.textContent = '9-BALL RACK';
+        leftLabel.className = 'side-solids';
+        rightLabel.className = 'side-stripes';
+      }
+    }
+
+    if (rowEl) {
+      rowEl.innerHTML = '';
+      if (!state.pocketedStack.length) {
+        const emptySpan = document.createElement('span');
+        emptySpan.className = 'pocketed-empty-hint';
+        emptySpan.textContent = 'Pocketed balls stack here';
+        rowEl.appendChild(emptySpan);
+      } else {
+        state.pocketedStack.forEach(num => {
+          const isRecent = state.pocketedThisShot.includes(num);
+          rowEl.appendChild(createPocketedBallChip(num, isRecent));
+        });
+      }
+    }
   }
 
   function updateHUD() {
     const b1 = $('badge-p1');
     const b2 = $('badge-p2');
-    if (b1) b1.style.outline = state.turn === 1 ? '2px solid #2dd4bf' : 'none';
+    if (b1) b1.style.outline = state.turn === 1 ? '2px solid #f59e0b' : 'none';
     if (b2) b2.style.outline = state.turn === 2 ? '2px solid #2dd4bf' : 'none';
 
     const p2El = $('p2-name');
-    if (p2El) p2El.textContent = state.opponent === 'ai' ? '🤖 AI' : '👥 P2';
+    const p2Icon = $('p2-icon');
+    if (p2El) p2El.textContent = state.opponent === 'ai' ? 'AI' : 'Player 2';
+    if (p2Icon) p2Icon.textContent = state.opponent === 'ai' ? '🤖' : '👥';
+
     const modeEl = $('hud-mode-label');
     if (modeEl) {
       modeEl.textContent =
@@ -739,23 +1048,13 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       }
     }
 
-    const tray = $('rack-tray');
-    if (tray) {
-      tray.innerHTML = '';
-      if (state.mode === '8ball' && state.groups[1] && state.groups[2]) {
-        const p1Nums = state.groups[1] === 'solids' ? [1, 2, 3, 4, 5, 6, 7] : [9, 10, 11, 12, 13, 14, 15];
-        const p2Nums = state.groups[2] === 'solids' ? [1, 2, 3, 4, 5, 6, 7] : [9, 10, 11, 12, 13, 14, 15];
-        p1Nums.forEach(n => tray.appendChild(createMiniBallEl(n)));
-        appendDividerEl(tray);
-        tray.appendChild(createMiniBallEl(8));
-        appendDividerEl(tray);
-        p2Nums.forEach(n => tray.appendChild(createMiniBallEl(n)));
-      } else {
-        const maxBall = state.mode === '8ball' ? 15 : 9;
-        for (let n = 1; n <= maxBall; n++) {
-          tray.appendChild(createMiniBallEl(n));
-        }
-      }
+    updateDividerDrawer();
+
+    const aiBanner = $('ai-thinking-banner');
+    if (aiBanner) {
+      const isAiTurnActive = state.opponent === 'ai' && state.turn === 2 &&
+        (state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND');
+      aiBanner.classList.toggle('hidden', !isAiTurnActive);
     }
 
     const hintEl = $('ball-in-hand-hint');
@@ -803,7 +1102,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     state.turn = state.turn === 1 ? 2 : 1;
     state.phase = 'BALL_IN_HAND';
     updateHUD();
-    showTurnModal(state.turn === 1 ? "Player 1's Turn (Ball in Hand)" : (state.opponent === 'ai' ? "AI's Turn" : "Player 2's Turn (Ball in Hand)"));
+    showTurnModal(`${getActiveTurnName()}'s Turn`, 'Timeout Foul • Ball in Hand');
     startTurnTimer();
     maybeTriggerAI();
   }
@@ -813,6 +1112,8 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     resizeTable();
     state.balls = [];
     state.groups = { 1: null, 2: null };
+    state.pocketedStack = [];
+    state.pocketedThisShot = [];
     state.turn = 1;
     state.spin = { x: 0, y: 0 };
     updateSpinUI();
@@ -866,7 +1167,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     state.phase = 'AIMING';
     state.shotWasBreak = true;
     updateHUD();
-    showTurnModal("Player 1's Turn");
+    showTurnModal(`${getActiveTurnName()}'s Turn`, 'Break Shot');
     startTurnTimer();
   }
 
@@ -999,6 +1300,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     state.phase = 'SHOOTING';
     state.takoPull = 0;
     updatePowerUI();
+    updateHUD();
 
     playTone(260 + speed * 14, 'triangle', 0.14, 0.22);
     haptic(25);
@@ -1048,6 +1350,10 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
             b.vx = 0;
             b.vy = 0;
             state.pocketedThisShot.push(b.num);
+            if (b.num > 0 && !state.pocketedStack.includes(b.num)) {
+              state.pocketedStack.push(b.num);
+            }
+            updateDividerDrawer();
             showPocketedAnimation(b.num);
             playTone(130, 'sine', 0.26, 0.24);
             haptic(35);
@@ -1170,6 +1476,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           nine.x = playX + playW * 0.72;
           nine.y = playY + playH * 0.5;
         }
+        state.pocketedStack = state.pocketedStack.filter(n => n !== 9);
       }
       if (foul) {
         state.turn = otherPlayer;
@@ -1245,7 +1552,10 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     state.spin = { x: 0, y: 0 };
     updateSpinUI();
     updateHUD();
-    showTurnModal();
+    showTurnModal(
+      `${getActiveTurnName()}'s Turn`,
+      state.phase === 'BALL_IN_HAND' ? 'Ball in Hand • Place Cue Ball' : (keepTurn ? 'Extra Shot' : 'Active Turn')
+    );
     startTurnTimer();
     maybeTriggerAI();
   }
@@ -1253,6 +1563,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   function endMatch(winnerNum, reason) {
     state.phase = 'GAME_OVER';
     clearPendingTimers();
+    updateHUD();
     playTone(587, 'triangle', 0.45, 0.25);
     haptic([40, 40, 80]);
     const winnerLabel = (winnerNum === 2 && state.opponent === 'ai')
@@ -1269,6 +1580,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   function maybeTriggerAI() {
     clearTimeout(state.aiTimer);
     clearInterval(state.aiPullInterval);
+    updateHUD();
     if (destroyed || leavingToHub || state.opponent !== 'ai' || state.turn !== 2) return;
     if (state.phase !== 'AIMING' && state.phase !== 'BALL_IN_HAND') return;
 
@@ -1719,7 +2031,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     const gripEl = $('power-grip');
     const pctEl = $('power-pct');
     if (fillEl) fillEl.style.height = pct + '%';
-    if (gripEl) gripEl.style.top = (4 + state.takoPull * 72) + '%';
+    if (gripEl) gripEl.style.top = (22 + state.takoPull * 54) + '%';
     if (pctEl) pctEl.textContent = pct + '%';
   }
 
@@ -1780,23 +2092,25 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
 
   $('btn-aim-ccw')?.addEventListener('click', () => {
     if (!isUserTurn()) return;
-    state.aimAngle -= 0.008 * state.fineAimSpeed * 3;
+    state.aimAngle -= 0.015 * Math.max(0.4, state.fineAimSpeed * 3);
     haptic(8);
   });
 
   $('btn-aim-cw')?.addEventListener('click', () => {
     if (!isUserTurn()) return;
-    state.aimAngle += 0.008 * state.fineAimSpeed * 3;
+    state.aimAngle += 0.015 * Math.max(0.4, state.fineAimSpeed * 3);
     haptic(8);
   });
 
   const spinDot = $('spin-dot');
   const spinReadout = $('spin-readout');
+  const cockpitSpinPad = $('cockpit-spin-pad');
   const spinModal = $('spin-modal');
   const spinModalPad = $('spin-modal-pad');
   const spinModalDot = $('spin-modal-dot');
   const spinModalReadout = $('spin-modal-readout');
   let modalSpinDragging = false;
+  let cockpitSpinDragging = false;
 
   function formatSpinLabel() {
     if (Math.abs(state.spin.x) < 0.12 && Math.abs(state.spin.y) < 0.12) return 'CENTER';
@@ -1835,12 +2149,12 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     }, 240);
   }
 
-  function applyModalSpinFromEvent(e) {
-    if (!spinModalPad) return;
-    const rect = spinModalPad.getBoundingClientRect();
+  function applySpinFromPad(padEl, e) {
+    if (!padEl) return;
+    const rect = padEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const maxR = rect.width * 0.36;
+    const maxR = Math.max(8, rect.width * 0.36);
     let dx = e.clientX - cx;
     let dy = e.clientY - cy;
     const d = Math.hypot(dx, dy);
@@ -1853,6 +2167,29 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     updateSpinUI();
     haptic(10);
   }
+
+  if (cockpitSpinPad) {
+    cockpitSpinPad.addEventListener('pointerdown', (e) => {
+      if (!isUserTurn()) return;
+      cockpitSpinPad.setPointerCapture(e.pointerId);
+      cockpitSpinDragging = true;
+      applySpinFromPad(cockpitSpinPad, e);
+    });
+    cockpitSpinPad.addEventListener('pointermove', (e) => {
+      if (!cockpitSpinDragging || !isUserTurn()) return;
+      applySpinFromPad(cockpitSpinPad, e);
+    });
+    cockpitSpinPad.addEventListener('pointerup', () => {
+      cockpitSpinDragging = false;
+    });
+  }
+
+  $('btn-cockpit-reset-spin')?.addEventListener('click', () => {
+    if (!isUserTurn()) return;
+    state.spin = { x: 0, y: 0 };
+    updateSpinUI();
+    haptic(10);
+  });
 
   $('btn-open-spin-modal')?.addEventListener('click', () => {
     if (!isUserTurn()) return;
@@ -1876,12 +2213,12 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       clearTimeout(state.autoReturnTimer);
       spinModalPad.setPointerCapture(e.pointerId);
       modalSpinDragging = true;
-      applyModalSpinFromEvent(e);
+      applySpinFromPad(spinModalPad, e);
     });
 
     spinModalPad.addEventListener('pointermove', (e) => {
       if (!modalSpinDragging || !isUserTurn()) return;
-      applyModalSpinFromEvent(e);
+      applySpinFromPad(spinModalPad, e);
     });
 
     spinModalPad.addEventListener('pointerup', () => {
@@ -1980,6 +2317,11 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   bindSegRow('opt-guide', val => { state.guideMode = val; });
   bindSegRow('opt-sfx', val => { state.sfx = (val === 'on'); });
 
+  $('btn-new-rack-top')?.addEventListener('click', () => {
+    setupRack();
+    haptic(10);
+  });
+
   $('btn-start-match')?.addEventListener('click', () => {
     markGateHandledOnce();
     try { sessionStorage.removeItem(ENTER_FS_FROM_HUB_KEY); } catch (_) {}
@@ -1994,6 +2336,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   $('btn-new-match')?.addEventListener('click', () => {
     clearPendingTimers();
     state.phase = 'MENU';
+    updateHUD();
     $('setup-modal')?.classList.remove('hidden');
   });
 
