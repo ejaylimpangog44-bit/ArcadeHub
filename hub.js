@@ -154,10 +154,14 @@ function openFoxCompanionModal() {
   }
 }
 
-if (closeFoxBtn && foxModal) {
+if (closeFoxBtn) {
   closeFoxBtn.onclick = () => {
-    foxModal.classList.remove('flex');
-    foxModal.classList.add('hidden');
+    if (typeof window.closeHeroModal === 'function') {
+      window.closeHeroModal();
+    } else if (foxModal) {
+      foxModal.classList.remove('flex');
+      foxModal.classList.add('hidden');
+    }
     syncFoxCompanionVisibility();
     if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
   };
@@ -441,6 +445,11 @@ const GAME_ID_ALIASES = {
   'stickrun': 'stickrun',
   'stick-run': 'stickrun',
   'flickpoint': 'flickpoint',
+  'billiard': 'billiard',
+  'billiard-pool': 'billiard',
+  'billiardpool': 'billiard',
+  '8ball': 'billiard',
+  '9ball': 'billiard',
   'mythic': 'mythic'
 };
 
@@ -872,6 +881,7 @@ const GAME_GUIDES = {
   brickbreaker: 'Deflect the ball off your paddle to smash all bricks while keeping the ball from falling below.',
   stickrun: 'Time jumps and runs cleanly across platforms and rooftops without falling into gaps.',
   flickpoint: 'Aim and flick quickly onto targets before time out to maximize accuracy and score.',
+  billiard: 'Play 8-Ball or 9-Ball in VS AI or PVP with a 01:30 turn clock, cue spin, trajectory lines, and Tako pull-back shooting in landscape.',
   mythic: 'Survive incoming enemy waves, gather XP gems, and pick upgrades to stay alive as long as possible.'
 };
 
@@ -1020,6 +1030,9 @@ window.randomizePlayerName = randomizePlayerName;
 
 function enterHubShell(name) {
   window.playerName = name;
+  try {
+    localStorage.setItem('arcade_hub_player_name', name);
+  } catch (_) {}
   const headerName = document.getElementById('header-player-name');
   const loginScreen = document.getElementById('login-screen');
   const appShell = document.getElementById('app-shell');
@@ -1111,6 +1124,18 @@ const GAMES = [
     envName: 'mythic.html',
     bg: 'from-emerald-900 via-stone-900 to-black',
     theme: 'emerald'
+  },
+  {
+    id: 'billiard',
+    num: 20,
+    name: 'Billiard Pool',
+    cat: 'Action',
+    mode: 'LANDSCAPE',
+    featured: true,
+    icon: '🎱',
+    envName: '8-Ball & 9-Ball • VS AI & PVP (01:30)',
+    bg: 'radial-gradient(circle at 50% 35%, #0f766e 0%, #083f3b 65%, #041e1c 100%)',
+    theme: 'casino_green'
   }
 ];
 window.GAMES = GAMES;
@@ -1118,7 +1143,7 @@ window.GAMES = GAMES;
 const VALID_GAME_IDS = new Set(GAMES.map(g => g.id));
 const HUB_STORAGE_KEY = 'arcade_hub_discovery_v1';
 let hubMetaState = {
-  recentIds: ['mythic', 'flickpoint', 'solitaire'],
+  recentIds: ['billiard', 'mythic', 'flickpoint'],
   playCounts: {}
 };
 let discoveryFilter = 'all';
@@ -2055,6 +2080,10 @@ function launchGame(id) {
   }
   if (canonId === 'mythic') {
     window.location.href = 'mythic.html';
+    return;
+  }
+  if (canonId === 'billiard') {
+    window.location.href = 'billiard.html';
     return;
   }
 
