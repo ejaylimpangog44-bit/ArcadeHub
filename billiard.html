@@ -32,7 +32,7 @@
     <div class="hud-right">
       <div class="rack-tray" id="rack-tray" title="Remaining Target Balls"></div>
       <button type="button" class="icon-btn" id="btn-new-match" title="New Match">↻ New</button>
-      <button type="button" class="icon-btn" id="btn-settings" title="Aim & Game Settings">⚙ Settings</button>
+      <button type="button" class="icon-btn" id="btn-settings" title="Game Settings">⚙ Settings</button>
     </div>
   </header>
 
@@ -86,48 +86,55 @@
       <h2>🎱 Billiard Pool</h2>
       <button type="button" id="btn-setup-hub" class="modal-hub-link">← Arcade Hub</button>
     </div>
-    <p class="modal-sub">Pull back the Tako directly on the table or use the Tako pull rail. No hit button — pure touch &amp; drag stroke!</p>
-
-    <div class="option-group">
-      <label>Game Mode</label>
-      <div class="seg-row" id="opt-mode">
-        <button type="button" class="seg-btn active" data-val="8ball">8-Ball Pool</button>
-        <button type="button" class="seg-btn" data-val="9ball">9-Ball Pool</button>
-      </div>
-    </div>
-
-    <div class="option-group">
-      <label>Opponent</label>
-      <div class="seg-row" id="opt-opponent">
-        <button type="button" class="seg-btn active" data-val="ai">VS AI Bot</button>
-        <button type="button" class="seg-btn" data-val="pvp">2P Local PVP</button>
-      </div>
-    </div>
-
-    <div class="option-group" id="ai-diff-group">
-      <label>AI Difficulty</label>
-      <div class="seg-row" id="opt-diff">
-        <button type="button" class="seg-btn" data-val="easy">Casual</button>
-        <button type="button" class="seg-btn active" data-val="medium">Pro</button>
-        <button type="button" class="seg-btn" data-val="hard">Master</button>
-      </div>
-    </div>
-
-    <button type="button" class="primary-btn" id="btn-start-match">Start Match (01:30 Turn Clock)</button>
+    <p class="modal-sub">Pull back the Tako on the table or rail to shoot. Open ⚙ Settings anytime for mode, opponent, AI &amp; tap-to-aim.</p>
+    <button type="button" class="primary-btn" id="btn-start-match">Play Game</button>
   </div>
 </div>
 
 <div class="modal-backdrop hidden" id="settings-modal">
   <div class="modal-card">
     <div class="modal-header">
-      <h2>⚙ Aim &amp; Table Settings</h2>
+      <h2>⚙ Game Settings</h2>
       <button type="button" class="close-x" id="btn-close-settings">✕</button>
     </div>
-    <p class="modal-sub">Tune your aiming control speed so lining up bank shots and cut angles feels effortless.</p>
+    <p class="modal-sub">Tap any category to pick options cleanly.</p>
+
+    <div class="picker-list">
+      <button type="button" class="picker-trigger" id="btn-open-mode-modal">
+        <span>🎱 Game Mode</span>
+        <strong id="val-mode-summary">🎱 8-Ball</strong>
+      </button>
+
+      <button type="button" class="picker-trigger" id="btn-open-opponent-modal">
+        <span>👥 Opponent</span>
+        <strong id="val-opponent-summary">🤖 AI</strong>
+      </button>
+
+      <button type="button" class="picker-trigger" id="btn-open-diff-modal">
+        <span>🧠 AI Difficulty</span>
+        <strong id="val-diff-summary">⚡ Pro</strong>
+      </button>
+    </div>
+
+    <div class="option-group">
+      <label>🎯 Tap to Aim</label>
+      <div class="seg-row" id="opt-tap-aim">
+        <button type="button" class="seg-btn active" data-val="on">🎯 ON</button>
+        <button type="button" class="seg-btn" data-val="off">✋ OFF</button>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <label>📐 Guide</label>
+      <div class="seg-row" id="opt-guide">
+        <button type="button" class="seg-btn active" data-val="full">📐 Full</button>
+        <button type="button" class="seg-btn" data-val="short">📏 Short</button>
+      </div>
+    </div>
 
     <div class="option-group">
       <div class="slider-row">
-        <span>Aim Rotation Sensitivity</span>
+        <span>🎯 Aim Speed</span>
         <strong id="sens-val">0.45×</strong>
       </div>
       <input type="range" id="slider-sens" min="0.10" max="1.20" step="0.05" value="0.45" />
@@ -135,29 +142,67 @@
 
     <div class="option-group">
       <div class="slider-row">
-        <span>Fine-Aim Wheel Speed</span>
+        <span>🎡 Fine Wheel</span>
         <strong id="fine-val">0.20×</strong>
       </div>
       <input type="range" id="slider-fine" min="0.05" max="0.60" step="0.05" value="0.20" />
     </div>
 
     <div class="option-group">
-      <label>Trajectory Guide</label>
-      <div class="seg-row" id="opt-guide">
-        <button type="button" class="seg-btn active" data-val="full">Full + Deflection</button>
-        <button type="button" class="seg-btn" data-val="short">Short Line</button>
-      </div>
-    </div>
-
-    <div class="option-group">
-      <label>Sound Effects &amp; Haptics</label>
+      <label>🔊 Sound &amp; Vibe</label>
       <div class="seg-row" id="opt-sfx">
-        <button type="button" class="seg-btn active" data-val="on">Enabled</button>
-        <button type="button" class="seg-btn" data-val="off">Muted</button>
+        <button type="button" class="seg-btn active" data-val="on">🔊 ON</button>
+        <button type="button" class="seg-btn" data-val="off">🔇 OFF</button>
       </div>
     </div>
 
-    <button type="button" class="primary-btn" id="btn-save-settings">Apply Settings</button>
+    <button type="button" class="primary-btn" id="btn-save-settings">Done</button>
+  </div>
+</div>
+
+<!-- Designated Sub-Modal: Game Mode -->
+<div class="modal-backdrop hidden sub-modal-backdrop" id="mode-modal">
+  <div class="modal-card sub-modal-card">
+    <div class="modal-header">
+      <h2>🎱 Game Mode</h2>
+      <button type="button" class="close-x" id="btn-close-mode-modal">✕</button>
+    </div>
+    <div class="sub-choice-grid" id="modal-opt-mode">
+      <button type="button" class="choice-tile active" data-val="8ball">🎱 8-Ball</button>
+      <button type="button" class="choice-tile" data-val="9ball">🟡 9-Ball</button>
+    </div>
+    <button type="button" class="primary-btn" id="btn-apply-mode-modal">✓ Apply</button>
+  </div>
+</div>
+
+<!-- Designated Sub-Modal: Opponent -->
+<div class="modal-backdrop hidden sub-modal-backdrop" id="opponent-modal">
+  <div class="modal-card sub-modal-card">
+    <div class="modal-header">
+      <h2>👥 Opponent</h2>
+      <button type="button" class="close-x" id="btn-close-opponent-modal">✕</button>
+    </div>
+    <div class="sub-choice-grid" id="modal-opt-opponent">
+      <button type="button" class="choice-tile active" data-val="ai">🤖 AI</button>
+      <button type="button" class="choice-tile" data-val="pvp">👥 2P PVP</button>
+    </div>
+    <button type="button" class="primary-btn" id="btn-apply-opponent-modal">✓ Apply</button>
+  </div>
+</div>
+
+<!-- Designated Sub-Modal: AI Difficulty -->
+<div class="modal-backdrop hidden sub-modal-backdrop" id="diff-modal">
+  <div class="modal-card sub-modal-card">
+    <div class="modal-header">
+      <h2>🧠 AI Difficulty</h2>
+      <button type="button" class="close-x" id="btn-close-diff-modal">✕</button>
+    </div>
+    <div class="sub-choice-grid triple" id="modal-opt-diff">
+      <button type="button" class="choice-tile" data-val="easy">🌱 Easy</button>
+      <button type="button" class="choice-tile active" data-val="medium">⚡ Pro</button>
+      <button type="button" class="choice-tile" data-val="hard">👑 Boss</button>
+    </div>
+    <button type="button" class="primary-btn" id="btn-apply-diff-modal">✓ Apply</button>
   </div>
 </div>
 
