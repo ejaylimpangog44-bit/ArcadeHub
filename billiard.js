@@ -800,6 +800,71 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     }
   }
 
+  function positionTriangleRackBalls() {
+    const cue = getCueBall();
+    const cueX = playX + playW * 0.25;
+    const cueY = playY + playH * 0.5;
+    if (cue) {
+      cue.x = cueX;
+      cue.y = cueY;
+      cue.vx = 0;
+      cue.vy = 0;
+      cue.pocketed = false;
+    }
+
+    const apexX = playX + playW * 0.68;
+    const apexY = playY + playH * 0.5;
+    // Exact diameter spacing so every ball in the triangle rack touches tightly
+    const spacing = ballR * 2.0;
+    const rowDx = ballR * Math.sqrt(3);
+
+    if (state.mode === '8ball') {
+      const order = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
+      let idx = 0;
+      for (let col = 0; col < 5; col++) {
+        const count = col + 1;
+        const startY = apexY - ((count - 1) * spacing) / 2;
+        for (let r = 0; r < count; r++) {
+          const num = order[idx++];
+          const b = state.balls.find(ball => ball.num === num);
+          if (b) {
+            b.x = apexX + col * rowDx;
+            b.y = startY + r * spacing;
+            b.vx = 0;
+            b.vy = 0;
+            b.pocketed = false;
+          }
+        }
+      }
+    } else {
+      const diamondCols = [[1], [2, 3], [4, 9, 5], [6, 7], [8]];
+      diamondCols.forEach((colNums, colIdx) => {
+        const startY = apexY - ((colNums.length - 1) * spacing) / 2;
+        colNums.forEach((num, rIdx) => {
+          const b = state.balls.find(ball => ball.num === num);
+          if (b) {
+            b.x = apexX + colIdx * rowDx;
+            b.y = startY + rIdx * spacing;
+            b.vx = 0;
+            b.vy = 0;
+            b.pocketed = false;
+          }
+        });
+      });
+    }
+  }
+
+  function buildRackBalls() {
+    state.balls = [{ num: 0, x: 0, y: 0, vx: 0, vy: 0, pocketed: false, spinX: 0, spinY: 0 }];
+    const nums = state.mode === '8ball'
+      ? [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15]
+      : [1, 2, 3, 4, 9, 5, 6, 7, 8];
+    nums.forEach(num => {
+      state.balls.push({ num, x: 0, y: 0, vx: 0, vy: 0, pocketed: false, spinX: 0, spinY: 0 });
+    });
+    positionTriangleRackBalls();
+  }
+
   function resizeTable(preservePositions = true) {
     if (destroyed) return;
     applySpaciousLayoutSpacing();
@@ -834,7 +899,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     playW = Math.max(60, W - rail * 2);
     playH = Math.max(40, H - rail * 2);
     ballR = Math.max(8, Math.round(playH * 0.0325));
-    pocketR = Math.round(ballR * 1.82);
+    pocketR = Math.round(ballR * 1.9);
 
     pockets = [
       { x: playX + 2, y: playY + 2 },
@@ -845,7 +910,10 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       { x: playX + playW - 2, y: playY + playH - 2 }
     ];
 
-    if (preservePositions && state.balls.length > 0 && oldPlayW > 0 && oldPlayH > 0) {
+    // Before the break shot, always keep the rack tightly packed in a triangle
+    if (state.shotWasBreak && state.balls.length > 0 && state.phase === 'AIMING') {
+      positionTriangleRackBalls();
+    } else if (preservePositions && state.balls.length > 0 && oldPlayW > 0 && oldPlayH > 0) {
       state.balls.forEach(b => {
         const nx = (b.x - oldPlayX) / oldPlayW;
         const ny = (b.y - oldPlayY) / oldPlayH;
@@ -863,7 +931,6 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   }
 
   function getRoundRobinSides() {
-    // Left is Stripes, Right is Solids on even matches; rotates every match
     if (state.matchCount % 2 === 0) {
       return { left: 'stripes', right: 'solids', p1: 'stripes', p2: 'solids' };
     }
@@ -1156,61 +1223,12 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     maybeTriggerAI();
   }
 
-  function buildRackBalls() {
-    state.balls = [];
-    const cueX = playX + playW * 0.25;
-    const cueY = playY + playH * 0.5;
-    state.balls.push({ num: 0, x: cueX, y: cueY, vx: 0, vy: 0, pocketed: false, spinX: 0, spinY: 0 });
-
-    const apexX = playX + playW * 0.72;
-    const apexY = playY + playH * 0.5;
-    const spacing = ballR * 2.01;
-    const rowDx = spacing * Math.cos(Math.PI / 6);
-
-    if (state.mode === '8ball') {
-      const order = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
-      let idx = 0;
-      for (let col = 0; col < 5; col++) {
-        const count = col + 1;
-        const startY = apexY - ((count - 1) * spacing) / 2;
-        for (let r = 0; r < count; r++) {
-          state.balls.push({
-            num: order[idx++],
-            x: apexX + col * rowDx,
-            y: startY + r * spacing,
-            vx: 0,
-            vy: 0,
-            pocketed: false,
-            spinX: 0,
-            spinY: 0
-          });
-        }
-      }
-    } else {
-      const diamondCols = [[1], [2, 3], [4, 9, 5], [6, 7], [8]];
-      diamondCols.forEach((colNums, colIdx) => {
-        const startY = apexY - ((colNums.length - 1) * spacing) / 2;
-        colNums.forEach((num, rIdx) => {
-          state.balls.push({
-            num,
-            x: apexX + colIdx * rowDx,
-            y: startY + rIdx * spacing,
-            vx: 0,
-            vy: 0,
-            pocketed: false,
-            spinX: 0,
-            spinY: 0
-          });
-        });
-      });
-    }
-  }
-
   function setupRack(advanceRoundRobin = false) {
     if (advanceRoundRobin) {
       state.matchCount += 1;
     }
     clearPendingTimers();
+    state.shotWasBreak = true;
     resizeTable(false);
     syncRoundRobinGroups();
     state.pocketedStack = [];
@@ -1227,7 +1245,6 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
 
     state.aimAngle = 0;
     state.phase = 'AIMING';
-    state.shotWasBreak = true;
     updateHUD();
     showTurnModal(`${getActiveTurnName()}'s Turn`, `Match ${state.matchCount + 1} • Break Shot`);
     startTurnTimer();
@@ -1235,7 +1252,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     requestAnimationFrame(() => {
       if (!destroyed && !leavingToHub && state.shotWasBreak && state.phase === 'AIMING') {
         resizeTable(false);
-        buildRackBalls();
+        positionTriangleRackBalls();
       }
     });
   }
@@ -1254,6 +1271,25 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
 
   function isLegalTarget(ballNum) {
     return ballNum > 0;
+  }
+
+  function findBestPocketForBall(ball, incomingDir) {
+    let bestPk = null;
+    let bestLineScore = -Infinity;
+    pockets.forEach(pk => {
+      const toPkX = pk.x - ball.x;
+      const toPkY = pk.y - ball.y;
+      const d = Math.hypot(toPkX, toPkY) || 1;
+      const ux = toPkX / d;
+      const uy = toPkY / d;
+      const align = ux * incomingDir.x + uy * incomingDir.y;
+      const score = align * 100 - d * 0.05;
+      if (score > bestLineScore) {
+        bestLineScore = score;
+        bestPk = { pk, ux, uy, d, aligned: align > 0.94 };
+      }
+    });
+    return bestPk;
   }
 
   function computeTrajectory() {
@@ -1304,12 +1340,20 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     const ghostY = cue.y + dy * minDist;
 
     let targetDir = null;
+    let targetLineLen = 95;
+    let pocketAligned = false;
     let cueDeflectDir = null;
 
     if (hitBall) {
       const nx = (hitBall.x - ghostX) / rSum;
       const ny = (hitBall.y - ghostY) / rSum;
       targetDir = { x: nx, y: ny };
+
+      const pocketInfo = findBestPocketForBall(hitBall, targetDir);
+      if (pocketInfo && pocketInfo.aligned) {
+        pocketAligned = true;
+        targetLineLen = Math.min(pocketInfo.d, 220);
+      }
 
       const dot = dx * nx + dy * ny;
       let tx = dx - dot * nx;
@@ -1334,7 +1378,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       };
     }
 
-    return { cue, ghostX, ghostY, hitBall, targetDir, cueDeflectDir };
+    return { cue, ghostX, ghostY, hitBall, targetDir, targetLineLen, pocketAligned, cueDeflectDir };
   }
 
   function shootCueBall() {
@@ -1355,6 +1399,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     cue.spinX = state.spin.x;
     cue.spinY = state.spin.y;
 
+    state.shotWasBreak = false;
     state.pocketedThisShot = [];
     state.firstHitBall = null;
     state.railHitAfterContact = false;
@@ -1406,7 +1451,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
 
         for (let p = 0; p < pockets.length; p++) {
           const pk = pockets[p];
-          if (Math.hypot(b.x - pk.x, b.y - pk.y) < pocketR * 0.92) {
+          if (Math.hypot(b.x - pk.x, b.y - pk.y) < pocketR * 1.05) {
             b.pocketed = true;
             b.vx = 0;
             b.vy = 0;
@@ -1419,7 +1464,6 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
             playTone(130, 'sine', 0.26, 0.24);
             haptic(35);
 
-            // Immediately trigger winner modal when the 8-ball is pocketed in 8-ball mode
             if (state.mode === '8ball' && b.num === 8) {
               endMatch(state.turn, `${getActiveTurnName()} pocketed the 8-Ball!`);
               return;
@@ -1485,7 +1529,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
             const velAlongNormal = rvx * nx + rvy * ny;
 
             if (velAlongNormal < 0) {
-              const restitution = 0.94;
+              const restitution = 0.96;
               const impulse = -(1 + restitution) * velAlongNormal * 0.5;
               a.vx -= impulse * nx;
               a.vy -= impulse * ny;
@@ -1543,12 +1587,10 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         state.phase = 'AIMING';
       }
     } else {
-      // 8-Ball mode: whoever pockets the 8-ball immediately wins (same as 9-ball mode)
       if (objectPocketed.includes(8)) {
         endMatch(state.turn, `${getActiveTurnName()} pocketed the 8-Ball!`);
         return;
       }
-
       if (objectPocketed.length > 0 && !scratched) {
         state.phase = 'AIMING';
       } else {
@@ -1557,7 +1599,6 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       }
     }
 
-    state.shotWasBreak = false;
     state.spin = { x: 0, y: 0 };
     updateSpinUI();
     updateHUD();
@@ -1578,7 +1619,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     haptic([40, 40, 80]);
     const winnerLabel = (winnerNum === 2 && state.opponent === 'ai')
       ? '🤖 AI Wins!'
-      : `🏆 ${winnerNum === 1 ? (getSavedPlayerName()) : 'Player 2'} Wins!`;
+      : `🏆 ${winnerNum === 1 ? getSavedPlayerName() : 'Player 2'} Wins!`;
     const titleEl = $('winner-title');
     const reasonEl = $('winner-reason');
     const modalEl = $('gameover-modal');
@@ -1611,7 +1652,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       }
 
       const legalTargets = state.balls.filter(b => !b.pocketed && isLegalTarget(b.num));
-      let bestAngle = Math.atan2((playY + playH / 2) - cue.y, (playX + playW * 0.72) - cue.x);
+      let bestAngle = Math.atan2((playY + playH / 2) - cue.y, (playX + playW * 0.68) - cue.x);
       let bestScore = -Infinity;
 
       legalTargets.forEach(t => {
@@ -1703,7 +1744,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(playX + playW * 0.72, playY + playH * 0.5, 3, 0, Math.PI * 2);
+      ctx.arc(playX + playW * 0.68, playY + playH * 0.5, 3, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
       ctx.fill();
 
@@ -1726,12 +1767,12 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       if ((state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') && state.guideMode !== 'off') {
         const traj = computeTrajectory();
         if (traj) {
-          const { cue, ghostX, ghostY, hitBall, targetDir, cueDeflectDir } = traj;
+          const { cue, ghostX, ghostY, hitBall, targetDir, targetLineLen, pocketAligned, cueDeflectDir } = traj;
 
           ctx.save();
           ctx.setLineDash([6, 6]);
           ctx.lineWidth = 2;
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.78)';
           ctx.beginPath();
           ctx.moveTo(cue.x, cue.y);
           if (state.guideMode === 'short') {
@@ -1746,17 +1787,16 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           if (state.guideMode === 'full') {
             ctx.beginPath();
             ctx.arc(ghostX, ghostY, ballR, 0, Math.PI * 2);
-            ctx.strokeStyle = hitBall ? 'rgba(251, 191, 36, 0.85)' : 'rgba(255, 255, 255, 0.4)';
-            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = pocketAligned ? '#34d399' : (hitBall ? 'rgba(251, 191, 36, 0.85)' : 'rgba(255, 255, 255, 0.4)');
+            ctx.lineWidth = pocketAligned ? 2.2 : 1.5;
             ctx.stroke();
 
             if (hitBall && targetDir) {
-              const legal = isLegalTarget(hitBall.num);
               ctx.beginPath();
               ctx.moveTo(hitBall.x, hitBall.y);
-              ctx.lineTo(hitBall.x + targetDir.x * 95, hitBall.y + targetDir.y * 95);
-              ctx.strokeStyle = legal ? '#34d399' : '#f87171';
-              ctx.lineWidth = 2.5;
+              ctx.lineTo(hitBall.x + targetDir.x * targetLineLen, hitBall.y + targetDir.y * targetLineLen);
+              ctx.strokeStyle = pocketAligned ? '#34d399' : '#fbbf24';
+              ctx.lineWidth = pocketAligned ? 3 : 2.2;
               ctx.stroke();
             }
 
@@ -1764,8 +1804,8 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
               ctx.beginPath();
               ctx.moveTo(ghostX, ghostY);
               ctx.lineTo(ghostX + cueDeflectDir.x * 65, ghostY + cueDeflectDir.y * 65);
-              ctx.strokeStyle = 'rgba(96, 165, 250, 0.8)';
-              ctx.lineWidth = 1.8;
+              ctx.strokeStyle = 'rgba(96, 165, 250, 0.75)';
+              ctx.lineWidth = 1.6;
               ctx.stroke();
             }
           }
