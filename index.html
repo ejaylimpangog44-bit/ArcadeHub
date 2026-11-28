@@ -103,80 +103,6 @@
   </div>
 </div>
 
-<!-- Fox Companion Trigger -->
-<div id="assistive-touch-fox" role="button" tabindex="0" aria-label="Fox Companion Hub — Open Wardrobe, Shop & Spin" class="fixed right-4 bottom-20 z-[120] w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-orange-600 to-teal-700 border-2 border-amber-300 shadow-2xl flex items-center justify-center text-2xl cursor-pointer select-none touch-none active:scale-95 transition group hover:scale-105" title="Fox Companion Hub — Open Wardrobe, Shop & Spin">
-  <span class="transform group-hover:scale-110 transition">🦊</span>
-</div>
-
-<!-- Hero Wardrobe / Shop / Rewards Modal -->
-<div id="hero-modal-backdrop" class="hero-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-lvl-title">
-  <div id="hero-modal" class="hero-modal">
-    <div class="hero-modal-header">
-      <div class="hero-profile-summary">
-        <div class="hero-avatar-wrap large" id="modal-avatar-border">
-          <span id="modal-avatar-icon" class="hero-emoji">🦊</span>
-          <span id="modal-outfit-icon" class="hero-outfit-badge">🦺</span>
-        </div>
-        <div>
-          <h2 id="modal-lvl-title">LVL 1 Hero</h2>
-          <p id="modal-xp-sub">0 / 500 XP</p>
-          <div class="xp-bar-track"><div id="modal-xp-fill" class="xp-bar-fill"></div></div>
-        </div>
-      </div>
-      <div class="hero-wallet">
-        <span class="coin-pill">🪙 <strong id="hero-coin-balance">0</strong></span>
-        <button type="button" id="close-fox-menu" onclick="closeHeroModal()" class="hero-close-btn" aria-label="Close">✕</button>
-      </div>
-    </div>
-
-    <div class="hero-tabs" role="tablist">
-      <button type="button" class="hero-tab active" data-tab="wardrobe" onclick="switchHeroTab('wardrobe')">Wardrobe</button>
-      <button type="button" class="hero-tab" data-tab="shop" onclick="switchHeroTab('shop')">Shop</button>
-      <button type="button" class="hero-tab" data-tab="rewards" onclick="switchHeroTab('rewards')">Streak & Spin</button>
-    </div>
-
-    <div id="tab-wardrobe" class="hero-tab-panel active">
-      <h3>Avatars</h3>
-      <div id="grid-avatars" class="cosmetic-grid"></div>
-      <h3>Avatar Borders</h3>
-      <div id="grid-borders" class="cosmetic-grid"></div>
-      <h3>Hero Outfits</h3>
-      <div id="grid-outfits" class="cosmetic-grid"></div>
-    </div>
-
-    <div id="tab-shop" class="hero-tab-panel">
-      <div class="shop-xp-banner">
-        <div>
-          <strong>⚡ Instant +250 XP Boost</strong>
-          <p>Level up your Hero rank faster</p>
-        </div>
-        <button id="buy-xp-btn" type="button" class="action-btn">Buy (150 🪙)</button>
-      </div>
-      <h3>Cosmetic Store</h3>
-      <div id="grid-shop" class="cosmetic-grid"></div>
-    </div>
-
-    <div id="tab-rewards" class="hero-tab-panel">
-      <div class="rewards-split">
-        <div class="reward-card">
-          <div id="streak-cooldown-timer" class="text-sm font-mono text-amber-400 font-bold my-2 text-center">24:00:00</div>
-          <div id="streak-days-row" class="streak-row"></div>
-          <button id="claim-streak-btn" type="button" class="action-btn">Claim Daily</button>
-        </div>
-        <div class="reward-card">
-          <h3>🎡 5-Hour Lucky Wheel</h3>
-          <div class="wheel-stage">
-            <div class="wheel-pointer">▼</div>
-            <div id="lucky-wheel" class="lucky-wheel"></div>
-          </div>
-          <p id="wheel-timer-text">Ready to Spin!</p>
-          <button id="spin-wheel-btn" type="button" class="action-btn">Spin Free</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- Main App Shell -->
 <div id="app-shell" class="hidden flex flex-col h-screen w-screen overflow-hidden">
   <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
@@ -313,7 +239,7 @@
         <button type="button" onclick="closeAboutModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm font-bold" aria-label="Close About">✕</button>
       </div>
       <p class="text-xs text-slate-300 leading-relaxed">
-        Arcade Hub is a multi-game browser arcade platform featuring portrait and landscape games, hero progression, daily rewards, and instant play across desktop and mobile viewports.
+        Arcade Hub is a multi-game browser arcade platform featuring portrait and landscape games, progression, and instant play across desktop and mobile viewports.
       </p>
       <button type="button" onclick="closeAboutModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-teal-500 font-extrabold text-xs text-slate-950 shadow-lg">
         Got It
@@ -360,6 +286,8 @@
   </main>
 </div>
 
+<canvas id="game-canvas" width="900" height="540" class="hidden" style="display:none;"></canvas>
+
 <audio id="bgm-audio" loop preload="auto">
   <source src="https://github.com/ejaylimpangog44-bit/ArcadeHub/releases/download/v1.0.0/bgm.mp3" type="audio/mpeg">
   <source src="./bgm.mp3" type="audio/mpeg">
@@ -404,7 +332,6 @@
     if (e.key === 'Escape') {
       if (typeof window.closeHubMenu === 'function') window.closeHubMenu();
       closeGameMenu();
-      closeHeroModal();
       if (typeof window.closeSettingsModal === 'function') window.closeSettingsModal();
       if (typeof window.closeQrShareModal === 'function') window.closeQrShareModal();
       if (typeof window.closeInstructionsModal === 'function') window.closeInstructionsModal();
@@ -412,71 +339,6 @@
       if (typeof window.closeGamePreviewModal === 'function') window.closeGamePreviewModal();
     }
   });
-
-  function updatePHTCountdown() {
-    var timerEl = document.getElementById('streak-cooldown-timer');
-    if (!timerEl) return;
-
-    var now = new Date();
-    var utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-    var phtDate = new Date(utcTime + (3600000 * 8));
-
-    var nextMidnight = new Date(phtDate);
-    nextMidnight.setHours(24, 0, 0, 0);
-
-    var diff = nextMidnight.getTime() - phtDate.getTime();
-    if (diff <= 0) {
-      timerEl.textContent = '00:00:00';
-      return;
-    }
-
-    var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    var seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    timerEl.textContent =
-      String(hours).padStart(2, '0') + ':' +
-      String(minutes).padStart(2, '0') + ':' +
-      String(seconds).padStart(2, '0');
-  }
-
-  setInterval(updatePHTCountdown, 1000);
-
-  function openHeroModal() {
-    var backdrop = document.getElementById('hero-modal-backdrop');
-    if (backdrop) {
-      backdrop.classList.remove('hidden');
-      backdrop.classList.add('flex');
-      backdrop.style.display = 'flex';
-    }
-    if (typeof window.initHeroModal === 'function') {
-      window.initHeroModal();
-    }
-    updatePHTCountdown();
-  }
-
-  function closeHeroModal() {
-    var backdrop = document.getElementById('hero-modal-backdrop');
-    if (backdrop) {
-      backdrop.classList.remove('flex');
-      backdrop.classList.add('hidden');
-      backdrop.style.display = 'none';
-    }
-    if (typeof window.syncFoxCompanionVisibility === 'function') {
-      window.syncFoxCompanionVisibility();
-    }
-  }
-
-  function switchHeroTab(tabName) {
-    document.querySelectorAll('.hero-tab').forEach(function (t) { t.classList.remove('active'); });
-    document.querySelectorAll('.hero-tab-panel').forEach(function (p) { p.classList.remove('active'); });
-
-    var selectedTab = document.querySelector('[data-tab="' + tabName + '"]');
-    var selectedPanel = document.getElementById('tab-' + tabName);
-
-    if (selectedTab) selectedTab.classList.add('active');
-    if (selectedPanel) selectedPanel.classList.add('active');
-  }
 </script>
 
 <!-- Single Landscape Gate Controlled by LandscapeGate in hub.js -->
@@ -492,7 +354,6 @@
 </div>
 
 <script src="power.js"></script>
-<script src="hero.js"></script>
 <script src="basketball.js"></script>
 <script src="card-deck.js"></script>
 <script src="speed-solitaire.js"></script>
@@ -512,6 +373,19 @@
 <script src="brick-breaker.js"></script>
 <script src="stick-run.js"></script>
 <script src="billiard.js"></script>
+<script>
+  window.ArcadeHubGames = window.ArcadeHubGames || {};
+</script>
+<script src="neon-pong.js"></script>
+<script src="tank-arena.js"></script>
+<script src="shadow-ronin.js"></script>
+<script src="siege-ballista.js"></script>
+<script src="stealth-thief.js"></script>
+<script src="ragdoll-archer.js"></script>
+<script src="thumb-party.js"></script>
+<script src="paper-airplane.js"></script>
+<script src="sky-coaster.js"></script>
+<script src="jetpack-lab.js"></script>
 <script src="hub.js"></script>
 </body>
 </html>
