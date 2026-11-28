@@ -20,6 +20,7 @@ const OVERLAY_MODAL_IDS = [
 let lobbyEntered = false;
 let navigatingToGamePage = false;
 let pendingReturnFullscreenArmed = false;
+let foxSyncTimer = null;
 
 function clearReturnFullscreenFlags() {
   pendingReturnFullscreenArmed = false;
@@ -489,7 +490,13 @@ function syncFoxCompanionVisibility() {
   foxWidget.style.display = inHub ? 'flex' : 'none';
 
   if (inHub) {
-    requestAnimationFrame(positionFoxBesideDice);
+    requestAnimationFrame(() => {
+      positionFoxBesideDice();
+      clearTimeout(foxSyncTimer);
+      foxSyncTimer = setTimeout(() => {
+        positionFoxBesideDice();
+      }, 220);
+    });
   }
 }
 window.syncFoxCompanionVisibility = syncFoxCompanionVisibility;
@@ -497,6 +504,32 @@ window.syncFoxCompanionVisibility = syncFoxCompanionVisibility;
 window.addEventListener('resize', () => {
   if (foxWidget && foxWidget.style.display !== 'none') {
     positionFoxBesideDice();
+    clearTimeout(foxSyncTimer);
+    foxSyncTimer = setTimeout(positionFoxBesideDice, 200);
+  }
+});
+
+window.addEventListener('orientationchange', () => {
+  if (!navigatingToGamePage && !activeGameId) {
+    const hubHeader = document.getElementById('hub-header');
+    if (hubHeader) {
+      hubHeader.classList.remove('hidden');
+      hubHeader.style.display = '';
+    }
+    syncFoxCompanionVisibility();
+  }
+});
+
+window.addEventListener('pageshow', () => {
+  if (!navigatingToGamePage && !activeGameId) {
+    const hubHeader = document.getElementById('hub-header');
+    if (hubHeader) {
+      hubHeader.classList.remove('hidden');
+      hubHeader.style.display = '';
+    }
+    LandscapeGate.tryLockPortrait(true);
+    LandscapeGate.scheduleSync(180);
+    syncFoxCompanionVisibility();
   }
 });
 
@@ -2338,7 +2371,12 @@ function openHubHome() {
     window.SplashController.hideSplashImmediate();
   }
 
-  document.getElementById('hub-header')?.classList.remove('hidden');
+  const hubHeader = document.getElementById('hub-header');
+  if (hubHeader) {
+    hubHeader.classList.remove('hidden');
+    hubHeader.style.display = '';
+  }
+
   syncUniversalGameBar(null);
   syncFoxCompanionVisibility();
 
