@@ -90,6 +90,18 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           text-transform:uppercase;
           letter-spacing:0.08em;
         }
+        #billiard-runner-root #pocket-anim-badge {
+          opacity:1;
+          transition:opacity 0.35s ease, transform 0.35s ease;
+        }
+        #billiard-runner-root #pocket-anim-badge.hidden {
+          display:none !important;
+          opacity:0;
+        }
+        #billiard-runner-root #pocket-anim-badge.fading {
+          opacity:0;
+          transform:translateY(-4px);
+        }
         #billiard-runner-root .divider-drawer {
           display:flex;
           flex-direction:column;
@@ -98,34 +110,40 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           border-radius:10px;
           background:rgba(15,23,42,0.88);
           border:1px solid rgba(255,255,255,0.12);
-          min-width:195px;
-          max-width:280px;
+          min-width:205px;
+          max-width:290px;
           flex-shrink:1;
+        }
+        #billiard-runner-root .divider-player-above {
+          font-size:10px;
+          font-weight:900;
+          line-height:1.1;
+          color:#fbbf24;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          text-align:center;
         }
         #billiard-runner-root .divider-drawer-header {
           display:flex;
           align-items:center;
           justify-content:space-between;
           gap:6px;
-          font-size:10px;
+          font-size:9px;
           font-weight:800;
           line-height:1.1;
           white-space:nowrap;
           overflow:hidden;
         }
-        #billiard-runner-root .divider-drawer-player {
-          color:#fbbf24;
-          overflow:hidden;
-          text-overflow:ellipsis;
-        }
         #billiard-runner-root .divider-drawer-sides {
           display:flex;
           align-items:center;
+          justify-content:space-between;
+          width:100%;
           gap:5px;
           font-size:9px;
           font-weight:800;
           letter-spacing:0.03em;
-          flex-shrink:0;
         }
         #billiard-runner-root .side-solids {
           color:#38bdf8;
@@ -137,6 +155,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           width:1px;
           height:9px;
           background:rgba(255,255,255,0.25);
+          flex-shrink:0;
         }
         #billiard-runner-root .pocketed-row-stack {
           display:flex;
@@ -228,7 +247,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           <div id="badge-p1" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.07);font-weight:800;font-size:11px;white-space:nowrap;">
             <span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>
             <span id="p1-name" style="max-width:86px;overflow:hidden;text-overflow:ellipsis;">Player_701</span>
-            <span id="p1-group" style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,0.1);color:#e2e8f0;">STRIPES</span>
+            <span id="p1-group" style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,0.1);color:#e2e8f0;">OPEN</span>
           </div>
 
           <div id="hud-mode-label" style="padding:4px 8px;border-radius:8px;background:rgba(13,148,136,0.18);border:1px solid rgba(94,234,212,0.28);font-size:10px;font-weight:800;color:#5eead4;white-space:nowrap;">
@@ -238,7 +257,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           <div id="badge-p2" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.07);font-weight:800;font-size:11px;white-space:nowrap;">
             <span id="p2-icon">🤖</span>
             <span id="p2-name">AI</span>
-            <span id="p2-group" style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,0.1);color:#e2e8f0;">SOLIDS</span>
+            <span id="p2-group" style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,0.1);color:#e2e8f0;">OPEN</span>
           </div>
 
           <div id="timer-box" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.1);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;white-space:nowrap;">
@@ -247,14 +266,14 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           </div>
         </div>
 
-        <!-- Compact Divider Drawer (Left: Stripes / Right: Solids, Round-Robin per Match) -->
+        <!-- Divided Drawer: Player Name Above, Left = Solids / Right = Stripes with Round-Robin -->
         <div id="divider-drawer" class="divider-drawer">
+          <div id="drawer-player-title" class="divider-player-above">Player_701</div>
           <div class="divider-drawer-header">
-            <span id="drawer-player-title" class="divider-drawer-player">Player: Player_701</span>
             <div id="drawer-group-split" class="divider-drawer-sides">
-              <span id="drawer-left-label" class="side-stripes">STRIPES</span>
+              <span id="drawer-left-label" class="side-solids">LEFT: SOLIDS</span>
               <span class="drawer-split-line"></span>
-              <span id="drawer-right-label" class="side-solids">SOLIDS</span>
+              <span id="drawer-right-label" class="side-stripes">RIGHT: STRIPES</span>
             </div>
           </div>
           <div id="pocketed-ball-row" class="pocketed-row-stack" aria-label="Pocketed Balls Row">
@@ -689,6 +708,12 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     15: '#991b1b'
   };
 
+  function getBallGroup(num) {
+    if (num >= 1 && num <= 7) return 'solids';
+    if (num >= 9 && num <= 15) return 'stripes';
+    return null;
+  }
+
   const state = {
     mode: '8ball',
     opponent: 'ai',
@@ -702,7 +727,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     matchCount: 0,
     phase: 'AIMING',
     turn: 1,
-    groups: { 1: 'stripes', 2: 'solids' },
+    groups: { 1: null, 2: null },
     pocketedStack: [],
     timerSeconds: 60,
     timerInterval: null,
@@ -764,6 +789,16 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     }
   }
 
+  function hidePocketBadgeImmediately() {
+    clearTimeout(state.pocketAnimTimer);
+    clearTimeout(state.pocketAnimFadeTimer);
+    const badge = $('pocket-anim-badge');
+    if (badge) {
+      badge.classList.add('hidden', 'fading');
+      badge.innerHTML = '';
+    }
+  }
+
   function clearPendingTimers() {
     clearInterval(state.timerInterval);
     state.timerInterval = null;
@@ -814,7 +849,6 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
 
     const apexX = playX + playW * 0.68;
     const apexY = playY + playH * 0.5;
-    // Exact diameter spacing so every ball in the triangle rack touches tightly
     const spacing = ballR * 2.0;
     const rowDx = ballR * Math.sqrt(3);
 
@@ -910,7 +944,6 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       { x: playX + playW - 2, y: playY + playH - 2 }
     ];
 
-    // Before the break shot, always keep the rack tightly packed in a triangle
     if (state.shotWasBreak && state.balls.length > 0 && state.phase === 'AIMING') {
       positionTriangleRackBalls();
     } else if (preservePositions && state.balls.length > 0 && oldPlayW > 0 && oldPlayH > 0) {
@@ -930,16 +963,34 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     return state.opponent === 'ai' ? 'AI' : 'Player 2';
   }
 
+  // Round-robin side assignment per match:
+  // Even matches: P1 gets SOLIDS (Left), P2/AI gets STRIPES (Right)
+  // Odd matches:  P1 gets STRIPES (Left), P2/AI gets SOLIDS (Right)
   function getRoundRobinSides() {
     if (state.matchCount % 2 === 0) {
-      return { left: 'stripes', right: 'solids', p1: 'stripes', p2: 'solids' };
+      return { left: 'solids', right: 'stripes', p1: 'solids', p2: 'stripes' };
     }
-    return { left: 'solids', right: 'stripes', p1: 'solids', p2: 'stripes' };
+    return { left: 'stripes', right: 'solids', p1: 'stripes', p2: 'solids' };
   }
 
-  function syncRoundRobinGroups() {
-    const rr = getRoundRobinSides();
-    state.groups = { 1: rr.p1, 2: rr.p2 };
+  function resetMatchGroups() {
+    state.groups = { 1: null, 2: null };
+  }
+
+  function maybeAssignGroupsFromPocketed(objectPocketed) {
+    if (state.mode !== '8ball') return;
+    if (state.groups[1] && state.groups[2]) return;
+
+    const firstGroupBall = objectPocketed.find(n => n >= 1 && n <= 7 || n >= 9 && n <= 15);
+    if (!firstGroupBall) return;
+
+    const claimed = getBallGroup(firstGroupBall);
+    if (!claimed) return;
+
+    const otherGroup = claimed === 'solids' ? 'stripes' : 'solids';
+    const otherPlayer = state.turn === 1 ? 2 : 1;
+    state.groups[state.turn] = claimed;
+    state.groups[otherPlayer] = otherGroup;
   }
 
   function showTurnModal(customText, customSub) {
@@ -1003,7 +1054,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
 
     state.pocketAnimTimer = setTimeout(() => {
       if (!destroyed) badge.classList.add('hidden', 'fading');
-    }, 1750);
+    }, 1550);
   }
 
   function getSavedPlayerName() {
@@ -1035,6 +1086,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     leavingToHub = true;
     state.phase = 'MENU';
     clearPendingTimers();
+    hidePocketBadgeImmediately();
     const currentName = $('p1-name')?.textContent || getSavedPlayerName();
     persistPlayerName(currentName);
 
@@ -1095,26 +1147,29 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     const rowEl = $('pocketed-ball-row');
 
     const activePlayerLabel = getActiveTurnName();
+    const rr = getRoundRobinSides();
+
     if (drawerTitle) {
-      drawerTitle.textContent = `R${state.matchCount + 1} • ${activePlayerLabel}`;
+      const assigned = state.groups[state.turn];
+      const sideTag = assigned ? ` (${assigned.toUpperCase()})` : ` (RR: ${rr[state.turn === 1 ? 'p1' : 'p2'].toUpperCase()})`;
+      drawerTitle.textContent = `${activePlayerLabel}${sideTag}`;
     }
 
     if (leftLabel && rightLabel) {
-      const rr = getRoundRobinSides();
       if (state.mode === '8ball') {
-        const leftIsStripes = rr.left === 'stripes';
-        leftLabel.textContent = leftIsStripes ? 'STRIPES' : 'SOLIDS';
-        leftLabel.className = leftIsStripes ? 'side-stripes' : 'side-solids';
+        const leftIsSolids = rr.left === 'solids';
+        leftLabel.textContent = leftIsSolids ? 'LEFT: SOLIDS' : 'LEFT: STRIPES';
+        leftLabel.className = leftIsSolids ? 'side-solids' : 'side-stripes';
 
-        const rightIsSolids = rr.right === 'solids';
-        rightLabel.textContent = rightIsSolids ? 'SOLIDS' : 'STRIPES';
-        rightLabel.className = rightIsSolids ? 'side-solids' : 'side-stripes';
+        const rightIsStripes = rr.right === 'stripes';
+        rightLabel.textContent = rightIsStripes ? 'RIGHT: STRIPES' : 'RIGHT: SOLIDS';
+        rightLabel.className = rightIsStripes ? 'side-stripes' : 'side-solids';
       } else {
         const lowest = getLowestTargetNumber();
         leftLabel.textContent = lowest ? `TARGET #${lowest}` : '9-BALL';
-        leftLabel.className = 'side-stripes';
+        leftLabel.className = 'side-solids';
         rightLabel.textContent = `MATCH ${state.matchCount + 1}`;
-        rightLabel.className = 'side-solids';
+        rightLabel.className = 'side-stripes';
       }
     }
 
@@ -1159,8 +1214,8 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         g1.textContent = lowest ? '#' + lowest : 'DONE';
         g2.textContent = lowest ? '#' + lowest : 'DONE';
       } else {
-        g1.textContent = state.groups[1] ? state.groups[1].toUpperCase() : 'STRIPES';
-        g2.textContent = state.groups[2] ? state.groups[2].toUpperCase() : 'SOLIDS';
+        g1.textContent = state.groups[1] ? state.groups[1].toUpperCase() : 'OPEN';
+        g2.textContent = state.groups[2] ? state.groups[2].toUpperCase() : 'OPEN';
       }
     }
 
@@ -1228,9 +1283,10 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       state.matchCount += 1;
     }
     clearPendingTimers();
+    hidePocketBadgeImmediately();
     state.shotWasBreak = true;
     resizeTable(false);
-    syncRoundRobinGroups();
+    resetMatchGroups();
     state.pocketedStack = [];
     state.pocketedThisShot = [];
     state.firstHitBall = null;
@@ -1343,8 +1399,18 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     let targetLineLen = 95;
     let pocketAligned = false;
     let cueDeflectDir = null;
+    let opponentBallCircle = null;
 
     if (hitBall) {
+      const hitGroup = getBallGroup(hitBall.num);
+      const activeGroup = state.mode === '8ball' ? state.groups[state.turn] : null;
+      if (activeGroup && hitGroup && hitGroup !== activeGroup) {
+        opponentBallCircle = {
+          ball: hitBall,
+          color: hitGroup === 'stripes' ? '#f472b6' : '#38bdf8'
+        };
+      }
+
       const nx = (hitBall.x - ghostX) / rSum;
       const ny = (hitBall.y - ghostY) / rSum;
       targetDir = { x: nx, y: ny };
@@ -1378,7 +1444,17 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       };
     }
 
-    return { cue, ghostX, ghostY, hitBall, targetDir, targetLineLen, pocketAligned, cueDeflectDir };
+    return {
+      cue,
+      ghostX,
+      ghostY,
+      hitBall,
+      targetDir,
+      targetLineLen,
+      pocketAligned,
+      cueDeflectDir,
+      opponentBallCircle
+    };
   }
 
   function shootCueBall() {
@@ -1459,7 +1535,10 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
             if (b.num > 0 && !state.pocketedStack.includes(b.num)) {
               state.pocketedStack.push(b.num);
             }
-            updateDividerDrawer();
+            if (b.num > 0 && b.num !== 8) {
+              maybeAssignGroupsFromPocketed([b.num]);
+            }
+            updateHUD();
             showPocketedAnimation(b.num);
             playTone(130, 'sine', 0.26, 0.24);
             haptic(35);
@@ -1563,6 +1642,10 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     const scratched = state.pocketedThisShot.includes(0);
     const objectPocketed = state.pocketedThisShot.filter(n => n !== 0);
     const otherPlayer = state.turn === 1 ? 2 : 1;
+
+    if (objectPocketed.length > 0 && !scratched) {
+      maybeAssignGroupsFromPocketed(objectPocketed);
+    }
 
     if (scratched) {
       const cue = getCueBall();
@@ -1764,10 +1847,16 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         ctx.fill();
       });
 
+      let oppIndicator = null;
+
       if ((state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') && state.guideMode !== 'off') {
         const traj = computeTrajectory();
         if (traj) {
-          const { cue, ghostX, ghostY, hitBall, targetDir, targetLineLen, pocketAligned, cueDeflectDir } = traj;
+          const {
+            cue, ghostX, ghostY, hitBall, targetDir, targetLineLen,
+            pocketAligned, cueDeflectDir, opponentBallCircle
+          } = traj;
+          oppIndicator = opponentBallCircle;
 
           ctx.save();
           ctx.setLineDash([6, 6]);
@@ -1815,6 +1904,18 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       state.balls.forEach(b => {
         if (!b.pocketed) drawBall(b);
       });
+
+      // Circle indicator when active player (P1 or P2/AI) aims at the other player's group
+      if (oppIndicator && oppIndicator.ball && !oppIndicator.ball.pocketed) {
+        const ob = oppIndicator.ball;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(ob.x, ob.y, ballR + 5.5, 0, Math.PI * 2);
+        ctx.strokeStyle = oppIndicator.color;
+        ctx.lineWidth = 2.6;
+        ctx.stroke();
+        ctx.restore();
+      }
 
       if (state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') {
         const cue = getCueBall();
@@ -2385,6 +2486,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
 
   $('btn-new-match')?.addEventListener('click', () => {
     clearPendingTimers();
+    hidePocketBadgeImmediately();
     state.phase = 'MENU';
     updateHUD();
     $('setup-modal')?.classList.remove('hidden');
@@ -2473,6 +2575,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     leavingToHub = true;
     if (rafId !== null) cancelAnimationFrame(rafId);
     clearPendingTimers();
+    hidePocketBadgeImmediately();
     BilliardLandscapeGuard.teardown();
     if (audioCtx && typeof audioCtx.close === 'function') {
       audioCtx.close().catch(() => {});
