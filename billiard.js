@@ -98,8 +98,8 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           border-radius:10px;
           background:rgba(15,23,42,0.88);
           border:1px solid rgba(255,255,255,0.12);
-          min-width:185px;
-          max-width:265px;
+          min-width:195px;
+          max-width:280px;
           flex-shrink:1;
         }
         #billiard-runner-root .divider-drawer-header {
@@ -228,7 +228,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           <div id="badge-p1" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.07);font-weight:800;font-size:11px;white-space:nowrap;">
             <span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>
             <span id="p1-name" style="max-width:86px;overflow:hidden;text-overflow:ellipsis;">Player_701</span>
-            <span id="p1-group" style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,0.1);color:#e2e8f0;">OPEN</span>
+            <span id="p1-group" style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,0.1);color:#e2e8f0;">STRIPES</span>
           </div>
 
           <div id="hud-mode-label" style="padding:4px 8px;border-radius:8px;background:rgba(13,148,136,0.18);border:1px solid rgba(94,234,212,0.28);font-size:10px;font-weight:800;color:#5eead4;white-space:nowrap;">
@@ -238,7 +238,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           <div id="badge-p2" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.07);font-weight:800;font-size:11px;white-space:nowrap;">
             <span id="p2-icon">🤖</span>
             <span id="p2-name">AI</span>
-            <span id="p2-group" style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,0.1);color:#e2e8f0;">OPEN</span>
+            <span id="p2-group" style="font-size:9px;padding:1px 5px;border-radius:5px;background:rgba(255,255,255,0.1);color:#e2e8f0;">SOLIDS</span>
           </div>
 
           <div id="timer-box" style="display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:8px;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.1);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;white-space:nowrap;">
@@ -247,14 +247,14 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           </div>
         </div>
 
-        <!-- Compact Divider Drawer -->
+        <!-- Compact Divider Drawer (Left: Stripes / Right: Solids, Round-Robin per Match) -->
         <div id="divider-drawer" class="divider-drawer">
           <div class="divider-drawer-header">
             <span id="drawer-player-title" class="divider-drawer-player">Player: Player_701</span>
             <div id="drawer-group-split" class="divider-drawer-sides">
-              <span id="drawer-left-label" class="side-solids">SOLIDS</span>
+              <span id="drawer-left-label" class="side-stripes">STRIPES</span>
               <span class="drawer-split-line"></span>
-              <span id="drawer-right-label" class="side-stripes">STRIPES</span>
+              <span id="drawer-right-label" class="side-solids">SOLIDS</span>
             </div>
           </div>
           <div id="pocketed-ball-row" class="pocketed-row-stack" aria-label="Pocketed Balls Row">
@@ -699,9 +699,10 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     guideMode: 'full',
     sfx: true,
 
+    matchCount: 0,
     phase: 'AIMING',
     turn: 1,
-    groups: { 1: null, 2: null },
+    groups: { 1: 'stripes', 2: 'solids' },
     pocketedStack: [],
     timerSeconds: 60,
     timerInterval: null,
@@ -861,6 +862,19 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     return state.opponent === 'ai' ? 'AI' : 'Player 2';
   }
 
+  function getRoundRobinSides() {
+    // Left is Stripes, Right is Solids on even matches; rotates every match
+    if (state.matchCount % 2 === 0) {
+      return { left: 'stripes', right: 'solids', p1: 'stripes', p2: 'solids' };
+    }
+    return { left: 'solids', right: 'stripes', p1: 'solids', p2: 'stripes' };
+  }
+
+  function syncRoundRobinGroups() {
+    const rr = getRoundRobinSides();
+    state.groups = { 1: rr.p1, 2: rr.p2 };
+  }
+
   function showTurnModal(customText, customSub) {
     const overlay = $('turn-modal-overlay');
     const titleEl = $('turn-overlay-title');
@@ -904,7 +918,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     clearTimeout(state.pocketAnimFadeTimer);
 
     const label = ballNum === 0
-      ? 'Cue Ball Scratch'
+      ? 'Cue Ball Pocketed'
       : (ballNum === 8 ? '8-Ball Pocketed!' : `Ball #${ballNum} Pocketed`);
 
     const chipBg = ballNum > 8
@@ -1015,34 +1029,25 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
 
     const activePlayerLabel = getActiveTurnName();
     if (drawerTitle) {
-      drawerTitle.textContent = `Player: ${activePlayerLabel}`;
+      drawerTitle.textContent = `R${state.matchCount + 1} • ${activePlayerLabel}`;
     }
 
     if (leftLabel && rightLabel) {
+      const rr = getRoundRobinSides();
       if (state.mode === '8ball') {
-        const g1 = state.groups[1];
-        const g2 = state.groups[2];
-        if (!g1 && !g2) {
-          leftLabel.textContent = 'SOLIDS';
-          rightLabel.textContent = 'STRIPES';
-          leftLabel.className = 'side-solids';
-          rightLabel.className = 'side-stripes';
-        } else {
-          const p1Name = $('p1-name')?.textContent?.trim() || 'P1';
-          const p2Name = state.opponent === 'ai' ? 'AI' : 'P2';
-          const solidsOwner = g1 === 'solids' ? p1Name : p2Name;
-          const stripesOwner = g1 === 'stripes' ? p1Name : p2Name;
-          leftLabel.textContent = `SOLIDS • ${solidsOwner}`;
-          rightLabel.textContent = `STRIPES • ${stripesOwner}`;
-          leftLabel.className = 'side-solids';
-          rightLabel.className = 'side-stripes';
-        }
+        const leftIsStripes = rr.left === 'stripes';
+        leftLabel.textContent = leftIsStripes ? 'STRIPES' : 'SOLIDS';
+        leftLabel.className = leftIsStripes ? 'side-stripes' : 'side-solids';
+
+        const rightIsSolids = rr.right === 'solids';
+        rightLabel.textContent = rightIsSolids ? 'SOLIDS' : 'STRIPES';
+        rightLabel.className = rightIsSolids ? 'side-solids' : 'side-stripes';
       } else {
         const lowest = getLowestTargetNumber();
         leftLabel.textContent = lowest ? `TARGET #${lowest}` : '9-BALL';
-        rightLabel.textContent = 'RACK';
-        leftLabel.className = 'side-solids';
-        rightLabel.className = 'side-stripes';
+        leftLabel.className = 'side-stripes';
+        rightLabel.textContent = `MATCH ${state.matchCount + 1}`;
+        rightLabel.className = 'side-solids';
       }
     }
 
@@ -1087,8 +1092,8 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         g1.textContent = lowest ? '#' + lowest : 'DONE';
         g2.textContent = lowest ? '#' + lowest : 'DONE';
       } else {
-        g1.textContent = state.groups[1] ? state.groups[1].toUpperCase() : 'OPEN';
-        g2.textContent = state.groups[2] ? state.groups[2].toUpperCase() : 'OPEN';
+        g1.textContent = state.groups[1] ? state.groups[1].toUpperCase() : 'STRIPES';
+        g2.textContent = state.groups[2] ? state.groups[2].toUpperCase() : 'SOLIDS';
       }
     }
 
@@ -1122,7 +1127,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       renderTimer();
       if (state.timerSeconds <= 0) {
         clearInterval(state.timerInterval);
-        handleTimeoutFoul();
+        handleTimeoutTurnPass();
       }
     }, 1000);
   }
@@ -1140,13 +1145,13 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     }
   }
 
-  function handleTimeoutFoul() {
+  function handleTimeoutTurnPass() {
     playTone(180, 'sawtooth', 0.35, 0.16);
     haptic(60);
     state.turn = state.turn === 1 ? 2 : 1;
-    state.phase = 'BALL_IN_HAND';
+    state.phase = 'AIMING';
     updateHUD();
-    showTurnModal(`${getActiveTurnName()}'s Turn`, 'Timeout Foul • Ball in Hand');
+    showTurnModal(`${getActiveTurnName()}'s Turn`, 'Time Up • Turn Switched');
     startTurnTimer();
     maybeTriggerAI();
   }
@@ -1201,10 +1206,13 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     }
   }
 
-  function setupRack() {
+  function setupRack(advanceRoundRobin = false) {
+    if (advanceRoundRobin) {
+      state.matchCount += 1;
+    }
     clearPendingTimers();
     resizeTable(false);
-    state.groups = { 1: null, 2: null };
+    syncRoundRobinGroups();
     state.pocketedStack = [];
     state.pocketedThisShot = [];
     state.firstHitBall = null;
@@ -1221,7 +1229,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     state.phase = 'AIMING';
     state.shotWasBreak = true;
     updateHUD();
-    showTurnModal(`${getActiveTurnName()}'s Turn`, 'Break Shot');
+    showTurnModal(`${getActiveTurnName()}'s Turn`, `Match ${state.matchCount + 1} • Break Shot`);
     startTurnTimer();
 
     requestAnimationFrame(() => {
@@ -1245,15 +1253,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   }
 
   function isLegalTarget(ballNum) {
-    if (ballNum === 0) return false;
-    if (state.mode === '9ball') return ballNum === getLowestTargetNumber();
-    const myGroup = state.groups[state.turn];
-    if (!myGroup) return ballNum !== 8;
-    const remainingGroup = state.balls.some(b => !b.pocketed && (
-      myGroup === 'solids' ? (b.num >= 1 && b.num <= 7) : (b.num >= 9 && b.num <= 15)
-    ));
-    if (!remainingGroup) return ballNum === 8;
-    return myGroup === 'solids' ? (ballNum >= 1 && ballNum <= 7) : (ballNum >= 9 && ballNum <= 15);
+    return ballNum > 0;
   }
 
   function computeTrajectory() {
@@ -1418,6 +1418,12 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
             showPocketedAnimation(b.num);
             playTone(130, 'sine', 0.26, 0.24);
             haptic(35);
+
+            // Immediately trigger winner modal when the 8-ball is pocketed in 8-ball mode
+            if (state.mode === '8ball' && b.num === 8) {
+              endMatch(state.turn, `${getActiveTurnName()} pocketed the 8-Ball!`);
+              return;
+            }
             break;
           }
         }
@@ -1518,92 +1524,32 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       const cue = getCueBall();
       if (cue) {
         cue.pocketed = false;
+        cue.vx = 0;
+        cue.vy = 0;
         cue.x = playX + playW * 0.25;
         cue.y = playY + playH * 0.5;
       }
     }
 
-    let keepTurn = false;
-
     if (state.mode === '9ball') {
-      const ninePocketed = objectPocketed.includes(9);
-      const foul = scratched || state.firstHitBall === null;
-      if (ninePocketed && !foul) {
-        endMatch(state.turn, '9-Ball pocketed legally!');
+      if (objectPocketed.includes(9)) {
+        endMatch(state.turn, `${getActiveTurnName()} pocketed the 9-Ball!`);
         return;
       }
-      if (ninePocketed && foul) {
-        const nine = state.balls.find(b => b.num === 9);
-        if (nine) {
-          nine.pocketed = false;
-          nine.x = playX + playW * 0.72;
-          nine.y = playY + playH * 0.5;
-        }
-        state.pocketedStack = state.pocketedStack.filter(n => n !== 9);
-      }
-      if (foul) {
-        state.turn = otherPlayer;
-        state.phase = 'BALL_IN_HAND';
-      } else if (objectPocketed.length > 0) {
-        keepTurn = true;
+      if (objectPocketed.length > 0 && !scratched) {
         state.phase = 'AIMING';
       } else {
         state.turn = otherPlayer;
         state.phase = 'AIMING';
       }
     } else {
-      const eightPocketed = objectPocketed.includes(8);
-      const myGroup = state.groups[state.turn];
-      const hadClearedGroup = myGroup && !state.balls.some(b =>
-        !b.pocketed && b.num !== 8 && (myGroup === 'solids' ? b.num <= 7 : b.num >= 9)
-      );
-
-      if (eightPocketed) {
-        if (scratched || !hadClearedGroup) {
-          endMatch(otherPlayer, `Player ${state.turn} pocketed the 8-Ball early / fouled!`);
-        } else {
-          endMatch(state.turn, '8-Ball pocketed cleanly for the win!');
-        }
+      // 8-Ball mode: whoever pockets the 8-ball immediately wins (same as 9-ball mode)
+      if (objectPocketed.includes(8)) {
+        endMatch(state.turn, `${getActiveTurnName()} pocketed the 8-Ball!`);
         return;
       }
 
-      let foul = scratched || state.firstHitBall === null;
-      if (!foul && !state.shotWasBreak && myGroup) {
-        const hitSolids = state.firstHitBall >= 1 && state.firstHitBall <= 7;
-        const hitStripes = state.firstHitBall >= 9 && state.firstHitBall <= 15;
-        if (hadClearedGroup) {
-          if (state.firstHitBall !== 8) foul = true;
-        } else if ((myGroup === 'solids' && !hitSolids) || (myGroup === 'stripes' && !hitStripes)) {
-          foul = true;
-        }
-      }
-
-      if (!foul && !state.shotWasBreak && !state.groups[1] && objectPocketed.length > 0) {
-        const firstScored = objectPocketed[0];
-        if (firstScored >= 1 && firstScored <= 7) {
-          state.groups[state.turn] = 'solids';
-          state.groups[otherPlayer] = 'stripes';
-        } else if (firstScored >= 9 && firstScored <= 15) {
-          state.groups[state.turn] = 'stripes';
-          state.groups[otherPlayer] = 'solids';
-        }
-      }
-
-      if (!foul && objectPocketed.length > 0) {
-        const updatedGroup = state.groups[state.turn];
-        if (!updatedGroup) {
-          keepTurn = true;
-        } else {
-          keepTurn = objectPocketed.some(n =>
-            updatedGroup === 'solids' ? (n >= 1 && n <= 7) : (n >= 9 && n <= 15)
-          );
-        }
-      }
-
-      if (foul) {
-        state.turn = otherPlayer;
-        state.phase = 'BALL_IN_HAND';
-      } else if (keepTurn) {
+      if (objectPocketed.length > 0 && !scratched) {
         state.phase = 'AIMING';
       } else {
         state.turn = otherPlayer;
@@ -1617,13 +1563,14 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     updateHUD();
     showTurnModal(
       `${getActiveTurnName()}'s Turn`,
-      state.phase === 'BALL_IN_HAND' ? 'Ball in Hand • Place Cue Ball' : (keepTurn ? 'Extra Shot' : 'Active Turn')
+      objectPocketed.length > 0 && !scratched ? 'Extra Shot' : 'Active Turn'
     );
     startTurnTimer();
     maybeTriggerAI();
   }
 
   function endMatch(winnerNum, reason) {
+    if (state.phase === 'GAME_OVER') return;
     state.phase = 'GAME_OVER';
     clearPendingTimers();
     updateHUD();
@@ -1631,7 +1578,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     haptic([40, 40, 80]);
     const winnerLabel = (winnerNum === 2 && state.opponent === 'ai')
       ? '🤖 AI Wins!'
-      : `🏆 P${winnerNum} Wins!`;
+      : `🏆 ${winnerNum === 1 ? (getSavedPlayerName()) : 'Player 2'} Wins!`;
     const titleEl = $('winner-title');
     const reasonEl = $('winner-reason');
     const modalEl = $('gameover-modal');
@@ -2344,7 +2291,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     state.mode = draftMode;
     $('mode-modal')?.classList.add('hidden');
     updateHUD();
-    if (changed && state.phase !== 'MENU') setupRack();
+    if (changed && state.phase !== 'MENU') setupRack(false);
   });
 
   $('btn-open-opponent-modal')?.addEventListener('click', () => {
@@ -2381,7 +2328,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   bindSegRow('opt-sfx', val => { state.sfx = (val === 'on'); });
 
   $('btn-new-rack-top')?.addEventListener('click', () => {
-    setupRack();
+    setupRack(true);
     haptic(10);
   });
 
@@ -2392,7 +2339,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     BilliardLandscapeGuard.tryLockLandscape();
     BilliardLandscapeGuard.sync();
     $('setup-modal')?.classList.add('hidden');
-    setupRack();
+    setupRack(true);
     setTimeout(() => { if (!destroyed) resizeTable(true); }, 120);
   });
 
@@ -2409,7 +2356,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     BilliardLandscapeGuard.tryLockLandscape();
     BilliardLandscapeGuard.sync();
     $('gameover-modal')?.classList.add('hidden');
-    setupRack();
+    setupRack(true);
     setTimeout(() => { if (!destroyed) resizeTable(true); }, 120);
   });
 
@@ -2433,7 +2380,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
 
   $('btn-dock-restart')?.addEventListener('click', () => {
     closeSettingsModal();
-    setupRack();
+    setupRack(true);
     setTimeout(() => { if (!destroyed) resizeTable(true); }, 80);
   });
 
@@ -2478,7 +2425,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
   BilliardLandscapeGuard.init();
   syncSettingsSummaries();
   syncPlayerNameFromHub();
-  setupRack();
+  setupRack(false);
   rafId = requestAnimationFrame(render);
 
   return function cleanupBilliardPool() {
