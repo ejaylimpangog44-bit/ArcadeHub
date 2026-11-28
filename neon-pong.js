@@ -1,4 +1,3 @@
-
 (function () {
   window.ArcadeHubGames = window.ArcadeHubGames || {};
 
@@ -33,13 +32,15 @@
     let score = 0;
     let aiScore = 0;
     let gameOver = false;
-    let paddleH = Math.max(76, H * 0.18);
+    let paddleH = Math.max(76, H * 0.19);
     const paddleW = 14;
     let p1Y = H / 2 - paddleH / 2;
     let p2Y = H / 2 - paddleH / 2;
     let ball = { x: W / 2, y: H / 2, vx: 6.2, vy: 3.4, r: 9 };
     const keys = {};
-    const touchState = { moveY: 0, action: false };
+    let isDragging = false;
+    let dragStartY = 0;
+    let dragStartPaddleY = 0;
     let restartBtnRect = null;
 
     function syncSize() {
@@ -71,23 +72,12 @@
       score = 0;
       aiScore = 0;
       gameOver = false;
+      isDragging = false;
       p1Y = H / 2 - paddleH / 2;
       p2Y = H / 2 - paddleH / 2;
       resetBall(1);
       opts.onScore && opts.onScore(0);
       audio.beep(520, 0.08, 'triangle');
-    }
-
-    function getTouchInput() {
-      const ext = opts.input || window.ArcadeHubTouchInput;
-      if (ext && typeof ext.getState === 'function') {
-        const s = ext.getState() || {};
-        return {
-          moveY: Number(s.moveY ?? s.y ?? 0) || 0,
-          action: Boolean(s.action || s.fire)
-        };
-      }
-      return touchState;
     }
 
     function onKeyDown(e) {
@@ -98,18 +88,18 @@
     }
     function onKeyUp(e) { keys[e.code] = false; }
 
-    function onPointerMove(e) {
+    function toCanvasY(clientY) {
       const rect = canvas.getBoundingClientRect();
-      if (!rect.height) return;
-      const y = ((e.clientY - rect.top) / rect.height) * H;
-      p1Y = Math.max(10, Math.min(H - paddleH - 10, y - paddleH / 2));
+      if (!rect.height) return H / 2;
+      return ((clientY - rect.top) / rect.height) * H;
     }
 
     function onPointerDown(e) {
       const rect = canvas.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
       const px = ((e.clientX - rect.left) / rect.width) * W;
-      const py = ((e.clientY - rect.top) / rect.height) * H;
+      const py = toCanvasY(e.clientY);
+
       if (gameOver && restartBtnRect) {
         if (
           px >= restartBtnRect.x &&
@@ -121,24 +111,38 @@
           return;
         }
       }
-      onPointerMove(e);
+
+      isDragging = true;
+      dragStartY = py;
+      dragStartPaddleY = p1Y;
+      p1Y = Math.max(10, Math.min(H - paddleH - 10, py - paddleH / 2));
+    }
+
+    function onPointerMove(e) {
+      if (!isDragging) return;
+      const py = toCanvasY(e.clientY);
+      const deltaY = py - dragStartY;
+      const followTarget = py - paddleH / 2;
+      const deltaTarget = dragStartPaddleY + deltaY;
+      p1Y = Math.max(10, Math.min(H - paddleH - 10, (followTarget + deltaTarget) * 0.5));
+    }
+
+    function onPointerUp() {
+      isDragging = false;
     }
 
     syncSize();
     window.addEventListener('resize', syncSize);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
-    canvas.addEventListener('pointermove', onPointerMove);
     canvas.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
 
     function update() {
       if (gameOver) return;
-      const ti = getTouchInput();
       if (keys['KeyW'] || keys['ArrowUp']) p1Y -= 7.5 * (H / 540);
       if (keys['KeyS'] || keys['ArrowDown']) p1Y += 7.5 * (H / 540);
-      if (Math.abs(ti.moveY) > 0.08) {
-        p1Y += ti.moveY * 8.5 * (H / 540);
-      }
       p1Y = Math.max(10, Math.min(H - paddleH - 10, p1Y));
 
       const targetY = ball.y - paddleH / 2;
@@ -261,16 +265,14 @@
 
     return {
       restart,
-      setTouchInput(next) {
-        Object.assign(touchState, next || {});
-      },
       destroy() {
         cancelAnimationFrame(rafId);
         window.removeEventListener('resize', syncSize);
         window.removeEventListener('keydown', onKeyDown);
         window.removeEventListener('keyup', onKeyUp);
-        canvas.removeEventListener('pointermove', onPointerMove);
         canvas.removeEventListener('pointerdown', onPointerDown);
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
       }
     };
   }
