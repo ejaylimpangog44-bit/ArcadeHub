@@ -1,6 +1,3 @@
-const foxWidget = document.getElementById('assistive-touch-fox');
-const foxModal = document.getElementById('fox-menu-modal') || document.getElementById('hero-modal-backdrop');
-const closeFoxBtn = document.getElementById('close-fox-menu');
 const PLAYER_NAME_STORAGE_KEY = 'arcade_hub_player_name';
 const BILLIARD_ENTER_FS_KEY = 'arcade_hub_enter_fullscreen_on_billiard';
 const INITIAL_GATE_SEEN_KEY = 'arcade_hub_initial_gate_checked';
@@ -12,15 +9,12 @@ const OVERLAY_MODAL_IDS = [
   'settings-modal',
   'qr-share-modal',
   'instructions-modal',
-  'about-modal',
-  'fox-menu-modal',
-  'hero-modal-backdrop'
+  'about-modal'
 ];
 
 let lobbyEntered = false;
 let navigatingToGamePage = false;
 let pendingReturnFullscreenArmed = false;
-let foxSyncTimer = null;
 
 function clearReturnFullscreenFlags() {
   pendingReturnFullscreenArmed = false;
@@ -155,9 +149,6 @@ const LandscapeGate = (() => {
       if (!isPortraitNow() && shouldEnforceLandscape()) markInitialGateHandled();
       hideGateNow();
       applyOrientationPolicy(false);
-      if (typeof syncFoxCompanionVisibility === 'function') {
-        syncFoxCompanionVisibility();
-      }
       return;
     }
 
@@ -172,9 +163,6 @@ const LandscapeGate = (() => {
     if (!needsRotate) {
       markInitialGateHandled();
       applyOrientationPolicy(false);
-    }
-    if (typeof syncFoxCompanionVisibility === 'function') {
-      syncFoxCompanionVisibility();
     }
   }
 
@@ -378,137 +366,6 @@ function isAnyOverlayModalOpen() {
   });
 }
 
-function findDiceAnchorEl() {
-  const selectors = [
-    '#surprise-dice-btn',
-    '#dice-btn',
-    '[data-action="surprise"]',
-    '[onclick*="surpriseMeGame"]'
-  ];
-  for (const sel of selectors) {
-    const el = document.querySelector(sel);
-    if (el) return el;
-  }
-  const header = document.getElementById('hub-header');
-  if (header) {
-    const btns = header.querySelectorAll('button');
-    for (const btn of btns) {
-      if (btn.id !== 'assistive-touch-fox' && btn.textContent.includes('🎲')) {
-        return btn;
-      }
-    }
-  }
-  return null;
-}
-
-function matchFoxSizeToDice(diceEl, targetSize) {
-  if (!foxWidget) return;
-  const px = Math.max(24, Math.round(targetSize));
-
-  foxWidget.style.width = `${px}px`;
-  foxWidget.style.height = `${px}px`;
-  foxWidget.style.minWidth = `${px}px`;
-  foxWidget.style.minHeight = `${px}px`;
-  foxWidget.style.maxWidth = `${px}px`;
-  foxWidget.style.maxHeight = `${px}px`;
-  foxWidget.style.padding = '0px';
-  foxWidget.style.fontSize = `${Math.max(14, Math.round(px * 0.52))}px`;
-  foxWidget.style.lineHeight = '1';
-
-  if (diceEl) {
-    const diceStyle = getComputedStyle(diceEl);
-    if (diceStyle.borderRadius) {
-      foxWidget.style.borderRadius = diceStyle.borderRadius;
-    }
-  }
-
-  const mediaOrIcon = foxWidget.querySelector('img, svg, span');
-  if (mediaOrIcon) {
-    const innerPx = Math.max(14, Math.round(px * 0.68));
-    if (mediaOrIcon.tagName === 'IMG' || mediaOrIcon.tagName === 'SVG') {
-      mediaOrIcon.style.width = `${innerPx}px`;
-      mediaOrIcon.style.height = `${innerPx}px`;
-      mediaOrIcon.style.objectFit = 'contain';
-    } else {
-      mediaOrIcon.style.fontSize = `${Math.max(13, Math.round(px * 0.52))}px`;
-      mediaOrIcon.style.lineHeight = '1';
-    }
-  }
-}
-
-function positionFoxBesideDice() {
-  if (!foxWidget) return;
-  const diceEl = findDiceAnchorEl();
-  const rect = diceEl ? diceEl.getBoundingClientRect() : null;
-
-  if (!rect || rect.width === 0 || rect.height === 0) {
-    matchFoxSizeToDice(null, 34);
-    foxWidget.style.position = 'fixed';
-    foxWidget.style.top = '12px';
-    foxWidget.style.right = '52px';
-    foxWidget.style.left = 'auto';
-    foxWidget.style.bottom = 'auto';
-    return;
-  }
-
-  const size = Math.min(rect.width, rect.height);
-  matchFoxSizeToDice(diceEl, size);
-
-  const gap = 8;
-  const widgetW = foxWidget.offsetWidth || size;
-  const widgetH = foxWidget.offsetHeight || size;
-  const left = Math.max(8, Math.round(rect.left - widgetW - gap));
-  const top = Math.max(8, Math.round(rect.top + (rect.height - widgetH) / 2));
-
-  foxWidget.style.position = 'fixed';
-  foxWidget.style.left = `${left}px`;
-  foxWidget.style.top = `${top}px`;
-  foxWidget.style.right = 'auto';
-  foxWidget.style.bottom = 'auto';
-}
-
-function syncFoxCompanionVisibility() {
-  if (!foxWidget) return;
-  const appShell = document.getElementById('app-shell');
-  const loginScreen = document.getElementById('login-screen');
-  const hubHeader = document.getElementById('hub-header');
-  const isLoggedIn = Boolean(
-    !navigatingToGamePage &&
-    appShell &&
-    !appShell.classList.contains('hidden') &&
-    (!loginScreen || loginScreen.classList.contains('hidden'))
-  );
-  const inHub = Boolean(
-    isLoggedIn &&
-    !activeGameId &&
-    !isAnyOverlayModalOpen() &&
-    (!hubHeader || !hubHeader.classList.contains('hidden'))
-  );
-
-  foxWidget.classList.toggle('hidden', !inHub);
-  foxWidget.classList.toggle('flex', inHub);
-  foxWidget.style.display = inHub ? 'flex' : 'none';
-
-  if (inHub) {
-    requestAnimationFrame(() => {
-      positionFoxBesideDice();
-      clearTimeout(foxSyncTimer);
-      foxSyncTimer = setTimeout(() => {
-        positionFoxBesideDice();
-      }, 220);
-    });
-  }
-}
-window.syncFoxCompanionVisibility = syncFoxCompanionVisibility;
-
-window.addEventListener('resize', () => {
-  if (foxWidget && foxWidget.style.display !== 'none') {
-    positionFoxBesideDice();
-    clearTimeout(foxSyncTimer);
-    foxSyncTimer = setTimeout(positionFoxBesideDice, 200);
-  }
-});
-
 window.addEventListener('orientationchange', () => {
   if (!navigatingToGamePage && !activeGameId) {
     const hubHeader = document.getElementById('hub-header');
@@ -516,7 +373,6 @@ window.addEventListener('orientationchange', () => {
       hubHeader.classList.remove('hidden');
       hubHeader.style.display = '';
     }
-    syncFoxCompanionVisibility();
   }
 });
 
@@ -529,95 +385,8 @@ window.addEventListener('pageshow', () => {
     }
     LandscapeGate.tryLockPortrait(true);
     LandscapeGate.scheduleSync(180);
-    syncFoxCompanionVisibility();
   }
 });
-
-function openFoxCompanionModal() {
-  if (typeof window.openHeroModal === 'function') {
-    window.openHeroModal();
-    return;
-  }
-  if (foxModal) {
-    foxModal.classList.remove('hidden');
-    foxModal.classList.add('flex');
-    foxModal.style.display = 'flex';
-  }
-}
-
-if (closeFoxBtn) {
-  closeFoxBtn.onclick = () => {
-    if (typeof window.closeHeroModal === 'function') {
-      window.closeHeroModal();
-    } else if (foxModal) {
-      foxModal.classList.remove('flex');
-      foxModal.classList.add('hidden');
-      foxModal.style.display = 'none';
-    }
-    syncFoxCompanionVisibility();
-    if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
-  };
-}
-
-if (foxWidget) {
-  let isDragging = false;
-  let startX = null;
-  let startY = null;
-  let initialX = 0;
-  let initialY = 0;
-
-  foxWidget.addEventListener('pointerdown', (e) => {
-    isDragging = false;
-    startX = e.clientX;
-    startY = e.clientY;
-    initialX = foxWidget.offsetLeft;
-    initialY = foxWidget.offsetTop;
-    try {
-      foxWidget.setPointerCapture(e.pointerId);
-    } catch (_) {}
-  });
-
-  foxWidget.addEventListener('pointermove', (e) => {
-    if (startX === null || startY === null) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    if (Math.hypot(dx, dy) > 6) {
-      isDragging = true;
-      const maxX = Math.max(8, window.innerWidth - foxWidget.offsetWidth - 8);
-      const maxY = Math.max(8, window.innerHeight - foxWidget.offsetHeight - 8);
-      const clampedX = Math.min(maxX, Math.max(8, initialX + dx));
-      const clampedY = Math.min(maxY, Math.max(8, initialY + dy));
-      foxWidget.style.left = `${clampedX}px`;
-      foxWidget.style.top = `${clampedY}px`;
-      foxWidget.style.right = 'auto';
-      foxWidget.style.bottom = 'auto';
-    }
-  });
-
-  const finishPointer = (e, allowOpen) => {
-    if (allowOpen && !isDragging) {
-      openFoxCompanionModal();
-      if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
-    }
-    try {
-      foxWidget.releasePointerCapture(e.pointerId);
-    } catch (_) {}
-    startX = null;
-    startY = null;
-    isDragging = false;
-  };
-
-  foxWidget.addEventListener('pointerup', (e) => finishPointer(e, true));
-  foxWidget.addEventListener('pointercancel', (e) => finishPointer(e, false));
-
-  foxWidget.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      openFoxCompanionModal();
-      if (typeof window.AudioFX !== 'undefined') window.AudioFX.click();
-    }
-  });
-}
 
 const AudioFX = (() => {
   let ctx = null;
@@ -856,7 +625,27 @@ const GAME_ID_ALIASES = {
   'billiardpool': 'billiard',
   '8ball': 'billiard',
   '9ball': 'billiard',
-  'mythic': 'mythic'
+  'mythic': 'mythic',
+  'neon-pong': 'neon-pong',
+  'neonpong': 'neon-pong',
+  'tank-arena': 'tank-arena',
+  'tankarena': 'tank-arena',
+  'shadow-ronin': 'shadow-ronin',
+  'shadowronin': 'shadow-ronin',
+  'siege-ballista': 'siege-ballista',
+  'siegeballista': 'siege-ballista',
+  'stealth-thief': 'stealth-thief',
+  'stealththief': 'stealth-thief',
+  'ragdoll-archer': 'ragdoll-archer',
+  'ragdollarcher': 'ragdoll-archer',
+  'thumb-party': 'thumb-party',
+  'thumbparty': 'thumb-party',
+  'paper-airplane': 'paper-airplane',
+  'paperairplane': 'paper-airplane',
+  'sky-coaster': 'sky-coaster',
+  'skycoaster': 'sky-coaster',
+  'jetpack-lab': 'jetpack-lab',
+  'jetpacklab': 'jetpack-lab'
 };
 
 function normalizeGameId(rawId) {
@@ -1082,8 +871,8 @@ const SupabaseDB = (() => {
 })();
 window.SupabaseDB = SupabaseDB;
 
-window.ArcadeHero = window.ArcadeHero || {};
-window.ArcadeHero.awardGameScore = async function awardGameScore(rawGameId, rawScore, playerName) {
+window.ArcadeHub = window.ArcadeHub || {};
+window.ArcadeHub.awardGameScore = async function awardGameScore(rawGameId, rawScore, playerName) {
   const gameId = normalizeGameId(rawGameId);
   const numericScore = Math.floor(Number(rawScore) || 0);
   const activePlayer = playerName || window.playerName || 'AJ';
@@ -1178,7 +967,6 @@ function setModalVisible(modalId, visible) {
   modal.classList.toggle('hidden', !visible);
   modal.classList.toggle('flex', visible);
   modal.style.display = visible ? 'flex' : 'none';
-  syncFoxCompanionVisibility();
 }
 
 function toggleHubMenu(event) {
@@ -1289,7 +1077,17 @@ const GAME_GUIDES = {
   stickrun: 'Time jumps and runs cleanly across platforms and rooftops without falling into gaps.',
   flickpoint: 'Aim and flick quickly onto targets before time out to maximize accuracy and score.',
   billiard: 'Play 8-Ball or 9-Ball in VS AI or PVP with a 01:00 turn clock, cue spin, trajectory lines, and Tako pull-back shooting in landscape.',
-  mythic: 'Survive incoming enemy waves, gather XP gems, and pick upgrades to stay alive as long as possible.'
+  mythic: 'Survive incoming enemy waves, gather XP gems, and pick upgrades to stay alive as long as possible.',
+  'neon-pong': 'Deflect the glowing energy orb past your opponent using W/S, Up/Down, or pointer movement.',
+  'tank-arena': 'Move with WASD/Arrows and aim/fire with pointer or Space to ricochet plasma shells off walls into enemies.',
+  'shadow-ronin': 'Move with A/D or Left/Right and slash incoming foes with Space/J or clicking to build combo streaks.',
+  'siege-ballista': 'Adjust launch angle with Up/Down or clicking and fire with Space to hit targets across shifting wind.',
+  'stealth-thief': 'Move with WASD/Arrows to grab the loot and return to the safe zone while staying out of the guard’s vision cone.',
+  'ragdoll-archer': 'Move and click on the canvas to aim and launch arrows at the target dummy.',
+  'thumb-party': 'Tap left/right or use A and Right Arrow to pull the marker across the line in a head-to-head match.',
+  'paper-airplane': 'Hold pointer or touch to pitch upward, ride rising thermals, and glide as far as possible without stalling.',
+  'sky-coaster': 'Guide your glider through shifting canyon gates using pointer movement or W/S and Up/Down.',
+  'jetpack-lab': 'Hold pointer or touch to fire your jetpack thrusters and dodge electric zappers for distance points.'
 };
 
 function populateInstructionsDropdown() {
@@ -1575,7 +1373,17 @@ const GAMES = [
     envName: '8-Ball & 9-Ball • VS AI & PVP (01:00)',
     bg: 'radial-gradient(circle at 50% 35%, #0f766e 0%, #083f3b 65%, #041e1c 100%)',
     theme: 'casino_green'
-  }
+  },
+  { id: 'neon-pong', num: 21, name: 'Neon Pong: Air Battle PvP', cat: 'Action', mode: 'LANDSCAPE', featured: false, icon: '🏓', envName: 'Cyber Grid Paddle Arena', bg: 'radial-gradient(circle at 50% 50%, #082f49 0%, #070b14 75%)', theme: 'neon_chalk' },
+  { id: 'tank-arena', num: 22, name: 'Tank Arena (2D Ricochet)', cat: 'Action', mode: 'LANDSCAPE', featured: false, icon: '🛡️', envName: 'Bunker Ricochet Chamber', bg: 'radial-gradient(circle at 50% 50%, #0f172a 0%, #090d16 75%)', theme: 'neon_chalk' },
+  { id: 'shadow-ronin', num: 23, name: 'Shadow Ronin', cat: 'Action', mode: 'LANDSCAPE', featured: false, icon: '🗡️', envName: 'Crimson Moon Dojo', bg: 'linear-gradient(180deg, #1f0716 0%, #0b0914 75%)', theme: 'bamboo_dojo' },
+  { id: 'siege-ballista', num: 24, name: 'Siege Ballista', cat: 'Action', mode: 'LANDSCAPE', featured: false, icon: '🏹', envName: 'High-Wind Fortress Ridge', bg: 'linear-gradient(180deg, #172554 0%, #0c1322 75%)', theme: 'skyline_climb' },
+  { id: 'stealth-thief', num: 25, name: 'Stealth Thief (Laser Heist)', cat: 'Action', mode: 'LANDSCAPE', featured: false, icon: '🕵️', envName: 'Vault Patrol Sector', bg: 'radial-gradient(circle at 50% 50%, #111827 0%, #090d16 75%)', theme: 'matrix_vault' },
+  { id: 'ragdoll-archer', num: 26, name: '2D Ragdoll Archer', cat: 'Action', mode: 'LANDSCAPE', featured: false, icon: '🎯', envName: 'Range Overlook Field', bg: 'linear-gradient(180deg, #0f172a 0%, #0b1020 75%)', theme: 'sunny_meadow' },
+  { id: 'thumb-party', num: 27, name: '2-Player Thumb Wrestling', cat: 'Action', mode: 'LANDSCAPE', featured: false, icon: '🤼', envName: 'Split-Arena Showdown', bg: 'radial-gradient(circle at 50% 50%, #1e1b4b 0%, #090d16 75%)', theme: 'streetball_court' },
+  { id: 'paper-airplane', num: 28, name: 'Paper Airplane', cat: 'Runner', mode: 'LANDSCAPE', featured: false, icon: '✈️', envName: 'Thermal Wind Currents', bg: 'linear-gradient(180deg, #0c4a6e 0%, #081224 75%)', theme: 'stick_world' },
+  { id: 'sky-coaster', num: 29, name: 'Sky Coaster', cat: 'Runner', mode: 'LANDSCAPE', featured: false, icon: '🪂', envName: 'Neon Canyon Slalom', bg: 'linear-gradient(180deg, #1e1b4b 0%, #090d16 75%)', theme: 'synth_highway' },
+  { id: 'jetpack-lab', num: 30, name: 'Jetpack Joy-Dash', cat: 'Runner', mode: 'LANDSCAPE', featured: false, icon: '🚀', envName: 'High-Voltage Testing Lab', bg: 'linear-gradient(180deg, #1e1b4b 0%, #0c0a18 75%)', theme: 'cosmic_core' }
 ];
 window.GAMES = GAMES;
 
@@ -1861,7 +1669,6 @@ const GameSettingsDrawer = (() => {
 
     backdropEl.classList.remove('hidden', 'is-closing');
     drawerEl.classList.remove('hidden', 'is-closing');
-    syncFoxCompanionVisibility();
 
     requestAnimationFrame(() => {
       backdropEl.classList.add('is-open');
@@ -1889,7 +1696,6 @@ const GameSettingsDrawer = (() => {
       drawerEl.classList.remove('is-closing');
       backdropEl.classList.add('hidden');
       backdropEl.classList.remove('is-closing');
-      syncFoxCompanionVisibility();
       if (typeof afterClose === 'function') afterClose();
     }, 340);
   }
@@ -2378,7 +2184,6 @@ function openHubHome() {
   }
 
   syncUniversalGameBar(null);
-  syncFoxCompanionVisibility();
 
   const stage = document.getElementById('game-stage');
   if (!stage) return;
@@ -2479,7 +2284,6 @@ function openHubHome() {
 
   updateSpotlightBanner();
   renderDiscoveryShelves();
-  syncFoxCompanionVisibility();
 
   const searchInput = document.getElementById('hub-search-input');
   const clearBtn = document.getElementById('discovery-clear-btn');
@@ -2539,13 +2343,50 @@ function getGameRunners() {
   };
 }
 
+function mountArcadeHubGame(canonId, meta, stage) {
+  const registry = window.ArcadeHubGames || {};
+  const gameMod = registry[canonId];
+  if (!gameMod || typeof gameMod.mount !== 'function') return null;
+
+  const isLandscape = String(meta.mode || 'PORTRAIT').toUpperCase() === 'LANDSCAPE';
+  const canvas = document.createElement('canvas');
+  canvas.width = isLandscape ? 900 : 540;
+  canvas.height = isLandscape ? 540 : 900;
+  canvas.className = 'w-full h-full max-w-full max-h-full object-contain';
+  stage.appendChild(canvas);
+
+  let latestScore = 0;
+  let awarded = false;
+
+  const controller = gameMod.mount(canvas, {
+    soundEnabled: Boolean(window.AudioFX && window.AudioFX.enabled),
+    onScore(score) {
+      const numeric = Math.floor(Number(score) || 0);
+      if (numeric > latestScore) latestScore = numeric;
+    },
+    onGameOver(finalScore) {
+      if (awarded) return;
+      awarded = true;
+      const numeric = Math.max(latestScore, Math.floor(Number(finalScore) || 0));
+      if (numeric > 0 && window.ArcadeHub && typeof window.ArcadeHub.awardGameScore === 'function') {
+        window.ArcadeHub.awardGameScore(canonId, numeric);
+      }
+    }
+  });
+
+  return () => {
+    if (controller && typeof controller.destroy === 'function') {
+      controller.destroy();
+    }
+  };
+}
+
 function navigateToStandaloneGame(url) {
   navigatingToGamePage = true;
   if (LandscapeGate.markHandled) LandscapeGate.markHandled();
   GameSettingsDrawer.close();
   GameLoopGuard.clearAllRaf();
   LandscapeGate.hideNow();
-  syncFoxCompanionVisibility();
   window.location.href = url;
 }
 
@@ -2589,7 +2430,6 @@ function launchGame(id) {
 
   document.getElementById('hub-header')?.classList.add('hidden');
   syncUniversalGameBar(canonId);
-  syncFoxCompanionVisibility();
 
   const appShell = document.getElementById('app-shell');
   if (appShell) appShell.style.background = getGameBgStyle(meta);
@@ -2605,16 +2445,21 @@ function launchGame(id) {
   if (typeof runner === 'function') {
     activeCleanup = runner(stage, meta) || null;
   } else {
-    stage.innerHTML = `
-      <div class="w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center">
-        <div class="text-4xl">${meta.icon}</div>
-        <div class="text-lg font-black text-white" data-role="missing-title"></div>
-        <p class="text-xs text-slate-400">Make sure its script tag is included in index.html before hub.js.</p>
-        <button type="button" onclick="openHubHome()" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs">Back to Hub</button>
-      </div>
-    `;
-    const missingTitle = stage.querySelector('[data-role="missing-title"]');
-    if (missingTitle) missingTitle.textContent = `${meta.name} script not loaded yet`;
+    const registryCleanup = mountArcadeHubGame(canonId, meta, stage);
+    if (registryCleanup) {
+      activeCleanup = registryCleanup;
+    } else {
+      stage.innerHTML = `
+        <div class="w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center">
+          <div class="text-4xl">${meta.icon}</div>
+          <div class="text-lg font-black text-white" data-role="missing-title"></div>
+          <p class="text-xs text-slate-400">Make sure its script tag is included in index.html before hub.js.</p>
+          <button type="button" onclick="openHubHome()" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs">Back to Hub</button>
+        </div>
+      `;
+      const missingTitle = stage.querySelector('[data-role="missing-title"]');
+      if (missingTitle) missingTitle.textContent = `${meta.name} script not loaded yet`;
+    }
   }
 }
 window.launchGame = launchGame;
@@ -2649,7 +2494,6 @@ window.addEventListener('DOMContentLoaded', () => {
   if (shouldEnterLobbyDirectly()) {
     forceLobbyEntryState(getSavedPlayerName());
   } else {
-    syncFoxCompanionVisibility();
     SplashController.start();
   }
 });
