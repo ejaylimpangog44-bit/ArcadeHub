@@ -106,8 +106,8 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           position:relative;
           display:flex;
           align-items:center;
-          gap:5px;
-          padding:6px 10px;
+          gap:4px;
+          padding:5px 8px;
           border-radius:8px;
           background:rgba(15,23,42,0.92);
           border:1px solid rgba(255,255,255,0.14);
@@ -131,9 +131,17 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         #billiard-runner-root .player-name-pill .name-label-text {
           position:relative;
           z-index:1;
-          max-width:105px;
+          max-width:95px;
           overflow:hidden;
           text-overflow:ellipsis;
+        }
+        #billiard-runner-root .hud-center-cluster {
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:6px;
+          flex-wrap:nowrap;
+          min-width:0;
         }
         #billiard-runner-root .divider-drawer {
           display:flex;
@@ -143,8 +151,8 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           border-radius:10px;
           background:rgba(15,23,42,0.88);
           border:1px solid rgba(255,255,255,0.12);
-          min-width:230px;
-          max-width:330px;
+          min-width:220px;
+          max-width:320px;
           flex-shrink:1;
         }
         #billiard-runner-root .divider-player-above {
@@ -282,35 +290,37 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         }
       </style>
 
-      <!-- Single-Row Top HUD: P1 Left of Divider, Opponent Right of Divider -->
+      <!-- Single-Row Top HUD: P1 + Divider Drawer + Opponent in Center -->
       <div id="top-hud" class="pool-hud" style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 10px;background:rgba(15,23,42,0.94);border-bottom:1px solid rgba(255,255,255,0.1);flex-wrap:nowrap;min-height:44px;z-index:5;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0;">
-          <div id="badge-p1" class="player-name-pill">
-            <span id="p1-name" class="name-label-text">Player_701</span>
-            <span id="p1-timer-bar" class="name-timer-bar"></span>
-          </div>
+        <div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:center;">
+          <div class="hud-center-cluster">
+            <div id="badge-p1" class="player-name-pill">
+              <span id="p1-name" class="name-label-text">Player_701</span>
+              <span id="p1-timer-bar" class="name-timer-bar"></span>
+            </div>
 
-          <!-- Divided Drawer: Names Above, Group in Center, Left = Solids / Right = Stripes -->
-          <div id="divider-drawer" class="divider-drawer">
-            <div id="drawer-player-title" class="divider-player-above">Player_701 vs AI</div>
-            <div class="divider-drawer-header">
-              <div id="drawer-group-split" class="divider-drawer-sides">
-                <span id="drawer-left-label" class="side-solids">LEFT: SOLIDS</span>
-                <span class="drawer-split-line"></span>
-                <span id="drawer-center-group" class="side-center-tag">OPEN</span>
-                <span class="drawer-split-line"></span>
-                <span id="drawer-right-label" class="side-stripes">RIGHT: STRIPES</span>
+            <!-- Divided Drawer: Names Above, Group in Center, Left = Solids / Right = Stripes -->
+            <div id="divider-drawer" class="divider-drawer">
+              <div id="drawer-player-title" class="divider-player-above">Player_701 vs AI</div>
+              <div class="divider-drawer-header">
+                <div id="drawer-group-split" class="divider-drawer-sides">
+                  <span id="drawer-left-label" class="side-solids">LEFT: SOLIDS</span>
+                  <span class="drawer-split-line"></span>
+                  <span id="drawer-center-group" class="side-center-tag">OPEN</span>
+                  <span class="drawer-split-line"></span>
+                  <span id="drawer-right-label" class="side-stripes">RIGHT: STRIPES</span>
+                </div>
+              </div>
+              <div id="pocketed-ball-row" class="pocketed-row-stack" aria-label="Pocketed Balls Row">
+                <span class="pocketed-empty-hint">Pocketed balls stack here</span>
               </div>
             </div>
-            <div id="pocketed-ball-row" class="pocketed-row-stack" aria-label="Pocketed Balls Row">
-              <span class="pocketed-empty-hint">Pocketed balls stack here</span>
-            </div>
-          </div>
 
-          <div id="badge-p2" class="player-name-pill">
-            <span id="p2-icon" style="position:relative;z-index:1;">🤖</span>
-            <span id="p2-name" class="name-label-text">AI</span>
-            <span id="p2-timer-bar" class="name-timer-bar"></span>
+            <div id="badge-p2" class="player-name-pill">
+              <span id="p2-icon" style="position:relative;z-index:1;">🤖</span>
+              <span id="p2-name" class="name-label-text">AI</span>
+              <span id="p2-timer-bar" class="name-timer-bar"></span>
+            </div>
           </div>
         </div>
 
@@ -1042,10 +1052,6 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     return state.balls.some(b => !b.pocketed && getBallGroup(b.num) === grp);
   }
 
-  function isEightBallOnBoard() {
-    return state.balls.some(b => b.num === 8 && !b.pocketed);
-  }
-
   function isEightBallIllegalTarget(shooterTurn) {
     return state.mode === '8ball' && hasRemainingGroupBalls(shooterTurn);
   }
@@ -1403,19 +1409,6 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     return min === Infinity ? null : min;
   }
 
-  function isLegalTarget(ballNum) {
-    if (ballNum <= 0) return false;
-    if (state.mode === '9ball') {
-      return ballNum === getLowestTargetNumber();
-    }
-    if (ballNum === 8) {
-      return !hasRemainingGroupBalls(state.turn);
-    }
-    const activeGroup = state.groups[state.turn];
-    if (!activeGroup) return true;
-    return getBallGroup(ballNum) === activeGroup;
-  }
-
   function findBestPocketForBall(ball, incomingDir) {
     let bestPk = null;
     let bestLineScore = -Infinity;
@@ -1486,16 +1479,13 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
     let targetLineLen = 95;
     let pocketAligned = false;
     let cueDeflectDir = null;
-    let illegalTargetCircle = null;
+    let illegalAimTarget = null;
 
     if (hitBall) {
       const illegalOpp = isOpponentGroupBall(hitBall.num, state.turn);
       const illegalEight = hitBall.num === 8 && isEightBallIllegalTarget(state.turn);
       if (illegalOpp || illegalEight) {
-        illegalTargetCircle = {
-          ball: hitBall,
-          color: '#ef4444'
-        };
+        illegalAimTarget = hitBall;
         return {
           cue,
           ghostX,
@@ -1505,7 +1495,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
           targetLineLen: 0,
           pocketAligned: false,
           cueDeflectDir: null,
-          illegalTargetCircle
+          illegalAimTarget
         };
       }
 
@@ -1551,7 +1541,7 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
       targetLineLen,
       pocketAligned,
       cueDeflectDir,
-      illegalTargetCircle
+      illegalAimTarget: null
     };
   }
 
@@ -1986,57 +1976,57 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         ctx.fill();
       });
 
-      let oppIndicator = null;
+      let illegalAimTarget = null;
 
       if ((state.phase === 'AIMING' || state.phase === 'BALL_IN_HAND') && state.guideMode !== 'off') {
         const traj = computeTrajectory();
         if (traj) {
           const {
             cue, ghostX, ghostY, hitBall, targetDir, targetLineLen,
-            pocketAligned, cueDeflectDir, illegalTargetCircle
+            pocketAligned, cueDeflectDir
           } = traj;
-          oppIndicator = illegalTargetCircle;
+          illegalAimTarget = traj.illegalAimTarget;
 
-          if (!illegalTargetCircle) {
-            ctx.save();
-            ctx.setLineDash([6, 6]);
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.78)';
+          // Keep cue trajectory line visible up to the contact/ghost point
+          ctx.save();
+          ctx.setLineDash([6, 6]);
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = illegalAimTarget ? 'rgba(239, 68, 68, 0.85)' : 'rgba(255, 255, 255, 0.78)';
+          ctx.beginPath();
+          ctx.moveTo(cue.x, cue.y);
+          if (state.guideMode === 'short') {
+            const shortDist = Math.min(Math.hypot(ghostX - cue.x, ghostY - cue.y), 140);
+            ctx.lineTo(cue.x + Math.cos(state.aimAngle) * shortDist, cue.y + Math.sin(state.aimAngle) * shortDist);
+          } else {
+            ctx.lineTo(ghostX, ghostY);
+          }
+          ctx.stroke();
+          ctx.restore();
+
+          // When aiming at an unpocketed opponent group ball (or early 8-ball), end the line at the impact point with no extra lines
+          if (!illegalAimTarget && state.guideMode === 'full') {
             ctx.beginPath();
-            ctx.moveTo(cue.x, cue.y);
-            if (state.guideMode === 'short') {
-              const shortDist = Math.min(Math.hypot(ghostX - cue.x, ghostY - cue.y), 140);
-              ctx.lineTo(cue.x + Math.cos(state.aimAngle) * shortDist, cue.y + Math.sin(state.aimAngle) * shortDist);
-            } else {
-              ctx.lineTo(ghostX, ghostY);
-            }
+            ctx.arc(ghostX, ghostY, ballR, 0, Math.PI * 2);
+            ctx.strokeStyle = pocketAligned ? '#34d399' : (hitBall ? 'rgba(251, 191, 36, 0.85)' : 'rgba(255, 255, 255, 0.4)');
+            ctx.lineWidth = pocketAligned ? 2.2 : 1.5;
             ctx.stroke();
-            ctx.restore();
 
-            if (state.guideMode === 'full') {
+            if (hitBall && targetDir) {
               ctx.beginPath();
-              ctx.arc(ghostX, ghostY, ballR, 0, Math.PI * 2);
-              ctx.strokeStyle = pocketAligned ? '#34d399' : (hitBall ? 'rgba(251, 191, 36, 0.85)' : 'rgba(255, 255, 255, 0.4)');
-              ctx.lineWidth = pocketAligned ? 2.2 : 1.5;
+              ctx.moveTo(hitBall.x, hitBall.y);
+              ctx.lineTo(hitBall.x + targetDir.x * targetLineLen, hitBall.y + targetDir.y * targetLineLen);
+              ctx.strokeStyle = pocketAligned ? '#34d399' : '#fbbf24';
+              ctx.lineWidth = pocketAligned ? 3 : 2.2;
               ctx.stroke();
+            }
 
-              if (hitBall && targetDir) {
-                ctx.beginPath();
-                ctx.moveTo(hitBall.x, hitBall.y);
-                ctx.lineTo(hitBall.x + targetDir.x * targetLineLen, hitBall.y + targetDir.y * targetLineLen);
-                ctx.strokeStyle = pocketAligned ? '#34d399' : '#fbbf24';
-                ctx.lineWidth = pocketAligned ? 3 : 2.2;
-                ctx.stroke();
-              }
-
-              if (cueDeflectDir) {
-                ctx.beginPath();
-                ctx.moveTo(ghostX, ghostY);
-                ctx.lineTo(ghostX + cueDeflectDir.x * 65, ghostY + cueDeflectDir.y * 65);
-                ctx.strokeStyle = 'rgba(96, 165, 250, 0.75)';
-                ctx.lineWidth = 1.6;
-                ctx.stroke();
-              }
+            if (cueDeflectDir) {
+              ctx.beginPath();
+              ctx.moveTo(ghostX, ghostY);
+              ctx.lineTo(ghostX + cueDeflectDir.x * 65, ghostY + cueDeflectDir.y * 65);
+              ctx.strokeStyle = 'rgba(96, 165, 250, 0.75)';
+              ctx.lineWidth = 1.6;
+              ctx.stroke();
             }
           }
         }
@@ -2046,48 +2036,13 @@ window.initBilliardPool = function initBilliardPool(stage, meta = {}) {
         if (!b.pocketed) drawBall(b);
       });
 
-      // Circle mark on active group balls while 8-ball is on board and group balls remain
-      if (state.mode === '8ball' && isEightBallOnBoard() && state.groups[state.turn] && hasRemainingGroupBalls(state.turn)) {
-        const activeGroup = state.groups[state.turn];
-        const ringColor = activeGroup === 'stripes' ? '#f472b6' : '#38bdf8';
-        ctx.save();
-        ctx.strokeStyle = ringColor;
-        ctx.lineWidth = 2;
-        state.balls.forEach(b => {
-          if (!b.pocketed && getBallGroup(b.num) === activeGroup) {
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, ballR + 3.5, 0, Math.PI * 2);
-            ctx.stroke();
-          }
-        });
-        ctx.restore();
-      }
-
-      // Red circle mark on remaining opponent group balls when opponent's group balls are not yet all pocketed
-      const oppPlayer = state.turn === 1 ? 2 : 1;
-      if (state.mode === '8ball' && state.groups[oppPlayer] && hasRemainingGroupBalls(oppPlayer)) {
-        const oppGroup = state.groups[oppPlayer];
-        ctx.save();
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 2;
-        state.balls.forEach(b => {
-          if (!b.pocketed && getBallGroup(b.num) === oppGroup) {
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, ballR + 5.2, 0, Math.PI * 2);
-            ctx.stroke();
-          }
-        });
-        ctx.restore();
-      }
-
-      // Highlighted red ring on aimed illegal target (opponent ball or early 8-ball)
-      if (oppIndicator && oppIndicator.ball && !oppIndicator.ball.pocketed) {
-        const ob = oppIndicator.ball;
+      // Only draw a red circle when actively aiming at an unpocketed opponent group ball (or early 8-ball)
+      if (illegalAimTarget && !illegalAimTarget.pocketed) {
         ctx.save();
         ctx.beginPath();
-        ctx.arc(ob.x, ob.y, ballR + 6.5, 0, Math.PI * 2);
+        ctx.arc(illegalAimTarget.x, illegalAimTarget.y, ballR + 5.5, 0, Math.PI * 2);
         ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.8;
         ctx.stroke();
         ctx.restore();
       }
